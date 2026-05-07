@@ -1,0 +1,240 @@
+import {
+  FiLock,
+  FiDatabase,
+  FiUsers,
+  FiList,
+  FiCpu,
+  FiStar,
+  FiCloud,
+  FiGlobe,
+  FiServer,
+  FiMessageCircle,
+  FiWifi,
+  FiHardDrive,
+  FiCheckCircle,
+  FiShield,
+  FiHeadphones,
+  FiPackage,
+} from "react-icons/fi";
+
+export const BRAND = "#6366f1";
+export const BRAND_BG = "rgba(99,102,241,0.10)";
+export const BRAND_GLOW = "rgba(99,102,241,0.15)";
+
+export const ICON_META = {
+  software: {
+    Icon: FiLock,
+    color: "#6366f1",
+    bg: "rgba(99,102,241,0.10)",
+  },
+  erp: {
+    Icon: FiDatabase,
+    color: "#0ea5e9",
+    bg: "rgba(14,165,233,0.10)",
+  },
+  crm: {
+    Icon: FiUsers,
+    color: "#10b981",
+    bg: "rgba(16,185,129,0.10)",
+  },
+  queue: {
+    Icon: FiList,
+    color: "#f59e0b",
+    bg: "rgba(245,158,11,0.10)",
+  },
+  iot: {
+    Icon: FiCpu,
+    color: "#8b5cf6",
+    bg: "rgba(139,92,246,0.10)",
+  },
+  vas: {
+    Icon: FiStar,
+    color: "#ec4899",
+    bg: "rgba(236,72,153,0.10)",
+  },
+  cloud: {
+    Icon: FiCloud,
+    color: "#14b8a6",
+    bg: "rgba(20,184,166,0.10)",
+  },
+  hosting: {
+    Icon: FiGlobe,
+    color: "#3b82f6",
+    bg: "rgba(59,130,246,0.10)",
+  },
+  datacenter: {
+    Icon: FiServer,
+    color: "#64748b",
+    bg: "rgba(100,116,139,0.10)",
+  },
+  consultation: {
+    Icon: FiMessageCircle,
+    color: "#d97706",
+    bg: "rgba(217,119,6,0.10)",
+  },
+  networking: {
+    Icon: FiWifi,
+    color: "#7c3aed",
+    bg: "rgba(124,58,237,0.10)",
+  },
+  hardware: {
+    Icon: FiHardDrive,
+    color: "#0f172a",
+    bg: "rgba(15,23,42,0.10)",
+  },
+};
+
+export const STATIC_SOLUTIONS = [
+  {
+    _id: "1",
+    icon: "software",
+    slug: "software-licensing",
+    to: "/it-solutions/software-licensing",
+    title: "Software Licensing",
+    subtitle: "Enterprise software procurement",
+  },
+  {
+    _id: "2",
+    icon: "erp",
+    slug: "erp-solution",
+    to: "/it-solutions/erp-solution",
+    title: "ERP Solution",
+    subtitle: "Streamline operations end-to-end",
+  },
+  {
+    _id: "3",
+    icon: "crm",
+    slug: "crm-solution",
+    to: "/it-solutions/crm-solution",
+    title: "CRM Solution",
+    subtitle: "Manage & grow customer relationships",
+  },
+  {
+    _id: "4",
+    icon: "queue",
+    slug: "queue-management",
+    to: "/it-solutions/queue-management",
+    title: "Queue Management",
+    subtitle: "Smart flow for customers & staff",
+  },
+  {
+    _id: "5",
+    icon: "iot",
+    slug: "iot-solutions",
+    to: "/it-solutions/iot-solutions",
+    title: "IoT Solutions",
+    subtitle: "Connected devices & smart systems",
+  },
+  {
+    _id: "6",
+    icon: "vas",
+    slug: "vas-solutions",
+    to: "/it-solutions/vas-solutions",
+    title: "VAS Solutions",
+    subtitle: "Value-added services for telcos",
+  },
+  {
+    _id: "7",
+    icon: "cloud",
+    slug: "cloud-services",
+    to: "/it-solutions/cloud-services",
+    title: "Cloud Services",
+    subtitle: "Scalable infrastructure & hosting",
+  },
+  {
+    _id: "8",
+    icon: "hosting",
+    slug: "web-hosting-domains",
+    to: "/it-solutions/web-hosting-domains",
+    title: "Web Hosting & Domains",
+    subtitle: "Fast, reliable hosting solutions",
+  },
+  {
+    _id: "9",
+    icon: "datacenter",
+    slug: "data-center",
+    to: "/it-solutions/data-center",
+    title: "Data Center",
+    subtitle: "Managed data center services",
+  },
+  {
+    _id: "10",
+    icon: "consultation",
+    slug: "it-consultation",
+    to: "/it-solutions/it-consultation",
+    title: "IT Consultation",
+    subtitle: "Expert guidance & roadmap planning",
+  },
+  {
+    _id: "11",
+    icon: "networking",
+    slug: "networking-hardware",
+    to: "/it-solutions/networking-hardware",
+    title: "Networking Hardware",
+    subtitle: "Enterprise-grade network equipment",
+  },
+  {
+    _id: "12",
+    icon: "hardware",
+    slug: "data-center-hardware",
+    to: "/it-solutions/data-center-hardware",
+    title: "Data Center Hardware",
+    subtitle: "Servers, storage & infrastructure",
+  },
+];
+
+export const WHY_US = [
+  {
+    Icon: FiShield,
+    title: "Vendor-Neutral Advice",
+    desc: "We evaluate and recommend based on your requirements — not vendor margins. You get the right solution, not the easiest sale.",
+  },
+  {
+    Icon: FiCheckCircle,
+    title: "End-to-End Delivery",
+    desc: "From needs assessment and vendor selection to procurement, deployment and support — we own the entire process.",
+  },
+  {
+    Icon: FiHeadphones,
+    title: "Dedicated Account Team",
+    desc: "A named point of contact who understands your business, budget, and timeline from day one.",
+  },
+  {
+    Icon: FiPackage,
+    title: "Competitive Pricing",
+    desc: "Our volume relationships and deep vendor network mean you access enterprise pricing regardless of your company size.",
+  },
+];
+
+export const PROCESS_STEPS = [
+  {
+    step: "01",
+    title: "Discovery Call",
+    desc: "We understand your environment, pain points, and goals.",
+  },
+  {
+    step: "02",
+    title: "Needs Assessment",
+    desc: "Technical audit, scope definition, and requirements doc.",
+  },
+  {
+    step: "03",
+    title: "Vendor Shortlist",
+    desc: "We present 2–3 qualified options with pros, cons, and pricing.",
+  },
+  {
+    step: "04",
+    title: "Procurement & Contracts",
+    desc: "We negotiate, procure, and handle all licensing paperwork.",
+  },
+  {
+    step: "05",
+    title: "Deployment & Handover",
+    desc: "Implementation support and knowledge transfer to your team.",
+  },
+  {
+    step: "06",
+    title: "Ongoing Support",
+    desc: "Post-go-live support, renewals, and continuous optimisation.",
+  },
+];

@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+client/node_modules/
+portal-api/node_modules/
+server/node_modules/
+
+# environment files - never push passwords
+.env
+.env.*
+client/.env
+client/.env.*
+portal-api/.env
+portal-api/.env.*
+
+# production builds
+build/
+dist/
+client/build/
+client/dist/
+
+# old server folder - do not push
+server/
+
+# uploaded files - do not push client uploads
+portal-api/uploads/
+
+# editor / system
+.DS_Store
+.vscode/
+.cache/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# archives
+*.zip

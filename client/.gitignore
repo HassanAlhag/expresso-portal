@@ -1,0 +1,6 @@
+node_modules/
+.cache/
+*.zip
+client/Archive 2.zip
+dist/
+build/
