@@ -11,7 +11,7 @@ import Input from "../../../shared/ui/Input";
 import Modal from "../../../shared/ui/Modal";
 import HomepageSlidePreview from "./HomepageSlidePreview";
 import { EMPTY_HOMEPAGE_SLIDE } from "../constants/homepageSlides.constants";
-
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
 // Change this import to your actual media picker path/name.
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
 
@@ -242,7 +242,7 @@ function ImagePickerField({ label, value, onPick, onClear }) {
         <div className="grid aspect-[16/9] place-items-center bg-slate-50">
           {value ? (
             <img
-              src={value}
+              src={getAssetUrl(value)}
               alt={label}
               className="h-full w-full object-cover"
               draggable={false}

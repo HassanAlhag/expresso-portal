@@ -31,6 +31,8 @@ import {
 } from "../api";
 
 import CustomerFormModal from "../components/CustomerFormModal";
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
+
 import CreateLoginModal from "../components/CreateLoginModal";
 
 const DEPT_OPTIONS = [
@@ -94,7 +96,7 @@ export default function CustomersPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -125,7 +127,7 @@ export default function CustomersPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, isActive, dept, sort, page]);
 
   const resetFilters = () => {
@@ -177,19 +179,21 @@ export default function CustomersPage() {
 
   const onDeactivate = (c) => {
     if (!c?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Deactivate client",
       message: `Deactivate "${c.companyName}"?`,
       danger: true,
       confirmLabel: "Deactivate",
       onConfirm: async () => {
         setBusy(true);
-        setConfirm(null);
+        setConfirmState(null);
         try {
           await deleteCustomer(c._id);
           await load();
         } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Deactivate failed");
+          toast.error(
+            e?.response?.data?.message || e?.message || "Deactivate failed"
+          );
         } finally {
           setBusy(false);
         }
@@ -207,7 +211,9 @@ export default function CustomersPage() {
       await load();
       toast.success("Login created and linked to client.");
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Create login failed");
+      toast.error(
+        e?.response?.data?.message || e?.message || "Create login failed"
+      );
     } finally {
       setBusy(false);
     }
@@ -340,7 +346,7 @@ export default function CustomersPage() {
                       <div className="flex h-40 items-center justify-center rounded-[20px] border border-black/5 bg-slate-100 overflow-hidden">
                         {c.logoUrl ? (
                           <img
-                            src={c.logoUrl}
+                            src={getAssetUrl(c.logoUrl)}
                             alt={c.companyName}
                             className="h-full w-full object-cover"
                           />
@@ -501,13 +507,13 @@ export default function CustomersPage() {
         busy={busy}
       />
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        confirmLabel={confirm?.confirmLabel}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        confirmLabel={confirmState?.confirmLabel}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

@@ -5,6 +5,11 @@ export async function listPortfolio(params = {}) {
   return data;
 }
 
+export async function getPortfolio(id) {
+  const { data } = await api.get(`/portfolio/${id}`);
+  return data;
+}
+
 export async function createPortfolio(payload) {
   const { data } = await api.post("/portfolio", payload);
   return data;

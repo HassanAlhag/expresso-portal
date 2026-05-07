@@ -17,6 +17,7 @@ import {
   XCircle,
 } from "lucide-react";
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
 
 const DEPT_OPTIONS = [
   {
@@ -265,7 +266,7 @@ export default function CustomerFormModal({
                     <div className="flex h-36 items-center justify-center overflow-hidden rounded-[20px] border border-black/[0.07] bg-slate-50">
                       {logoUrl ? (
                         <img
-                          src={logoUrl}
+                          src={getAssetUrl(logoUrl)}
                           alt={companyName || "Logo"}
                           className="h-full w-full object-contain p-3"
                         />

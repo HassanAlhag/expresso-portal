@@ -11,6 +11,7 @@ export default function CustomerProjectsTab({
   projectsError,
   projects,
   onOpenProject,
+  onNewProject,
 }) {
   if (projectsLoading) {
     return (
@@ -37,7 +38,9 @@ export default function CustomerProjectsTab({
       <EmptyState
         icon={BriefcaseBusiness}
         title="No projects yet"
-        message="This client has no additional or delivery projects yet."
+        message="This client has no projects yet."
+        actionLabel={onNewProject ? "New project" : undefined}
+        onAction={onNewProject}
       />
     );
   }

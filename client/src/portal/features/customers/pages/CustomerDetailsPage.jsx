@@ -29,8 +29,14 @@ import {
 } from "lucide-react";
 
 import CustomerFormModal from "../components/CustomerFormModal";
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
-import { getCustomerById, createCustomerLogin, updateCustomer, deleteCustomer } from "../api";
+import {
+  getCustomerById,
+  createCustomerLogin,
+  updateCustomer,
+  deleteCustomer,
+} from "../api";
 import {
   listEnrollments,
   generateJobsFromEnrollment,
@@ -67,7 +73,6 @@ const DEPT_META = {
     classes: "border-violet-200 bg-violet-50 text-violet-700",
   },
 };
-
 
 export default function CustomerDetailsPage() {
   const nav = useNavigate();
@@ -166,7 +171,9 @@ export default function CustomerDetailsPage() {
           await deleteCustomer(customer._id);
           nav("/portal/customers");
         } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
+          toast.error(
+            e?.response?.data?.message || e?.message || "Delete failed"
+          );
           setBusy(false);
         }
       },
@@ -182,7 +189,9 @@ export default function CustomerDetailsPage() {
       if (projectId) nav(`/portal/projects/${projectId}`);
       else await loadProjects();
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Create project failed");
+      toast.error(
+        e?.response?.data?.message || e?.message || "Create project failed"
+      );
     } finally {
       setBusy(false);
     }
@@ -217,7 +226,6 @@ export default function CustomerDetailsPage() {
       setJobsLoading(false);
     }
   };
-
 
   const loadEnrollments = async () => {
     if (!customer?._id) return;
@@ -327,7 +335,9 @@ export default function CustomerDetailsPage() {
       await loadCustomer();
       toast.success("Login created and linked.");
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Create login failed");
+      toast.error(
+        e?.response?.data?.message || e?.message || "Create login failed"
+      );
     } finally {
       setBusy(false);
     }
@@ -389,7 +399,7 @@ export default function CustomerDetailsPage() {
               <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-3xl border border-black/10 bg-white">
                 {customer.logoUrl ? (
                   <img
-                    src={customer.logoUrl}
+                    src={getAssetUrl(customer.logoUrl)}
                     alt={customer.companyName}
                     className="h-full w-full object-contain p-2"
                   />
@@ -419,7 +429,9 @@ export default function CustomerDetailsPage() {
                     if (!meta) return null;
                     const Icon = meta.icon;
                     return (
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] ${meta.classes}`}>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] ${meta.classes}`}
+                      >
                         <Icon size={11} />
                         {meta.label}
                       </span>
@@ -432,22 +444,38 @@ export default function CustomerDetailsPage() {
                     {customer.crmDealId && (
                       <button
                         type="button"
-                        onClick={() => nav(`/portal/crm/deals/${customer.crmDealId._id || customer.crmDealId}`)}
+                        onClick={() =>
+                          nav(
+                            `/portal/crm/deals/${
+                              customer.crmDealId._id || customer.crmDealId
+                            }`
+                          )
+                        }
                         className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.14em] text-indigo-700 transition hover:bg-indigo-100"
                       >
                         Source: CRM deal
-                        {customer.crmDealId.title ? ` · ${customer.crmDealId.title}` : ""}
+                        {customer.crmDealId.title
+                          ? ` · ${customer.crmDealId.title}`
+                          : ""}
                         <ExternalLink size={11} />
                       </button>
                     )}
                     {customer.crmAccountId && (
                       <button
                         type="button"
-                        onClick={() => nav(`/portal/crm/accounts/${customer.crmAccountId._id || customer.crmAccountId}`)}
+                        onClick={() =>
+                          nav(
+                            `/portal/crm/accounts/${
+                              customer.crmAccountId._id || customer.crmAccountId
+                            }`
+                          )
+                        }
                         className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.14em] text-slate-600 transition hover:bg-slate-100"
                       >
                         CRM account
-                        {customer.crmAccountId.name ? ` · ${customer.crmAccountId.name}` : ""}
+                        {customer.crmAccountId.name
+                          ? ` · ${customer.crmAccountId.name}`
+                          : ""}
                         <ExternalLink size={11} />
                       </button>
                     )}
@@ -610,6 +638,7 @@ export default function CustomerDetailsPage() {
           projectsError={projectsError}
           projects={projects}
           onOpenProject={(projectId) => nav(`/portal/projects/${projectId}`)}
+          onNewProject={() => setNewProjectOpen(true)}
         />
       ) : null}
 
@@ -627,7 +656,9 @@ export default function CustomerDetailsPage() {
         />
       ) : null}
 
-      {tab === "productions" && showAgencyTabs ? <CustomerProductionsTab customerId={customer._id} /> : null}
+      {tab === "productions" && showAgencyTabs ? (
+        <CustomerProductionsTab customerId={customer._id} />
+      ) : null}
 
       {tab === "procurement" && showProcurementTab ? (
         <CustomerProcurementTab customer={customer} />
@@ -647,7 +678,9 @@ export default function CustomerDetailsPage() {
         />
       ) : null}
 
-      {tab === "activity" ? <CustomerActivityTab /> : null}
+      {tab === "activity" ? (
+        <CustomerActivityTab customerId={customer._id} />
+      ) : null}
 
       <CustomerFormModal
         open={editOpen}

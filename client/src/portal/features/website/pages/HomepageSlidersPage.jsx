@@ -21,7 +21,7 @@ export default function HomepageSlidersPage() {
   const [items, setItems] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirm] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -180,11 +180,11 @@ export default function HomepageSlidersPage() {
         onSubmit={handleSave}
       />
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
         onClose={() => setConfirm(null)}
       />
     </>

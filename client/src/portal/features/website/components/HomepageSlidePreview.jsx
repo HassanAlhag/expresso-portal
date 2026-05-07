@@ -1,5 +1,6 @@
 import React from "react";
 import { Image as ImageIcon } from "lucide-react";
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
 
 export default function HomepageSlidePreview({ slide }) {
   const mainImage = slide?.imageUrl || "";
@@ -11,7 +12,7 @@ export default function HomepageSlidePreview({ slide }) {
         <div className="relative min-h-[220px] overflow-hidden">
           {mainImage ? (
             <img
-              src={mainImage}
+              src={getAssetUrl(mainImage)}
               alt={slide?.title || "Slide preview"}
               className="absolute inset-0 h-full w-full object-cover"
               draggable={false}
@@ -60,7 +61,7 @@ export default function HomepageSlidePreview({ slide }) {
           <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-black/20">
             {thumbImage ? (
               <img
-                src={thumbImage}
+                src={getAssetUrl(thumbImage)}
                 alt="Thumbnail preview"
                 className="aspect-[4/3] w-full object-cover"
                 draggable={false}

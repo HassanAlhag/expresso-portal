@@ -11,6 +11,7 @@ import {
 
 import Button from "../../../shared/ui/Button";
 import Badge from "../../../shared/ui/Badge";
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
 
 export default function HomepageSlideRow({
   slide,
@@ -28,7 +29,7 @@ export default function HomepageSlideRow({
       <div className="h-16 w-28 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
         {thumb ? (
           <img
-            src={thumb}
+            src={getAssetUrl(thumb)}
             alt={slide.title}
             className="h-full w-full object-cover"
             draggable={false}
