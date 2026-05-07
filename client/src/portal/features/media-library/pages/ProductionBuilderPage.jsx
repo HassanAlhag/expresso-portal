@@ -6,6 +6,8 @@ import { ImagePlus } from "lucide-react";
 import ProductionForm from "../components/ProductionForm";
 import AttachMediaModal from "../components/AttachMediaModal";
 
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
+
 export default function ProductionBuilderPage() {
   const toast = useToast();
   const [form, setForm] = useState({
@@ -57,7 +59,7 @@ export default function ProductionBuilderPage() {
                 <div className="aspect-[4/3] bg-slate-50 overflow-hidden">
                   {m.type === "image" ? (
                     <img
-                      src={m.thumbnailUrl || m.url}
+                      src={getAssetUrl(m.thumbnailUrl || m.url)}
                       alt={m.title}
                       className="h-full w-full object-cover"
                     />
@@ -87,16 +89,20 @@ export default function ProductionBuilderPage() {
       </Card>
 
       <AttachMediaModal
-        open={logoPickerOpen}
-        onClose={() => setLogoPickerOpen(false)}
-        onlyType="image"
-        multiple={false}
+        open={attachOpen}
+        onClose={() => setAttachOpen(false)}
+        multiple
         status=""
-        title="Select Client Logo"
-        onAttach={(item) => {
-          if (!item) return;
-          setLogoUrl(item.url || item.thumbnailUrl || "");
-          setLogoMediaId(item._id || "");
+        title="Attach media"
+        onAttach={(items) => {
+          const selected = Array.isArray(items) ? items : [items];
+
+          setForm((prev) => ({
+            ...prev,
+            assets: [...(prev.assets || []), ...selected.filter(Boolean)],
+          }));
+
+          setAttachOpen(false);
         }}
       />
     </div>

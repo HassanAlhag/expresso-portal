@@ -5,6 +5,7 @@ import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import { useToast } from "../../../shared/ui/Toast";
 import { X, Trash2, Save, Copy, ExternalLink } from "lucide-react";
 import { updateMedia, deleteMedia } from "../api";
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
 
 const BRAND = "#7F8AD1";
 
@@ -16,6 +17,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
   const [status, setStatus] = useState("draft");
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(null);
+  const assetUrl = getAssetUrl(item?.url);
 
   useEffect(() => {
     if (!item) return;
@@ -70,7 +72,9 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
           onChanged?.(null, { deleted: true, id: item._id });
           onClose?.();
         } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
+          toast.error(
+            e?.response?.data?.message || e?.message || "Delete failed"
+          );
           setConfirm(null);
         } finally {
           setBusy(false);
@@ -81,7 +85,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
 
   const copyUrl = async () => {
     try {
-      await navigator.clipboard.writeText(item.url);
+      await navigator.clipboard.writeText(assetUrl);
     } catch {
       toast.error("Failed to copy URL");
     }
@@ -119,7 +123,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
             <div className="overflow-hidden rounded-[24px] border border-black/10 bg-slate-50">
               {item.type === "image" ? (
                 <img
-                  src={item.url}
+                  src={assetUrl}
                   alt={item.title}
                   className="max-h-[320px] w-full object-contain bg-black"
                 />
@@ -175,7 +179,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
               <div className="mt-3 grid gap-2 text-sm">
                 <div className="break-all text-slate-700">
                   <span className="font-black text-slate-900">URL:</span>{" "}
-                  {item.url}
+                  {assetUrl}{" "}
                 </div>
 
                 <div className="text-slate-700">
@@ -193,7 +197,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
                 <Button
                   variant="outline"
                   onClick={() =>
-                    window.open(item.url, "_blank", "noopener,noreferrer")
+                    window.open(assetUrl, "_blank", "noopener,noreferrer")
                   }
                 >
                   <ExternalLink size={16} />

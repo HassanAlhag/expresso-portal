@@ -8,6 +8,8 @@ import { X, Search, Image as ImageIcon, Check, RefreshCw } from "lucide-react";
 import { listMedia } from "../api";
 import MediaUploader from "./MediaUploader";
 
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
+
 export default function MediaPickerModal({
   open,
   onClose,
@@ -217,7 +219,7 @@ export default function MediaPickerModal({
                       <div className="aspect-[4/3] overflow-hidden bg-slate-50">
                         {m.type === "image" ? (
                           <img
-                            src={m.thumbnailUrl || m.url}
+                            src={getAssetUrl(m.thumbnailUrl || m.url)}
                             alt={m.title || "Media"}
                             className="h-full w-full object-cover transition group-hover:scale-[1.03]"
                           />
