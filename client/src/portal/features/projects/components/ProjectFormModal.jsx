@@ -74,7 +74,7 @@ function parseTags(value) {
     .filter(Boolean);
 }
 
-export default function ProjectFormModal({ open, onClose, onSubmit, busy }) {
+export default function ProjectFormModal({ open, onClose, onSubmit, busy, initialCustomer = null }) {
   const [customer, setCustomer] = useState(null);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -96,7 +96,7 @@ export default function ProjectFormModal({ open, onClose, onSubmit, busy }) {
   useEffect(() => {
     if (!open) return;
 
-    setCustomer(null);
+    setCustomer(initialCustomer || null);
     setName("");
     setCode("");
     setProjectMode("custom");
@@ -113,7 +113,7 @@ export default function ProjectFormModal({ open, onClose, onSubmit, busy }) {
     setTags("");
     setDescription("");
     setNotes("");
-  }, [open]);
+  }, [open, initialCustomer]);
 
   useEffect(() => {
     if (projectMode === "internal") {

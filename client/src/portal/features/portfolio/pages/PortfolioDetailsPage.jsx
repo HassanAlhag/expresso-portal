@@ -42,7 +42,7 @@ export default function PortfolioDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const [form, setForm] = useState({
     title: "", slug: "", excerpt: "", description: "",
@@ -127,13 +127,13 @@ export default function PortfolioDetailsPage() {
   };
 
   const handleDelete = () => {
-    setConfirm({
+    setConfirmState({
       title: "Delete portfolio item",
       message: `Delete "${item?.title}"?`,
       danger: true,
       onConfirm: async () => {
         setBusy(true);
-        setConfirm(null);
+        setConfirmState(null);
         try {
           await deletePortfolio(id);
           nav("/portal/portfolio");
@@ -165,12 +165,12 @@ export default function PortfolioDetailsPage() {
   return (
     <div className="grid gap-6">
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
       <PageHeader
         eyebrow="CONTENT"

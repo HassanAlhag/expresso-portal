@@ -6,7 +6,8 @@ import { useToast } from "../../../shared/ui/Toast";
 import Skeleton from "../../../shared/ui/Skeleton";
 import EmptyState from "../../../shared/ui/EmptyState";
 
-import { getProject, listProjects } from "../api";
+import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import { getProject, listProjects, archiveProject } from "../api";
 import { PROJECT_TABS } from "../constants";
 
 import { listJobs, createJob } from "../../jobs/api";
@@ -28,8 +29,9 @@ export default function ProjectDetailsPage() {
 
   const [tab, setTab] = useState(PROJECT_TABS.OVERVIEW);
   const [loading, setLoading] = useState(true);
-  const busy = false;
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [confirmState, setConfirmState] = useState(null);
 
   const [project, setProject] = useState(null);
 
@@ -84,6 +86,25 @@ export default function ProjectDetailsPage() {
     } finally {
       setJobsLoading(false);
     }
+  };
+
+  const handleArchive = () => {
+    setConfirmState({
+      title: "Delete project",
+      message: `Delete "${project?.name}"? This cannot be undone.`,
+      danger: true,
+      onConfirm: async () => {
+        setBusy(true);
+        setConfirmState(null);
+        try {
+          await archiveProject(id);
+          nav("/portal/projects");
+        } catch (e) {
+          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
+          setBusy(false);
+        }
+      },
+    });
   };
 
   useEffect(() => {
@@ -156,6 +177,15 @@ export default function ProjectDetailsPage() {
 
   return (
     <>
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
+      />
+
       <div className="grid gap-5">
         <ProjectHeader
           project={project}
@@ -178,6 +208,7 @@ export default function ProjectDetailsPage() {
             }
             setNewJobOpen(true);
           }}
+          onArchive={handleArchive}
         />
 
         {tab === PROJECT_TABS.OVERVIEW ? (

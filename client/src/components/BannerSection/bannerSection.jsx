@@ -24,7 +24,7 @@ const AuroraHero = ({ heading, subtitle, description }) => {
 
   const navigate = useNavigate();
 
-  const backgroundImage = useMotionTemplate`radial-gradient(circle at 10% 90%, ${color} 0%, transparent 40%), url('/81.jpg')`;
+  const backgroundImage = useMotionTemplate`radial-gradient(circle at 10% 90%, ${color} 0%, transparent 40%), url('/81.webp')`;
   const border = useMotionTemplate`1px solid ${color}`;
   const boxShadow = useMotionTemplate`0px 4px 24px ${color}`;
 

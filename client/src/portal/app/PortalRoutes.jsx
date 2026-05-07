@@ -163,6 +163,7 @@ const HRDashboardPage = lazy(() =>
   import("../features/hr/pages/HRDashboardPage")
 );
 const StaffPage = lazy(() => import("../features/hr/pages/StaffPage"));
+// eslint-disable-next-line no-unused-vars
 const StaffDetailsPage = lazy(() =>
   import("../features/hr/pages/StaffDetailsPage")
 );

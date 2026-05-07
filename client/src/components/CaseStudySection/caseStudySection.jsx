@@ -45,7 +45,7 @@ const Copy = () => {
 
 const stories = [
   {
-    image: "/manager.png",
+    image: "/manager.webp",
     name: "Mohamed Bashir",
     position: "Head of Business Development",
     description:
@@ -58,7 +58,7 @@ const stories = [
     },
   },
   {
-    image: "/hassan.jpeg",
+    image: "/hassan.webp",
     name: "Hassan (Elhag) Omer Ahmed Omer",
     position: "Digital & Social Media Analyst",
     description:
@@ -71,7 +71,7 @@ const stories = [
     },
   },
   {
-    image: "/swekshya.jpeg",
+    image: "/swekshya.webp",
     name: "Swekshya Basnet",
     position: "HR & Finance",
     description:
@@ -84,7 +84,7 @@ const stories = [
     },
   },
   {
-    image: "/11.PNG",
+    image: "/11.webp",
     name: "Afrid Ahamed",
     position: "Social Media Stratergist",
     description:
@@ -97,7 +97,7 @@ const stories = [
     },
   },
   {
-    image: "/gal2.png",
+    image: "/gal2.webp",
     name: "Mohammed Nazim",
     position: "Marketing Advisor",
     description:
@@ -110,7 +110,7 @@ const stories = [
     },
   },
   {
-    image: "/saad.jpeg",
+    image: "/saad.webp",
     name: "Saad",
     position: "SEO Specialist",
     description:
@@ -123,7 +123,7 @@ const stories = [
     },
   },
   {
-    image: "/10.jpeg",
+    image: "/10.webp",
     name: "Muhammed Yasir",
     position: "Web Developer",
     description:

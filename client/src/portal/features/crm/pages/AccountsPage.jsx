@@ -229,7 +229,7 @@ export default function AccountsPage() {
   const nav = useNavigate();
   const toast = useToast();
 
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -303,7 +303,7 @@ export default function AccountsPage() {
 
   const onDelete = (item) => {
     if (!item?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Delete account",
       message: `Delete "${item.name}"?`,
       danger: true,
@@ -317,7 +317,7 @@ export default function AccountsPage() {
         } finally {
           setBusy(false);
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -502,12 +502,12 @@ export default function AccountsPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

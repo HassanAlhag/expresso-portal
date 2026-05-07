@@ -146,7 +146,7 @@ export default function CareersAdminPage() {
   const [busy, setBusy]             = useState(false);
   const [modalOpen, setModalOpen]   = useState(false);
   const [selected, setSelected]     = useState(null);
-  const [confirm, setConfirm]       = useState(null);
+  const [confirmState, setConfirmState]       = useState(null);
 
   // Applications state
   const [appItems, setAppItems]     = useState([]);
@@ -215,12 +215,12 @@ export default function CareersAdminPage() {
   };
 
   const handleDelete = (item) => {
-    setConfirm({
+    setConfirmState({
       title: "Delete opening",
       message: `Delete "${item.title}"?`,
       danger: true,
       onConfirm: async () => {
-        setConfirm(null);
+        setConfirmState(null);
         try {
           await deleteCareer(item._id);
           setItems((prev) => prev.filter((x) => x._id !== item._id));
@@ -471,12 +471,12 @@ export default function CareersAdminPage() {
         onSubmit={handleSubmit}
       />
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

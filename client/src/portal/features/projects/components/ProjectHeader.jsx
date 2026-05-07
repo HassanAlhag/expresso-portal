@@ -14,6 +14,7 @@ import {
   BriefcaseBusiness,
   FileClock,
   Settings2,
+  Trash2,
 } from "lucide-react";
 import ProjectStatusPill from "./ProjectStatusPill";
 import ProjectPriorityPill from "./ProjectPriorityPill";
@@ -83,6 +84,7 @@ export default function ProjectHeader({
   onBack,
   onRefresh,
   onCreateJob,
+  onArchive,
   setTab,
   busy,
 }) {
@@ -235,6 +237,12 @@ export default function ProjectHeader({
           <Plus size={16} />
           Create Job
         </Button>
+
+        {onArchive && (
+          <Button variant="outline" onClick={onArchive} disabled={busy}>
+            <Trash2 size={16} />
+          </Button>
+        )}
       </div>
     </div>
   );

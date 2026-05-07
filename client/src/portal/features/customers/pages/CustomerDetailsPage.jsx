@@ -25,17 +25,20 @@ import {
   ShoppingCart,
   Layers,
   Package,
+  Trash2,
 } from "lucide-react";
 
 import CustomerFormModal from "../components/CustomerFormModal";
-import { getCustomerById, createCustomerLogin, updateCustomer } from "../api";
+import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import { getCustomerById, createCustomerLogin, updateCustomer, deleteCustomer } from "../api";
 import {
   listEnrollments,
   generateJobsFromEnrollment,
 } from "../../enrollments/api";
-import { listProjects } from "../../projects/api";
+import { listProjects, createProject } from "../../projects/api";
 import { listJobs, createJob } from "../../jobs/api";
 import NewJobModal from "../../jobs/components/NewJobModal";
+import ProjectFormModal from "../../projects/components/ProjectFormModal";
 
 import CustomerTabButton from "../tabs/CustomerTabButton";
 import CustomerOverviewTab from "../tabs/CustomerOverviewTab";
@@ -95,7 +98,9 @@ export default function CustomerDetailsPage() {
   const [projects, setProjects] = useState([]);
 
   const [newJobOpen, setNewJobOpen] = useState(false);
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [confirmState, setConfirmState] = useState(null);
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginName, setLoginName] = useState("");
@@ -144,6 +149,40 @@ export default function CustomerDetailsPage() {
       toast.success("Client updated successfully.");
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Update failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDeleteCustomer = () => {
+    setConfirmState({
+      title: "Delete client",
+      message: `Permanently delete "${customer?.companyName}"? This cannot be undone.`,
+      danger: true,
+      onConfirm: async () => {
+        setBusy(true);
+        setConfirmState(null);
+        try {
+          await deleteCustomer(customer._id);
+          nav("/portal/customers");
+        } catch (e) {
+          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
+          setBusy(false);
+        }
+      },
+    });
+  };
+
+  const handleCreateProject = async (payload) => {
+    setBusy(true);
+    try {
+      const res = await createProject({ ...payload, customerId: customer._id });
+      setNewProjectOpen(false);
+      const projectId = res?.item?._id || res?._id;
+      if (projectId) nav(`/portal/projects/${projectId}`);
+      else await loadProjects();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Create project failed");
     } finally {
       setBusy(false);
     }
@@ -519,11 +558,30 @@ export default function CustomerDetailsPage() {
             </Button>
 
             {showAgencyTabs && (
+              <Button
+                variant="outline"
+                onClick={() => setNewProjectOpen(true)}
+                disabled={busy}
+              >
+                <Plus size={16} />
+                New Project
+              </Button>
+            )}
+
+            {showAgencyTabs && (
               <Button onClick={() => setNewJobOpen(true)} disabled={busy}>
                 <Plus size={16} />
                 Create Job
               </Button>
             )}
+
+            <Button
+              variant="outline"
+              onClick={handleDeleteCustomer}
+              disabled={busy}
+            >
+              <Trash2 size={16} />
+            </Button>
           </div>
         </div>
       </div>
@@ -598,6 +656,23 @@ export default function CustomerDetailsPage() {
         onClose={() => setEditOpen(false)}
         onSubmit={handleEditCustomer}
         busy={busy}
+      />
+
+      <ProjectFormModal
+        open={newProjectOpen}
+        onClose={() => setNewProjectOpen(false)}
+        onSubmit={handleCreateProject}
+        busy={busy}
+        initialCustomer={customer}
+      />
+
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
 
       <NewJobModal
