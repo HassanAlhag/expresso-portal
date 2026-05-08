@@ -464,7 +464,6 @@ export default function WebsiteSettingsPage() {
   const [activeTab, setActiveTab] = useState(TABS[0].key);
   const [settings, setSettings]   = useState(null);
   const [loading, setLoading]     = useState(true);
-  const [saving, setSaving]       = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -476,9 +475,8 @@ export default function WebsiteSettingsPage() {
   useEffect(() => { load(); }, [load]);
 
   const handleSave = async (section, data) => {
-    setSaving(true);
     try { const res = await updateSiteSettings(section, data); setSettings(res.settings || {}); }
-    finally { setSaving(false); }
+    catch { /* errors handled by individual section components */ }
   };
 
   const currentTab = TABS.find((t) => t.key === activeTab) || TABS[0];
