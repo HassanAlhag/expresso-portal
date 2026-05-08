@@ -219,8 +219,9 @@ export default function PlanBuilder({ onFinish }) {
 
       const payload = buildLeadPayload();
 
+      const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5050/api";
       const res = await fetch(
-        "http://localhost:5050/api/public/plan-submissions",
+        `${API_BASE}/public/plan-submissions`,
         {
           method: "POST",
           headers: {

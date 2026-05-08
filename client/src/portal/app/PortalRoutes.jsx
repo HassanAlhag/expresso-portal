@@ -95,6 +95,9 @@ const CareersAdminPage = lazy(() =>
 const HomepageSlidersPage = lazy(() =>
   import("../features/website/pages/HomepageSlidersPage")
 );
+const WebsiteSettingsPage = lazy(() =>
+  import("../features/website/pages/WebsiteSettingsPage")
+);
 
 // Personal
 const ProfilePage = lazy(() => import("../features/profile/pages/ProfilePage"));
@@ -443,6 +446,7 @@ export default function PortalRoutes() {
           {/* Website content */}
           <Route path="careers" element={<CareersAdminPage />} />
           <Route path="website/slides" element={<HomepageSlidersPage />} />
+          <Route path="website/settings" element={<WebsiteSettingsPage />} />
 
           {/* Personal */}
           <Route path="profile" element={<ProfilePage />} />

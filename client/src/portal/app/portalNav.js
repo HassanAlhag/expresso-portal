@@ -31,6 +31,7 @@ import {
   HeartHandshake,
   CalendarDays,
   Grid3x3,
+  Palette,
 } from "lucide-react";
 
 export const BRAND = "#6F7FD9";
@@ -70,6 +71,7 @@ export const ROUTES = {
 
   CAREERS: "/portal/careers",
   HOMEPAGE_SLIDES: "/portal/website/slides",
+  WEBSITE_SETTINGS: "/portal/website/settings",
 
   PROFILE: "/portal/profile",
   SETTINGS: "/portal/settings",
@@ -324,6 +326,14 @@ const ITEMS = {
     hint: "Hero slider on the public site",
     Icon: SlidersHorizontal,
     accent: ACCENTS.brand,
+  },
+
+  websiteSettings: {
+    to: ROUTES.WEBSITE_SETTINGS,
+    label: "Site Images",
+    hint: "Logos, heroes & page photos",
+    Icon: Palette,
+    accent: ACCENTS.violet,
   },
 
   procurement: {
@@ -588,7 +598,7 @@ export function getNavSectionsByRole(role) {
     {
       title: "Website",
       Icon: Globe,
-      items: [ITEMS.careers, ITEMS.homepageSlides],
+      items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.websiteSettings],
     },
     {
       title: "System",
@@ -815,6 +825,14 @@ export function getPageMeta(pathname) {
       label: "Homepage Slides",
       subtitle: "Hero slider management for the public site",
       Icon: SlidersHorizontal,
+    };
+  }
+
+  if (starts(ROUTES.WEBSITE_SETTINGS)) {
+    return {
+      label: "Site Images",
+      subtitle: "Manage logos, page heroes and photos across the public website",
+      Icon: Palette,
     };
   }
 

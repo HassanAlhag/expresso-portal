@@ -19,3 +19,9 @@ export const updateSlide = (id, data) =>
 
 export const deleteSlide = (id) =>
   api.delete(`/homepage/slides/${id}`).then((res) => res.data);
+
+export const getSiteSettings = () =>
+  api.get("/site-settings").then((res) => res.data);
+
+export const updateSiteSettings = (section, data) =>
+  api.patch("/site-settings", { section, data }).then((res) => res.data);

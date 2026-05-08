@@ -14,6 +14,8 @@ export default function HomepageSlidePreview({ slide }) {
             <img
               src={getAssetUrl(mainImage)}
               alt={slide?.title || "Slide preview"}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 h-full w-full object-cover"
               draggable={false}
             />
@@ -63,6 +65,8 @@ export default function HomepageSlidePreview({ slide }) {
               <img
                 src={getAssetUrl(thumbImage)}
                 alt="Thumbnail preview"
+                loading="lazy"
+                decoding="async"
                 className="aspect-[4/3] w-full object-cover"
                 draggable={false}
               />

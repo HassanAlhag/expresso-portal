@@ -34,6 +34,7 @@ import contactRoutes from "./modules/crm/contacts/contact.routes.js";
 import publicRoutes from "./modules/public/public.routes.js";
 import careerRoutes from "./modules/careers/career.routes.js";
 import slideRoutes from "./modules/homepage/slide.routes.js";
+import siteSettingsRoutes from "./modules/homepage/settings.routes.js";
 
 import procurementCategoryRoutes from "./modules/procurement/category.routes.js";
 import procurementVendorRoutes from "./modules/procurement/vendor.routes.js";
@@ -117,6 +118,7 @@ export function createApp() {
   app.use("/api/public", publicRoutes);
   app.use("/api/careers", careerRoutes);
   app.use("/api/homepage/slides", slideRoutes);
+  app.use("/api/site-settings", siteSettingsRoutes);
 
   app.use("/api/procurement/categories", procurementCategoryRoutes);
   app.use("/api/procurement/vendors", procurementVendorRoutes);

@@ -1,6 +1,7 @@
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5050/api";
+
 export async function listPublicHomepageSlides() {
-  const res = await fetch("/api/homepage/slides/public", {
-    credentials: "include",
+  const res = await fetch(`${API_BASE}/homepage/slides/public`, {
     cache: "no-store",
   });
 

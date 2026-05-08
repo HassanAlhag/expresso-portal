@@ -5,7 +5,7 @@ import Lightbox from "../Lightbox/Lightbox";
 
 const BRAND = "#7F8AD1";
 
-const items = [
+const DEFAULT_ITEMS = [
   { id: 1, src: "/ultimate1.png", label: "Ultimate" },
   { id: 2, src: "/odeur1.png", label: "Odeur" },
   { id: 3, src: "/expresso1.png", label: "Expresso" },
@@ -16,10 +16,11 @@ const items = [
   { id: 8, src: "/angelic1.png", label: "Angelic" },
 ];
 
-export default function ShuffleHero() {
+export default function ShuffleHero({ items: itemsProp }) {
   const navigate = useNavigate();
   const [active, setActive] = useState(null);
-  const looped = useMemo(() => [...items, ...items], []);
+  const items = (itemsProp && itemsProp.length > 0) ? itemsProp : DEFAULT_ITEMS;
+  const looped = useMemo(() => [...items, ...items], [items]);
 
   return (
     <section className="relative w-full overflow-hidden py-24 md:py-28">
@@ -106,7 +107,7 @@ export default function ShuffleHero() {
 
                 <div className="relative overflow-hidden rounded-[20px]">
                   <img
-                    src={item.src}
+                    src={item.imageUrl || item.src}
                     alt={item.label}
                     className="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-[1.04]"
                     draggable={false}
@@ -141,7 +142,7 @@ export default function ShuffleHero() {
       <Lightbox
         open={!!active}
         onClose={() => setActive(null)}
-        src={active?.src || ""}
+        src={active?.imageUrl || active?.src || ""}
         alt={active?.label || "Portfolio item"}
       />
     </section>

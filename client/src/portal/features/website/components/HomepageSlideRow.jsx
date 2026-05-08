@@ -31,6 +31,8 @@ export default function HomepageSlideRow({
           <img
             src={getAssetUrl(thumb)}
             alt={slide.title}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover"
             draggable={false}
           />
