@@ -16,7 +16,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState("draft");
   const [busy, setBusy] = useState(false);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const assetUrl = getAssetUrl(item?.url);
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
   };
 
   const remove = () => {
-    setConfirm({
+    setConfirmState({
       title: "Delete Media",
       message: "Delete this media item?",
       danger: true,
@@ -68,14 +68,14 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
         setBusy(true);
         try {
           await deleteMedia(item._id);
-          setConfirm(null);
+          setConfirmState(null);
           onChanged?.(null, { deleted: true, id: item._id });
           onClose?.();
         } catch (e) {
           toast.error(
             e?.response?.data?.message || e?.message || "Delete failed"
           );
-          setConfirm(null);
+          setConfirmState(null);
         } finally {
           setBusy(false);
         }
@@ -226,12 +226,12 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
       </div>
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

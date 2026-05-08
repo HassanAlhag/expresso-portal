@@ -109,7 +109,7 @@ export default function ContactsPage() {
   const nav = useNavigate();
   const toast = useToast();
 
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -146,7 +146,7 @@ export default function ContactsPage() {
   };
 
   const handleDelete = (id, name) => {
-    setConfirm({
+    setConfirmState({
       title: "Delete contact",
       message: `Delete "${name}"?`,
       danger: true,
@@ -158,7 +158,7 @@ export default function ContactsPage() {
         } catch {
           toast.error("Failed to delete contact.");
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -313,12 +313,12 @@ export default function ContactsPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

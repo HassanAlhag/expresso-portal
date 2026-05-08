@@ -34,7 +34,7 @@ export default function DealDetailsPage() {
   const [error, setError] = useState("");
 
   const [editOpen, setEditOpen] = useState(false);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -70,7 +70,7 @@ export default function DealDetailsPage() {
   };
 
   const handleDelete = () => {
-    setConfirm({
+    setConfirmState({
       title: "Delete deal",
       message: `Delete "${item?.title}"? This cannot be undone.`,
       danger: true,
@@ -84,7 +84,7 @@ export default function DealDetailsPage() {
           toast.error(e?.response?.data?.message || e?.message || "Delete failed");
           setBusy(false);
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -104,7 +104,7 @@ export default function DealDetailsPage() {
   };
 
   const handleConvertToCustomer = () => {
-    setConfirm({
+    setConfirmState({
       title: "Convert to client",
       message: "Convert this won deal into a client account? A new client record will be created.",
       danger: false,
@@ -124,7 +124,7 @@ export default function DealDetailsPage() {
           toast.error(e?.response?.data?.message || e?.message || "Conversion failed");
         } finally {
           setBusy(false);
-          setConfirm(null);
+          setConfirmState(null);
         }
       },
     });
@@ -229,13 +229,13 @@ export default function DealDetailsPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        confirmLabel={confirm?.confirmLabel}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        confirmLabel={confirmState?.confirmLabel}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

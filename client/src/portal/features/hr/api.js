@@ -58,6 +58,29 @@ export const updateStaff = (id, payload) =>
 export const deleteStaff = (id) =>
   api.delete(`/hr/staff/${id}`).then((res) => res.data);
 
+/* Staff sub-resources */
+export const updateStaffSkills = (staffId, skills) =>
+  api.put(`/hr/staff/${staffId}/skills`, { skills }).then((res) => res.data);
+
+export const addStaffScorecard = (staffId, payload) =>
+  api.post(`/hr/staff/${staffId}/scorecards`, payload).then((res) => res.data);
+
+export const removeStaffScorecard = (staffId, scId) =>
+  api.delete(`/hr/staff/${staffId}/scorecards/${scId}`).then((res) => res.data);
+
+export const addStaffLearningGoal = (staffId, payload) =>
+  api.post(`/hr/staff/${staffId}/learning-goals`, payload).then((res) => res.data);
+
+export const updateStaffLearningGoal = (staffId, goalId, payload) =>
+  api
+    .patch(`/hr/staff/${staffId}/learning-goals/${goalId}`, payload)
+    .then((res) => res.data);
+
+export const removeStaffLearningGoal = (staffId, goalId) =>
+  api
+    .delete(`/hr/staff/${staffId}/learning-goals/${goalId}`)
+    .then((res) => res.data);
+
 /* Leaves */
 export const listLeaves = (params = {}) =>
   api.get("/hr/leaves", { params }).then((res) => res.data);
@@ -82,3 +105,19 @@ export const rejectLeave = (id, reason = "") =>
 
 export const cancelLeave = (id) =>
   api.post(`/hr/leaves/${id}/cancel`).then((res) => res.data);
+
+export const getStaffBenchmark = (staffId) =>
+  api.get(`/hr/staff/${staffId}/benchmark`).then((res) => res.data);
+
+/* Scorecard Templates */
+export const listScorecardTemplates = () =>
+  api.get("/hr/scorecard-templates").then((res) => res.data);
+
+export const createScorecardTemplate = (payload) =>
+  api.post("/hr/scorecard-templates", payload).then((res) => res.data);
+
+export const updateScorecardTemplate = (id, payload) =>
+  api.patch(`/hr/scorecard-templates/${id}`, payload).then((res) => res.data);
+
+export const deleteScorecardTemplate = (id) =>
+  api.delete(`/hr/scorecard-templates/${id}`).then((res) => res.data);

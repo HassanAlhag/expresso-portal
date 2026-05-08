@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Button from "../../../shared/ui/Button";
+import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
@@ -10,6 +11,7 @@ import ProductionJobFormModal from "../components/ProductionJobFormModal";
 import { addApproval } from "../../jobs/api";
 import { listUsers } from "../../iam/users/api";
 import {
+  deleteProductionJob,
   getProductionJob,
   publishProductionJob,
   setProductionJobStatus,
@@ -31,6 +33,7 @@ import {
   Pencil,
   RefreshCw,
   Send,
+  Trash2,
   Video,
   X,
 } from "lucide-react";
@@ -196,6 +199,7 @@ export default function ProductionDetailsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [editOpen, setEditOpen] = useState(false);
+  const [confirmState, setConfirmState] = useState(null);
 
   const [note, setNote] = useState("");
   const [noteType, setNoteType] = useState("internal_note");
@@ -294,6 +298,25 @@ export default function ProductionDetailsPage() {
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed");
     } finally { setBusy(false); }
+  };
+
+  const handleDelete = () => {
+    setConfirmState({
+      title: "Delete production",
+      message: `Delete "${item?.title}"? This cannot be undone.`,
+      danger: true,
+      onConfirm: async () => {
+        setBusy(true);
+        setConfirmState(null);
+        try {
+          await deleteProductionJob(id);
+          nav("/portal/productions");
+        } catch (e) {
+          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
+          setBusy(false);
+        }
+      },
+    });
   };
 
   const handlePublish = async () => {
@@ -428,6 +451,15 @@ export default function ProductionDetailsPage() {
 
   return (
     <div className="grid gap-5">
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
+      />
+
       {/* Header */}
       <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 sm:p-6">
         <button
@@ -469,6 +501,9 @@ export default function ProductionDetailsPage() {
             <Button onClick={handlePublish} disabled={busy} style={{ backgroundColor: "#7F8AD1" }}>
               <Globe size={15} />
               Publish
+            </Button>
+            <Button variant="outline" onClick={handleDelete} disabled={busy}>
+              <Trash2 size={15} />
             </Button>
           </div>
         </div>

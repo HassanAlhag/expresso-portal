@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import path from "path";
 import Application from "./application.model.js";
 import Career from "./career.model.js";
+import { uploadToS3 } from "../../utils/s3.js";
 
 // POST /careers/cv-upload  (public) — upload a CV file and get back a URL
 export async function uploadCV(req, res) {
@@ -9,8 +9,7 @@ export async function uploadCV(req, res) {
     if (!req.file) {
       return res.status(400).json({ ok: false, message: "No file uploaded" });
     }
-    const apiBase = process.env.API_URL || `${req.protocol}://${req.get("host")}`;
-    const cvUrl = `${apiBase}/uploads/${path.basename(req.file.filename || req.file.path)}`;
+    const { url: cvUrl } = await uploadToS3(req.file.buffer, "cvs", req.file.originalname, req.file.mimetype);
     return res.json({ ok: true, cvUrl });
   } catch (e) {
     console.error("uploadCV:", e);

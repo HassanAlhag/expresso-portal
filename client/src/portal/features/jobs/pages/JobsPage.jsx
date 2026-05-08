@@ -656,7 +656,7 @@ export default function JobsPage() {
     }
   };
 
-  useEffect(() => { load(); }, [q, status, type, sort]); // eslint-disable-line
+  useEffect(() => { load(); }, [q, status, type, sort]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const counts = useMemo(() => {
     const IN_PROD = new Set(["brief", "content_ready", "script", "pre_production", "designing", "shooting", "editing"]);

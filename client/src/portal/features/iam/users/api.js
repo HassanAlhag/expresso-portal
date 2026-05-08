@@ -81,3 +81,9 @@ export async function saveUserNotes(id, note) {
   const { data } = await api.patch(`/users/${id}/notes`, { note });
   return data;
 }
+
+// PATCH /api/users/:id/permissions
+export async function updateUserPermissions(id, { extraPermissions, revokedPermissions }) {
+  const { data } = await api.patch(`/users/${id}/permissions`, { extraPermissions, revokedPermissions });
+  return data;
+}

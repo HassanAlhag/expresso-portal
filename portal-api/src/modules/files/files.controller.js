@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import File from "./file.model.js";
+import { uploadToS3 } from "../../utils/s3.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -188,8 +189,12 @@ export async function uploadFiles(req, res) {
           .map((x) => x.trim())
           .filter(Boolean);
 
+    const uploaded = await Promise.all(
+      files.map((f) => uploadToS3(f.buffer, "files", f.originalname, f.mimetype))
+    );
+
     const docs = await File.insertMany(
-      files.map((f) => ({
+      files.map((f, i) => ({
         customerId: toId(customerId),
         projectId: toId(projectId),
         jobId: toId(jobId),
@@ -199,8 +204,8 @@ export async function uploadFiles(req, res) {
           : "internal",
         approved: String(approved) === "true" || approved === true,
         originalName: f.originalname,
-        filename: f.filename,
-        url: `/uploads/${f.filename}`,
+        filename: uploaded[i].key,
+        url: uploaded[i].url,
         mimeType: f.mimetype,
         size: f.size,
         title: String(title || "").trim() || f.originalname,

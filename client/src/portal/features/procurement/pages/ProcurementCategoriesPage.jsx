@@ -196,7 +196,7 @@ export default function ProcurementCategoriesPage() {
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -247,7 +247,7 @@ export default function ProcurementCategoriesPage() {
   };
 
   const handleDelete = (cat) => {
-    setConfirm({
+    setConfirmState({
       title: "Delete Category",
       message: `Delete category "${cat.name}"?`,
       danger: true,
@@ -261,7 +261,7 @@ export default function ProcurementCategoriesPage() {
           toast.error(e?.response?.data?.message || "Delete failed.");
         } finally {
           setBusy(false);
-          setConfirm(null);
+          setConfirmState(null);
         }
       },
     });
@@ -403,12 +403,12 @@ export default function ProcurementCategoriesPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

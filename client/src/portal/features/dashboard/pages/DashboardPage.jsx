@@ -18,6 +18,8 @@ import {
   Package,
   ShoppingCart,
   Zap,
+  FileText,
+  Files,
 } from "lucide-react";
 
 import Skeleton from "../../../shared/ui/Skeleton";
@@ -26,6 +28,7 @@ import { listTickets } from "../../tickets/api";
 import { listCustomers } from "../../customers/api";
 import { listProjects } from "../../projects/api";
 import { listDeals } from "../../crm/api";
+import { listRfqs } from "../../procurement/api";
 
 /* ─── helpers ──────────────────────────────────────────────────────── */
 
@@ -50,6 +53,16 @@ function fmtMoney(n, currency = "AED") {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
   return String(n);
+}
+
+function getPortalRole() {
+  try {
+    const token = localStorage.getItem("portal_token");
+    if (!token) return null;
+    return JSON.parse(atob(token.split(".")[1]))?.role || null;
+  } catch {
+    return null;
+  }
 }
 
 /* ─── KPI tile ──────────────────────────────────────────────────────── */
@@ -373,10 +386,330 @@ function EmptyRows({ icon: Icon, message }) {
   );
 }
 
+/* ─── client dashboard ──────────────────────────────────────────────── */
+
+function ClientDashboard({ nav }) {
+  const [loading, setLoading] = useState(true);
+  const [tickets, setTickets] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const t = await listTickets({ limit: 50, page: 1 });
+        setTickets(t?.items || []);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const openTickets = useMemo(
+    () =>
+      tickets.filter(
+        (x) =>
+          !["closed", "resolved", "done"].includes(
+            (x.status || "").toLowerCase()
+          )
+      ),
+    [tickets]
+  );
+  const resolvedTickets = useMemo(
+    () =>
+      tickets.filter((x) =>
+        ["closed", "resolved", "done"].includes((x.status || "").toLowerCase())
+      ),
+    [tickets]
+  );
+
+  return (
+    <div className="grid gap-5">
+      <div className="relative overflow-hidden rounded-2xl bg-slate-900 px-7 py-6 text-white shadow-[0_8px_32px_rgba(15,23,42,0.16)]">
+        <div
+          className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full blur-3xl"
+          style={{ backgroundColor: "#6f7fd9", opacity: 0.22 }}
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(111,127,217,0.5) 50%, transparent)",
+          }}
+        />
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[12px] font-medium tracking-wide text-white/45">
+              {fmtDate()}
+            </p>
+            <h1 className="mt-1 text-2xl font-black tracking-tight">
+              {greeting()}
+            </h1>
+            <p className="mt-1 text-[13px] text-white/55">
+              {loading
+                ? "Loading workspace…"
+                : `${openTickets.length} open ticket${
+                    openTickets.length !== 1 ? "s" : ""
+                  } · ${resolvedTickets.length} resolved`}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => nav("/portal/tickets")}
+            className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-white/[0.12]"
+          >
+            New ticket
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-sm"
+            >
+              <Skeleton className="h-20 w-full" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <KpiTile
+            icon={Ticket}
+            label="Open Tickets"
+            value={openTickets.length}
+            sub="Awaiting response"
+            accent="rose"
+            onClick={() => nav("/portal/tickets")}
+          />
+          <KpiTile
+            icon={CheckCircle2}
+            label="Resolved"
+            value={resolvedTickets.length}
+            sub="Closed & resolved"
+            accent="green"
+            onClick={() => nav("/portal/tickets")}
+          />
+          <KpiTile
+            icon={ClipboardList}
+            label="Total Tickets"
+            value={tickets.length}
+            sub="All time"
+            accent="brand"
+            onClick={() => nav("/portal/tickets")}
+          />
+        </div>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-[1.5fr,0.5fr]">
+        <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
+          <SectionHeader
+            icon={Ticket}
+            title="Your tickets"
+            badge={!loading ? openTickets.length : undefined}
+            action="View all"
+            onAction={() => nav("/portal/tickets")}
+          />
+          <div className="divide-y divide-slate-50/80">
+            {loading ? (
+              <div className="grid gap-3 px-5 py-4">
+                <Skeleton className="h-11 w-full" />
+                <Skeleton className="h-11 w-full" />
+                <Skeleton className="h-11 w-full" />
+              </div>
+            ) : tickets.length === 0 ? (
+              <EmptyRows icon={Ticket} message="No tickets yet." />
+            ) : (
+              tickets
+                .slice(0, 8)
+                .map((t) => (
+                  <ListRow
+                    key={t._id}
+                    title={t.title || t.subject || "Ticket"}
+                    sub={t.ref || t.category || "—"}
+                    status={t.status || "open"}
+                    onClick={() => nav(`/portal/tickets/${t._id}`)}
+                  />
+                ))
+            )}
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
+          <SectionHeader icon={Zap} title="Quick access" />
+          <div className="p-2 grid gap-0.5">
+            <Shortcut
+              icon={Ticket}
+              label="Tickets"
+              sub="Support & requests"
+              bg="rgba(111,127,217,0.09)"
+              to="/portal/tickets"
+              nav={nav}
+            />
+            <Shortcut
+              icon={Files}
+              label="Files"
+              sub="Documents & uploads"
+              bg="rgba(139,92,246,0.09)"
+              to="/portal/files"
+              nav={nav}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── vendor dashboard ──────────────────────────────────────────────── */
+
+function VendorDashboard({ nav }) {
+  const [loading, setLoading] = useState(true);
+  const [rfqs, setRfqs] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const r = await listRfqs({ limit: 20, page: 1 });
+        setRfqs(r?.items || []);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const openRfqs = useMemo(
+    () => rfqs.filter((r) => r.status !== "closed"),
+    [rfqs]
+  );
+
+  return (
+    <div className="grid gap-5">
+      <div className="relative overflow-hidden rounded-2xl bg-slate-900 px-7 py-6 text-white shadow-[0_8px_32px_rgba(15,23,42,0.16)]">
+        <div
+          className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full blur-3xl"
+          style={{ backgroundColor: "#6f7fd9", opacity: 0.22 }}
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(111,127,217,0.5) 50%, transparent)",
+          }}
+        />
+        <div className="relative z-10">
+          <p className="text-[12px] font-medium tracking-wide text-white/45">
+            {fmtDate()}
+          </p>
+          <h1 className="mt-1 text-2xl font-black tracking-tight">
+            {greeting()}
+          </h1>
+          <p className="mt-1 text-[13px] text-white/55">
+            {loading
+              ? "Loading workspace…"
+              : `${openRfqs.length} open RFQ${openRfqs.length !== 1 ? "s" : ""} · ${rfqs.length} total`}
+          </p>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[...Array(2)].map((_, i) => (
+            <div
+              key={i}
+              className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-sm"
+            >
+              <Skeleton className="h-20 w-full" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <KpiTile
+            icon={FileText}
+            label="Open RFQs"
+            value={openRfqs.length}
+            sub="Awaiting quotation"
+            accent="blue"
+            onClick={() => nav("/portal/procurement/rfqs")}
+          />
+          <KpiTile
+            icon={CheckCircle2}
+            label="Total RFQs"
+            value={rfqs.length}
+            sub="All time"
+            accent="brand"
+            onClick={() => nav("/portal/procurement/rfqs")}
+          />
+        </div>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-[1.5fr,0.5fr]">
+        <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
+          <SectionHeader
+            icon={FileText}
+            title="Recent RFQs"
+            badge={!loading ? openRfqs.length : undefined}
+            action="View all"
+            onAction={() => nav("/portal/procurement/rfqs")}
+          />
+          <div className="divide-y divide-slate-50/80">
+            {loading ? (
+              <div className="grid gap-3 px-5 py-4">
+                <Skeleton className="h-11 w-full" />
+                <Skeleton className="h-11 w-full" />
+              </div>
+            ) : rfqs.length === 0 ? (
+              <EmptyRows icon={FileText} message="No RFQs assigned yet." />
+            ) : (
+              rfqs.slice(0, 8).map((r) => (
+                <ListRow
+                  key={r._id}
+                  title={r.title || r.ref || "Untitled RFQ"}
+                  sub={r.category || "—"}
+                  status={r.status || "open"}
+                  onClick={() => nav(`/portal/procurement/rfqs/${r._id}`)}
+                />
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
+          <SectionHeader icon={Zap} title="Quick access" />
+          <div className="p-2 grid gap-0.5">
+            <Shortcut
+              icon={FileText}
+              label="RFQs"
+              sub="Requests for quotation"
+              bg="rgba(59,130,246,0.09)"
+              to="/portal/procurement/rfqs"
+              nav={nav}
+            />
+            <Shortcut
+              icon={ShoppingCart}
+              label="Procurement"
+              sub="Overview & pipeline"
+              bg="rgba(16,185,129,0.09)"
+              to="/portal/procurement"
+              nav={nav}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── page ──────────────────────────────────────────────────────────── */
 
 export default function DashboardPage() {
   const nav = useNavigate();
+  const role = getPortalRole();
+
+  // All hooks must run unconditionally — role-based early returns come after.
   const [loading, setLoading] = useState(true);
   const [jobs, setJobs] = useState([]);
   const [tickets, setTickets] = useState([]);
@@ -386,6 +719,11 @@ export default function DashboardPage() {
   const [deals, setDeals] = useState([]);
 
   useEffect(() => {
+    // Skip admin data fetch for non-admin roles — they have their own dashboards.
+    if (role === "client" || role === "vendor") {
+      setLoading(false);
+      return;
+    }
     (async () => {
       setLoading(true);
       try {
@@ -406,7 +744,7 @@ export default function DashboardPage() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const approvals = useMemo(
     () => jobs.filter((x) => x.status === "review"),
@@ -442,6 +780,9 @@ export default function DashboardPage() {
     () => openDeals.reduce((sum, d) => sum + Number(d.value || 0), 0),
     [openDeals]
   );
+
+  if (role === "client") return <ClientDashboard nav={nav} />;
+  if (role === "vendor") return <VendorDashboard nav={nav} />;
 
   return (
     <div className="grid gap-5">

@@ -96,7 +96,7 @@ export default function UsersListPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, role, team, isActive, sort, page]);
 
   const resetFilters = () => {

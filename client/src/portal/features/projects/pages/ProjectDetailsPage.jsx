@@ -7,13 +7,14 @@ import Skeleton from "../../../shared/ui/Skeleton";
 import EmptyState from "../../../shared/ui/EmptyState";
 
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
-import { getProject, listProjects, archiveProject } from "../api";
+import { getProject, listProjects, archiveProject, updateProject } from "../api";
 import { PROJECT_TABS } from "../constants";
 
 import { listJobs, createJob } from "../../jobs/api";
 import NewJobModal from "../../jobs/components/NewJobModal";
 
 import ProjectHeader from "../components/ProjectHeader";
+import ProjectFormModal from "../components/ProjectFormModal";
 import ProjectOverviewTab from "../tabs/ProjectOverviewTab";
 import ProjectJobsTab from "../tabs/ProjectJobsTab";
 import ProjectFilesTab from "../tabs/ProjectFilesTab";
@@ -40,6 +41,7 @@ export default function ProjectDetailsPage() {
   const [jobs, setJobs] = useState([]);
   const [jobQ, setJobQ] = useState("");
   const [newJobOpen, setNewJobOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const loadProject = async () => {
     setLoading(true);
@@ -85,6 +87,20 @@ export default function ProjectDetailsPage() {
       );
     } finally {
       setJobsLoading(false);
+    }
+  };
+
+  const handleEdit = async (payload) => {
+    setBusy(true);
+    try {
+      await updateProject(id, payload);
+      toast.success("Project updated.");
+      setEditOpen(false);
+      await loadProject();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Update failed");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -199,6 +215,7 @@ export default function ProjectDetailsPage() {
             loadProject();
             if (tab === PROJECT_TABS.JOBS) loadJobs();
           }}
+          onEdit={() => setEditOpen(true)}
           onCreateJob={() => {
             if (!canCreateJob) {
               toast.warning(
@@ -256,7 +273,7 @@ export default function ProjectDetailsPage() {
         ) : null}
 
         {tab === PROJECT_TABS.BILLING ? <ProjectBillingTab projectId={project._id} customerId={customer?._id} /> : null}
-        {tab === PROJECT_TABS.ACTIVITY ? <ProjectActivityTab /> : null}
+        {tab === PROJECT_TABS.ACTIVITY ? <ProjectActivityTab projectId={project._id} /> : null}
       </div>
 
       <NewJobModal
@@ -270,6 +287,15 @@ export default function ProjectDetailsPage() {
         initialEnrollment={null}
         lockCustomer={true}
         lockProject={true}
+      />
+
+      <ProjectFormModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        onSubmit={handleEdit}
+        busy={busy}
+        initialCustomer={customer}
+        initialProject={project}
       />
     </>
   );

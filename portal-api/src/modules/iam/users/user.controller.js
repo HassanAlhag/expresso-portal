@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import User from "./user.model.js";
 import Role from "../roles/role.model.js";
 import { logAudit } from "../audit/audit.service.js";
+import { VALID_PERMISSION_KEYS } from "../../../config/permissions.js";
 
 function canManageRole(actorRole, targetRole) {
   const actor = String(actorRole || "").toLowerCase();
@@ -442,6 +443,41 @@ export async function adminResetPassword(req, res) {
     return res.json({ ok: true, message: "Password reset" });
   } catch (err) {
     console.error("adminResetPassword error:", err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function updateUserPermissions(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ ok: false, message: "Invalid user id" });
+    }
+
+    const target = await User.findById(id).select("role").lean();
+    if (!target) {
+      return res.status(404).json({ ok: false, message: "User not found" });
+    }
+
+    const clean = (list) =>
+      Array.isArray(list)
+        ? [...new Set(list.map((x) => String(x || "").trim()).filter((k) => VALID_PERMISSION_KEYS.has(k)))]
+        : [];
+
+    const patch = {};
+    if ("extraPermissions"   in req.body) patch.extraPermissions   = clean(req.body.extraPermissions);
+    if ("revokedPermissions" in req.body) patch.revokedPermissions = clean(req.body.revokedPermissions);
+
+    const user = await User.findByIdAndUpdate(id, patch, { new: true })
+      .select("fullName email role extraPermissions revokedPermissions")
+      .lean();
+
+    await logAudit(req, { action: "user.permissions_updated", targetUserId: id });
+
+    return res.json({ ok: true, user });
+  } catch (err) {
+    console.error("updateUserPermissions error:", err);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }

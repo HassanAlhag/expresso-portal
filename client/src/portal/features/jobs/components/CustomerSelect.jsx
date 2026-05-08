@@ -26,14 +26,14 @@ export default function CustomerSelect({
   useEffect(() => {
     if (!open || disabled) return;
     load(q);
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
     if (!open || disabled) return;
     const t = setTimeout(() => load(q), 250);
     return () => clearTimeout(t);
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, open, disabled]);
 
   return (

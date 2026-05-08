@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   listStaff,
   getStaff,
@@ -7,45 +7,42 @@ import {
   updateStaff,
   deleteStaff,
   getStaffStats,
+  getDepartmentBenchmark,
+  updateSkills,
+  addScorecard,
+  removeScorecard,
+  addLearningGoal,
+  updateLearningGoal,
+  removeLearningGoal,
 } from "./staff.controller.js";
 
 const router = express.Router();
 
-router.get(
-  "/stats",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  getStaffStats
-);
+router.get("/stats",  requireAuth, requirePermission("hr.staff.read"),   getStaffStats);
+router.get("/",       requireAuth, requirePermission("hr.staff.read"),   listStaff);
+router.get("/:id",    requireAuth, requirePermission("hr.staff.read"),   getStaff);
 
-router.get(
-  "/",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  listStaff
-);
+router.post("/",      requireAuth, requirePermission("hr.staff.write"),  createStaff);
+router.patch("/:id",  requireAuth, requirePermission("hr.staff.write"),  updateStaff);
+router.delete("/:id", requireAuth, requirePermission("hr.staff.delete"), deleteStaff);
 
-router.get(
-  "/:id",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  getStaff
-);
+// ── Benchmark ─────────────────────────────────────────────────────────────────
 
-router.post("/", requireAuth, requireRole("super_admin", "admin"), createStaff);
+router.get("/:id/benchmark", requireAuth, requirePermission("hr.staff.read"), getDepartmentBenchmark);
 
-router.patch(
-  "/:id",
-  requireAuth,
-  requireRole("super_admin", "admin"),
-  updateStaff
-);
+// ── Skills ────────────────────────────────────────────────────────────────────
 
-router.delete(
-  "/:id",
-  requireAuth,
-  requireRole("super_admin", "admin"),
-  deleteStaff
-);
+router.put("/:id/skills", requireAuth, requirePermission("hr.scorecards.write"), updateSkills);
+
+// ── Scorecards ────────────────────────────────────────────────────────────────
+
+router.post("/:id/scorecards",         requireAuth, requirePermission("hr.scorecards.write"), addScorecard);
+router.delete("/:id/scorecards/:scId", requireAuth, requirePermission("hr.scorecards.write"), removeScorecard);
+
+// ── Learning Goals ────────────────────────────────────────────────────────────
+
+router.post("/:id/learning-goals",             requireAuth, requirePermission("hr.staff.write"), addLearningGoal);
+router.patch("/:id/learning-goals/:goalId",    requireAuth, requirePermission("hr.staff.write"), updateLearningGoal);
+router.delete("/:id/learning-goals/:goalId",   requireAuth, requirePermission("hr.staff.write"), removeLearningGoal);
 
 export default router;

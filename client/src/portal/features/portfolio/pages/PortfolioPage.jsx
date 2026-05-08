@@ -208,9 +208,9 @@ export default function PortfolioPage() {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreate = async (form) => {

@@ -1,25 +1,29 @@
 import User from "../users/user.model.js";
 import { signToken } from "../../../utils/jwt.js";
+import { resolvePermissions } from "../../../utils/resolvePermissions.js";
 
 function buildTokenPayload(user) {
   return { id: user._id.toString(), role: user.role };
 }
 
-function buildUserPayload(user) {
+function buildUserPayload(user, permissions = []) {
   return {
-    _id:          user._id,
-    fullName:     user.fullName,
-    email:        user.email,
-    role:         user.role,
-    isActive:     user.isActive,
-    clientId:     user.clientId || null,
-    lastLoginAt:  user.lastLoginAt,
-    avatarUrl:    user.avatarUrl || "",
-    avatarMediaId: user.avatarMediaId || null,
-    team:         user.team || "",
-    jobTitle:     user.jobTitle || "",
-    phone:        user.phone || "",
-    notes:        user.notes || "",
+    _id:               user._id,
+    fullName:          user.fullName,
+    email:             user.email,
+    role:              user.role,
+    isActive:          user.isActive,
+    clientId:          user.clientId || null,
+    lastLoginAt:       user.lastLoginAt,
+    avatarUrl:         user.avatarUrl || "",
+    avatarMediaId:     user.avatarMediaId || null,
+    team:              user.team || "",
+    jobTitle:          user.jobTitle || "",
+    phone:             user.phone || "",
+    notes:             user.notes || "",
+    permissions,
+    extraPermissions:  user.extraPermissions  || [],
+    revokedPermissions: user.revokedPermissions || [],
   };
 }
 
@@ -33,7 +37,7 @@ export async function login(req, res) {
     }
 
     const user = await User.findOne({ email }).select(
-      "+passwordHash fullName email role isActive clientId lastLoginAt avatarUrl avatarMediaId team jobTitle phone notes createdAt updatedAt"
+      "+passwordHash fullName email role isActive clientId lastLoginAt avatarUrl avatarMediaId team jobTitle phone notes extraPermissions revokedPermissions createdAt updatedAt"
     );
 
     if (!user) {
@@ -52,7 +56,17 @@ export async function login(req, res) {
     user.lastLoginAt = new Date();
     await user.save({ validateBeforeSave: false });
 
-    return res.json({ ok: true, token: signToken(buildTokenPayload(user)), user: buildUserPayload(user) });
+    const permissions = await resolvePermissions(
+      user.role,
+      user.extraPermissions || [],
+      user.revokedPermissions || []
+    );
+
+    return res.json({
+      ok: true,
+      token: signToken(buildTokenPayload(user)),
+      user: buildUserPayload(user, permissions),
+    });
   } catch (err) {
     console.error("login error:", err);
     return res.status(500).json({ ok: false, message: err?.message || "Server error" });
@@ -65,13 +79,17 @@ export async function me(req, res) {
     if (!userId) return res.status(401).json({ ok: false, message: "Unauthorized" });
 
     const user = await User.findById(userId)
-      .select("fullName email role isActive lastLoginAt createdAt updatedAt clientId avatarUrl avatarMediaId team jobTitle phone notes")
+      .select("fullName email role isActive lastLoginAt createdAt updatedAt clientId avatarUrl avatarMediaId team jobTitle phone notes extraPermissions revokedPermissions")
       .lean();
 
-    if (!user)              return res.status(401).json({ ok: false, message: "Unauthorized" });
-    if (!user.isActive)     return res.status(403).json({ ok: false, message: "Account is inactive" });
+    if (!user)          return res.status(401).json({ ok: false, message: "Unauthorized" });
+    if (!user.isActive) return res.status(403).json({ ok: false, message: "Account is inactive" });
 
-    return res.json({ ok: true, user });
+    // req.user.permissions is already resolved by requireAuth middleware
+    return res.json({
+      ok: true,
+      user: buildUserPayload(user, req.user?.permissions || []),
+    });
   } catch (err) {
     console.error("me error:", err);
     return res.status(500).json({ ok: false, message: "Server error" });

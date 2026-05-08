@@ -30,6 +30,7 @@ import {
   SlidersHorizontal,
   HeartHandshake,
   CalendarDays,
+  Grid3x3,
 } from "lucide-react";
 
 export const BRAND = "#6F7FD9";
@@ -93,6 +94,7 @@ export const ROUTES = {
   HR_EXPENSES: "/portal/hr/expenses",
   HR_MONTHLY_EXPENSES: "/portal/hr/monthly-expenses",
   HR_LEAVES: "/portal/hr/leaves",
+  HR_SKILLS: "/portal/hr/skills",
 };
 
 const ACCENTS = {
@@ -413,6 +415,14 @@ const ITEMS = {
     Icon: CalendarDays,
     accent: ACCENTS.sky,
   },
+
+  hrSkills: {
+    to: ROUTES.HR_SKILLS,
+    label: "Skill Matrix",
+    hint: "Team skills overview",
+    Icon: Grid3x3,
+    accent: ACCENTS.mint,
+  },
 };
 
 export function getNavSectionsByRole(role) {
@@ -494,7 +504,7 @@ export function getNavSectionsByRole(role) {
       {
         title: "HR",
         Icon: HeartHandshake,
-        items: [ITEMS.hrExpenses, ITEMS.hrLeaves],
+        items: [ITEMS.hrExpenses, ITEMS.hrLeaves, ITEMS.hrSkills],
       },
       {
         title: "Personal",
@@ -550,6 +560,7 @@ export function getNavSectionsByRole(role) {
         ITEMS.hrExpenses,
         ITEMS.hrMonthlyExpenses,
         ITEMS.hrLeaves,
+        ITEMS.hrSkills,
       ],
     },
     {
@@ -684,6 +695,14 @@ export function getPageMeta(pathname) {
       label: "Staff",
       subtitle: "Employees, departments, and HR records",
       Icon: Users,
+    };
+  }
+
+  if (starts(ROUTES.HR_SKILLS)) {
+    return {
+      label: "Skill Matrix",
+      subtitle: "Team skills overview and comparison",
+      Icon: Grid3x3,
     };
   }
 

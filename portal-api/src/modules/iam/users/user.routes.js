@@ -10,6 +10,7 @@ import {
   updateUser,
   setUserStatus,
   adminResetPassword,
+  updateUserPermissions,
 } from "./user.controller.js";
 
 const router = express.Router();
@@ -70,6 +71,13 @@ router.post(
   requireAuth,
   requireRole("super_admin", "admin"),
   forceLogoutUser
+);
+
+router.patch(
+  "/:id/permissions",
+  requireAuth,
+  requireRole("super_admin", "admin"),
+  updateUserPermissions
 );
 
 export default router;

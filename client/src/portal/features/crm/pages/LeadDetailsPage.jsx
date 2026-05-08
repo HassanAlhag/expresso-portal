@@ -34,7 +34,7 @@ export default function LeadDetailsPage() {
   const [error, setError] = useState("");
 
   const [editOpen, setEditOpen] = useState(false);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [convertTitle, setConvertTitle] = useState("");
   const [convertValue, setConvertValue] = useState("");
 
@@ -82,7 +82,7 @@ export default function LeadDetailsPage() {
   };
 
   const handleDelete = () => {
-    setConfirm({
+    setConfirmState({
       title: "Delete lead",
       message: `Delete "${item?.fullName}"? This cannot be undone.`,
       danger: true,
@@ -96,7 +96,7 @@ export default function LeadDetailsPage() {
           toast.error(e?.response?.data?.message || e?.message || "Delete failed");
           setBusy(false);
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -240,12 +240,12 @@ export default function LeadDetailsPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

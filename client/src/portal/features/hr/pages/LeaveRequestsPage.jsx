@@ -59,7 +59,7 @@ function formatType(value) {
 
 export default function LeaveRequestsPage() {
   const toast = useToast();
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [prompt, setPrompt] = useState(null);
   const [items, setItems] = useState([]);
   const [stats, setStats] = useState(null);
@@ -182,7 +182,7 @@ export default function LeaveRequestsPage() {
   };
 
   const remove = (item) => {
-    setConfirm({
+    setConfirmState({
       title: "Delete leave request",
       message: `Delete leave request for "${item.staffName}"?`,
       danger: true,
@@ -196,7 +196,7 @@ export default function LeaveRequestsPage() {
         } finally {
           setBusy(false);
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -497,12 +497,12 @@ export default function LeaveRequestsPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
 
       <PromptModal

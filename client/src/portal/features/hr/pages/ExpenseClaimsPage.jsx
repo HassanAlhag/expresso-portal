@@ -59,7 +59,7 @@ function currentMonth() {
 export default function ExpenseClaimsPage() {
   const toast = useToast();
   const nav = useNavigate();
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [prompt, setPrompt] = useState(null);
   const [items, setItems] = useState([]);
   const [stats, setStats] = useState(null);
@@ -155,7 +155,7 @@ export default function ExpenseClaimsPage() {
   };
 
   const handleDelete = (item) => {
-    setConfirm({
+    setConfirmState({
       title: "Delete expense",
       message: `Delete expense "${item.title}"?`,
       danger: true,
@@ -169,7 +169,7 @@ export default function ExpenseClaimsPage() {
         } finally {
           setBusy(false);
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -565,12 +565,12 @@ export default function ExpenseClaimsPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
 
       <PromptModal

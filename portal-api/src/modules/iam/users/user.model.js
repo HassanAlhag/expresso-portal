@@ -37,6 +37,12 @@ const UserSchema = new mongoose.Schema(
 
     notes: { type: String, trim: true, default: "" },
 
+    /** Per-user permission grants on top of the role's permission set. */
+    extraPermissions: { type: [String], default: [] },
+
+    /** Per-user permission revocations that override the role's permission set. */
+    revokedPermissions: { type: [String], default: [] },
+
     passwordHash: { type: String, required: true, select: false },
 
     lastLoginAt: { type: Date, default: null },

@@ -129,7 +129,7 @@ function ApplicationDrawer({ applicationId, onClose, onApproved, onRejected }) {
   const [busy, setBusy] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectBox, setShowRejectBox] = useState(false);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -141,7 +141,7 @@ function ApplicationDrawer({ applicationId, onClose, onApproved, onRejected }) {
 
   const handleApprove = () => {
     if (!item?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Approve Application",
       message: `Approve "${item.companyName}" and generate portal credentials?`,
       danger: false,
@@ -150,11 +150,11 @@ function ApplicationDrawer({ applicationId, onClose, onApproved, onRejected }) {
         setBusy(true);
         try {
           const res = await approveVendorApplication(item._id);
-          setConfirm(null);
+          setConfirmState(null);
           onApproved(res);
         } catch (e) {
           toast.error(e?.response?.data?.message || e?.message || "Approval failed");
-          setConfirm(null);
+          setConfirmState(null);
         } finally {
           setBusy(false);
         }
@@ -310,13 +310,13 @@ function ApplicationDrawer({ applicationId, onClose, onApproved, onRejected }) {
       </div>
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        confirmLabel={confirm?.confirmLabel}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        confirmLabel={confirmState?.confirmLabel}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

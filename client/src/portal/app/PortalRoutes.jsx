@@ -179,6 +179,9 @@ const MonthlyExpensesPage = lazy(() =>
 const LeaveRequestsPage = lazy(() =>
   import("../features/hr/pages/LeaveRequestsPage")
 );
+const SkillMatrixPage = lazy(() =>
+  import("../features/hr/pages/SkillMatrixPage")
+);
 
 export default function PortalRoutes() {
   return (
@@ -424,6 +427,7 @@ export default function PortalRoutes() {
           <Route path="hr/expenses/:id" element={<ExpenseClaimDetailsPage />} />
           <Route path="hr/monthly-expenses" element={<MonthlyExpensesPage />} />
           <Route path="hr/leaves" element={<LeaveRequestsPage />} />
+          <Route path="hr/skills" element={<SkillMatrixPage />} />
 
           {/* Reporting */}
           <Route path="reports" element={<ReportsPage />} />

@@ -94,7 +94,7 @@ export default function ExpenseClaimDetailsPage() {
   const { id } = useParams();
   const nav = useNavigate();
   const toast = useToast();
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [prompt, setPrompt] = useState(null);
 
   const [item, setItem] = useState(null);
@@ -138,7 +138,7 @@ export default function ExpenseClaimDetailsPage() {
 
   const remove = () => {
     if (!item?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Delete expense",
       message: `Delete expense "${item.title}"?`,
       danger: true,
@@ -152,7 +152,7 @@ export default function ExpenseClaimDetailsPage() {
         } finally {
           setBusy(false);
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -477,12 +477,12 @@ export default function ExpenseClaimDetailsPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
 
       <PromptModal

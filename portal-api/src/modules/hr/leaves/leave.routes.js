@@ -1,7 +1,5 @@
 import express from "express";
-
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
-
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   listLeaves,
   getLeave,
@@ -16,94 +14,17 @@ import {
 
 const router = express.Router();
 
-router.get(
-  "/stats",
+router.get("/stats",  requireAuth, requirePermission("hr.leaves.read"),    getLeaveStats);
+router.get("/",       requireAuth, requirePermission("hr.leaves.read"),    listLeaves);
+router.get("/:id",    requireAuth, requirePermission("hr.leaves.read"),    getLeave);
 
-  requireAuth,
+router.post("/",      requireAuth, requirePermission("hr.leaves.write"),   createLeave);
+router.patch("/:id",  requireAuth, requirePermission("hr.leaves.write"),   updateLeave);
+router.delete("/:id", requireAuth, requirePermission("hr.leaves.delete"),  deleteLeave);
 
-  requireRole("super_admin", "admin", "staff"),
-
-  getLeaveStats
-);
-
-router.get(
-  "/",
-
-  requireAuth,
-
-  requireRole("super_admin", "admin", "staff"),
-
-  listLeaves
-);
-
-router.get(
-  "/:id",
-
-  requireAuth,
-
-  requireRole("super_admin", "admin", "staff"),
-
-  getLeave
-);
-
-router.post(
-  "/",
-
-  requireAuth,
-
-  requireRole("super_admin", "admin", "staff"),
-
-  createLeave
-);
-
-router.patch(
-  "/:id",
-
-  requireAuth,
-
-  requireRole("super_admin", "admin", "staff"),
-
-  updateLeave
-);
-
-router.delete(
-  "/:id",
-
-  requireAuth,
-
-  requireRole("super_admin", "admin"),
-
-  deleteLeave
-);
-
-router.post(
-  "/:id/approve",
-
-  requireAuth,
-
-  requireRole("super_admin", "admin"),
-
-  approveLeave
-);
-
-router.post(
-  "/:id/reject",
-
-  requireAuth,
-
-  requireRole("super_admin", "admin"),
-
-  rejectLeave
-);
-
-router.post(
-  "/:id/cancel",
-
-  requireAuth,
-
-  requireRole("super_admin", "admin", "staff"),
-
-  cancelLeave
-);
+// Approval actions — separate permission for fine-grained control
+router.post("/:id/approve", requireAuth, requirePermission("hr.leaves.approve"), approveLeave);
+router.post("/:id/reject",  requireAuth, requirePermission("hr.leaves.approve"), rejectLeave);
+router.post("/:id/cancel",  requireAuth, requirePermission("hr.leaves.write"),   cancelLeave);
 
 export default router;

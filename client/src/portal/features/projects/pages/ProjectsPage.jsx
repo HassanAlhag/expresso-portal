@@ -91,7 +91,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, status, type, priority, projectMode, source, sort, page]);
 
   const statsData = useMemo(() => ({

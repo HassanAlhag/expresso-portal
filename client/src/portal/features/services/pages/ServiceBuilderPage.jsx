@@ -73,7 +73,7 @@ export default function ServiceBuilderPage() {
   const [error, setError] = useState("");
   const [doc, setDoc] = useState(DEFAULT_TEMPLATE);
   const [isDirty, setIsDirty] = useState(false);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const summaryStats = useMemo(() => {
     const groups = Array.isArray(doc.scopeGroups) ? doc.scopeGroups : [];
@@ -117,12 +117,12 @@ export default function ServiceBuilderPage() {
 
   const goBackSafely = () => {
     if (isDirty) {
-      setConfirm({
+      setConfirmState({
         title: "Unsaved changes",
         message: "You have unsaved changes. Leave this page without saving?",
         danger: false,
         onConfirm: () => {
-          setConfirm(null);
+          setConfirmState(null);
           nav("/portal/services");
         },
       });
@@ -324,12 +324,12 @@ export default function ServiceBuilderPage() {
   return (
     <div className="grid gap-5">
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
       <PageHeader
         eyebrow="CATALOG"

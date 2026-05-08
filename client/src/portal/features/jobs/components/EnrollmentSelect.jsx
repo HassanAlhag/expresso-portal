@@ -32,7 +32,7 @@ export default function EnrollmentSelect({
   useEffect(() => {
     if (!open || disabled) return;
     load();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, projectId, disabled]);
 
   return (

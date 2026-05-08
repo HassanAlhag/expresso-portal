@@ -34,6 +34,7 @@ export async function listJobs(req, res) {
       customerId = "",
       projectId = "",
       enrollmentId = "",
+      assigneeId = "",
       status = "",
       type = "",
       workflowType = "",
@@ -53,6 +54,7 @@ export async function listJobs(req, res) {
     if (validId(customerId)) filter.customerId = customerId;
     if (validId(projectId)) filter.projectId = projectId;
     if (validId(enrollmentId)) filter.enrollmentId = enrollmentId;
+    if (validId(assigneeId)) filter.assignees = assigneeId;
 
     if (status && isValidJobStatus(status)) {
       filter.status = normalizeJobStatus(status);

@@ -57,7 +57,12 @@ export async function listPortfolio(req, res) {
 export async function getPortfolioBySlug(req, res) {
   const { slug } = req.params;
 
-  const item = await Portfolio.findOne({ slug: String(slug).toLowerCase() })
+  const isId = /^[a-f\d]{24}$/i.test(slug);
+  const query = isId
+    ? Portfolio.findById(slug)
+    : Portfolio.findOne({ slug: String(slug).toLowerCase() });
+
+  const item = await query
     .populate("coverMedia", "url thumbnailUrl type title")
     .populate("gallery", "url thumbnailUrl type title")
     .lean();

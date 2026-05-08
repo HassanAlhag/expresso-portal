@@ -3,7 +3,7 @@ import Button from "../../../shared/ui/Button";
 import Input from "../../../shared/ui/Input";
 import CustomerSelect from "./CustomerSelect";
 import { BRAND } from "../constants";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 
 const PROJECT_MODE_OPTIONS = [
   { value: "custom", label: "Custom" },
@@ -74,7 +74,21 @@ function parseTags(value) {
     .filter(Boolean);
 }
 
-export default function ProjectFormModal({ open, onClose, onSubmit, busy, initialCustomer = null }) {
+function fmtDate(iso) {
+  if (!iso) return "";
+  return String(iso).slice(0, 10);
+}
+
+export default function ProjectFormModal({
+  open,
+  onClose,
+  onSubmit,
+  busy,
+  initialCustomer = null,
+  initialProject = null,
+}) {
+  const isEdit = Boolean(initialProject);
+
   const [customer, setCustomer] = useState(null);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -96,24 +110,49 @@ export default function ProjectFormModal({ open, onClose, onSubmit, busy, initia
   useEffect(() => {
     if (!open) return;
 
-    setCustomer(initialCustomer || null);
-    setName("");
-    setCode("");
-    setProjectMode("custom");
-    setSource("manual");
-    setType("delivery");
-    setStatus("draft");
-    setPriority("medium");
-    setTeam("");
-    setCurrency("AED");
-    setBudget("");
-    setStartDate("");
-    setEndDate("");
-    setTargetLaunchDate("");
-    setTags("");
-    setDescription("");
-    setNotes("");
-  }, [open, initialCustomer]);
+    if (initialProject) {
+      const p = initialProject;
+      const resolvedCustomer =
+        p.customerId && typeof p.customerId === "object"
+          ? p.customerId
+          : initialCustomer || null;
+      setCustomer(resolvedCustomer);
+      setName(p.name || "");
+      setCode(p.code || "");
+      setProjectMode(p.projectMode || "custom");
+      setSource(p.source || "manual");
+      setType(p.type || "delivery");
+      setStatus(p.status || "draft");
+      setPriority(p.priority || "medium");
+      setTeam(p.team || "");
+      setCurrency(p.currency || "AED");
+      setBudget(p.budget != null ? String(p.budget) : "");
+      setStartDate(fmtDate(p.startDate));
+      setEndDate(fmtDate(p.endDate));
+      setTargetLaunchDate(fmtDate(p.targetLaunchDate));
+      setTags((p.tags || []).join(", "));
+      setDescription(p.description || "");
+      setNotes(p.notes || "");
+    } else {
+      setCustomer(initialCustomer || null);
+      setName("");
+      setCode("");
+      setProjectMode("custom");
+      setSource("manual");
+      setType("delivery");
+      setStatus("draft");
+      setPriority("medium");
+      setTeam("");
+      setCurrency("AED");
+      setBudget("");
+      setStartDate("");
+      setEndDate("");
+      setTargetLaunchDate("");
+      setTags("");
+      setDescription("");
+      setNotes("");
+    }
+  }, [open, initialCustomer, initialProject]);
 
   useEffect(() => {
     if (projectMode === "internal") {
@@ -147,11 +186,12 @@ export default function ProjectFormModal({ open, onClose, onSubmit, busy, initia
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-2xl font-black text-slate-900">
-                New Project
+                {isEdit ? "Edit Project" : "New Project"}
               </div>
               <div className="mt-1 text-sm text-slate-600">
-                Use projects as the main container for client work, custom work,
-                pre-contract work, or internal initiatives.
+                {isEdit
+                  ? "Update the project details below."
+                  : "Use projects as the main container for client work, custom work, pre-contract work, or internal initiatives."}
               </div>
             </div>
 
@@ -341,8 +381,8 @@ export default function ProjectFormModal({ open, onClose, onSubmit, busy, initia
               })
             }
           >
-            <Plus size={16} />
-            Create project
+            {isEdit ? <Pencil size={16} /> : <Plus size={16} />}
+            {isEdit ? "Save changes" : "Create project"}
           </Button>
         </div>
       </div>

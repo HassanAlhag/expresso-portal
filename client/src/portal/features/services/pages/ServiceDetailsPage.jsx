@@ -3,7 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import Card from "../../../shared/ui/Card";
 import Button from "../../../shared/ui/Button";
+import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import Skeleton from "../../../shared/ui/Skeleton";
+import { useToast } from "../../../shared/ui/Toast";
 
 import {
   ArrowLeft,
@@ -19,9 +21,10 @@ import {
   BriefcaseBusiness,
   ChevronRight,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 
-import { getService } from "../api";
+import { getService, deleteService } from "../api";
 import ServiceStatusPill from "../components/ServiceStatusPill";
 
 function money(x) {
@@ -200,10 +203,13 @@ function ApprovalStepCard({ step, index }) {
 export default function ServiceDetailsPage() {
   const nav = useNavigate();
   const { id } = useParams();
+  const toast = useToast();
 
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [item, setItem] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -251,6 +257,25 @@ export default function ServiceDetailsPage() {
       : 0;
   }, [item]);
 
+  const handleDelete = () => {
+    setConfirmState({
+      title: "Delete service",
+      message: `Delete "${item?.name || item?.title}"? This cannot be undone.`,
+      danger: true,
+      onConfirm: async () => {
+        setBusy(true);
+        setConfirmState(null);
+        try {
+          await deleteService(id);
+          nav("/portal/services");
+        } catch (e) {
+          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
+          setBusy(false);
+        }
+      },
+    });
+  };
+
   if (loading) {
     return (
       <Card className="p-6">
@@ -281,6 +306,15 @@ export default function ServiceDetailsPage() {
 
   return (
     <div className="grid gap-6">
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
+      />
+
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <button
@@ -309,17 +343,22 @@ export default function ServiceDetailsPage() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <Button variant="outline" onClick={load} disabled={busy}>
+            <RefreshCw size={16} />
+            Refresh
+          </Button>
+
           <Button
             variant="outline"
             onClick={() => nav(`/portal/services/${id}/edit`)}
+            disabled={busy}
           >
             <Pencil size={16} />
             Edit in builder
           </Button>
 
-          <Button variant="outline" onClick={load}>
-            <RefreshCw size={16} />
-            Refresh
+          <Button variant="outline" onClick={handleDelete} disabled={busy}>
+            <Trash2 size={16} />
           </Button>
         </div>
       </div>

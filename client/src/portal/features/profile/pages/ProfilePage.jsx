@@ -125,7 +125,7 @@ export default function ProfilePage() {
     }
   };
 
-  useEffect(() => { loadUser(); }, []); // eslint-disable-line
+  useEffect(() => { loadUser(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     if (!form.fullName.trim()) {

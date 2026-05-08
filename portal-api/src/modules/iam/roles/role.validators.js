@@ -1,3 +1,5 @@
+import { VALID_PERMISSION_KEYS } from "../../../config/permissions.js";
+
 function normalizeKey(s) {
   return String(s || "")
     .trim()
@@ -7,7 +9,8 @@ function normalizeKey(s) {
 
 function normalizePermissions(list) {
   if (!Array.isArray(list)) return [];
-  return [...new Set(list.map((x) => String(x || "").trim()).filter(Boolean))];
+  const unique = [...new Set(list.map((x) => String(x || "").trim()).filter(Boolean))];
+  return unique.filter((k) => VALID_PERMISSION_KEYS.has(k));
 }
 
 export function validateCreateRole(body = {}) {

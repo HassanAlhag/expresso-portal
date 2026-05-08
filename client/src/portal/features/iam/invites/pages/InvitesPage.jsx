@@ -123,7 +123,7 @@ export default function InvitesPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, status, role, team, sort, page]);
 
   const pendingCount = useMemo(

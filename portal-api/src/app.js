@@ -1,8 +1,6 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import path from "path";
-import { fileURLToPath } from "url";
 
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -47,6 +45,9 @@ import rfqRoutes from "./modules/procurement/rfq.routes.js";
 import expenseRoutes from "./modules/hr/expenses/expense.routes.js";
 import staffRoutes from "./modules/hr/staff/staff.routes.js";
 import leaveRoutes from "./modules/hr/leaves/leave.routes.js";
+import scorecardTemplateRoutes from "./modules/hr/scorecard-templates/template.routes.js";
+
+import permissionsRoutes from "./modules/iam/permissions/permissions.routes.js";
 
 const loginRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
@@ -73,11 +74,6 @@ export function createApp() {
   app.use(requestLogger);
   app.use(express.json({ limit: "1mb" }));
 
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-
-  app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-
   app.get("/api/health", (_req, res) =>
     res.json({ ok: true, status: "up", env: env.nodeEnv })
   );
@@ -88,6 +84,7 @@ export function createApp() {
   app.use("/api/users", iamUsersRoutes);
   app.use("/api/roles", rolesRoutes);
   app.use("/api/invites", invitesRoutes);
+  app.use("/api/permissions", permissionsRoutes);
 
   app.use("/api/tickets", ticketRoutes);
   app.use("/api/projects", projectRoutes);
@@ -115,6 +112,7 @@ export function createApp() {
   app.use("/api/hr/expenses", expenseRoutes);
   app.use("/api/hr/staff", staffRoutes);
   app.use("/api/hr/leaves", leaveRoutes);
+  app.use("/api/hr/scorecard-templates", scorecardTemplateRoutes);
 
   app.use("/api/public", publicRoutes);
   app.use("/api/careers", careerRoutes);

@@ -3,15 +3,20 @@ import mongoose from "mongoose";
 const MediaSchema = new mongoose.Schema(
   {
     type: { type: String, enum: ["image", "video", "file"], required: true },
-    url: { type: String, required: true }, // e.g. /uploads/media/xxx.jpg
-    thumbnailUrl: { type: String, default: "" }, // optional
+    url: { type: String, required: true },
+    s3Key: { type: String, default: "" },
+    thumbnailUrl: { type: String, default: "" },
     filename: { type: String, default: "" },
 
     title: { type: String, default: "", trim: true, maxlength: 160 },
     tags: { type: [String], default: [], index: true },
     category: { type: String, default: "", index: true },
 
-    status: { type: String, enum: ["draft", "approved"], default: "draft" },
+    status: {
+      type: String,
+      enum: ["draft", "published", "archived"],
+      default: "draft",
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

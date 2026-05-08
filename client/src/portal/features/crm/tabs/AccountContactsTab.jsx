@@ -86,7 +86,7 @@ function ContactFormModal({ open, accountId, busy, onClose, onSubmit }) {
 export default function AccountContactsTab({ account }) {
   const nav = useNavigate();
   const toast = useToast();
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
@@ -120,7 +120,7 @@ export default function AccountContactsTab({ account }) {
   };
 
   const handleDelete = (id) => {
-    setConfirm({
+    setConfirmState({
       title: "Remove contact",
       message: "Remove this contact?",
       danger: true,
@@ -132,7 +132,7 @@ export default function AccountContactsTab({ account }) {
         } catch {
           toast.error("Failed to remove contact.");
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -231,12 +231,12 @@ export default function AccountContactsTab({ account }) {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </>
   );

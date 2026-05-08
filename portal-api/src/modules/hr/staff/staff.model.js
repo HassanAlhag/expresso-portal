@@ -159,6 +159,42 @@ const StaffSchema = new mongoose.Schema(
       default: "",
     },
 
+    skills: [
+      {
+        name: { type: String, trim: true, required: true },
+        level: {
+          type: String,
+          enum: ["beginner", "intermediate", "advanced", "expert"],
+          default: "beginner",
+        },
+      },
+    ],
+
+    learningGoals: [
+      {
+        title: { type: String, trim: true, required: true },
+        description: { type: String, trim: true, default: "" },
+        targetDate: { type: Date, default: null },
+        status: {
+          type: String,
+          enum: ["active", "completed", "on_hold"],
+          default: "active",
+        },
+        progress: { type: Number, min: 0, max: 100, default: 0 },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+
+    scorecards: [
+      {
+        period: { type: String, trim: true, default: "" },
+        rating: { type: Number, min: 1, max: 5, required: true },
+        notes: { type: String, trim: true, default: "" },
+        reviewerName: { type: String, trim: true, default: "" },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   listExpenses,
   getExpense,
@@ -17,88 +17,20 @@ import {
 
 const router = express.Router();
 
-router.get(
-  "/stats",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  getExpenseStats
-);
+router.get("/stats",           requireAuth, requirePermission("hr.expenses.read"),    getExpenseStats);
+router.get("/monthly",         requireAuth, requirePermission("hr.expenses.read"),    getMonthlyExpenses);
+router.get("/monthly/:month",  requireAuth, requirePermission("hr.expenses.read"),    getMonthlyExpenseDetails);
+router.get("/",                requireAuth, requirePermission("hr.expenses.read"),    listExpenses);
+router.get("/:id",             requireAuth, requirePermission("hr.expenses.read"),    getExpense);
 
-router.get(
-  "/monthly",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  getMonthlyExpenses
-);
+router.post("/",               requireAuth, requirePermission("hr.expenses.write"),   createExpense);
+router.patch("/:id",           requireAuth, requirePermission("hr.expenses.write"),   updateExpense);
+router.delete("/:id",          requireAuth, requirePermission("hr.expenses.delete"),  deleteExpense);
 
-router.get(
-  "/",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  listExpenses
-);
-
-router.get(
-  "/:id",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  getExpense
-);
-
-router.post(
-  "/",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  createExpense
-);
-
-router.patch(
-  "/:id",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  updateExpense
-);
-
-router.delete(
-  "/:id",
-  requireAuth,
-  requireRole("super_admin", "admin"),
-  deleteExpense
-);
-
-router.post(
-  "/:id/approve",
-  requireAuth,
-  requireRole("super_admin", "admin"),
-  approveExpense
-);
-
-router.post(
-  "/:id/reject",
-  requireAuth,
-  requireRole("super_admin", "admin"),
-  rejectExpense
-);
-
-router.post(
-  "/:id/register",
-  requireAuth,
-  requireRole("super_admin", "admin"),
-  registerExpense
-);
-
-router.post(
-  "/:id/paid",
-  requireAuth,
-  requireRole("super_admin", "admin"),
-  markExpensePaid
-);
-
-router.get(
-  "/monthly/:month",
-  requireAuth,
-  requireRole("super_admin", "admin", "staff"),
-  getMonthlyExpenseDetails
-);
+// Approval actions — separate permission so "HR Managers" can approve without full admin access
+router.post("/:id/approve",    requireAuth, requirePermission("hr.expenses.approve"), approveExpense);
+router.post("/:id/reject",     requireAuth, requirePermission("hr.expenses.approve"), rejectExpense);
+router.post("/:id/register",   requireAuth, requirePermission("hr.expenses.approve"), registerExpense);
+router.post("/:id/paid",       requireAuth, requirePermission("hr.expenses.approve"), markExpensePaid);
 
 export default router;

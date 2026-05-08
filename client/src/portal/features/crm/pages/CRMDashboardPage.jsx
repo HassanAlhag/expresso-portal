@@ -144,7 +144,7 @@ export default function CRMDashboardPage() {
 
   useEffect(() => {
     loadDashboard();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openDeals = useMemo(() => deals.filter((d) => d.status === "open"), [deals]);

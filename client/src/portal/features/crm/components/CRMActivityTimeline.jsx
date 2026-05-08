@@ -32,10 +32,10 @@ function ActivityItem({ item, canDelete, onDeleted }) {
   const { Icon } = meta;
   const toast = useToast();
   const [busy, setBusy] = React.useState(false);
-  const [confirm, setConfirm] = React.useState(null);
+  const [confirmState, setConfirmState] = React.useState(null);
 
   const handleDelete = () => {
-    setConfirm({
+    setConfirmState({
       title: "Delete activity",
       message: "Delete this activity?",
       danger: true,
@@ -48,7 +48,7 @@ function ActivityItem({ item, canDelete, onDeleted }) {
           toast.error("Failed to delete activity.");
           setBusy(false);
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -110,12 +110,12 @@ function ActivityItem({ item, canDelete, onDeleted }) {
       </div>
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </>
   );

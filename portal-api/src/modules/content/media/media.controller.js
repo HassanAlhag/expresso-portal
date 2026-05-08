@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Media from "./media.model.js";
+import { uploadToS3, deleteFromS3 } from "../../../utils/s3.js";
 
 function safeRx(s) {
   const v = String(s || "").trim();
@@ -62,11 +63,17 @@ export async function uploadMedia(req, res) {
   const { title = "", tags = "", category = "", status = "draft" } = req.body;
 
   const type = guessType(file.mimetype);
-  const url = `/uploads/media/${file.filename}`;
+  const { url, key } = await uploadToS3(
+    file.buffer,
+    "media",
+    file.originalname,
+    file.mimetype
+  );
 
   const item = await Media.create({
     type,
     url,
+    s3Key: key,
     thumbnailUrl: "", // optional later
     filename: file.originalname,
     title: String(title || "").trim(),
@@ -77,7 +84,9 @@ export async function uploadMedia(req, res) {
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
-    status: ["draft", "approved"].includes(status) ? status : "draft",
+    status: ["draft", "published", "archived"].includes(status)
+      ? status
+      : "draft",
   });
 
   res.status(201).json({ ok: true, item });
@@ -94,7 +103,7 @@ export async function updateMedia(req, res) {
   if (typeof body.title !== "undefined") patch.title = body.title;
   if (typeof body.category !== "undefined") patch.category = body.category;
   if (typeof body.status !== "undefined") {
-    if (!["draft", "approved"].includes(body.status))
+    if (!["draft", "published", "archived"].includes(body.status))
       return res.status(400).json({ ok: false, message: "Invalid status" });
     patch.status = body.status;
   }
@@ -121,6 +130,9 @@ export async function deleteMedia(req, res) {
   const item = await Media.findByIdAndDelete(id).lean();
   if (!item) return res.status(404).json({ ok: false, message: "Not found" });
 
-  // NOTE: file delete from disk can be added later (fs.unlink)
+  if (item.s3Key) {
+    await deleteFromS3(item.s3Key);
+  }
+
   res.json({ ok: true });
 }

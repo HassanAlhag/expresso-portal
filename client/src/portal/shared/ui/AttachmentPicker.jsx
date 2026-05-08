@@ -54,14 +54,14 @@ export default function AttachmentPicker({
     setItems([]);
     setSelected({});
     load();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
     if (!open || tab !== "library") return;
     const t = setTimeout(load, 250);
     return () => clearTimeout(t);
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, tab, open]);
 
   const toggle = (m) => {

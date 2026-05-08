@@ -56,7 +56,7 @@ function formatType(value) {
 export default function StaffPage() {
   const toast = useToast();
   const nav = useNavigate();
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [items, setItems] = useState([]);
   const [stats, setStats] = useState(null);
   const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0 });
@@ -178,7 +178,7 @@ export default function StaffPage() {
   };
 
   const remove = (item) => {
-    setConfirm({
+    setConfirmState({
       title: "Delete staff member",
       message: `Delete "${item.fullName}"?`,
       danger: true,
@@ -192,7 +192,7 @@ export default function StaffPage() {
         } finally {
           setBusy(false);
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -429,12 +429,12 @@ export default function StaffPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </>
   );

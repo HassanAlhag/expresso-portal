@@ -307,7 +307,7 @@ export default function FilesPage() {
   const [error, setError] = useState("");
 
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -338,7 +338,7 @@ export default function FilesPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, visibility, approved, sort, page]);
 
   const stats = useMemo(() => {
@@ -385,13 +385,13 @@ export default function FilesPage() {
 
   const onDelete = (f) => {
     if (!f?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Delete file",
       message: `Delete "${f.originalName}"?`,
       danger: true,
       onConfirm: async () => {
         setBusy(true);
-        setConfirm(null);
+        setConfirmState(null);
         try {
           await deleteFile(f._id);
           await load();
@@ -629,12 +629,12 @@ export default function FilesPage() {
         busy={busy}
       />
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

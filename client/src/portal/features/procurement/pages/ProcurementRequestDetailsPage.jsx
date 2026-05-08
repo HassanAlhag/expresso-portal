@@ -220,7 +220,7 @@ export default function ProcurementRequestDetailsPage() {
   const [error, setError] = useState("");
 
   const [vendorModalOpen, setVendorModalOpen] = useState(false);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   // Quick edit form state
   const [editForm, setEditForm] = useState({});
@@ -271,7 +271,7 @@ export default function ProcurementRequestDetailsPage() {
   };
 
   const handleCancelRequest = () => {
-    setConfirm({
+    setConfirmState({
       title: "Cancel Request",
       message: "Cancel this procurement request?",
       danger: true,
@@ -286,14 +286,14 @@ export default function ProcurementRequestDetailsPage() {
           toast.error(e?.response?.data?.message || "Cancel failed.");
         } finally {
           setStatusBusy(false);
-          setConfirm(null);
+          setConfirmState(null);
         }
       },
     });
   };
 
   const handleDelete = () => {
-    setConfirm({
+    setConfirmState({
       title: "Delete Request",
       message: "Permanently delete this request?",
       danger: true,
@@ -302,12 +302,12 @@ export default function ProcurementRequestDetailsPage() {
         try {
           await deleteRequest(id);
           toast.success("Request deleted.");
-          setConfirm(null);
+          setConfirmState(null);
           nav("/portal/procurement/requests");
         } catch (e) {
           toast.error(e?.response?.data?.message || "Delete failed.");
           setBusy(false);
-          setConfirm(null);
+          setConfirmState(null);
         }
       },
     });
@@ -329,7 +329,7 @@ export default function ProcurementRequestDetailsPage() {
   };
 
   const handleCreateRfq = () => {
-    setConfirm({
+    setConfirmState({
       title: "Create RFQ",
       message: "Create a draft RFQ from this procurement request?",
       danger: false,
@@ -340,7 +340,7 @@ export default function ProcurementRequestDetailsPage() {
           const res = await createRfqFromRequest(id);
           const rfq = res?.item;
           toast.success("Draft RFQ created from request.");
-          setConfirm(null);
+          setConfirmState(null);
           if (rfq?._id) {
             nav(`/portal/procurement/rfqs/${rfq._id}`);
           } else {
@@ -350,12 +350,12 @@ export default function ProcurementRequestDetailsPage() {
           const existingRfq = e?.response?.data?.item;
           if (existingRfq?._id) {
             toast.error("An RFQ already exists for this request.");
-            setConfirm(null);
+            setConfirmState(null);
             nav(`/portal/procurement/rfqs/${existingRfq._id}`);
             return;
           }
           toast.error(e?.response?.data?.message || "Failed to create RFQ.");
-          setConfirm(null);
+          setConfirmState(null);
         } finally {
           setBusy(false);
         }
@@ -791,13 +791,13 @@ export default function ProcurementRequestDetailsPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        confirmLabel={confirm?.confirmLabel}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        confirmLabel={confirmState?.confirmLabel}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

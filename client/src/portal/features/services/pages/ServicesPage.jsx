@@ -391,7 +391,7 @@ export default function ServicesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const limit = 12;
 
@@ -468,13 +468,13 @@ export default function ServicesPage() {
 
   const handleArchive = (service) => {
     if (!service?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Archive service",
       message: `Archive "${service.name || "service"}"?`,
       danger: true,
       onConfirm: async () => {
         setBusy(true);
-        setConfirm(null);
+        setConfirmState(null);
         try {
           await deleteService(service._id);
           await load();
@@ -748,12 +748,12 @@ export default function ServicesPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

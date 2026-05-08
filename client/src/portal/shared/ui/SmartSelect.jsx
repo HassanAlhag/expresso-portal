@@ -41,14 +41,14 @@ export default function SmartSelect({
   useEffect(() => {
     if (!open) return;
     fetch(q);
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(() => fetch(q), 250);
     return () => clearTimeout(t);
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, open]);
 
   useEffect(() => {

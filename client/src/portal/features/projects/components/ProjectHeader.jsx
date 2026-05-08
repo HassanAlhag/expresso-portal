@@ -9,6 +9,7 @@ import {
   FolderKanban,
   Layers,
   Activity,
+  Pencil,
   Plus,
   RefreshCw,
   BriefcaseBusiness,
@@ -83,6 +84,7 @@ export default function ProjectHeader({
   tab,
   onBack,
   onRefresh,
+  onEdit,
   onCreateJob,
   onArchive,
   setTab,
@@ -232,6 +234,13 @@ export default function ProjectHeader({
           <RefreshCw size={16} />
           Refresh
         </Button>
+
+        {onEdit && (
+          <Button variant="outline" onClick={onEdit} disabled={busy}>
+            <Pencil size={16} />
+            Edit
+          </Button>
+        )}
 
         <Button onClick={onCreateJob} disabled={busy || !canCreateJob}>
           <Plus size={16} />

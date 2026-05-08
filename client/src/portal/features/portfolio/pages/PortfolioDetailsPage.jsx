@@ -126,9 +126,9 @@ export default function PortfolioDetailsPage() {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const set = (k) => (e) => {

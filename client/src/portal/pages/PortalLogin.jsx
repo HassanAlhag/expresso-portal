@@ -32,6 +32,7 @@ export default function PortalLogin() {
       localStorage.setItem(TOKEN_KEY, res.token);
       localStorage.setItem("portal_client", company || "Client");
       localStorage.setItem("portal_email", email || "");
+      localStorage.setItem("portal_permissions", JSON.stringify(res.user?.permissions || []));
 
       // ✅ New plan: NO onboarding. Always go to portal.
       nav("/portal", { replace: true });

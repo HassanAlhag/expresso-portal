@@ -68,7 +68,7 @@ export default function LeadsPage() {
   const nav = useNavigate();
   const toast = useToast();
 
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const [q, setQ]           = useState("");
   const [status, setStatus] = useState("");
   const [sort, setSort]     = useState("-createdAt");
@@ -145,7 +145,7 @@ export default function LeadsPage() {
 
   const onDelete = (lead) => {
     if (!lead?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Delete lead",
       message: `Delete "${lead.fullName}"?`,
       danger: true,
@@ -159,14 +159,14 @@ export default function LeadsPage() {
         } finally {
           setBusy(false);
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
 
   const onConvert = (lead) => {
     if (!lead?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Convert to Deal",
       message: `Convert "${lead.fullName}" to a Deal?`,
       danger: false,
@@ -182,7 +182,7 @@ export default function LeadsPage() {
         } finally {
           setConverting("");
         }
-        setConfirm(null);
+        setConfirmState(null);
       },
     });
   };
@@ -389,12 +389,12 @@ export default function LeadsPage() {
       />
 
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

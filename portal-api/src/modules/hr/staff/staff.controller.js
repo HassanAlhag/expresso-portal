@@ -4,6 +4,8 @@ import Staff, {
   STAFF_STATUSES,
   STAFF_DEPARTMENTS,
 } from "./staff.model.js";
+import Leave from "../leaves/leave.model.js";
+import Expense from "../expenses/expense.model.js";
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
@@ -348,6 +350,247 @@ export async function deleteStaff(req, res) {
     return res.json({ ok: true });
   } catch (e) {
     console.error("deleteStaff:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function updateSkills(req, res) {
+  try {
+    const { id } = req.params;
+    if (!validId(id)) return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    const LEVELS = ["beginner", "intermediate", "advanced", "expert"];
+    const raw = Array.isArray(req.body?.skills) ? req.body.skills : [];
+    const skills = raw
+      .filter((s) => String(s?.name || "").trim())
+      .map((s) => ({
+        name: String(s.name).trim(),
+        level: LEVELS.includes(s.level) ? s.level : "beginner",
+      }));
+
+    const item = await staffPopulate(
+      Staff.findByIdAndUpdate(
+        id,
+        { $set: { skills, updatedBy: req.user?.id || null } },
+        { new: true }
+      )
+    ).lean();
+
+    if (!item) return res.status(404).json({ ok: false, message: "Staff member not found" });
+    return res.json({ ok: true, item });
+  } catch (e) {
+    console.error("updateSkills:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function addScorecard(req, res) {
+  try {
+    const { id } = req.params;
+    if (!validId(id)) return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    const body = req.body || {};
+    const rating = Number(body.rating);
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ ok: false, message: "Rating must be 1–5" });
+    }
+
+    const entry = {
+      period: String(body.period || "").trim(),
+      rating,
+      notes: String(body.notes || "").trim(),
+      reviewerName: String(body.reviewerName || "").trim(),
+      createdAt: new Date(),
+    };
+
+    const item = await staffPopulate(
+      Staff.findByIdAndUpdate(
+        id,
+        { $push: { scorecards: entry }, $set: { updatedBy: req.user?.id || null } },
+        { new: true }
+      )
+    ).lean();
+
+    if (!item) return res.status(404).json({ ok: false, message: "Staff member not found" });
+    return res.status(201).json({ ok: true, item });
+  } catch (e) {
+    console.error("addScorecard:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function removeScorecard(req, res) {
+  try {
+    const { id, scId } = req.params;
+    if (!validId(id) || !validId(scId)) {
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+    }
+
+    const item = await staffPopulate(
+      Staff.findByIdAndUpdate(
+        id,
+        {
+          $pull: { scorecards: { _id: new mongoose.Types.ObjectId(scId) } },
+          $set: { updatedBy: req.user?.id || null },
+        },
+        { new: true }
+      )
+    ).lean();
+
+    if (!item) return res.status(404).json({ ok: false, message: "Staff member not found" });
+    return res.json({ ok: true, item });
+  } catch (e) {
+    console.error("removeScorecard:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function addLearningGoal(req, res) {
+  try {
+    const { id } = req.params;
+    if (!validId(id)) return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    const body = req.body || {};
+    const title = String(body.title || "").trim();
+    if (!title) return res.status(400).json({ ok: false, message: "Title is required" });
+
+    const STATUSES = ["active", "completed", "on_hold"];
+    const entry = {
+      title,
+      description: String(body.description || "").trim(),
+      targetDate: body.targetDate ? new Date(body.targetDate) : null,
+      status: STATUSES.includes(body.status) ? body.status : "active",
+      progress: Math.min(100, Math.max(0, Number(body.progress) || 0)),
+      createdAt: new Date(),
+    };
+
+    const item = await staffPopulate(
+      Staff.findByIdAndUpdate(
+        id,
+        { $push: { learningGoals: entry }, $set: { updatedBy: req.user?.id || null } },
+        { new: true }
+      )
+    ).lean();
+
+    if (!item) return res.status(404).json({ ok: false, message: "Staff member not found" });
+    return res.status(201).json({ ok: true, item });
+  } catch (e) {
+    console.error("addLearningGoal:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function updateLearningGoal(req, res) {
+  try {
+    const { id, goalId } = req.params;
+    if (!validId(id) || !validId(goalId)) {
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+    }
+
+    const body = req.body || {};
+    const STATUSES = ["active", "completed", "on_hold"];
+    const patch = { updatedBy: req.user?.id || null };
+
+    if (typeof body.title !== "undefined")
+      patch["learningGoals.$.title"] = String(body.title || "").trim();
+    if (typeof body.description !== "undefined")
+      patch["learningGoals.$.description"] = String(body.description || "").trim();
+    if (typeof body.targetDate !== "undefined")
+      patch["learningGoals.$.targetDate"] = body.targetDate ? new Date(body.targetDate) : null;
+    if (typeof body.status !== "undefined" && STATUSES.includes(body.status))
+      patch["learningGoals.$.status"] = body.status;
+    if (typeof body.progress !== "undefined")
+      patch["learningGoals.$.progress"] = Math.min(100, Math.max(0, Number(body.progress) || 0));
+
+    const item = await staffPopulate(
+      Staff.findOneAndUpdate(
+        { _id: id, "learningGoals._id": new mongoose.Types.ObjectId(goalId) },
+        { $set: patch },
+        { new: true }
+      )
+    ).lean();
+
+    if (!item) return res.status(404).json({ ok: false, message: "Staff member or goal not found" });
+    return res.json({ ok: true, item });
+  } catch (e) {
+    console.error("updateLearningGoal:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function removeLearningGoal(req, res) {
+  try {
+    const { id, goalId } = req.params;
+    if (!validId(id) || !validId(goalId)) {
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+    }
+
+    const item = await staffPopulate(
+      Staff.findByIdAndUpdate(
+        id,
+        {
+          $pull: { learningGoals: { _id: new mongoose.Types.ObjectId(goalId) } },
+          $set: { updatedBy: req.user?.id || null },
+        },
+        { new: true }
+      )
+    ).lean();
+
+    if (!item) return res.status(404).json({ ok: false, message: "Staff member not found" });
+    return res.json({ ok: true, item });
+  } catch (e) {
+    console.error("removeLearningGoal:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function getDepartmentBenchmark(req, res) {
+  try {
+    const { id } = req.params;
+    if (!validId(id)) return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    const staff = await Staff.findById(id).lean();
+    if (!staff) return res.status(404).json({ ok: false, message: "Staff member not found" });
+
+    const { department, fullName, currency } = staff;
+
+    const deptStaff = await Staff.find({ department }).select("fullName").lean();
+    const staffNames = deptStaff.map((s) => s.fullName).filter(Boolean);
+    const staffCount = staffNames.length;
+
+    const [leavesAgg, expensesAgg] = await Promise.all([
+      Leave.aggregate([
+        { $match: { staffName: { $in: staffNames }, status: "approved" } },
+        { $group: { _id: "$staffName", totalDays: { $sum: "$days" } } },
+      ]),
+      Expense.aggregate([
+        { $match: { staffName: { $in: staffNames }, status: { $in: ["approved", "registered", "paid"] } } },
+        { $group: { _id: "$staffName", totalAmount: { $sum: "$amount" } } },
+      ]),
+    ]);
+
+    const sumLeave = leavesAgg.reduce((s, x) => s + x.totalDays, 0);
+    const sumExpense = expensesAgg.reduce((s, x) => s + x.totalAmount, 0);
+
+    const myLeave = leavesAgg.find((x) => x._id === fullName);
+    const myExpense = expensesAgg.find((x) => x._id === fullName);
+
+    return res.json({
+      ok: true,
+      department,
+      staffCount,
+      currency: currency || "AED",
+      avg: {
+        leaveDays: staffCount > 0 ? Math.round((sumLeave / staffCount) * 10) / 10 : 0,
+        expenseAmount: staffCount > 0 ? Math.round(sumExpense / staffCount) : 0,
+      },
+      mine: {
+        leaveDays: myLeave?.totalDays || 0,
+        expenseAmount: myExpense?.totalAmount || 0,
+      },
+    });
+  } catch (e) {
+    console.error("getDepartmentBenchmark:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }

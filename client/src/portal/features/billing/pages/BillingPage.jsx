@@ -71,14 +71,14 @@ function CustomerSelect({ value, onChange }) {
   useEffect(() => {
     if (!open) return;
     load(q);
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(() => load(q), 250);
     return () => clearTimeout(t);
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, open]);
 
   return (
@@ -420,7 +420,7 @@ export default function BillingPage() {
   const [error, setError] = useState("");
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [confirm, setConfirm] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -444,7 +444,7 @@ export default function BillingPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, status, sort, page]);
 
   const stats = useMemo(() => {
@@ -473,14 +473,14 @@ export default function BillingPage() {
 
   const onMarkPaid = (inv) => {
     if (!inv?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Mark invoice as paid",
       message: `Mark invoice ${inv.number || inv._id} as PAID?`,
       danger: false,
       confirmLabel: "Mark as Paid",
       onConfirm: async () => {
         setBusy(true);
-        setConfirm(null);
+        setConfirmState(null);
         try {
           await markInvoicePaid(inv._id);
           await load();
@@ -495,14 +495,14 @@ export default function BillingPage() {
 
   const onVoid = (inv) => {
     if (!inv?._id) return;
-    setConfirm({
+    setConfirmState({
       title: "Void invoice",
       message: `Void invoice ${inv.number || inv._id}?`,
       danger: true,
       confirmLabel: "Void Invoice",
       onConfirm: async () => {
         setBusy(true);
-        setConfirm(null);
+        setConfirmState(null);
         try {
           await voidInvoice(inv._id);
           await load();
@@ -702,13 +702,13 @@ export default function BillingPage() {
         busy={busy}
       />
       <ConfirmModal
-        open={!!confirm}
-        title={confirm?.title}
-        message={confirm?.message}
-        danger={confirm?.danger}
-        confirmLabel={confirm?.confirmLabel}
-        onConfirm={confirm?.onConfirm}
-        onClose={() => setConfirm(null)}
+        open={!!confirmState}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        danger={confirmState?.danger}
+        confirmLabel={confirmState?.confirmLabel}
+        onConfirm={confirmState?.onConfirm}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );
