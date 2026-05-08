@@ -210,7 +210,7 @@ export default function PortfolioPage() {
 
   useEffect(() => {
     load();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreate = async (form) => {
@@ -375,8 +375,14 @@ export default function PortfolioPage() {
               {item.coverMedia?.url ? (
                 <div className="h-40 w-full overflow-hidden rounded-2xl bg-slate-100">
                   <img
-                    src={getAssetUrl(item.coverMedia.url)}
+                    src={getAssetUrl(
+                      item.coverMedia.thumbnailUrl ||
+                        item.coverMedia.mediumUrl ||
+                        item.coverMedia.url
+                    )}
                     alt={item.title}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                 </div>

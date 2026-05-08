@@ -1,5 +1,3 @@
-// portal-api/src/utils/s3.js
-
 import {
   S3Client,
   PutObjectCommand,
@@ -10,18 +8,6 @@ import path from "path";
 const REGION = process.env.AWS_REGION || "us-east-1";
 const BUCKET = process.env.AWS_S3_BUCKET;
 
-if (!BUCKET) {
-  console.warn("⚠️ AWS_S3_BUCKET is not set.");
-}
-
-if (!process.env.AWS_ACCESS_KEY_ID) {
-  console.warn("⚠️ AWS_ACCESS_KEY_ID is not set.");
-}
-
-if (!process.env.AWS_SECRET_ACCESS_KEY) {
-  console.warn("⚠️ AWS_SECRET_ACCESS_KEY is not set.");
-}
-
 const s3 = new S3Client({
   region: REGION,
   credentials: {
@@ -30,9 +16,8 @@ const s3 = new S3Client({
   },
 });
 
-function makeKey(folder = "uploads", originalName = "file") {
+function cleanName(originalName = "file") {
   const ext = path.extname(originalName || "").toLowerCase();
-
   const base = path
     .basename(originalName || "file", ext)
     .replace(/\s+/g, "-")
@@ -40,24 +25,26 @@ function makeKey(folder = "uploads", originalName = "file") {
     .slice(0, 48)
     .toLowerCase();
 
-  const stamp = Date.now().toString(16);
-  const rand = Math.random().toString(16).slice(2, 10);
-
-  return `${folder}/${base || "file"}-${stamp}-${rand}${ext}`;
+  return base || "file";
 }
 
-export async function uploadToS3(
-  buffer,
-  folder = "uploads",
-  originalName = "file",
-  contentType = "application/octet-stream"
-) {
-  if (!BUCKET) {
-    throw new Error("AWS_S3_BUCKET is not configured.");
-  }
+function makeKey(folder, originalName, suffix = "", extOverride = "") {
+  const originalExt = path.extname(originalName || "").toLowerCase();
+  const ext = extOverride || originalExt || "";
+  const base = cleanName(originalName);
+  const stamp = Date.now().toString(16);
+  const rand = Math.random().toString(16).slice(2, 8);
 
-  if (!buffer) {
-    throw new Error("No file buffer provided for S3 upload.");
+  return `${folder}/${base}${suffix}-${stamp}-${rand}${ext}`;
+}
+
+export function getS3PublicUrl(key) {
+  return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`;
+}
+
+export async function uploadToS3(buffer, folder, originalName, contentType) {
+  if (!BUCKET) {
+    throw new Error("AWS_S3_BUCKET is not configured");
   }
 
   const key = makeKey(folder, originalName);
@@ -72,13 +59,43 @@ export async function uploadToS3(
   );
 
   return {
+    url: getS3PublicUrl(key),
     key,
-    url: `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`,
+  };
+}
+
+export async function uploadBufferToS3({
+  buffer,
+  folder = "media",
+  originalName = "file",
+  contentType = "application/octet-stream",
+  suffix = "",
+  ext = "",
+}) {
+  if (!BUCKET) {
+    throw new Error("AWS_S3_BUCKET is not configured");
+  }
+
+  const key = makeKey(folder, originalName, suffix, ext);
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  return {
+    url: getS3PublicUrl(key),
+    key,
   };
 }
 
 export async function deleteFromS3(key) {
-  if (!BUCKET || !key) return;
+  if (!key || !BUCKET) return;
 
   await s3.send(
     new DeleteObjectCommand({

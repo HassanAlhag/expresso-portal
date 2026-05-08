@@ -219,8 +219,12 @@ export default function MediaPickerModal({
                       <div className="aspect-[4/3] overflow-hidden bg-slate-50">
                         {m.type === "image" ? (
                           <img
-                            src={getAssetUrl(m.thumbnailUrl || m.url)}
+                            src={getAssetUrl(
+                              m.thumbnailUrl || m.mediumUrl || m.url
+                            )}
                             alt={m.title || "Media"}
+                            loading="lazy"
+                            decoding="async"
                             className="h-full w-full object-cover transition group-hover:scale-[1.03]"
                           />
                         ) : (

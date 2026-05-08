@@ -401,6 +401,8 @@ export default function CustomerDetailsPage() {
                   <img
                     src={getAssetUrl(customer.logoUrl)}
                     alt={customer.companyName}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-contain p-2"
                   />
                 ) : (

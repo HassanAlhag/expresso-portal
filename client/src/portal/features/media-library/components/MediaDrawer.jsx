@@ -17,7 +17,8 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
   const [status, setStatus] = useState("draft");
   const [busy, setBusy] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
-  const assetUrl = getAssetUrl(item?.url);
+  const assetUrl = getAssetUrl(item?.mediumUrl || item?.url);
+  const originalAssetUrl = getAssetUrl(item?.url);
 
   useEffect(() => {
     if (!item) return;
@@ -85,7 +86,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
 
   const copyUrl = async () => {
     try {
-      await navigator.clipboard.writeText(assetUrl);
+      await navigator.clipboard.writeText(originalAssetUrl);
     } catch {
       toast.error("Failed to copy URL");
     }
@@ -197,7 +198,11 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
                 <Button
                   variant="outline"
                   onClick={() =>
-                    window.open(assetUrl, "_blank", "noopener,noreferrer")
+                    window.open(
+                      originalAssetUrl,
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
                   }
                 >
                   <ExternalLink size={16} />
