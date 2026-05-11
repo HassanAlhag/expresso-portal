@@ -16,12 +16,15 @@ import {
   Sparkles,
   Plus,
   Trash2,
+  Save,
+  RefreshCw,
 } from "lucide-react";
 import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
 import { getSiteSettings, updateSiteSettings } from "../api";
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
+import { IT_SOLUTION_IMAGE_FIELDS } from "../../../../data/technologySolutionsData";
 
 // ─── Section config ───────────────────────────────────────────────────────────
 
@@ -33,10 +36,30 @@ const TABS = [
     hint: "Logo, favicon, OG image",
     type: "images",
     fields: [
-      { key: "logoUrl",       mediaKey: "logoMediaId",       label: "Logo (Dark)",              hint: "Used on light backgrounds" },
-      { key: "logoWhiteUrl",  mediaKey: "logoWhiteMediaId",  label: "Logo (White / Nav)",       hint: "Used in the header on dark/hero backgrounds" },
-      { key: "faviconUrl",    mediaKey: "faviconMediaId",    label: "Favicon",                  hint: "Browser tab icon — 32×32 or 64×64 PNG" },
-      { key: "ogImageUrl",    mediaKey: "ogImageMediaId",    label: "Default Social Share Image", hint: "Shown when pages are shared on social — 1200×630" },
+      {
+        key: "logoUrl",
+        mediaKey: "logoMediaId",
+        label: "Logo (Dark)",
+        hint: "Used on light backgrounds",
+      },
+      {
+        key: "logoWhiteUrl",
+        mediaKey: "logoWhiteMediaId",
+        label: "Logo (White / Nav)",
+        hint: "Used in the header on dark/hero backgrounds",
+      },
+      {
+        key: "faviconUrl",
+        mediaKey: "faviconMediaId",
+        label: "Favicon",
+        hint: "Browser tab icon — 32×32 or 64×64 PNG",
+      },
+      {
+        key: "ogImageUrl",
+        mediaKey: "ogImageMediaId",
+        label: "Default Social Share Image",
+        hint: "Shown when pages are shared on social — 1200×630",
+      },
     ],
   },
   {
@@ -46,10 +69,53 @@ const TABS = [
     hint: "Hero background & video",
     type: "images",
     fields: [
-      { key: "heroBannerUrl", mediaKey: "heroBannerMediaId", label: "Hero Banner Image",        hint: "Fallback background behind the hero slides" },
+      {
+        key: "heroBannerUrl",
+        mediaKey: "heroBannerMediaId",
+        label: "Hero Banner Image",
+        hint: "Fallback background behind the hero slides",
+      },
     ],
     textFields: [
-      { key: "heroVideoUrl", label: "Hero Video URL", placeholder: "https://…/video.mp4",      hint: "Optional looping background video" },
+      {
+        key: "heroVideoUrl",
+        label: "Hero Video URL",
+        placeholder: "https://…/video.mp4",
+        hint: "Optional looping background video",
+      },
+    ],
+  },
+  {
+    key: "homepageSections",
+    label: "Homepage Sections",
+    Icon: Layers,
+    hint: "Images used across homepage sections",
+    type: "images",
+    fields: [
+      {
+        key: "servicesImageUrl",
+        mediaKey: "servicesImageMediaId",
+        label: "Services Section Image",
+        hint: "Main visual used in services section",
+      },
+      {
+        key: "aboutImageUrl",
+        mediaKey: "aboutImageMediaId",
+        label: "About Section Image",
+        hint: "Homepage about/company section image",
+      },
+      {
+        key: "ctaImageUrl",
+        mediaKey: "ctaImageMediaId",
+        label: "CTA Section Image",
+        hint: "Final call-to-action image",
+      },
+      {
+        key: "processImageUrl",
+        mediaKey: "processImageMediaId",
+        label: "Process Section Image",
+        hint: "Website/development process visual",
+      },
     ],
   },
   {
@@ -59,9 +125,24 @@ const TABS = [
     hint: "About page images",
     type: "images",
     fields: [
-      { key: "heroImageUrl",    mediaKey: "heroImageMediaId",    label: "Page Hero Image",      hint: "Full-width banner at the top of the About page" },
-      { key: "teamPhotoUrl",    mediaKey: "teamPhotoMediaId",    label: "Team Group Photo",     hint: "Photo of the team" },
-      { key: "missionImageUrl", mediaKey: "missionImageMediaId", label: "Mission / Values",    hint: "Image alongside the mission statement" },
+      {
+        key: "heroImageUrl",
+        mediaKey: "heroImageMediaId",
+        label: "Page Hero Image",
+        hint: "Full-width banner at the top of the About page",
+      },
+      {
+        key: "teamPhotoUrl",
+        mediaKey: "teamPhotoMediaId",
+        label: "Team Group Photo",
+        hint: "Photo of the team",
+      },
+      {
+        key: "missionImageUrl",
+        mediaKey: "missionImageMediaId",
+        label: "Mission / Values",
+        hint: "Image alongside the mission statement",
+      },
     ],
   },
   {
@@ -71,8 +152,18 @@ const TABS = [
     hint: "Services page images",
     type: "images",
     fields: [
-      { key: "heroImageUrl",  mediaKey: "heroImageMediaId",  label: "Page Hero Image",          hint: "Banner at the top of the Services page" },
-      { key: "sectionBgUrl",  mediaKey: "sectionBgMediaId",  label: "Section Background",      hint: "Background texture used in service cards" },
+      {
+        key: "heroImageUrl",
+        mediaKey: "heroImageMediaId",
+        label: "Page Hero Image",
+        hint: "Banner at the top of the Services page",
+      },
+      {
+        key: "sectionBgUrl",
+        mediaKey: "sectionBgMediaId",
+        label: "Section Background",
+        hint: "Background texture used in service cards",
+      },
     ],
   },
   {
@@ -82,7 +173,12 @@ const TABS = [
     hint: "Portfolio page images",
     type: "images",
     fields: [
-      { key: "heroImageUrl",  mediaKey: "heroImageMediaId",  label: "Page Hero Image",          hint: "Banner at the top of the Portfolio page" },
+      {
+        key: "heroImageUrl",
+        mediaKey: "heroImageMediaId",
+        label: "Page Hero Image",
+        hint: "Banner at the top of the Portfolio page",
+      },
     ],
   },
   {
@@ -92,8 +188,18 @@ const TABS = [
     hint: "Careers page images",
     type: "images",
     fields: [
-      { key: "heroImageUrl",   mediaKey: "heroImageMediaId",   label: "Page Hero Image",       hint: "Banner at the top of the Careers page" },
-      { key: "officeImageUrl", mediaKey: "officeImageMediaId", label: "Office / Culture Photo", hint: "Culture section photo" },
+      {
+        key: "heroImageUrl",
+        mediaKey: "heroImageMediaId",
+        label: "Page Hero Image",
+        hint: "Banner at the top of the Careers page",
+      },
+      {
+        key: "officeImageUrl",
+        mediaKey: "officeImageMediaId",
+        label: "Office / Culture Photo",
+        hint: "Culture section photo",
+      },
     ],
   },
   {
@@ -103,10 +209,38 @@ const TABS = [
     hint: "Contact page images",
     type: "images",
     fields: [
-      { key: "heroImageUrl",   mediaKey: "heroImageMediaId",   label: "Page Hero Image",       hint: "Banner at the top of the Contact page" },
-      { key: "officeImageUrl", mediaKey: "officeImageMediaId", label: "Office Photo",          hint: "Location photo in the contact section" },
+      {
+        key: "heroImageUrl",
+        mediaKey: "heroImageMediaId",
+        label: "Page Hero Image",
+        hint: "Banner at the top of the Contact page",
+      },
+      {
+        key: "officeImageUrl",
+        mediaKey: "officeImageMediaId",
+        label: "Office Photo",
+        hint: "Location photo in the contact section",
+      },
     ],
   },
+
+  {
+    key: "itSolutions",
+    label: "IT Solutions",
+    Icon: Briefcase,
+    hint: "Main IT Solutions page and inner solution page images",
+    type: "images",
+    fields: [
+      {
+        key: "heroImageUrl",
+        mediaKey: "heroImageMediaId",
+        label: "Main IT Solutions Page Hero",
+        hint: "Used on /it-solutions",
+      },
+      ...IT_SOLUTION_IMAGE_FIELDS,
+    ],
+  },
+
   {
     key: "gallery",
     label: "Gallery",
@@ -123,23 +257,103 @@ const TABS = [
   },
 ];
 
+function getSectionProgress(tab, data = {}) {
+  if (tab.type === "gallery") {
+    const images = Array.isArray(data.images) ? data.images.filter((i) => i.url) : [];
+    return { used: images.length, total: GALLERY_SIZE, label: `${images.length}/${GALLERY_SIZE}` };
+  }
+
+  if (tab.type === "marquee") {
+    const brands = Array.isArray(data.brands)
+      ? data.brands.filter((b) => b.imageUrl || b.label)
+      : [];
+    return { used: brands.length, total: MARQUEE_SIZE, label: `${brands.length}/${MARQUEE_SIZE}` };
+  }
+
+  const total = (tab.fields || []).length + (tab.textFields || []).length;
+  const used = [
+    ...(tab.fields || []).map((f) => data[f.key]),
+    ...(tab.textFields || []).map((f) => data[f.key]),
+  ].filter(Boolean).length;
+
+  return { used, total, label: `${used}/${total}` };
+}
+
+function SaveBar({ dirty, saving, label, onSave }) {
+  if (!dirty) {
+    return (
+      <div className="mt-6 flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+        <span className="font-semibold">All changes saved</span>
+        <Check size={15} className="text-emerald-500" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="sticky bottom-4 z-10 mt-6 flex items-center justify-between gap-3 rounded-xl border border-indigo-100 bg-white/95 px-4 py-3 shadow-lg shadow-slate-200/70 backdrop-blur">
+      <div className="min-w-0">
+        <div className="text-sm font-black text-slate-900">Unsaved changes</div>
+        <div className="truncate text-xs text-slate-500">Review and save this section before switching tasks.</div>
+      </div>
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={saving}
+        className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-black text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60"
+      >
+        {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+        {label}
+      </button>
+    </div>
+  );
+}
+
 // ─── Shared image picker field ────────────────────────────────────────────────
 
-function ImagePickerField({ label, hint, value, onPick, onClear, saving, aspect = "16/7" }) {
+function ImagePickerField({
+  label,
+  hint,
+  value,
+  onPick,
+  onClear,
+  saving,
+  aspect = "16/7",
+}) {
   return (
-    <div className="grid gap-2">
-      <div>
-        <span className="text-[11px] font-extrabold tracking-[0.18em] text-slate-600">{label}</span>
-        {hint && <p className="mt-0.5 text-[11px] text-slate-400">{hint}</p>}
+    <div className="group grid gap-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600">
+          {label}
+          </span>
+          {hint && <p className="mt-0.5 text-[11px] leading-4 text-slate-400">{hint}</p>}
+        </div>
+        <span
+          className={[
+            "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em]",
+            value
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-slate-200 bg-slate-50 text-slate-400",
+          ].join(" ")}
+        >
+          {value ? "Set" : "Empty"}
+        </span>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition group-hover:border-indigo-200 group-hover:shadow-md">
         <div
-          className="relative grid place-items-center overflow-hidden bg-slate-50"
+          className="relative grid place-items-center overflow-hidden bg-[linear-gradient(135deg,#f8fafc_0%,#eef2ff_100%)]"
           style={{ aspectRatio: aspect }}
         >
           {value ? (
             <>
-              <img src={getAssetUrl(value)} alt={label} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              <img
+                src={getAssetUrl(value)}
+                alt={label}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.015]"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/35 to-transparent opacity-0 transition group-hover:opacity-100" />
               {saving && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white/60">
                   <Loader2 size={20} className="animate-spin text-slate-500" />
@@ -147,23 +361,36 @@ function ImagePickerField({ label, hint, value, onPick, onClear, saving, aspect 
               )}
             </>
           ) : (
-            <div className="grid place-items-center gap-2 text-slate-400">
-              <ImageIcon size={22} />
-              <span className="text-xs font-semibold">No image set</span>
+            <div className="grid place-items-center gap-2 text-center text-slate-400">
+              <div className="grid h-11 w-11 place-items-center rounded-xl border border-dashed border-slate-300 bg-white/70">
+                <ImageIcon size={22} />
+              </div>
+              <span className="text-xs font-bold">No image set</span>
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-3 py-2">
-          <div className="min-w-0 flex-1 truncate text-[11px] text-slate-400">{value || "Not set"}</div>
+        <div className="flex items-center justify-between gap-2 border-t border-slate-100 bg-white px-3 py-2.5">
+          <div className="min-w-0 flex-1 truncate font-mono text-[11px] text-slate-400">
+            {value || "Not set"}
+          </div>
           <div className="flex shrink-0 items-center gap-1.5">
             {value && (
-              <button type="button" onClick={onClear} disabled={saving}
-                className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 disabled:opacity-50">
-                <X size={11} /> Clear
+              <button
+                type="button"
+                onClick={onClear}
+                disabled={saving}
+                className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+                title="Clear image"
+              >
+                <X size={13} />
               </button>
             )}
-            <button type="button" onClick={onPick} disabled={saving}
-              className="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50">
+            <button
+              type="button"
+              onClick={onPick}
+              disabled={saving}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-xs font-black text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50"
+            >
               <UploadCloud size={13} />
               {value ? "Change" : "Pick"}
             </button>
@@ -183,62 +410,93 @@ function ImagesSection({ tab, sectionData, onSave }) {
   const [saving, setSaving] = useState(false);
   const [picker, setPicker] = useState(null);
 
-  useEffect(() => { setLocal(sectionData || {}); setDirty(false); }, [sectionData]);
+  useEffect(() => {
+    setLocal(sectionData || {});
+    setDirty(false);
+  }, [sectionData]);
 
-  const set = (key, value) => { setLocal((p) => ({ ...p, [key]: value })); setDirty(true); };
+  const set = (key, value) => {
+    setLocal((p) => ({ ...p, [key]: value }));
+    setDirty(true);
+  };
 
   const handleSelect = (media) => {
     if (!media || !picker) return;
-    const url = media.url || media.mediumUrl || media.thumbnailUrl || "";
+    const url = media.url || media.mediumUrl || media.thumbnailUrl || media.path || "";
     set(picker.key, url);
-    if (picker.mediaKey) set(picker.mediaKey, media._id || null);
+    if (picker.mediaKey) set(picker.mediaKey, media._id || media.id || null);
     setPicker(null);
   };
 
   const save = async () => {
     setSaving(true);
-    try { await onSave(tab.key, local); setDirty(false); toast.success("Saved."); }
-    catch (e) { toast.error(e?.response?.data?.message || e?.message || "Save failed"); }
-    finally { setSaving(false); }
+    try {
+      await onSave(tab.key, local);
+      setDirty(false);
+      toast.success("Saved.");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Save failed");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <>
       <div className="grid gap-5 sm:grid-cols-2">
         {(tab.fields || []).map((f) => (
-          <ImagePickerField key={f.key} label={f.label} hint={f.hint}
-            value={local[f.key] || ""} saving={saving}
+          <ImagePickerField
+            key={f.key}
+            label={f.label}
+            hint={f.hint}
+            value={local[f.key] || ""}
+            saving={saving}
             onPick={() => setPicker(f)}
-            onClear={() => { set(f.key, ""); if (f.mediaKey) set(f.mediaKey, null); }}
+            onClear={() => {
+              set(f.key, "");
+              if (f.mediaKey) set(f.mediaKey, null);
+            }}
           />
         ))}
 
         {(tab.textFields || []).map((f) => (
           <div key={f.key} className="grid gap-2 sm:col-span-2">
             <div>
-              <span className="text-[11px] font-extrabold tracking-[0.18em] text-slate-600">{f.label}</span>
-              {f.hint && <p className="mt-0.5 text-[11px] text-slate-400">{f.hint}</p>}
+              <span className="text-[11px] font-extrabold tracking-[0.18em] text-slate-600">
+                {f.label}
+              </span>
+              {f.hint && (
+                <p className="mt-0.5 text-[11px] text-slate-400">{f.hint}</p>
+              )}
             </div>
-            <input type="text" value={local[f.key] || ""} onChange={(e) => set(f.key, e.target.value)}
+            <input
+              type="text"
+              value={local[f.key] || ""}
+              onChange={(e) => set(f.key, e.target.value)}
               placeholder={f.placeholder}
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100" />
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+            />
           </div>
         ))}
       </div>
 
-      {dirty && (
-        <div className="mt-5 flex justify-end">
-          <button type="button" onClick={save} disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60">
-            {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-            Save changes
-          </button>
-        </div>
-      )}
+      <SaveBar
+        dirty={dirty}
+        saving={saving}
+        label="Save changes"
+        onSave={save}
+      />
 
-      <MediaPickerModal open={Boolean(picker)} onClose={() => setPicker(null)} onSelect={handleSelect}
-        title={picker?.label || "Select image"} subtitle="Choose from the media library or upload a new one."
-        onlyType="image" multiple={false} allowUpload />
+      <MediaPickerModal
+        open={Boolean(picker)}
+        onClose={() => setPicker(null)}
+        onSelect={handleSelect}
+        title={picker?.label || "Select image"}
+        subtitle="Choose from the media library or upload a new one."
+        onlyType="image"
+        multiple={false}
+        allowUpload
+      />
     </>
   );
 }
@@ -256,19 +514,27 @@ function GallerySection({ sectionData, onSave }) {
 
   useEffect(() => {
     const src = Array.isArray(sectionData?.images) ? sectionData.images : [];
-    const padded = Array.from({ length: GALLERY_SIZE }, (_, i) => src[i] || { url: "", mediaId: null, alt: "" });
+    const padded = Array.from(
+      { length: GALLERY_SIZE },
+      (_, i) => src[i] || { url: "", mediaId: null, alt: "" }
+    );
     setImages(padded);
     setDirty(false);
   }, [sectionData]);
 
   const setSlot = (idx, patch) => {
-    setImages((prev) => prev.map((img, i) => i === idx ? { ...img, ...patch } : img));
+    setImages((prev) =>
+      prev.map((img, i) => (i === idx ? { ...img, ...patch } : img))
+    );
     setDirty(true);
   };
 
   const handleSelect = (media) => {
     if (media && pickerIdx !== null) {
-      setSlot(pickerIdx, { url: media.url || media.mediumUrl || "", mediaId: media._id || null });
+      setSlot(pickerIdx, {
+        url: media.url || media.mediumUrl || "",
+        mediaId: media._id || null,
+      });
     }
     setPickerIdx(null);
   };
@@ -279,41 +545,72 @@ function GallerySection({ sectionData, onSave }) {
       await onSave("gallery", { images: images.filter((i) => i.url) });
       setDirty(false);
       toast.success("Gallery saved.");
-    } catch (e) { toast.error(e?.response?.data?.message || e?.message || "Save failed"); }
-    finally { setSaving(false); }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Save failed");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <>
-      <p className="mb-4 text-sm text-slate-500">
-        These images power the draggable gallery section on the homepage. Upload up to {GALLERY_SIZE} images.
-      </p>
+      <div className="mb-5 flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm leading-6 text-slate-600">
+          These images power the draggable gallery section on the homepage.
+        </p>
+        <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
+          Up to {GALLERY_SIZE} images
+        </span>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {images.map((img, idx) => (
-          <div key={idx} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            <div className="relative aspect-square overflow-hidden bg-slate-50">
+          <div
+            key={idx}
+            className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-indigo-200 hover:shadow-md"
+          >
+            <div className="relative aspect-square overflow-hidden bg-[linear-gradient(135deg,#f8fafc_0%,#eef2ff_100%)]">
               {img.url ? (
-                <img src={getAssetUrl(img.url)} alt={img.alt || `Gallery ${idx + 1}`}
-                  loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                <img
+                  src={getAssetUrl(img.url)}
+                  alt={img.alt || `Gallery ${idx + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                />
               ) : (
                 <div className="flex h-full flex-col items-center justify-center gap-1 text-slate-300">
                   <ImageIcon size={24} />
-                  <span className="text-[11px] font-semibold text-slate-400">Slot {idx + 1}</span>
+                  <span className="text-[11px] font-semibold text-slate-400">
+                    Slot {idx + 1}
+                  </span>
                 </div>
               )}
             </div>
             <div className="p-2.5">
-              <input type="text" value={img.alt || ""} placeholder="Alt text…"
+              <input
+                type="text"
+                value={img.alt || ""}
+                placeholder="Alt text…"
                 onChange={(e) => setSlot(idx, { alt: e.target.value })}
-                className="mb-2 h-8 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs text-slate-700 outline-none focus:border-indigo-200 focus:ring-1 focus:ring-indigo-100" />
+                className="mb-2 h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 outline-none transition focus:border-indigo-200 focus:bg-white focus:ring-1 focus:ring-indigo-100"
+              />
               <div className="flex gap-1.5">
-                <button type="button" onClick={() => setPickerIdx(idx)} disabled={saving}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 py-1.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50">
+                <button
+                  type="button"
+                  onClick={() => setPickerIdx(idx)}
+                  disabled={saving}
+                    className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-xs font-black text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50"
+                >
                   <UploadCloud size={12} /> {img.url ? "Change" : "Pick"}
                 </button>
                 {img.url && (
-                  <button type="button" onClick={() => setSlot(idx, { url: "", mediaId: null })} disabled={saving}
-                    className="flex items-center justify-center rounded-lg border border-slate-200 px-2.5 text-slate-400 transition hover:text-rose-500 disabled:opacity-50">
+                  <button
+                    type="button"
+                    onClick={() => setSlot(idx, { url: "", mediaId: null })}
+                    disabled={saving}
+                    className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-400 transition hover:bg-rose-50 hover:text-rose-500 disabled:opacity-50"
+                    title="Clear slot"
+                  >
                     <X size={12} />
                   </button>
                 )}
@@ -323,19 +620,18 @@ function GallerySection({ sectionData, onSave }) {
         ))}
       </div>
 
-      {dirty && (
-        <div className="mt-5 flex justify-end">
-          <button type="button" onClick={save} disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60">
-            {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-            Save gallery
-          </button>
-        </div>
-      )}
+      <SaveBar dirty={dirty} saving={saving} label="Save gallery" onSave={save} />
 
-      <MediaPickerModal open={pickerIdx !== null} onClose={() => setPickerIdx(null)} onSelect={handleSelect}
-        title={`Gallery slot ${(pickerIdx ?? 0) + 1}`} subtitle="Pick an image from the media library or upload a new one."
-        onlyType="image" multiple={false} allowUpload />
+      <MediaPickerModal
+        open={pickerIdx !== null}
+        onClose={() => setPickerIdx(null)}
+        onSelect={handleSelect}
+        title={`Gallery slot ${(pickerIdx ?? 0) + 1}`}
+        subtitle="Pick an image from the media library or upload a new one."
+        onlyType="image"
+        multiple={false}
+        allowUpload
+      />
     </>
   );
 }
@@ -359,7 +655,9 @@ function MarqueeSection({ sectionData, onSave }) {
   }, [sectionData]);
 
   const setBrand = (idx, patch) => {
-    setBrands((prev) => prev.map((b, i) => i === idx ? { ...b, ...patch } : b));
+    setBrands((prev) =>
+      prev.map((b, i) => (i === idx ? { ...b, ...patch } : b))
+    );
     setDirty(true);
   };
 
@@ -376,7 +674,10 @@ function MarqueeSection({ sectionData, onSave }) {
 
   const handleSelect = (media) => {
     if (media && pickerIdx !== null) {
-      setBrand(pickerIdx, { imageUrl: media.url || media.mediumUrl || "", mediaId: media._id || null });
+      setBrand(pickerIdx, {
+        imageUrl: media.url || media.mediumUrl || "",
+        mediaId: media._id || null,
+      });
     }
     setPickerIdx(null);
   };
@@ -384,48 +685,83 @@ function MarqueeSection({ sectionData, onSave }) {
   const save = async () => {
     setSaving(true);
     try {
-      await onSave("marquee", { brands: brands.filter((b) => b.imageUrl || b.label) });
+      await onSave("marquee", {
+        brands: brands.filter((b) => b.imageUrl || b.label),
+      });
       setDirty(false);
       toast.success("Brands strip saved.");
-    } catch (e) { toast.error(e?.response?.data?.message || e?.message || "Save failed"); }
-    finally { setSaving(false); }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Save failed");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <>
-      <p className="mb-4 text-sm text-slate-500">
-        These cards scroll in the "Brands we helped stand out" marquee strip on the homepage. Up to {MARQUEE_SIZE} brands.
-      </p>
+      <div className="mb-5 flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm leading-6 text-slate-600">
+          These cards scroll in the homepage brands marquee strip.
+        </p>
+        <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
+          Up to {MARQUEE_SIZE} brands
+        </span>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {brands.map((brand, idx) => (
-          <div key={idx} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
-            <button type="button" onClick={() => setPickerIdx(idx)} disabled={saving}
-              className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition hover:border-indigo-300">
+          <div
+            key={idx}
+            className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-indigo-200 hover:shadow-md"
+          >
+            <button
+              type="button"
+              onClick={() => setPickerIdx(idx)}
+              disabled={saving}
+              className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition hover:border-indigo-300"
+            >
               {brand.imageUrl ? (
-                <img src={getAssetUrl(brand.imageUrl)} alt={brand.label || `Brand ${idx + 1}`}
-                  className="h-full w-full object-cover" />
+                <img
+                  src={getAssetUrl(brand.imageUrl)}
+                  alt={brand.label || `Brand ${idx + 1}`}
+                  className="h-full w-full object-cover"
+                />
               ) : (
-                <div className="flex h-full items-center justify-center text-slate-300">
+                <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#f8fafc_0%,#eef2ff_100%)] text-slate-300">
                   <ImageIcon size={20} />
                 </div>
               )}
               <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/0 transition hover:bg-black/20">
-                <UploadCloud size={14} className="text-white opacity-0 transition group-hover:opacity-100" />
+                <UploadCloud
+                  size={14}
+                  className="text-white opacity-0 transition group-hover:opacity-100"
+                />
               </div>
             </button>
 
             <div className="min-w-0 flex-1">
-              <input type="text" value={brand.label || ""} placeholder="Brand name…"
+              <input
+                type="text"
+                value={brand.label || ""}
+                placeholder="Brand name…"
                 onChange={(e) => setBrand(idx, { label: e.target.value })}
-                className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition focus:border-indigo-200 focus:ring-1 focus:ring-indigo-100" />
-              <button type="button" onClick={() => setPickerIdx(idx)}
-                className="mt-1.5 text-[11px] font-semibold text-indigo-600 hover:underline">
+                className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-indigo-200 focus:bg-white focus:ring-1 focus:ring-indigo-100"
+              />
+              <button
+                type="button"
+                onClick={() => setPickerIdx(idx)}
+                className="mt-1.5 text-[11px] font-semibold text-indigo-600 hover:underline"
+              >
                 {brand.imageUrl ? "Change image" : "Pick image"}
               </button>
             </div>
 
-            <button type="button" onClick={() => removeBrand(idx)} disabled={saving}
-              className="shrink-0 text-slate-300 transition hover:text-rose-500 disabled:opacity-50">
+            <button
+              type="button"
+              onClick={() => removeBrand(idx)}
+              disabled={saving}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-300 transition hover:bg-rose-50 hover:text-rose-500 disabled:opacity-50"
+              title="Remove brand"
+            >
               <Trash2 size={15} />
             </button>
           </div>
@@ -433,26 +769,34 @@ function MarqueeSection({ sectionData, onSave }) {
       </div>
 
       {brands.length < MARQUEE_SIZE && (
-        <button type="button" onClick={addBrand}
-          className="mt-3 flex items-center gap-2 rounded-xl border border-dashed border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600">
+        <button
+          type="button"
+          onClick={addBrand}
+          className="mt-3 flex h-11 items-center gap-2 rounded-xl border border-dashed border-slate-300 px-4 text-sm font-black text-slate-500 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
+        >
           <Plus size={15} /> Add brand
         </button>
       )}
 
-      {dirty && (
-        <div className="mt-5 flex justify-end">
-          <button type="button" onClick={save} disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-60">
-            {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-            Save brands strip
-          </button>
-        </div>
-      )}
+      <SaveBar
+        dirty={dirty}
+        saving={saving}
+        label="Save brands strip"
+        onSave={save}
+      />
 
-      <MediaPickerModal open={pickerIdx !== null} onClose={() => setPickerIdx(null)} onSelect={handleSelect}
-        title={`Brand image — ${brands[pickerIdx]?.label || `slot ${(pickerIdx ?? 0) + 1}`}`}
+      <MediaPickerModal
+        open={pickerIdx !== null}
+        onClose={() => setPickerIdx(null)}
+        onSelect={handleSelect}
+        title={`Brand image — ${
+          brands[pickerIdx]?.label || `slot ${(pickerIdx ?? 0) + 1}`
+        }`}
         subtitle="Pick the brand card image from the media library or upload a new one."
-        onlyType="image" multiple={false} allowUpload />
+        onlyType="image"
+        multiple={false}
+        allowUpload
+      />
     </>
   );
 }
@@ -462,62 +806,209 @@ function MarqueeSection({ sectionData, onSave }) {
 export default function WebsiteSettingsPage() {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState(TABS[0].key);
-  const [settings, setSettings]   = useState(null);
-  const [loading, setLoading]     = useState(true);
+  const [settings, setSettings] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { const res = await getSiteSettings(); setSettings(res.settings || {}); }
-    catch { toast.error("Failed to load site settings."); }
-    finally { setLoading(false); }
+    try {
+      const res = await getSiteSettings();
+      setSettings(res.settings || {});
+    } catch {
+      toast.error("Failed to load site settings.");
+    } finally {
+      setLoading(false);
+    }
   }, [toast]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleSave = async (section, data) => {
-    try { const res = await updateSiteSettings(section, data); setSettings(res.settings || {}); }
-    catch { /* errors handled by individual section components */ }
+    const res = await updateSiteSettings(section, data);
+    setSettings(res.settings || {});
+    return res;
   };
 
   const currentTab = TABS.find((t) => t.key === activeTab) || TABS[0];
+  const currentData = (settings || {})[currentTab.key] || {};
+  const currentProgress = getSectionProgress(currentTab, currentData);
+  const totalConfigured = TABS.reduce((sum, tab) => {
+    const progress = getSectionProgress(tab, (settings || {})[tab.key] || {});
+    return sum + progress.used;
+  }, 0);
 
   return (
-    <div className="flex h-full min-h-screen gap-0">
+    <div className="min-h-screen bg-slate-50">
+      <div className="border-b border-slate-200 bg-white px-5 py-5 lg:px-8">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.28em] text-slate-500">
+              Website CMS
+            </div>
+            <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950">
+              Site Settings
+            </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+              Manage the public website media library assignments, homepage gallery, and brand strip from one workspace.
+            </p>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-3 xl:min-w-[460px]">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+                Sections
+              </div>
+              <div className="mt-1 text-xl font-black text-slate-900">{TABS.length}</div>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+                Assets Set
+              </div>
+              <div className="mt-1 text-xl font-black text-slate-900">
+                {loading ? "..." : totalConfigured}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={load}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-60"
+            >
+              {loading ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex h-full gap-0">
       {/* Sidebar */}
-      <aside className="w-56 shrink-0 border-r border-slate-200 bg-white">
-        <div className="sticky top-0 p-3 pt-6">
-          <p className="mb-3 px-2 text-[10px] font-black tracking-[0.22em] text-slate-400">SECTIONS</p>
-          <nav className="grid gap-0.5">
-            {TABS.map(({ key, label, Icon, hint }) => (
-              <button key={key} type="button" onClick={() => setActiveTab(key)}
+      <aside className="hidden w-80 shrink-0 border-r border-slate-200 bg-white lg:block xl:w-96">
+        <div className="sticky top-0 p-4">
+          <p className="mb-3 px-2 text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">
+            SECTIONS
+          </p>
+          <nav className="grid gap-1">
+            {TABS.map(({ key, label, Icon, hint, type }) => {
+              const progress = getSectionProgress(
+                TABS.find((t) => t.key === key),
+                (settings || {})[key] || {}
+              );
+              const selected = activeTab === key;
+              return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveTab(key)}
                 className={[
-                  "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition",
-                  activeTab === key ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50",
-                ].join(" ")}>
-                <Icon size={14} className="shrink-0" />
-                <div className="min-w-0">
-                  <div className="truncate text-xs font-black">{label}</div>
-                  <div className={`truncate text-[10px] leading-tight ${activeTab === key ? "text-indigo-200" : "text-slate-400"}`}>{hint}</div>
+                  "flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition",
+                  selected
+                    ? "bg-slate-950 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
+                ].join(" ")}
+              >
+                <span
+                  className={[
+                    "grid h-9 w-9 shrink-0 place-items-center rounded-lg border",
+                    selected
+                      ? "border-white/10 bg-white/10"
+                      : "border-slate-200 bg-white",
+                  ].join(" ")}
+                >
+                  <Icon size={15} className="shrink-0" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-xs font-black leading-5">{label}</div>
+                    <span
+                      className={[
+                        "shrink-0 rounded-full px-2 py-1 text-[10px] font-black",
+                        selected
+                          ? "bg-white/10 text-white"
+                          : type === "images" && progress.used === progress.total
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-slate-100 text-slate-500",
+                      ].join(" ")}
+                    >
+                      {loading ? "-" : progress.label}
+                    </span>
+                  </div>
+                  <div
+                    className={[
+                      "mt-0.5 whitespace-normal break-words text-[10px] leading-4",
+                      selected ? "text-slate-300" : "text-slate-400",
+                    ].join(" ")}
+                  >
+                    {hint}
+                  </div>
                 </div>
               </button>
-            ))}
+            );
+            })}
           </nav>
         </div>
       </aside>
 
       {/* Content */}
-      <main className="min-w-0 flex-1 bg-slate-50 p-8">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-50">
-            <currentTab.Icon size={18} className="text-indigo-600" />
-          </div>
-          <div>
-            <h1 className="text-lg font-black text-slate-900">{currentTab.label}</h1>
-            <p className="text-xs text-slate-500">{currentTab.hint}</p>
+      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="mb-5 overflow-x-auto lg:hidden">
+          <div className="flex min-w-max gap-2">
+            {TABS.map(({ key, label, Icon }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveTab(key)}
+                className={[
+                  "inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-black transition",
+                  activeTab === key
+                    ? "border-slate-950 bg-slate-950 text-white"
+                    : "border-slate-200 bg-white text-slate-600",
+                ].join(" ")}
+              >
+                <Icon size={14} />
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm">
+        <div className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-700">
+                <currentTab.Icon size={20} />
+              </div>
+              <div className="min-w-0">
+                <h2 className="truncate text-xl font-black text-slate-900">
+              {currentTab.label}
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">{currentTab.hint}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5">
+                <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                  Configured
+                </div>
+                <div className="mt-0.5 text-lg font-black text-slate-900">
+                  {loading ? "..." : currentProgress.label}
+                </div>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5">
+                <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                  Type
+                </div>
+                <div className="mt-0.5 text-lg font-black capitalize text-slate-900">
+                  {currentTab.type}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           {loading ? (
             <div className="grid gap-4 sm:grid-cols-2">
               <Skeleton className="h-44 w-full rounded-2xl" />
@@ -528,25 +1019,26 @@ export default function WebsiteSettingsPage() {
           ) : currentTab.type === "gallery" ? (
             <GallerySection
               key={currentTab.key}
-              sectionData={(settings || {})[currentTab.key] || {}}
+              sectionData={currentData}
               onSave={handleSave}
             />
           ) : currentTab.type === "marquee" ? (
             <MarqueeSection
               key={currentTab.key}
-              sectionData={(settings || {})[currentTab.key] || {}}
+              sectionData={currentData}
               onSave={handleSave}
             />
           ) : (
             <ImagesSection
               key={currentTab.key}
               tab={currentTab}
-              sectionData={(settings || {})[currentTab.key] || {}}
+              sectionData={currentData}
               onSave={handleSave}
             />
           )}
         </div>
       </main>
+      </div>
     </div>
   );
 }

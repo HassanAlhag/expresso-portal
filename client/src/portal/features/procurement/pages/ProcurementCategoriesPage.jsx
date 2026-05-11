@@ -6,31 +6,31 @@ import EmptyState from "../../../shared/ui/EmptyState";
 import DataTable from "../../../shared/ui/DataTable";
 import { useToast } from "../../../shared/ui/Toast";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
-import { listCategories, createCategory, updateCategory, deleteCategory } from "../api";
 import {
-  Tag,
-  Plus,
-  RefreshCw,
-  Pencil,
-  Trash2,
-  X,
-} from "lucide-react";
+  listCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../api";
+import { Tag, Plus, RefreshCw, Pencil, Trash2, X } from "lucide-react";
+import MediaPickerModal from "../../media-library/components/MediaPickerModal";
+import { getAssetUrl } from "../../../shared/utils/assetUrl";
 
 const BRAND = "#6F7FD9";
 
 const ICON_META = {
-  software:     { label: "Software Licensing",   color: "#6366f1" },
-  erp:          { label: "ERP Solution",          color: "#0ea5e9" },
-  crm:          { label: "CRM Solution",          color: "#10b981" },
-  queue:        { label: "Queue Management",      color: "#f59e0b" },
-  iot:          { label: "IoT Solutions",         color: "#8b5cf6" },
-  vas:          { label: "VAS Solutions",         color: "#ec4899" },
-  cloud:        { label: "Cloud Services",        color: "#14b8a6" },
-  hosting:      { label: "Web Hosting & Domains", color: "#3b82f6" },
-  datacenter:   { label: "Data Center",           color: "#64748b" },
-  consultation: { label: "IT Consultation",       color: "#d97706" },
-  networking:   { label: "Networking Hardware",   color: "#7c3aed" },
-  hardware:     { label: "Data Center Hardware",  color: "#0f172a" },
+  software: { label: "Software Licensing", color: "#6366f1" },
+  erp: { label: "ERP Solution", color: "#0ea5e9" },
+  crm: { label: "CRM Solution", color: "#10b981" },
+  queue: { label: "Queue Management", color: "#f59e0b" },
+  iot: { label: "IoT Solutions", color: "#8b5cf6" },
+  vas: { label: "VAS Solutions", color: "#ec4899" },
+  cloud: { label: "Cloud Services", color: "#14b8a6" },
+  hosting: { label: "Web Hosting & Domains", color: "#3b82f6" },
+  datacenter: { label: "Data Center", color: "#64748b" },
+  consultation: { label: "IT Consultation", color: "#d97706" },
+  networking: { label: "Networking Hardware", color: "#7c3aed" },
+  hardware: { label: "Data Center Hardware", color: "#0f172a" },
 };
 
 function IconBadge({ iconKey }) {
@@ -56,32 +56,50 @@ function IconBadge({ iconKey }) {
 // ── Category Modal ─────────────────────────────────────────────────────────────
 
 const EMPTY_FORM = {
-  name: "", subtitle: "", description: "",
-  icon: "software", order: "", isActive: true,
+  name: "",
+  subtitle: "",
+  description: "",
+  icon: "software",
+  order: "",
+  isActive: true,
+  heroImageUrl: "",
+  heroImageMediaId: null,
 };
 
 function CategoryModal({ open, onClose, onSubmit, busy, initial }) {
   const [form, setForm] = useState(EMPTY_FORM);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setForm(initial ? {
-      name:        initial.name || "",
-      subtitle:    initial.subtitle || "",
-      description: initial.description || "",
-      icon:        initial.icon || "software",
-      order:       initial.order ?? "",
-      isActive:    initial.isActive !== false,
-    } : EMPTY_FORM);
+    setForm(
+      initial
+        ? {
+            name: initial.name || "",
+            subtitle: initial.subtitle || "",
+            description: initial.description || "",
+            icon: initial.icon || "software",
+            order: initial.order ?? "",
+            isActive: initial.isActive !== false,
+            heroImageUrl: initial.heroImageUrl || "",
+            heroImageMediaId: initial.heroImageMediaId || null,
+          }
+        : EMPTY_FORM
+    );
   }, [open, initial]);
 
-  const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
-  const setCheck = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.checked }));
+  const set = (field) => (e) =>
+    setForm((f) => ({ ...f, [field]: e.target.value }));
+  const setCheck = (field) => (e) =>
+    setForm((f) => ({ ...f, [field]: e.target.checked }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    onSubmit({ ...form, order: form.order !== "" ? Number(form.order) : undefined });
+    onSubmit({
+      ...form,
+      order: form.order !== "" ? Number(form.order) : undefined,
+    });
   };
 
   if (!open) return null;
@@ -94,8 +112,14 @@ function CategoryModal({ open, onClose, onSubmit, busy, initial }) {
       <div className="flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
-            <h2 className="text-lg font-black text-slate-900">{isEdit ? "Edit Category" : "New Category"}</h2>
-            <p className="mt-0.5 text-sm text-slate-500">{isEdit ? "Update category details." : "Add a new procurement category."}</p>
+            <h2 className="text-lg font-black text-slate-900">
+              {isEdit ? "Edit Category" : "New Category"}
+            </h2>
+            <p className="mt-0.5 text-sm text-slate-500">
+              {isEdit
+                ? "Update category details."
+                : "Add a new procurement category."}
+            </p>
           </div>
           <button
             type="button"
@@ -108,12 +132,29 @@ function CategoryModal({ open, onClose, onSubmit, busy, initial }) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <form id="category-form" onSubmit={handleSubmit} className="grid gap-5">
-            <Input label="NAME *" value={form.name} onChange={set("name")} placeholder="Category name" required />
-            <Input label="SUBTITLE" value={form.subtitle} onChange={set("subtitle")} placeholder="Short tagline" />
+          <form
+            id="category-form"
+            onSubmit={handleSubmit}
+            className="grid gap-5"
+          >
+            <Input
+              label="NAME *"
+              value={form.name}
+              onChange={set("name")}
+              placeholder="Category name"
+              required
+            />
+            <Input
+              label="SUBTITLE"
+              value={form.subtitle}
+              onChange={set("subtitle")}
+              placeholder="Short tagline"
+            />
 
             <label className="grid gap-1.5">
-              <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">DESCRIPTION</span>
+              <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
+                DESCRIPTION
+              </span>
               <textarea
                 rows={3}
                 value={form.description}
@@ -122,17 +163,72 @@ function CategoryModal({ open, onClose, onSubmit, busy, initial }) {
                 className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
               />
             </label>
+            <div className="grid gap-2">
+              <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
+                HERO IMAGE
+              </span>
+
+              {form.heroImageUrl ? (
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                  <img
+                    src={getAssetUrl(form.heroImageUrl)}
+                    alt="Category hero"
+                    className="h-40 w-full object-cover"
+                  />
+                  <div className="flex items-center justify-between gap-2 p-3">
+                    <span className="truncate text-xs text-slate-500">
+                      {form.heroImageUrl}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          heroImageUrl: "",
+                          heroImageMediaId: null,
+                        }))
+                      }
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
+                  <p className="text-sm font-bold text-slate-700">
+                    No hero image selected
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    This image will be used on the detail page hero.
+                  </p>
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPickerOpen(true)}
+              >
+                Choose Image
+              </Button>
+            </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1.5">
-                <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">ICON</span>
+                <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
+                  ICON
+                </span>
                 <select
                   value={form.icon}
                   onChange={set("icon")}
                   className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
                 >
                   {Object.entries(ICON_META).map(([key, meta]) => (
-                    <option key={key} value={key}>{meta.label} ({key})</option>
+                    <option key={key} value={key}>
+                      {meta.label} ({key})
+                    </option>
                   ))}
                 </select>
               </label>
@@ -150,8 +246,12 @@ function CategoryModal({ open, onClose, onSubmit, busy, initial }) {
               <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
                 <IconBadge iconKey={form.icon} />
                 <div>
-                  <div className="text-sm font-bold text-slate-900">{selectedMeta.label}</div>
-                  <div className="text-xs text-slate-500">Key: {form.icon} · Color: {selectedMeta.color}</div>
+                  <div className="text-sm font-bold text-slate-900">
+                    {selectedMeta.label}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    Key: {form.icon} · Color: {selectedMeta.color}
+                  </div>
                 </div>
               </div>
             )}
@@ -163,13 +263,17 @@ function CategoryModal({ open, onClose, onSubmit, busy, initial }) {
                 onChange={setCheck("isActive")}
                 className="h-4 w-4 rounded border-slate-300 text-indigo-600"
               />
-              <span className="text-sm font-semibold text-slate-700">Active category</span>
+              <span className="text-sm font-semibold text-slate-700">
+                Active category
+              </span>
             </label>
           </form>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-6 py-4">
-          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button variant="outline" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
           <Button
             type="submit"
             form="category-form"
@@ -179,6 +283,19 @@ function CategoryModal({ open, onClose, onSubmit, busy, initial }) {
           >
             {isEdit ? "Save Changes" : "Create Category"}
           </Button>
+
+          <MediaPickerModal
+            open={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            onSelect={(asset) => {
+              setForm((f) => ({
+                ...f,
+                heroImageUrl: asset?.url || asset?.path || "",
+                heroImageMediaId: asset?._id || asset?.id || null,
+              }));
+              setPickerOpen(false);
+            }}
+          />
         </div>
       </div>
     </div>
@@ -205,7 +322,10 @@ export default function ProcurementCategoriesPage() {
       const res = await listCategories({ limit: 200, sort: "order" });
       setItems(Array.isArray(res?.items) ? res.items : []);
     } catch (e) {
-      const msg = e?.response?.data?.message || e?.message || "Failed to load categories.";
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        "Failed to load categories.";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -213,8 +333,10 @@ export default function ProcurementCategoriesPage() {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (payload) => {
     setBusy(true);
@@ -230,7 +352,9 @@ export default function ProcurementCategoriesPage() {
       setEditing(null);
       await load();
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Operation failed.");
+      toast.error(
+        e?.response?.data?.message || e?.message || "Operation failed."
+      );
     } finally {
       setBusy(false);
     }
@@ -239,8 +363,14 @@ export default function ProcurementCategoriesPage() {
   const handleToggleActive = async (cat) => {
     try {
       await updateCategory(cat._id, { isActive: !cat.isActive });
-      setItems(prev => prev.map(c => c._id === cat._id ? { ...c, isActive: !c.isActive } : c));
-      toast.success(cat.isActive ? "Category deactivated." : "Category activated.");
+      setItems((prev) =>
+        prev.map((c) =>
+          c._id === cat._id ? { ...c, isActive: !c.isActive } : c
+        )
+      );
+      toast.success(
+        cat.isActive ? "Category deactivated." : "Category activated."
+      );
     } catch (e) {
       toast.error(e?.response?.data?.message || "Toggle failed.");
     }
@@ -255,7 +385,7 @@ export default function ProcurementCategoriesPage() {
         setBusy(true);
         try {
           await deleteCategory(cat._id);
-          setItems(prev => prev.filter(c => c._id !== cat._id));
+          setItems((prev) => prev.filter((c) => c._id !== cat._id));
           toast.success("Category deleted.");
         } catch (e) {
           toast.error(e?.response?.data?.message || "Delete failed.");
@@ -273,7 +403,9 @@ export default function ProcurementCategoriesPage() {
       label: "#",
       align: "center",
       render: (row, i) => (
-        <span className="text-xs font-black text-slate-400">{row.order ?? i + 1}</span>
+        <span className="text-xs font-black text-slate-400">
+          {row.order ?? i + 1}
+        </span>
       ),
     },
     {
@@ -281,16 +413,30 @@ export default function ProcurementCategoriesPage() {
       label: "CATEGORY",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <IconBadge iconKey={row.icon} />
+          {row.heroImageUrl ? (
+            <img
+              src={getAssetUrl(row.heroImageUrl)}
+              alt={row.name}
+              className="h-10 w-10 shrink-0 rounded-xl object-cover"
+            />
+          ) : (
+            <IconBadge iconKey={row.icon} />
+          )}
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-black text-slate-900">{row.name}</span>
+              <span className="text-sm font-black text-slate-900">
+                {row.name}
+              </span>
               {ICON_META[row.icon] && (
-                <span className="text-xs font-bold text-slate-400">({row.icon})</span>
+                <span className="text-xs font-bold text-slate-400">
+                  ({row.icon})
+                </span>
               )}
             </div>
             {row.subtitle && (
-              <div className="mt-0.5 truncate text-xs text-slate-500">{row.subtitle}</div>
+              <div className="mt-0.5 truncate text-xs text-slate-500">
+                {row.subtitle}
+              </div>
             )}
           </div>
         </div>
@@ -324,7 +470,10 @@ export default function ProcurementCategoriesPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => { setEditing(row); setModalOpen(true); }}
+            onClick={() => {
+              setEditing(row);
+              setModalOpen(true);
+            }}
             disabled={busy}
           >
             <Pencil size={13} />
@@ -362,7 +511,10 @@ export default function ProcurementCategoriesPage() {
               Refresh
             </Button>
             <Button
-              onClick={() => { setEditing(null); setModalOpen(true); }}
+              onClick={() => {
+                setEditing(null);
+                setModalOpen(true);
+              }}
               style={{ backgroundColor: BRAND }}
               disabled={busy}
             >
@@ -374,7 +526,9 @@ export default function ProcurementCategoriesPage() {
       />
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">{error}</div>
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">
+          {error}
+        </div>
       )}
 
       <DataTable
@@ -382,21 +536,31 @@ export default function ProcurementCategoriesPage() {
         rows={items}
         loading={loading}
         title="All Categories"
-        hint={loading ? "Loading…" : `${items.length} categor${items.length === 1 ? "y" : "ies"}`}
+        hint={
+          loading
+            ? "Loading…"
+            : `${items.length} categor${items.length === 1 ? "y" : "ies"}`
+        }
         empty={
           <EmptyState
             icon={Tag}
             title="No categories yet"
             message="Create your first procurement category to organize requests."
             actionLabel="New Category"
-            onAction={() => { setEditing(null); setModalOpen(true); }}
+            onAction={() => {
+              setEditing(null);
+              setModalOpen(true);
+            }}
           />
         }
       />
 
       <CategoryModal
         open={modalOpen}
-        onClose={() => { setModalOpen(false); setEditing(null); }}
+        onClose={() => {
+          setModalOpen(false);
+          setEditing(null);
+        }}
         onSubmit={handleSubmit}
         busy={busy}
         initial={editing}

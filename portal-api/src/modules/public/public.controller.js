@@ -1,4 +1,8 @@
 import Lead from "../crm/leads/lead.model.js";
+import {
+  ensureContactForLead,
+  PLAN_BUILDER_SOURCE,
+} from "../crm/leads/lead.service.js";
 
 export async function submitPlanBuilder(req, res) {
   try {
@@ -10,6 +14,7 @@ export async function submitPlanBuilder(req, res) {
       .toLowerCase();
     const phone = String(body.phone || "").trim();
     const notes = String(body.notes || "").trim();
+    const service = String(body.service || "").trim();
     const companyName = String(body.companyName || "").trim();
 
     if (!fullName) {
@@ -31,13 +36,15 @@ export async function submitPlanBuilder(req, res) {
       companyName,
       email,
       phone,
-      source: "plan_builder",
+      service,
+      source: PLAN_BUILDER_SOURCE,
       status: "new",
       notes,
       ownerUserId: null,
       createdBy: null,
       updatedBy: null,
     });
+    await ensureContactForLead(item, null);
 
     return res.status(201).json({
       ok: true,

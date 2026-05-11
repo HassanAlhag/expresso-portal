@@ -6,11 +6,12 @@ const LeadSchema = new mongoose.Schema(
     companyName: { type: String, trim: true, default: "" },
     email: { type: String, trim: true, lowercase: true, default: "" },
     phone: { type: String, trim: true, default: "" },
+    service: { type: String, trim: true, default: "", index: true },
 
     source: {
       type: String,
       trim: true,
-      default: "manual", // manual | website | referral | whatsapp | campaign | other
+      default: "manual", // manual | website | plan_builder | referral | whatsapp | campaign | other
       index: true,
     },
 
@@ -33,7 +34,7 @@ const LeadSchema = new mongoose.Schema(
 
     convertedToAccountId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Customer",
+      ref: "CRMAccount",
       default: null,
     },
 

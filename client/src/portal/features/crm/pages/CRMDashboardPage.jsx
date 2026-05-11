@@ -20,6 +20,7 @@ import {
 import PageHeader from "../../../shared/ui/PageHeader";
 import Button from "../../../shared/ui/Button";
 import StatCard from "../../../shared/ui/StatCard";
+import { leadSourceLabel } from "../constants";
 
 const DEAL_STAGES = [
   "discovery",
@@ -353,8 +354,8 @@ export default function CRMDashboardPage() {
                           <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
                             {lead.email || lead.phone || "—"}
                           </td>
-                          <td className="whitespace-nowrap px-4 py-3 text-sm capitalize text-slate-600">
-                            {lead.source || "manual"}
+                          <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
+                            {leadSourceLabel(lead.source)}
                           </td>
                           <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
                             {getOwnerName(lead)}

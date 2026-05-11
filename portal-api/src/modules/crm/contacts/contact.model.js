@@ -52,7 +52,7 @@ const ContactSchema = new mongoose.Schema(
 
     leadId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Lead",
+      ref: "CRMLead",
       default: null,
       index: true,
     },

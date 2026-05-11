@@ -39,6 +39,11 @@ export async function listLeads(params = {}) {
   return data;
 }
 
+export async function listLeadAssignees() {
+  const { data } = await api.get("/crm/leads/assignees");
+  return data;
+}
+
 export async function getLead(id) {
   const { data } = await api.get(`/crm/leads/${id}`);
   return data;

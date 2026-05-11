@@ -191,9 +191,10 @@ export default function PlanBuilder({ onFinish }) {
 
     return {
       fullName: String(data.name || "").trim(),
-      companyName: "Plan Builder Submission",
+      companyName: "",
       email: looksLikeEmail ? contactValue.toLowerCase() : "",
       phone: looksLikeEmail ? "" : contactValue,
+      service: selectedServices,
       source: "plan_builder",
       status: "new",
       notes: `Plan Builder Submission

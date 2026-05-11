@@ -19,7 +19,7 @@ export default function MediaPickerModal({
   onlyType = "", // "image" | "video" | ...
   multiple = false,
   allowUpload = true,
-  limit = 48,
+  limit = 100,
   status = "", // keep empty for internal/admin usage
 }) {
   const [q, setQ] = useState("");

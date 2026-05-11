@@ -92,6 +92,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/software-licensing",
     title: "Software Licensing",
     subtitle: "Enterprise software procurement",
+    heroImageUrl: "/it-solutions/software-licensing.webp",
+    heroSettingKey: "softwareLicensingHeroImageUrl",
+    heroMediaKey: "softwareLicensingHeroImageMediaId",
   },
   {
     _id: "2",
@@ -100,6 +103,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/erp-solution",
     title: "ERP Solution",
     subtitle: "Streamline operations end-to-end",
+    heroImageUrl: "/it-solutions/erp-solution.webp",
+    heroSettingKey: "erpSolutionHeroImageUrl",
+    heroMediaKey: "erpSolutionHeroImageMediaId",
   },
   {
     _id: "3",
@@ -108,6 +114,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/crm-solution",
     title: "CRM Solution",
     subtitle: "Manage & grow customer relationships",
+    heroImageUrl: "/it-solutions/crm-solution.webp",
+    heroSettingKey: "crmSolutionHeroImageUrl",
+    heroMediaKey: "crmSolutionHeroImageMediaId",
   },
   {
     _id: "4",
@@ -116,6 +125,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/queue-management",
     title: "Queue Management",
     subtitle: "Smart flow for customers & staff",
+    heroImageUrl: "/it-solutions/queue-management.webp",
+    heroSettingKey: "queueManagementHeroImageUrl",
+    heroMediaKey: "queueManagementHeroImageMediaId",
   },
   {
     _id: "5",
@@ -124,6 +136,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/iot-solutions",
     title: "IoT Solutions",
     subtitle: "Connected devices & smart systems",
+    heroImageUrl: "/it-solutions/iot-solutions.webp",
+    heroSettingKey: "iotSolutionsHeroImageUrl",
+    heroMediaKey: "iotSolutionsHeroImageMediaId",
   },
   {
     _id: "6",
@@ -132,6 +147,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/vas-solutions",
     title: "VAS Solutions",
     subtitle: "Value-added services for telcos",
+    heroImageUrl: "/it-solutions/vas-solutions.webp",
+    heroSettingKey: "vasSolutionsHeroImageUrl",
+    heroMediaKey: "vasSolutionsHeroImageMediaId",
   },
   {
     _id: "7",
@@ -140,6 +158,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/cloud-services",
     title: "Cloud Services",
     subtitle: "Scalable infrastructure & hosting",
+    heroImageUrl: "/it-solutions/cloud-services.webp",
+    heroSettingKey: "cloudServicesHeroImageUrl",
+    heroMediaKey: "cloudServicesHeroImageMediaId",
   },
   {
     _id: "8",
@@ -148,6 +169,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/web-hosting-domains",
     title: "Web Hosting & Domains",
     subtitle: "Fast, reliable hosting solutions",
+    heroImageUrl: "/it-solutions/web-hosting-domains.webp",
+    heroSettingKey: "webHostingDomainsHeroImageUrl",
+    heroMediaKey: "webHostingDomainsHeroImageMediaId",
   },
   {
     _id: "9",
@@ -156,6 +180,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/data-center",
     title: "Data Center",
     subtitle: "Managed data center services",
+    heroImageUrl: "/it-solutions/data-center.webp",
+    heroSettingKey: "dataCenterHeroImageUrl",
+    heroMediaKey: "dataCenterHeroImageMediaId",
   },
   {
     _id: "10",
@@ -164,6 +191,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/it-consultation",
     title: "IT Consultation",
     subtitle: "Expert guidance & roadmap planning",
+    heroImageUrl: "/it-solutions/it-consultation.webp",
+    heroSettingKey: "itConsultationHeroImageUrl",
+    heroMediaKey: "itConsultationHeroImageMediaId",
   },
   {
     _id: "11",
@@ -172,6 +202,9 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/networking-hardware",
     title: "Networking Hardware",
     subtitle: "Enterprise-grade network equipment",
+    heroImageUrl: "/it-solutions/networking-hardware.webp",
+    heroSettingKey: "networkingHardwareHeroImageUrl",
+    heroMediaKey: "networkingHardwareHeroImageMediaId",
   },
   {
     _id: "12",
@@ -180,8 +213,19 @@ export const STATIC_SOLUTIONS = [
     to: "/it-solutions/data-center-hardware",
     title: "Data Center Hardware",
     subtitle: "Servers, storage & infrastructure",
+    heroImageUrl: "/it-solutions/data-center-hardware.webp",
+    heroSettingKey: "dataCenterHardwareHeroImageUrl",
+    heroMediaKey: "dataCenterHardwareHeroImageMediaId",
   },
 ];
+
+export const IT_SOLUTION_IMAGE_FIELDS = STATIC_SOLUTIONS.map((solution) => ({
+  key: solution.heroSettingKey,
+  mediaKey: solution.heroMediaKey,
+  label: `${solution.title} Hero`,
+  hint: `Used on ${solution.to}`,
+  slug: solution.slug,
+}));
 
 export const WHY_US = [
   {

@@ -6,14 +6,23 @@ import WhyExpressoGrid from "../../components/WhyExpressoGrid/WhyExpressoGrid";
 import ProcurementProcess from "../../components/ProcurementProcess/ProcurementProcess";
 import TechnologyCTA from "../../components/TechnologyCTA/TechnologyCTA";
 import { STATIC_SOLUTIONS } from "../../data/technologySolutionsData";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { getAssetUrl } from "../../portal/shared/utils/assetUrl";
 
 export default function ITSolutionsPage() {
+  const settings = useSiteSettings();
+  const heroImageUrl = settings?.itSolutions?.heroImageUrl
+    ? getAssetUrl(settings.itSolutions.heroImageUrl)
+    : "/81.webp";
+
   return (
     <>
       <AuroraHero
+        key={heroImageUrl}
         heading="Technology Solutions"
         subtitle="Enterprise IT Procurement, Simplified"
         description="From ERP and CRM to IoT, cloud infrastructure, and data center hardware — we source, procure, and deploy the right technology for your business."
+        backgroundImageUrl={heroImageUrl}
       />
 
       <HomeSection

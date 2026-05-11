@@ -9,12 +9,23 @@ const ProcurementCategorySchema = new Schema(
     slug: { type: String, required: true, trim: true, lowercase: true },
     code: { type: String, trim: true, default: "" },
     level: { type: Number, default: 1, index: true }, // 1 = main, 2 = category, 3 = subcategory
-    parentId: { type: OID, ref: "ProcurementCategory", default: null, index: true },
+    parentId: {
+      type: OID,
+      ref: "ProcurementCategory",
+      default: null,
+      index: true,
+    },
     subtitle: { type: String, trim: true, default: "" },
     description: { type: String, default: "" },
     icon: { type: String, default: "" },
     isActive: { type: Boolean, default: true, index: true },
     order: { type: Number, default: 0, index: true },
+    heroImageUrl: { type: String, default: "" },
+    heroImageMediaId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Media",
+      default: null,
+    },
   },
   { timestamps: true }
 );

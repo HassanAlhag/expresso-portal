@@ -10,7 +10,12 @@ import { useNavigate } from "react-router-dom";
 
 const COLORS_TOP = ["#13FFAA", "#1E67C6", "#CE84CF", "#DD335C"];
 
-const AuroraHero = ({ heading, subtitle, description }) => {
+const AuroraHero = ({
+  heading,
+  subtitle,
+  description,
+  backgroundImageUrl = "/81.webp",
+}) => {
   const color = useMotionValue(COLORS_TOP[0]);
 
   useEffect(() => {
@@ -24,7 +29,7 @@ const AuroraHero = ({ heading, subtitle, description }) => {
 
   const navigate = useNavigate();
 
-  const backgroundImage = useMotionTemplate`radial-gradient(circle at 10% 90%, ${color} 0%, transparent 40%), url('/81.webp')`;
+  const backgroundImage = useMotionTemplate`radial-gradient(circle at 10% 90%, ${color} 0%, transparent 40%), url('${backgroundImageUrl}')`;
   const border = useMotionTemplate`1px solid ${color}`;
   const boxShadow = useMotionTemplate`0px 4px 24px ${color}`;
 

@@ -4,6 +4,11 @@ import ProcurementRequest from "./request.model.js";
 
 const SORT = { order: 1, createdAt: -1 };
 
+function normalizeOptionalObjectId(value) {
+  if (!value) return null;
+  return mongoose.Types.ObjectId.isValid(value) ? value : null;
+}
+
 // GET /api/procurement/categories/public — no auth (flat list)
 export async function listPublicCategories(req, res) {
   try {
@@ -73,6 +78,8 @@ export async function createCategory(req, res) {
       icon: String(body.icon || "").trim(),
       isActive: body.isActive !== false,
       order: body.order != null ? Number(body.order) : 0,
+      heroImageUrl: String(body.heroImageUrl || "").trim(),
+      heroImageMediaId: normalizeOptionalObjectId(body.heroImageMediaId),
     });
 
     return res.status(201).json({ ok: true, item: doc });
@@ -103,6 +110,12 @@ export async function updateCategory(req, res) {
     if (typeof body.icon !== "undefined") patch.icon = String(body.icon || "").trim();
     if (typeof body.isActive !== "undefined") patch.isActive = Boolean(body.isActive);
     if (typeof body.order !== "undefined") patch.order = Number(body.order);
+    if (typeof body.heroImageUrl !== "undefined") {
+      patch.heroImageUrl = String(body.heroImageUrl || "").trim();
+    }
+    if (typeof body.heroImageMediaId !== "undefined") {
+      patch.heroImageMediaId = normalizeOptionalObjectId(body.heroImageMediaId);
+    }
 
     const item = await ProcurementCategory.findByIdAndUpdate(id, patch, { new: true }).lean();
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });

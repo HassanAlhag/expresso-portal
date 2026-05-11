@@ -34,10 +34,22 @@ export async function getSettings(req, res) {
 }
 
 // PATCH /api/site-settings  (admin)
-// Body: { section: "branding"|"home"|"about"|"services"|"portfolio"|"careers"|"contact", data: {...} }
+// Body: { section: "branding"|"home"|"homepageSections"|"about"|"services"|"portfolio"|"careers"|"contact"|"gallery"|"itSolutions"|"marquee", data: {...} }
 export async function updateSettings(req, res) {
   try {
-    const SECTIONS = ["branding", "home", "about", "services", "portfolio", "careers", "contact", "gallery", "marquee"];
+    const SECTIONS = [
+      "branding",
+      "home",
+      "homepageSections",
+      "about",
+      "services",
+      "portfolio",
+      "careers",
+      "contact",
+      "gallery",
+      "itSolutions",
+      "marquee",
+    ];
     const { section, data } = req.body || {};
 
     if (!section || !SECTIONS.includes(section)) {

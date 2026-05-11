@@ -4,14 +4,36 @@ import { FiPackage } from "react-icons/fi";
 import AuroraHero from "../../components/BannerSection/bannerSection";
 import SolutionDetailRenderer from "../../components/SolutionDetailRenderer/SolutionDetailRenderer";
 import SolutionDetailCTA from "../../components/SolutionDetailCTA/SolutionDetailCTA";
-import { BRAND, BRAND_BG, ICON_META } from "../../data/technologySolutionsData";
+import {
+  BRAND,
+  BRAND_BG,
+  ICON_META,
+  STATIC_SOLUTIONS,
+} from "../../data/technologySolutionsData";
 import { TECHNOLOGY_SOLUTION_DETAILS } from "../../data/technologySolutionDetailsData";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { getAssetUrl } from "../../portal/shared/utils/assetUrl";
+
+function resolveImageUrl(value, fallback = "/81.webp") {
+  const path = value || fallback;
+  if (!path) return fallback;
+
+  if (path.startsWith("http")) return getAssetUrl(path);
+  if (path.startsWith("/uploads") || path.startsWith("uploads/")) {
+    return getAssetUrl(path);
+  }
+
+  return path;
+}
 
 export default function ITSolutionDetailsPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const settings = useSiteSettings();
 
-  const solution = TECHNOLOGY_SOLUTION_DETAILS[slug];
+  const baseSolution = STATIC_SOLUTIONS.find((item) => item.slug === slug);
+  const detail = TECHNOLOGY_SOLUTION_DETAILS[slug];
+  const solution = detail && baseSolution ? { ...baseSolution, ...detail } : detail;
 
   if (!solution) {
     return (
@@ -42,12 +64,20 @@ export default function ITSolutionDetailsPage() {
     bg: BRAND_BG,
   };
 
+  const heroSettingKey = solution.heroSettingKey;
+  const heroImageUrl = resolveImageUrl(
+    heroSettingKey ? settings?.itSolutions?.[heroSettingKey] : "",
+    "/81.webp"
+  );
+
   return (
     <>
       <AuroraHero
+        key={heroImageUrl}
         heading={solution.title}
         subtitle={solution.subtitle}
         description={solution.description}
+        backgroundImageUrl={heroImageUrl}
       />
 
       <SolutionDetailRenderer

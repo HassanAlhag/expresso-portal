@@ -25,6 +25,7 @@ import {
 
 import { listLeads, createLead, updateLead, deleteLead, convertLeadToDeal } from "../api";
 import LeadFormModal from "../components/LeadFormModal";
+import { leadSourceLabel } from "../constants";
 
 const STATUS_TONES = {
   new:          "border-sky-200 bg-sky-50 text-sky-700",
@@ -46,6 +47,10 @@ function StatusPill({ value }) {
       {v.replaceAll("_", " ")}
     </span>
   );
+}
+
+function assignedStaffName(lead) {
+  return lead?.ownerUserId?.fullName || lead?.ownerUserId?.email || "";
 }
 
 const STATUS_FILTER_OPTIONS = [
@@ -222,7 +227,7 @@ export default function LeadsPage() {
       <FilterBar
         searchValue={q}
         onSearchChange={(v) => { setQ(v); setPage(1); }}
-        searchPlaceholder="Search name, company, email…"
+        searchPlaceholder="Search name, company, email, service…"
         filters={[
           { label: "status", value: status, onChange: (v) => { setStatus(v); setPage(1); }, options: STATUS_FILTER_OPTIONS },
           { label: "sort",   value: sort,   onChange: (v) => { setSort(v);   setPage(1); }, options: SORT_OPTIONS          },
@@ -263,8 +268,10 @@ export default function LeadsPage() {
                 <tr className="border-b border-black/10">
                   <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">LEAD</th>
                   <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">COMPANY</th>
+                  <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">SERVICE</th>
                   <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">STATUS</th>
                   <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">SOURCE</th>
+                  <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">ASSIGNED</th>
                   <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">CREATED</th>
                   <th className="px-4 py-3 text-right text-xs font-black tracking-[0.18em] text-slate-500">ACTIONS</th>
                 </tr>
@@ -307,12 +314,22 @@ export default function LeadsPage() {
                       )}
                     </td>
 
+                    <td className="max-w-56 px-4 py-4 align-top text-sm text-slate-600">
+                      <div className="line-clamp-2">{lead.service || "—"}</div>
+                    </td>
+
                     <td className="px-4 py-4 align-top">
                       <StatusPill value={lead.status} />
                     </td>
 
-                    <td className="px-4 py-4 align-top text-sm capitalize text-slate-600">
-                      {lead.source || "manual"}
+                    <td className="px-4 py-4 align-top text-sm text-slate-600">
+                      {leadSourceLabel(lead.source)}
+                    </td>
+
+                    <td className="px-4 py-4 align-top text-sm text-slate-600">
+                      {assignedStaffName(lead) || (
+                        <span className="text-slate-400">Unassigned</span>
+                      )}
                     </td>
 
                     <td className="px-4 py-4 align-top text-sm text-slate-600">

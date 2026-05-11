@@ -26,7 +26,9 @@ function StagePill({ stage }) {
 }
 
 function DealCard({ item, onOpen, onMove, busy }) {
-  const nextStages = DEAL_PIPELINE_COLUMNS.filter((x) => x !== item.stage);
+  const nextStages = DEAL_PIPELINE_COLUMNS
+    .map((column) => column.key)
+    .filter((stage) => stage !== item.stage);
 
   return (
     <Card className="p-3">
@@ -84,14 +86,14 @@ export default function DealsPipelineBoard({
 }) {
   const grouped = useMemo(() => {
     const map = {};
-    DEAL_PIPELINE_COLUMNS.forEach((col) => {
-      map[col] = [];
+    DEAL_PIPELINE_COLUMNS.forEach((column) => {
+      map[column.key] = [];
     });
 
     items.forEach((item) => {
       const key = item?.stage || "discovery";
-      if (!map[key]) map[key] = [];
-      map[key].push(item);
+      const columnKey = map[key] ? key : "discovery";
+      map[columnKey].push(item);
     });
 
     return map;
@@ -99,7 +101,8 @@ export default function DealsPipelineBoard({
 
   return (
     <div className="grid gap-4 xl:grid-cols-4 2xl:grid-cols-7">
-      {DEAL_PIPELINE_COLUMNS.map((stage) => {
+      {DEAL_PIPELINE_COLUMNS.map((column) => {
+        const stage = column.key;
         const colItems = grouped[stage] || [];
 
         return (
@@ -109,7 +112,7 @@ export default function DealsPipelineBoard({
           >
             <div className="mb-3 flex items-center justify-between gap-2">
               <div className="text-sm font-black text-slate-900">
-                {stageLabel(stage)}
+                {column.label || stageLabel(stage)}
               </div>
               <div className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-700">
                 {colItems.length}

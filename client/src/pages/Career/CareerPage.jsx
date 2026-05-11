@@ -24,6 +24,8 @@ import {
 } from "react-icons/fi";
 import AuroraHero from "../../components/BannerSection/bannerSection";
 import HomeSection from "../../components/HomeSection/HomeSection";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { getAssetUrl } from "../../portal/shared/utils/assetUrl";
 import { listPublicCareers, uploadCV, applyForCareer } from "../../api/careers";
 
 const BRAND = "#7F8AD1";
@@ -434,6 +436,11 @@ export default function CareerPage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [applyJob, setApplyJob] = useState(null);
+  const settings = useSiteSettings();
+
+  const careerHeroImage = getAssetUrl(
+    settings?.careers?.heroImageUrl || "/81.webp"
+  );
 
   useEffect(() => {
     listPublicCareers()
@@ -448,6 +455,7 @@ export default function CareerPage() {
         heading="We're Hiring"
         subtitle="Build Your Career at Expresso"
         description="Join a team of creators, strategists and engineers building brands that people actually remember. We move fast, think big, and take care of our people."
+        backgroundImageUrl={careerHeroImage}
       />
 
       {/* Perks — dark */}

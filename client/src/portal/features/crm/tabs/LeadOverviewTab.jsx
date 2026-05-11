@@ -2,7 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Card from "../../../shared/ui/Card";
 import Badge from "../../../shared/ui/Badge";
-import { Building2, Mail, Phone, Globe, UserRound, BriefcaseBusiness, ExternalLink } from "lucide-react";
+import { Building2, Mail, Phone, Globe, UserRound, BriefcaseBusiness, ExternalLink, Wrench } from "lucide-react";
+import { leadSourceLabel } from "../constants";
 
 function InfoRow({ icon: Icon, label, value }) {
   return (
@@ -29,6 +30,7 @@ const STATUS_TONES = {
 export default function LeadOverviewTab({ lead }) {
   const nav = useNavigate();
   const v = String(lead?.status || "new").toLowerCase();
+  const convertedAccount = lead?.convertedToAccountId || lead?.accountId || null;
 
   return (
     <div className="grid gap-5">
@@ -42,7 +44,7 @@ export default function LeadOverviewTab({ lead }) {
           >
             {v.replaceAll("_", " ")}
           </span>
-          <Badge tone="neutral">{lead?.source || "manual"}</Badge>
+          <Badge tone="neutral">{leadSourceLabel(lead?.source)}</Badge>
           {lead?.ownerUserId?.fullName ? (
             <Badge tone="info">{lead.ownerUserId.fullName}</Badge>
           ) : (
@@ -55,19 +57,22 @@ export default function LeadOverviewTab({ lead }) {
           <InfoRow icon={Building2}        label="COMPANY"     value={lead?.companyName} />
           <InfoRow icon={Mail}             label="EMAIL"       value={lead?.email} />
           <InfoRow icon={Phone}            label="PHONE"       value={lead?.phone} />
-          <InfoRow icon={Globe}            label="SOURCE"      value={lead?.source} />
-          <InfoRow icon={BriefcaseBusiness} label="OWNER"      value={lead?.ownerUserId?.fullName || "Unassigned"} />
+          <InfoRow icon={Wrench}           label="SERVICE"     value={lead?.service} />
+          <InfoRow icon={Globe}            label="SOURCE"      value={leadSourceLabel(lead?.source)} />
+          <InfoRow icon={BriefcaseBusiness} label="ASSIGNED STAFF" value={lead?.ownerUserId?.fullName || "Unassigned"} />
         </div>
 
-        {lead?.accountId && (
+        {convertedAccount && (
           <div className="mt-4">
             <button
               type="button"
-              onClick={() => nav(`/portal/crm/accounts/${lead.accountId._id || lead.accountId}`)}
+              onClick={() =>
+                nav(`/portal/crm/accounts/${convertedAccount._id || convertedAccount}`)
+              }
               className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-800 transition hover:bg-indigo-100"
             >
               <Building2 size={14} />
-              {lead.accountId?.name || "View account"}
+              {convertedAccount?.name || "View account"}
               <ExternalLink size={12} className="ml-auto text-indigo-500" />
             </button>
           </div>

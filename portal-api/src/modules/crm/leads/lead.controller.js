@@ -1,6 +1,14 @@
 import mongoose from "mongoose";
 import Lead from "./lead.model.js";
 import Deal from "../deals/deal.model.js";
+import User from "../../iam/users/user.model.js";
+import {
+  ensureAccountForLead,
+  buildLeadPayload,
+  ensureContactForLead,
+  normalizeLeadSource,
+  PLAN_BUILDER_SOURCE,
+} from "./lead.service.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -26,6 +34,24 @@ function safeSort(sort) {
   const key = raw.startsWith("-") ? raw.slice(1) : raw;
   const dir = raw.startsWith("-") ? -1 : 1;
   return { [key]: dir };
+}
+
+export async function listLeadAssignees(_req, res) {
+  try {
+    const users = await User.find({
+      isActive: true,
+      role: { $in: ["super_admin", "admin", "staff"] },
+    })
+      .select("fullName email role team jobTitle avatarUrl")
+      .sort({ fullName: 1, email: 1 })
+      .limit(200)
+      .lean();
+
+    return res.json({ ok: true, items: users, users });
+  } catch (e) {
+    console.error("listLeadAssignees:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
 }
 
 export async function listLeads(req, res) {
@@ -60,6 +86,7 @@ export async function listLeads(req, res) {
         { companyName: rx },
         { email: rx },
         { phone: rx },
+        { service: rx },
         { notes: rx },
       ];
     }
@@ -68,6 +95,7 @@ export async function listLeads(req, res) {
       Lead.countDocuments(filter),
       Lead.find(filter)
         .populate("ownerUserId", "fullName email role")
+        .populate("convertedToAccountId", "name email phone status")
         .populate("convertedDealId", "title stage")
         .sort(safeSort(sort))
         .skip((pageNum - 1) * limitNum)
@@ -99,6 +127,7 @@ export async function getLeadById(req, res) {
 
     const item = await Lead.findById(id)
       .populate("ownerUserId", "fullName email role")
+      .populate("convertedToAccountId", "name email phone status")
       .populate("convertedDealId", "title stage value currency")
       .lean();
 
@@ -124,27 +153,12 @@ export async function createLead(req, res) {
         .json({ ok: false, message: "fullName is required" });
     }
 
-    const item = await Lead.create({
-      fullName,
-      companyName: String(body.companyName || "").trim(),
-      email: String(body.email || "")
-        .trim()
-        .toLowerCase(),
-      phone: String(body.phone || "").trim(),
-      source: String(body.source || "manual")
-        .trim()
-        .toLowerCase(),
-      status: String(body.status || "new")
-        .trim()
-        .toLowerCase(),
-      ownerUserId:
-        body.ownerUserId && mongoose.Types.ObjectId.isValid(body.ownerUserId)
-          ? body.ownerUserId
-          : null,
-      notes: String(body.notes || "").trim(),
-      createdBy: req.user?.id || null,
-      updatedBy: req.user?.id || null,
-    });
+    const created = await Lead.create(buildLeadPayload(body, req.user?.id));
+    await ensureContactForLead(created, req.user?.id);
+
+    const item = await Lead.findById(created._id)
+      .populate("ownerUserId", "fullName email role")
+      .lean();
 
     return res.status(201).json({ ok: true, item });
   } catch (e) {
@@ -162,6 +176,12 @@ export async function updateLead(req, res) {
     }
 
     const body = req.body || {};
+    const existingLead = await Lead.findById(id).select("source").lean();
+
+    if (!existingLead) {
+      return res.status(404).json({ ok: false, message: "Lead not found" });
+    }
+
     const patch = {
       updatedBy: req.user?.id || null,
     };
@@ -184,10 +204,15 @@ export async function updateLead(req, res) {
       patch.phone = String(body.phone || "").trim();
     }
 
+    if (typeof body.service !== "undefined") {
+      patch.service = String(body.service || "").trim();
+    }
+
     if (typeof body.source !== "undefined") {
-      patch.source = String(body.source || "manual")
-        .trim()
-        .toLowerCase();
+      patch.source =
+        existingLead.source === PLAN_BUILDER_SOURCE
+          ? PLAN_BUILDER_SOURCE
+          : normalizeLeadSource(body.source);
     }
 
     if (typeof body.status !== "undefined") {
@@ -211,9 +236,7 @@ export async function updateLead(req, res) {
       .populate("ownerUserId", "fullName email role")
       .lean();
 
-    if (!item) {
-      return res.status(404).json({ ok: false, message: "Lead not found" });
-    }
+    await ensureContactForLead(item, req.user?.id);
 
     return res.json({ ok: true, item });
   } catch (e) {
@@ -268,6 +291,11 @@ export async function convertLeadToDeal(req, res) {
       });
     }
 
+    const account = await ensureAccountForLead(lead, req.user?.id);
+    const contact = await ensureContactForLead(lead, req.user?.id, {
+      accountId: account?._id,
+    });
+
     const item = await Deal.create({
       title:
         String(body.title || "").trim() ||
@@ -278,6 +306,8 @@ export async function convertLeadToDeal(req, res) {
       stage: "discovery",
       status: "open",
       leadId: lead._id,
+      accountId: account?._id || null,
+      contactId: contact?._id || null,
       value: Number(body.value || 0),
       currency: String(body.currency || "AED")
         .trim()
@@ -294,14 +324,25 @@ export async function convertLeadToDeal(req, res) {
     await Lead.findByIdAndUpdate(lead._id, {
       status: "converted",
       convertedDealId: item._id,
+      convertedToDealId: item._id,
+      convertedToAccountId: account?._id || null,
       convertedAt: new Date(),
       updatedBy: req.user?.id || null,
     });
 
+    const populated = await Deal.findById(item._id)
+      .populate("ownerUserId", "fullName email role")
+      .populate("accountId", "name email phone status")
+      .populate("contactId", "fullName email phone")
+      .populate("leadId", "fullName companyName email phone service source")
+      .lean();
+
     return res.status(201).json({
       ok: true,
       message: "Lead converted to deal successfully",
-      item,
+      item: populated || item,
+      account,
+      contact,
     });
   } catch (e) {
     console.error("convertLeadToDeal:", e);

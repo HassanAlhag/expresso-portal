@@ -10,6 +10,7 @@ import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import StatCard from "../../../shared/ui/StatCard";
 import FilterBar from "../../../shared/ui/FilterBar";
 import { listContacts, createContact, deleteContact } from "../api";
+import { leadSourceLabel } from "../constants";
 import {
   UserRound, Plus, Mail, Phone,
   Building2, RefreshCw, Trash2, ExternalLink, Star,
@@ -176,7 +177,7 @@ export default function ContactsPage() {
     total: items.length,
     withEmail: items.filter((c) => c.email).length,
     primary: items.filter((c) => c.isPrimary).length,
-    linked: items.filter((c) => c.accountId || c.customerId).length,
+    linked: items.filter((c) => c.accountId || c.customerId || c.leadId).length,
   }), [items]);
 
   return (
@@ -263,6 +264,11 @@ export default function ContactsPage() {
                         <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-black text-indigo-700">
                           <Building2 size={9} />
                           {c.customerId.companyName}
+                        </span>
+                      )}
+                      {c.leadId && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-700">
+                          Lead - {leadSourceLabel(c.leadId.source || c.source)}
                         </span>
                       )}
                     </div>

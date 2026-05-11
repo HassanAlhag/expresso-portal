@@ -60,6 +60,7 @@ export async function listContacts(req, res) {
       Contact.find(filter)
         .populate("accountId", "name industry")
         .populate("customerId", "companyName contactName")
+        .populate("leadId", "fullName source service status")
         .populate("ownerUserId", "fullName email")
         .sort(safeSort(sort))
         .skip((pageNum - 1) * limitNum)
@@ -91,6 +92,7 @@ export async function getContact(req, res) {
     const item = await Contact.findById(id)
       .populate("accountId", "name industry website phone email")
       .populate("customerId", "companyName contactName primaryEmail phone")
+      .populate("leadId", "fullName source service status")
       .populate("ownerUserId", "fullName email avatarUrl")
       .lean();
 
@@ -145,6 +147,7 @@ export async function createContact(req, res) {
     const populated = await Contact.findById(item._id)
       .populate("accountId", "name industry")
       .populate("customerId", "companyName contactName")
+      .populate("leadId", "fullName source service status")
       .populate("ownerUserId", "fullName email")
       .lean();
 
@@ -205,6 +208,7 @@ export async function updateContact(req, res) {
     const item = await Contact.findByIdAndUpdate(id, patch, { new: true })
       .populate("accountId", "name industry")
       .populate("customerId", "companyName contactName")
+      .populate("leadId", "fullName source service status")
       .populate("ownerUserId", "fullName email")
       .lean();
 

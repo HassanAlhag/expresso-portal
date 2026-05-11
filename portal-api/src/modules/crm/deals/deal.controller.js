@@ -187,6 +187,9 @@ export async function listDeals(req, res) {
       Deal.countDocuments(filter),
       Deal.find(filter)
         .populate("ownerUserId", "fullName email role")
+        .populate("accountId", "name email phone status")
+        .populate("contactId", "fullName email phone")
+        .populate("leadId", "fullName companyName email phone service source")
         .populate("customerId", "companyName contactName")
         .sort(safeDealSort(sort))
         .skip((pageNum - 1) * limitNum)
@@ -217,6 +220,9 @@ export async function getDeal(req, res) {
 
     const item = await Deal.findById(id)
       .populate("ownerUserId", "fullName email role")
+      .populate("accountId", "name email phone status")
+      .populate("contactId", "fullName email phone")
+      .populate("leadId", "fullName companyName email phone service source")
       .populate("customerId", "companyName contactName primaryEmail phone")
       .lean();
 
@@ -373,6 +379,9 @@ export async function updateDeal(req, res) {
 
     const item = await Deal.findByIdAndUpdate(id, patch, { new: true })
       .populate("ownerUserId", "fullName email role")
+      .populate("accountId", "name email phone status")
+      .populate("contactId", "fullName email phone")
+      .populate("leadId", "fullName companyName email phone service source")
       .populate("customerId", "companyName contactName")
       .lean();
 
