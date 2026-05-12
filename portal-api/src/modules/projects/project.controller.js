@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 import Project from "./project.model.js";
 import Enrollment from "../enrollments/enrollment.model.js";
+import {
+  canSeeAllTenantRecords,
+  getUserClientId,
+  requireOwnClient,
+} from "../../utils/accessControl.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -69,7 +74,23 @@ export async function listProjects(req, res) {
 
     const filter = {};
 
-    if (validId(customerId)) filter.customerId = customerId;
+    if (!canSeeAllTenantRecords(req)) {
+      const clientId = getUserClientId(req);
+      if (!clientId) {
+        return res.json({
+          ok: true,
+          items: [],
+          page: 1,
+          pages: 1,
+          total: 0,
+          limit: limitNum,
+        });
+      }
+      filter.customerId = clientId;
+    } else if (validId(customerId)) {
+      filter.customerId = customerId;
+    }
+
     if (validId(enrollmentId)) filter.enrollmentId = enrollmentId;
 
     if (status) filter.status = String(status).trim();
@@ -138,6 +159,9 @@ export async function getProjectById(req, res) {
 
     if (!item) {
       return res.status(404).json({ ok: false, message: "Not found" });
+    }
+    if (!requireOwnClient(req, item.customerId?._id || item.customerId)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
     }
 
     const enrollmentsCount = await Enrollment.countDocuments({

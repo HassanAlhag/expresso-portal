@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Invoice from "./invoice.model.js";
+import { canSeeAllTenantRecords } from "../../utils/accessControl.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -26,8 +27,7 @@ function safeSort(sort) {
 }
 
 function canSeeAll(req) {
-  const role = String(req.user?.role || "").toLowerCase();
-  return ["super_admin", "admin", "staff"].includes(role);
+  return canSeeAllTenantRecords(req);
 }
 
 // GET /api/billing/invoices
@@ -129,9 +129,7 @@ export async function getInvoice(req, res) {
 // POST /api/billing/invoices
 export async function createInvoice(req, res) {
   try {
-    // only staff/admin
-    const role = String(req.user?.role || "").toLowerCase();
-    if (!["super_admin", "admin", "staff"].includes(role))
+    if (!canSeeAll(req))
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
     const {
@@ -181,8 +179,7 @@ export async function createInvoice(req, res) {
 // PATCH /api/billing/invoices/:id
 export async function updateInvoice(req, res) {
   try {
-    const role = String(req.user?.role || "").toLowerCase();
-    if (!["super_admin", "admin", "staff"].includes(role))
+    if (!canSeeAll(req))
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
     const { id } = req.params;
@@ -252,8 +249,7 @@ export async function updateInvoice(req, res) {
 // POST /api/billing/invoices/:id/mark-paid
 export async function markInvoicePaid(req, res) {
   try {
-    const role = String(req.user?.role || "").toLowerCase();
-    if (!["super_admin", "admin", "staff"].includes(role))
+    if (!canSeeAll(req))
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
     const { id } = req.params;
@@ -279,8 +275,7 @@ export async function markInvoicePaid(req, res) {
 // POST /api/billing/invoices/:id/void
 export async function voidInvoice(req, res) {
   try {
-    const role = String(req.user?.role || "").toLowerCase();
-    if (!["super_admin", "admin"].includes(role))
+    if (!canSeeAll(req))
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
     const { id } = req.params;

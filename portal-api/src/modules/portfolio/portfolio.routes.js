@@ -6,7 +6,7 @@ import {
   updatePortfolio,
   deletePortfolio,
 } from "./portfolio.controller.js";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
 
 const router = Router();
 
@@ -14,9 +14,9 @@ const router = Router();
 router.get("/", listPortfolio);
 router.get("/:slug", getPortfolioBySlug);
 
-// Admin — require auth + admin/super_admin role
-router.post("/", requireAuth, requireRole("admin", "super_admin"), createPortfolio);
-router.patch("/:id", requireAuth, requireRole("admin", "super_admin", "staff"), updatePortfolio);
-router.delete("/:id", requireAuth, requireRole("admin", "super_admin"), deletePortfolio);
+// Portal management
+router.post("/", requireAuth, requirePermission("portfolio.write"), createPortfolio);
+router.patch("/:id", requireAuth, requirePermission("portfolio.write"), updatePortfolio);
+router.delete("/:id", requireAuth, requirePermission("portfolio.delete"), deletePortfolio);
 
 export default router;

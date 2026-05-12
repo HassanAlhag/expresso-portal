@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission, requireRole } from "../../middleware/auth.js";
+import { requireInternalUser } from "../../utils/accessControl.js";
 import {
   createRfq,
   listRfqs,
@@ -15,25 +16,28 @@ import {
 
 const router = Router();
 
-const staff = requireRole("super_admin", "admin", "staff");
-const admin = requireRole("super_admin", "admin");
 const vendor = requireRole("vendor");
-const staffOrVendor = requireRole("super_admin", "admin", "staff", "vendor");
 
 // RFQ endpoints
-router.get("/", requireAuth, staffOrVendor, listRfqs);
-router.post("/", requireAuth, staff, createRfq);
-router.get("/:id", requireAuth, staffOrVendor, getRfq);
-router.patch("/:id", requireAuth, staff, updateRfq);
-router.patch("/:id/publish", requireAuth, admin, publishRfq);
-router.patch("/:id/close", requireAuth, admin, closeRfq);
+router.get("/", requireAuth, requireInternalUser, requirePermission("procurement.read"), listRfqs);
+router.post("/", requireAuth, requireInternalUser, requirePermission("procurement.write"), createRfq);
+router.get("/:id", requireAuth, requireInternalUser, requirePermission("procurement.read"), getRfq);
+router.patch("/:id", requireAuth, requireInternalUser, requirePermission("procurement.write"), updateRfq);
+router.patch("/:id/publish", requireAuth, requireInternalUser, requirePermission("procurement.approve"), publishRfq);
+router.patch("/:id/close", requireAuth, requireInternalUser, requirePermission("procurement.approve"), closeRfq);
 
 // Per-RFQ quotations
-router.get("/:id/quotations", requireAuth, staffOrVendor, listQuotations);
+router.get("/:id/quotations", requireAuth, requireInternalUser, requirePermission("procurement.read"), listQuotations);
 router.post("/:id/quotations", requireAuth, vendor, submitQuotation);
-router.get("/:id/matched-vendors", requireAuth, staff, getMatchedVendors);
+router.get("/:id/matched-vendors", requireAuth, requireInternalUser, requirePermission("procurement.read"), getMatchedVendors);
 
 // Quotation status (staff only)
-router.patch("/quotations/:quotationId/status", requireAuth, admin, updateQuotationStatus);
+router.patch(
+  "/quotations/:quotationId/status",
+  requireAuth,
+  requireInternalUser,
+  requirePermission("procurement.approve"),
+  updateQuotationStatus
+);
 
 export default router;

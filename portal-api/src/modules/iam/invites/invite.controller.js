@@ -4,6 +4,7 @@ import Invite from "./invite.model.js";
 import Role from "../roles/role.model.js";
 import Team from "../teams/team.model.js";
 import User from "../users/user.model.js";
+import { DEFAULT_ROLE_PERMISSIONS } from "../../../config/permissions.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -34,7 +35,7 @@ function canManageRole(actorRole, targetRole) {
   const target = String(targetRole || "").toLowerCase();
 
   if (actor === "super_admin") return true;
-  if (actor === "admin") return target !== "super_admin";
+  if (actor === "admin") return !["super_admin", "admin"].includes(target);
   return false;
 }
 
@@ -44,7 +45,7 @@ async function ensureRoleExists(roleKey) {
     .toLowerCase();
   if (!key) return false;
   const role = await Role.findOne({ key }).select("_id").lean();
-  return Boolean(role);
+  return Boolean(role || DEFAULT_ROLE_PERMISSIONS[key]);
 }
 
 async function ensureTeamExists(teamLabel) {

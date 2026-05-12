@@ -5,9 +5,11 @@ import { BsCloudCheckFill } from "react-icons/bs";
 
 const BRAND = "#7F8AD1";
 
-const AboutUsSection = () => {
+const AboutUsSection = ({
+  imageUrl = "/about.webp",
+}) => {
   return (
-    <section className="relative bg-white">
+    <section id="our-story" className="relative bg-white">
       <div className="mx-auto w-[min(1200px,92vw)] py-12 sm:py-14">
         {/* ONE GRID from the start */}
         <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12">
@@ -64,7 +66,7 @@ const AboutUsSection = () => {
               {/* enforce a consistent ratio so it aligns and fills */}
               <div className="aspect-[3/4] w-full lg:aspect-[4/5] lg:h-[520px] xl:h-[590px]">
                 <img
-                  src="https://demo.casethemes.net/saira/wp-content/uploads/2023/07/banner-3.png"
+                  src={imageUrl}
                   alt="Team Working"
                   className="h-full w-full object-cover"
                 />

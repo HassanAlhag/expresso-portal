@@ -3,18 +3,41 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
+import fs from "fs/promises";
 import path from "path";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
 
-const REGION = process.env.AWS_REGION || "us-east-1";
-const BUCKET = process.env.AWS_S3_BUCKET;
+const DEFAULT_REGION = "us-east-1";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const UPLOAD_ROOT = resolve(__dirname, "../../uploads");
+let cachedClient;
+let cachedRegion;
 
-const s3 = new S3Client({
-  region: REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
+function getS3Config() {
+  const region = process.env.AWS_REGION || DEFAULT_REGION;
+  const bucket =
+    process.env.AWS_S3_BUCKET ||
+    process.env.S3_BUCKET ||
+    process.env.AWS_BUCKET_NAME;
+
+  return { region, bucket };
+}
+
+function getS3Client(region) {
+  if (cachedClient && cachedRegion === region) return cachedClient;
+
+  cachedRegion = region;
+  cachedClient = new S3Client({
+    region,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  });
+
+  return cachedClient;
+}
 
 function cleanName(originalName = "file") {
   const ext = path.extname(originalName || "").toLowerCase();
@@ -38,20 +61,57 @@ function makeKey(folder, originalName, suffix = "", extOverride = "") {
   return `${folder}/${base}${suffix}-${stamp}-${rand}${ext}`;
 }
 
+function canUseLocalUploads() {
+  return (process.env.NODE_ENV || "development") !== "production";
+}
+
+function getLocalPublicUrl(key) {
+  const baseUrl =
+    process.env.API_PUBLIC_URL ||
+    process.env.PORTAL_API_PUBLIC_URL ||
+    `http://localhost:${process.env.PORT || 5050}`;
+
+  return `${baseUrl.replace(/\/$/, "")}/uploads/${key}`;
+}
+
+async function uploadBufferLocally(buffer, key) {
+  const target = path.join(UPLOAD_ROOT, key);
+  await fs.mkdir(path.dirname(target), { recursive: true });
+  await fs.writeFile(target, buffer);
+
+  return {
+    url: getLocalPublicUrl(key),
+    key,
+  };
+}
+
 export function getS3PublicUrl(key) {
-  return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`;
+  const { region, bucket } = getS3Config();
+
+  if (!bucket && canUseLocalUploads()) {
+    return getLocalPublicUrl(key);
+  }
+
+  return `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
 }
 
 export async function uploadToS3(buffer, folder, originalName, contentType) {
-  if (!BUCKET) {
-    throw new Error("AWS_S3_BUCKET is not configured");
-  }
-
+  const { region, bucket } = getS3Config();
   const key = makeKey(folder, originalName);
 
-  await s3.send(
+  if (!bucket) {
+    if (canUseLocalUploads()) {
+      return uploadBufferLocally(buffer, key);
+    }
+
+    throw new Error(
+      "AWS_S3_BUCKET is not configured. Add it to portal-api/.env or export it before starting portal-api."
+    );
+  }
+
+  await getS3Client(region).send(
     new PutObjectCommand({
-      Bucket: BUCKET,
+      Bucket: bucket,
       Key: key,
       Body: buffer,
       ContentType: contentType || "application/octet-stream",
@@ -72,15 +132,22 @@ export async function uploadBufferToS3({
   suffix = "",
   ext = "",
 }) {
-  if (!BUCKET) {
-    throw new Error("AWS_S3_BUCKET is not configured");
-  }
-
+  const { region, bucket } = getS3Config();
   const key = makeKey(folder, originalName, suffix, ext);
 
-  await s3.send(
+  if (!bucket) {
+    if (canUseLocalUploads()) {
+      return uploadBufferLocally(buffer, key);
+    }
+
+    throw new Error(
+      "AWS_S3_BUCKET is not configured. Add it to portal-api/.env or export it before starting portal-api."
+    );
+  }
+
+  await getS3Client(region).send(
     new PutObjectCommand({
-      Bucket: BUCKET,
+      Bucket: bucket,
       Key: key,
       Body: buffer,
       ContentType: contentType,
@@ -95,11 +162,20 @@ export async function uploadBufferToS3({
 }
 
 export async function deleteFromS3(key) {
-  if (!key || !BUCKET) return;
+  const { region, bucket } = getS3Config();
 
-  await s3.send(
+  if (!key) return;
+
+  if (!bucket && canUseLocalUploads()) {
+    await fs.unlink(path.join(UPLOAD_ROOT, key)).catch(() => {});
+    return;
+  }
+
+  if (!bucket) return;
+
+  await getS3Client(region).send(
     new DeleteObjectCommand({
-      Bucket: BUCKET,
+      Bucket: bucket,
       Key: key,
     })
   );

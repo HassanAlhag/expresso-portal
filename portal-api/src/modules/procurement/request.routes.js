@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
 import {
   getDashboardStats,
   listRequests,
@@ -16,49 +16,49 @@ const router = express.Router();
 router.get(
   "/stats",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("procurement.read"),
   getDashboardStats
 );
 
 router.get(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("procurement.read"),
   listRequests
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("procurement.write"),
   createRequest
 );
 
 router.post(
   "/:id/create-rfq",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("procurement.write"),
   createRfqFromRequest
 );
 
 router.get(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("procurement.read"),
   getRequest
 );
 
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("procurement.write"),
   updateRequest
 );
 
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("procurement.delete"),
   deleteRequest
 );
 

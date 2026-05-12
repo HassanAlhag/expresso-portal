@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
 import {
   listServiceTemplates,
   getServiceTemplate,
@@ -13,35 +13,35 @@ const router = express.Router();
 router.get(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("services.read"),
   listServiceTemplates
 );
 
 router.get(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("services.read"),
   getServiceTemplate
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("services.write"),
   createServiceTemplate
 );
 
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("services.write"),
   updateServiceTemplate
 );
 
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("services.delete"),
   deleteServiceTemplate
 );
 

@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
 import Project from "./project.model.js";
 
 import {
@@ -16,7 +16,7 @@ const router = express.Router();
 router.get(
   "/stats",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("projects.read"),
   async (_req, res) => {
     const [byStatus, byType, byPriority, total] = await Promise.all([
       Project.aggregate([{ $group: { _id: "$status",   count: { $sum: 1 } } }]),
@@ -38,35 +38,35 @@ router.get(
 router.get(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("projects.read"),
   listProjects
 );
 
 router.get(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("projects.read"),
   getProjectById
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("projects.write"),
   createProject
 );
 
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("projects.write"),
   updateProject
 );
 
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("projects.delete"),
   archiveProject
 );
 

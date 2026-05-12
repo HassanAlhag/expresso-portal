@@ -221,6 +221,72 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 
   admin: ALL_PERMISSION_KEYS.filter((k) => k !== "iam.users.delete"),
 
+  operations_manager: [
+    "customers.read", "customers.write",
+    "projects.read", "projects.write",
+    "productions.read", "productions.write",
+    "jobs.read", "jobs.write",
+    "media.read", "media.write",
+    "files.read", "files.write",
+    "portfolio.read", "portfolio.write",
+    "services.read", "services.write",
+    "enrollments.read", "enrollments.write",
+    "billing.read",
+    "tickets.read", "tickets.write",
+    "crm.read", "crm.write",
+    "procurement.read",
+    "reports.read",
+    "activity.read",
+    "iam.users.read", "iam.teams.read",
+    "website.read",
+  ],
+
+  finance: [
+    "customers.read",
+    "projects.read",
+    "files.read",
+    "billing.read", "billing.write",
+    "hr.expenses.read", "hr.expenses.write", "hr.expenses.approve",
+    "procurement.read",
+    "reports.read", "reports.export",
+    "activity.read",
+  ],
+
+  procurement_manager: [
+    "customers.read",
+    "files.read", "files.write",
+    "tickets.read", "tickets.write",
+    "procurement.read", "procurement.write", "procurement.approve",
+    "billing.read",
+    "reports.read",
+    "activity.read",
+  ],
+
+  procurement_officer: [
+    "customers.read",
+    "files.read", "files.write",
+    "tickets.read", "tickets.write",
+    "procurement.read", "procurement.write",
+    "reports.read",
+  ],
+
+  project_manager: [
+    "customers.read",
+    "projects.read", "projects.write",
+    "productions.read", "productions.write",
+    "jobs.read", "jobs.write",
+    "media.read", "media.write",
+    "files.read", "files.write",
+    "portfolio.read", "portfolio.write",
+    "services.read",
+    "enrollments.read",
+    "billing.read",
+    "tickets.read", "tickets.write",
+    "crm.read",
+    "reports.read",
+    "activity.read",
+  ],
+
   staff: [
     "customers.read",
     "projects.read",    "projects.write",
@@ -242,9 +308,48 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "activity.read",
   ],
 
-  client: [
+  hr_management: [
+    "customers.read",
+    "projects.read",
+    "files.read",
+    "hr.staff.read", "hr.staff.write",
+    "hr.expenses.read", "hr.expenses.write", "hr.expenses.approve",
+    "hr.leaves.read", "hr.leaves.write", "hr.leaves.approve",
+    "hr.scorecards.read", "hr.scorecards.write",
+    "reports.read",
+    "activity.read",
+    "iam.users.read", "iam.teams.read",
+  ],
+
+  staff_client: [
     "projects.read",
     "files.read",  "files.write",
+    "billing.read",
+    "tickets.read", "tickets.write",
+    "reports.read",
+  ],
+
+  procurement_client: [
+    "procurement.read", "procurement.write",
+    "files.read", "files.write",
+    "billing.read",
+    "tickets.read", "tickets.write",
+    "reports.read",
+  ],
+
+  client_admin: [
+    "customers.read",
+    "projects.read",
+    "procurement.read", "procurement.write",
+    "files.read", "files.write",
+    "billing.read",
+    "tickets.read", "tickets.write",
+    "reports.read",
+  ],
+
+  client: [
+    "projects.read",
+    "files.read", "files.write",
     "billing.read",
     "tickets.read", "tickets.write",
   ],

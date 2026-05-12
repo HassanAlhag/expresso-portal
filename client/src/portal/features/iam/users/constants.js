@@ -7,8 +7,18 @@ export const ROLE_OPTIONS = [
   { value: "", label: "All" },
   { value: "super_admin", label: "Super Admin" },
   { value: "admin", label: "Admin" },
+  { value: "operations_manager", label: "Admin / Operations Manager" },
+  { value: "finance", label: "Finance" },
+  { value: "procurement_manager", label: "Procurement Manager" },
+  { value: "procurement_officer", label: "Procurement Officer" },
+  { value: "project_manager", label: "Project Manager" },
   { value: "staff", label: "Staff" },
+  { value: "hr_management", label: "HR / Management" },
+  { value: "staff_client", label: "Staff Client" },
+  { value: "procurement_client", label: "Procurement Client" },
+  { value: "client_admin", label: "Client Admin" },
   { value: "client", label: "Client" },
+  { value: "vendor", label: "Vendor" },
 ];
 
 export const STATUS_OPTIONS = [

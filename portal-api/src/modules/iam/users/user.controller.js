@@ -3,14 +3,17 @@ import mongoose from "mongoose";
 import User from "./user.model.js";
 import Role from "../roles/role.model.js";
 import { logAudit } from "../audit/audit.service.js";
-import { VALID_PERMISSION_KEYS } from "../../../config/permissions.js";
+import {
+  DEFAULT_ROLE_PERMISSIONS,
+  VALID_PERMISSION_KEYS,
+} from "../../../config/permissions.js";
 
 function canManageRole(actorRole, targetRole) {
   const actor = String(actorRole || "").toLowerCase();
   const target = String(targetRole || "").toLowerCase();
 
   if (actor === "super_admin") return true;
-  if (actor === "admin") return target !== "super_admin";
+  if (actor === "admin") return !["super_admin", "admin"].includes(target);
   return false;
 }
 
@@ -47,7 +50,7 @@ async function ensureRoleExists(roleKey) {
   if (!key) return false;
 
   const role = await Role.findOne({ key }).select("_id key").lean();
-  return Boolean(role);
+  return Boolean(role || DEFAULT_ROLE_PERMISSIONS[key]);
 }
 
 export async function listUsers(req, res) {

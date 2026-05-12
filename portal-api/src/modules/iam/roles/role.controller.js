@@ -2,6 +2,68 @@ import mongoose from "mongoose";
 import Role from "./role.model.js";
 import User from "../users/user.model.js";
 import { validateCreateRole, validateUpdateRole } from "./role.validators.js";
+import {
+  DEFAULT_ROLE_PERMISSIONS,
+  VALID_PERMISSION_KEYS,
+} from "../../../config/permissions.js";
+
+const SYSTEM_ROLE_META = {
+  super_admin: ["Super Admin", "Full system control"],
+  admin: ["Admin", "Administrative access except super admin control"],
+  operations_manager: ["Admin / Operations Manager", "Daily operations, client work, delivery, and operational reporting"],
+  finance: ["Finance", "Invoices, payments, expenses, and finance reports"],
+  procurement_manager: ["Procurement Manager", "Procurement approvals, supplier control, quotations, and purchase status"],
+  procurement_officer: ["Procurement Officer", "Procurement handling with limited approval authority"],
+  project_manager: ["Project Manager", "Project execution, task assignment, deliverables, and client updates"],
+  staff: ["Staff", "Operational team access"],
+  hr_management: ["HR / Management", "Staff performance, HR workflows, and internal productivity reports"],
+  staff_client: ["Staff Client", "External client access for projects, tickets, deliverables, reports, and files"],
+  procurement_client: ["Procurement Client", "External client access for procurement requests and approved procurement files"],
+  client_admin: ["Client Admin", "Main client-side contact with combined client project and procurement access"],
+  client: ["Client", "Client portal access"],
+  vendor: ["Vendor", "External vendor access for RFQs and support"],
+};
+
+function synthesizeMissingSystemRoles(items, q) {
+  const existing = new Set(items.map((item) => item.key));
+  const needle = String(q || "").trim().toLowerCase();
+
+  const synthetic = Object.entries(DEFAULT_ROLE_PERMISSIONS)
+    .filter(([key]) => !existing.has(key))
+    .map(([key, permissions]) => {
+      const [label, description] = SYSTEM_ROLE_META[key] || [key, ""];
+      return {
+        _id: key,
+        key,
+        label,
+        description,
+        permissions,
+        isSystem: true,
+        synthetic: true,
+      };
+    })
+    .filter((item) => {
+      if (!needle) return true;
+      return [item.key, item.label, item.description]
+        .some((value) => String(value || "").toLowerCase().includes(needle));
+    });
+
+  return [...items, ...synthetic];
+}
+
+function normalizeRolePermissions(role) {
+  if (!role) return role;
+  const defaults = DEFAULT_ROLE_PERMISSIONS[role.key];
+  const valid = Array.isArray(role.permissions)
+    ? role.permissions.filter((permission) => VALID_PERMISSION_KEYS.has(permission))
+    : [];
+
+  if (defaults && valid.length === 0) {
+    return { ...role, permissions: defaults };
+  }
+
+  return { ...role, permissions: valid };
+}
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -46,7 +108,7 @@ export async function listRoles(req, res) {
       filter.$or = [{ key: rx }, { label: rx }, { description: rx }];
     }
 
-    const [total, items] = await Promise.all([
+    const [storedTotal, storedItems] = await Promise.all([
       Role.countDocuments(filter),
       Role.find(filter)
         .sort(safeSort(sort))
@@ -54,6 +116,9 @@ export async function listRoles(req, res) {
         .limit(limitNum)
         .lean(),
     ]);
+    const normalizedItems = storedItems.map(normalizeRolePermissions);
+    const items = synthesizeMissingSystemRoles(normalizedItems, q);
+    const total = filter.$or ? items.length : Math.max(storedTotal, items.length);
 
     return res.json({
       ok: true,
@@ -85,10 +150,26 @@ export async function getRole(req, res) {
     const item = await Role.findOne(query).lean();
 
     if (!item) {
+      const key = String(id || "").trim().toLowerCase();
+      if (DEFAULT_ROLE_PERMISSIONS[key]) {
+        const [label, description] = SYSTEM_ROLE_META[key] || [key, ""];
+        return res.json({
+          ok: true,
+          item: {
+            _id: key,
+            key,
+            label,
+            description,
+            permissions: DEFAULT_ROLE_PERMISSIONS[key],
+            isSystem: true,
+            synthetic: true,
+          },
+        });
+      }
       return res.status(404).json({ ok: false, message: "Role not found" });
     }
 
-    return res.json({ ok: true, item });
+    return res.json({ ok: true, item: normalizeRolePermissions(item) });
   } catch (err) {
     console.error("getRole error:", err);
     return res.status(500).json({ ok: false, message: "Server error" });

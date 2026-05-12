@@ -1,5 +1,9 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import {
+  requireAuth,
+  requirePermission,
+} from "../../middleware/auth.js";
+import { requireInternalUser } from "../../utils/accessControl.js";
 import {
   registerVendorApplication,
   listVendorApplications,
@@ -17,14 +21,16 @@ router.post("/", registerVendorApplication);
 router.get(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requireInternalUser,
+  requirePermission("procurement.approve"),
   listVendorApplications
 );
 
 router.get(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requireInternalUser,
+  requirePermission("procurement.approve"),
   getVendorApplication
 );
 
@@ -32,14 +38,16 @@ router.get(
 router.patch(
   "/:id/approve",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requireInternalUser,
+  requirePermission("procurement.approve"),
   approveVendorApplication
 );
 
 router.patch(
   "/:id/reject",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requireInternalUser,
+  requirePermission("procurement.approve"),
   rejectVendorApplication
 );
 

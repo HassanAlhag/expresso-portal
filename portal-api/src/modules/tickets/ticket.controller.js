@@ -1,12 +1,26 @@
 import mongoose from "mongoose";
 import Ticket from "./ticket.model.js";
+import { canSeeAllTenantRecords, getUserClientId } from "../../utils/accessControl.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function isAdmin(role) {
-  return ["super_admin", "admin", "staff"].includes(role);
+  return canSeeAllTenantRecords({ user: { role } });
+}
+
+function externalTicketFilter(req) {
+  const clientId = getUserClientId(req);
+  if (clientId) return { customerId: clientId };
+  return { clientId: req.user.id };
+}
+
+function canAccessTicket(req, ticket) {
+  if (isAdmin(req.user.role)) return true;
+  const clientId = getUserClientId(req);
+  if (clientId && String(ticket.customerId || "") === clientId) return true;
+  return String(ticket.clientId) === String(req.user.id);
 }
 
 function safeSort(sort) {
@@ -37,7 +51,7 @@ const ALLOWED_STATUSES = new Set([
 export async function getTicketStats(req, res) {
   try {
     const baseFilter = {};
-    if (!isAdmin(req.user.role)) baseFilter.clientId = req.user.id;
+    if (!isAdmin(req.user.role)) Object.assign(baseFilter, externalTicketFilter(req));
 
     const [byStatus, byPriority, byType, overdue] = await Promise.all([
       Ticket.aggregate([
@@ -95,7 +109,7 @@ export async function listTickets(req, res) {
     const limitNum = Math.min(200, Math.max(1, parseInt(limit, 10) || 20));
     const filter = {};
 
-    if (!isAdmin(req.user.role)) filter.clientId = req.user.id;
+    if (!isAdmin(req.user.role)) Object.assign(filter, externalTicketFilter(req));
 
     if (status && status !== "all") filter.status = status;
     if (category) filter.category = category;
@@ -178,10 +192,11 @@ export async function createTicket(req, res) {
     }
 
     const admin = isAdmin(req.user.role);
+    const resolvedCustomerId = admin ? oid(customerId) : oid(req.user?.clientId);
 
     const doc = await Ticket.create({
       clientId: req.user.id,
-      customerId: oid(customerId),
+      customerId: resolvedCustomerId,
       projectId: oid(projectId),
       assigneeId: admin ? oid(assigneeId) : null,
       type,
@@ -222,7 +237,7 @@ export async function getTicket(req, res) {
     const ticket = await Ticket.findById(id).lean();
     if (!ticket) return res.status(404).json({ ok: false, message: "Not found" });
 
-    if (!isAdmin(req.user.role) && String(ticket.clientId) !== String(req.user.id))
+    if (!canAccessTicket(req, ticket))
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
     // Hide internal comments from clients
@@ -248,7 +263,7 @@ export async function updateTicket(req, res) {
     if (!ticket) return res.status(404).json({ ok: false, message: "Not found" });
 
     const admin = isAdmin(req.user.role);
-    if (!admin && String(ticket.clientId) !== String(req.user.id))
+    if (!canAccessTicket(req, ticket))
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
     const {
@@ -309,7 +324,7 @@ export async function addComment(req, res) {
     if (!ticket) return res.status(404).json({ ok: false, message: "Not found" });
 
     const admin = isAdmin(req.user.role);
-    if (!admin && String(ticket.clientId) !== String(req.user.id))
+    if (!canAccessTicket(req, ticket))
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
     // Track first admin response time for SLA

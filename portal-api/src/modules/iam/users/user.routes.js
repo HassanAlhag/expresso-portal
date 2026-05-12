@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import User from "./user.model.js";
 import { forceLogoutUser } from "./user.controller.js";
 
@@ -41,42 +41,42 @@ router.patch("/me/notifications", requireAuth, async (req, res) => {
 
 // ── Admin routes ──────────────────────────────────────────────────────────────
 
-router.get("/", requireAuth, requireRole("super_admin", "admin"), listUsers);
-router.post("/", requireAuth, requireRole("super_admin", "admin"), createUser);
+router.get("/", requireAuth, requirePermission("iam.users.read"), listUsers);
+router.post("/", requireAuth, requirePermission("iam.users.write"), createUser);
 
-router.get("/:id", requireAuth, requireRole("super_admin", "admin"), getUser);
+router.get("/:id", requireAuth, requirePermission("iam.users.read"), getUser);
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.users.write"),
   updateUser
 );
 
 router.patch(
   "/:id/status",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.users.write"),
   setUserStatus
 );
 
 router.post(
   "/:id/reset-password",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.users.write"),
   adminResetPassword
 );
 
 router.post(
   "/:id/force-logout",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.users.write"),
   forceLogoutUser
 );
 
 router.patch(
   "/:id/permissions",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.users.write"),
   updateUserPermissions
 );
 

@@ -2,13 +2,16 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FiArrowUpRight } from "react-icons/fi";
 
-const AboutWebSection = () => {
+const AboutWebSection = ({
+  backgroundImageUrl = "/business.webp",
+  deviceImageUrl = "/iphone.webp",
+}) => {
   return (
-    <section className="relative overflow-hidden text-white">
+    <section id="mission-vision" className="relative overflow-hidden text-white">
       {/* ✅ Background image (from the 2nd code) */}
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/business.webp')" }}
+        style={{ backgroundImage: `url('${backgroundImageUrl}')` }}
       />
 
       {/* ✅ Dark cinematic overlays (from the 2nd code) */}
@@ -89,7 +92,7 @@ const AboutWebSection = () => {
               style={{ transformStyle: "preserve-3d" }}
             >
               <img
-                src="/iphone.webp"
+                src={deviceImageUrl}
                 alt="iPhone Mockup"
                 className="h-[520px] w-auto object-contain sm:h-[560px] lg:h-[620px]"
                 draggable={false}

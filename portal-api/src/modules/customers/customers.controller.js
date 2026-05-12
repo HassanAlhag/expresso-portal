@@ -3,6 +3,11 @@ import Customer from "./customer.model.js";
 import User from "../iam/users/user.model.js";
 import CRMAccount from "../crm/accounts/account.model.js";
 import CRMContact from "../crm/contacts/contact.model.js";
+import {
+  canSeeAllTenantRecords,
+  getUserClientId,
+  requireOwnClient,
+} from "../../utils/accessControl.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -54,6 +59,21 @@ export async function listCustomers(req, res) {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
 
     const filter = {};
+    if (!canSeeAllTenantRecords(req)) {
+      const clientId = getUserClientId(req);
+      if (!clientId) {
+        return res.json({
+          ok: true,
+          items: [],
+          page: 1,
+          pages: 1,
+          total: 0,
+          limit: limitNum,
+        });
+      }
+      filter._id = clientId;
+    }
+
     if (isActive !== "") filter.isActive = String(isActive) === "true";
     if (["digital_agency", "procurement", "both"].includes(department))
       filter.department = department;
@@ -114,6 +134,9 @@ export async function getCustomerById(req, res) {
       .lean();
 
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
+    if (!requireOwnClient(req, item._id)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
     return res.json({ ok: true, item });
   } catch (e) {
     console.error("getCustomerById:", e);

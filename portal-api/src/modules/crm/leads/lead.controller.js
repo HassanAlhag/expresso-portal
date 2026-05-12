@@ -40,7 +40,15 @@ export async function listLeadAssignees(_req, res) {
   try {
     const users = await User.find({
       isActive: true,
-      role: { $in: ["super_admin", "admin", "staff"] },
+      role: {
+        $in: [
+          "super_admin",
+          "admin",
+          "operations_manager",
+          "project_manager",
+          "staff",
+        ],
+      },
     })
       .select("fullName email role team jobTitle avatarUrl")
       .sort({ fullName: 1, email: 1 })

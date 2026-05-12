@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   listInvites,
   createInvite,
@@ -9,23 +9,23 @@ import {
 
 const router = express.Router();
 
-router.get("/", requireAuth, requireRole("super_admin", "admin"), listInvites);
+router.get("/", requireAuth, requirePermission("iam.invites.send"), listInvites);
 router.post(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.invites.send"),
   createInvite
 );
 router.post(
   "/:id/cancel",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.invites.send"),
   cancelInvite
 );
 router.post(
   "/:id/resend",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.invites.send"),
   resendInvite
 );
 

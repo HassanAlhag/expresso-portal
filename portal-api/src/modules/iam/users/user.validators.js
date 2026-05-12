@@ -1,4 +1,19 @@
-const ROLES = new Set(["super_admin", "admin", "staff", "client"]);
+const ROLES = new Set([
+  "super_admin",
+  "admin",
+  "operations_manager",
+  "finance",
+  "procurement_manager",
+  "procurement_officer",
+  "project_manager",
+  "staff",
+  "hr_management",
+  "staff_client",
+  "procurement_client",
+  "client_admin",
+  "client",
+  "vendor",
+]);
 
 export function validateCreateUser(body = {}) {
   const fullName = String(body.fullName || "").trim();

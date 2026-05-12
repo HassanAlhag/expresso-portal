@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
 import {
   listEnrollmentsGlobal,
   getEnrollmentGlobal,
@@ -13,35 +13,35 @@ const router = express.Router();
 router.get(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("enrollments.read"),
   listEnrollmentsGlobal
 );
 
 router.get(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("enrollments.read"),
   getEnrollmentGlobal
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("enrollments.write"),
   createEnrollmentGlobal
 );
 
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("enrollments.write"),
   updateEnrollmentGlobal
 );
 
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("enrollments.delete"),
   deleteEnrollmentGlobal
 );
 

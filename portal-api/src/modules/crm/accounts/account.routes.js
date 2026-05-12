@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   listAccounts,
   getAccount,
@@ -13,35 +13,35 @@ const router = express.Router();
 router.get(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("crm.read"),
   listAccounts
 );
 
 router.get(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("crm.read"),
   getAccount
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("crm.write"),
   createAccount
 );
 
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("crm.write"),
   updateAccount
 );
 
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("crm.delete"),
   deleteAccount
 );
 

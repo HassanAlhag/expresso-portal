@@ -1,5 +1,6 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
+import { requireInternalUser } from "../../utils/accessControl.js";
 import {
   listPublicCategories,
   getCategoryTree,
@@ -17,28 +18,32 @@ router.get("/tree", getCategoryTree);
 router.get(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requireInternalUser,
+  requirePermission("procurement.read"),
   listCategories
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requireInternalUser,
+  requirePermission("procurement.write"),
   createCategory
 );
 
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requireInternalUser,
+  requirePermission("procurement.write"),
   updateCategory
 );
 
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requireInternalUser,
+  requirePermission("procurement.delete"),
   deleteCategory
 );
 

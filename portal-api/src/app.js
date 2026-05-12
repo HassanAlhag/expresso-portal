@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
 
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -50,6 +52,9 @@ import scorecardTemplateRoutes from "./modules/hr/scorecard-templates/template.r
 
 import permissionsRoutes from "./modules/iam/permissions/permissions.routes.js";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const uploadsDir = resolve(__dirname, "../uploads");
+
 const loginRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -74,6 +79,7 @@ export function createApp() {
 
   app.use(requestLogger);
   app.use(express.json({ limit: "1mb" }));
+  app.use("/uploads", express.static(uploadsDir));
 
   app.get("/api/health", (_req, res) =>
     res.json({ ok: true, status: "up", env: env.nodeEnv })

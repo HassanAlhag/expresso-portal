@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   listTeams,
   getTeam,
@@ -10,22 +10,22 @@ import {
 
 const router = express.Router();
 
-router.get("/", requireAuth, requireRole("super_admin", "admin"), listTeams);
-router.get("/:id", requireAuth, requireRole("super_admin", "admin"), getTeam);
+router.get("/", requireAuth, requirePermission("iam.teams.read"), listTeams);
+router.get("/:id", requireAuth, requirePermission("iam.teams.read"), getTeam);
 
-router.post("/", requireAuth, requireRole("super_admin", "admin"), createTeam);
+router.post("/", requireAuth, requirePermission("iam.teams.write"), createTeam);
 
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.teams.write"),
   updateTeam
 );
 
 router.patch(
   "/:id/status",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.teams.write"),
   setTeamStatus
 );
 

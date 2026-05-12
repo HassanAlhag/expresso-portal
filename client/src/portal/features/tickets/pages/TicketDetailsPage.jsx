@@ -133,7 +133,17 @@ function getRole() {
 }
 
 function isAdminRole(r) {
-  return ["super_admin", "admin", "staff"].includes(r);
+  return [
+    "super_admin",
+    "admin",
+    "operations_manager",
+    "finance",
+    "procurement_manager",
+    "procurement_officer",
+    "project_manager",
+    "staff",
+    "hr_management",
+  ].includes(r);
 }
 
 function fmt(d) {

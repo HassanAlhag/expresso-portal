@@ -140,51 +140,59 @@ export async function listMedia(req, res) {
 }
 
 export async function uploadMedia(req, res) {
-  const file = req.file;
+  try {
+    const file = req.file;
 
-  if (!file) {
-    return res.status(400).json({ ok: false, message: "File is required" });
+    if (!file) {
+      return res.status(400).json({ ok: false, message: "File is required" });
+    }
+
+    const { title = "", tags = "", category = "", status = "draft" } = req.body;
+
+    const type = guessType(file.mimetype);
+
+    let uploaded;
+
+    if (type === "image") {
+      uploaded = await uploadOptimizedImageVersions(file);
+    } else {
+      const result = await uploadToS3(
+        file.buffer,
+        "media",
+        file.originalname,
+        file.mimetype
+      );
+
+      uploaded = {
+        url: result.url,
+        s3Key: result.key,
+        thumbnailUrl: "",
+        thumbnailS3Key: "",
+        mediumUrl: "",
+        mediumS3Key: "",
+      };
+    }
+
+    const item = await Media.create({
+      type,
+      ...uploaded,
+      filename: file.originalname,
+      title: String(title || "").trim() || file.originalname,
+      category: String(category || "").trim(),
+      tags: parseTags(tags),
+      status: ["draft", "published", "archived"].includes(status)
+        ? status
+        : "draft",
+    });
+
+    res.status(201).json({ ok: true, item });
+  } catch (e) {
+    console.error("Media upload failed:", e);
+    res.status(e.statusCode || 500).json({
+      ok: false,
+      message: e.message || "Failed to upload media",
+    });
   }
-
-  const { title = "", tags = "", category = "", status = "draft" } = req.body;
-
-  const type = guessType(file.mimetype);
-
-  let uploaded;
-
-  if (type === "image") {
-    uploaded = await uploadOptimizedImageVersions(file);
-  } else {
-    const result = await uploadToS3(
-      file.buffer,
-      "media",
-      file.originalname,
-      file.mimetype
-    );
-
-    uploaded = {
-      url: result.url,
-      s3Key: result.key,
-      thumbnailUrl: "",
-      thumbnailS3Key: "",
-      mediumUrl: "",
-      mediumS3Key: "",
-    };
-  }
-
-  const item = await Media.create({
-    type,
-    ...uploaded,
-    filename: file.originalname,
-    title: String(title || "").trim() || file.originalname,
-    category: String(category || "").trim(),
-    tags: parseTags(tags),
-    status: ["draft", "published", "archived"].includes(status)
-      ? status
-      : "draft",
-  });
-
-  res.status(201).json({ ok: true, item });
 }
 
 export async function updateMedia(req, res) {

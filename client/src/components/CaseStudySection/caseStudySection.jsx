@@ -7,21 +7,21 @@ import {
   // FaTiktok,
 } from "react-icons/fa";
 
-export const DisappearingFeatures = () => {
+export const DisappearingFeatures = ({ teamImages = {} }) => {
   return (
     <>
-      <div className="relative h-fit bg-gray-900">
-        <Features />
+      <div id="team" className="relative h-fit bg-gray-900">
+        <Features teamImages={teamImages} />
       </div>
     </>
   );
 };
 
-const Features = () => {
+const Features = ({ teamImages }) => {
   return (
     <div className="relative mx-auto grid h-full w-full max-w-7xl grid-cols-1 gap-8 px-4 md:grid-cols-2">
       <Copy />
-      <Carousel />
+      <Carousel teamImages={teamImages} />
     </div>
   );
 };
@@ -29,13 +29,14 @@ const Features = () => {
 const Copy = () => {
   return (
     <div className="flex h-fit w-full flex-col justify-center py-12 md:sticky md:top-0 md:h-screen">
-      <span className="w-fit rounded-full bg-purple-500 px-4 py-2 text-sm uppercase text-white">
+      <span className="w-fit rounded-full border border-white/12 bg-white/5 px-5 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white/78 backdrop-blur">
         MEET THE TEAM
       </span>
-      <h2 className="mb-4 mt-2 text-5xl font-medium leading-tight text-white">
-        Connect and excel with our trusted experts
+      <h2 className="mb-6 mt-8 max-w-4xl font-dax-compact text-5xl font-black leading-[1.02] tracking-normal text-white sm:text-6xl lg:text-7xl">
+        Connect and Excel with Our{" "}
+        <span className="text-[#7F8AD1]">Trusted Experts</span>
       </h2>
-      <p className="text-lg text-gray-300">
+      <p className="max-w-3xl text-lg leading-relaxed text-white/70 sm:text-xl">
         Discover the people who drive our success and make a difference. Scroll
         through to meet our experts and learn their unique stories.
       </p>
@@ -45,6 +46,7 @@ const Copy = () => {
 
 const stories = [
   {
+    key: "mohamed",
     image: "/manager.webp",
     name: "Mohamed Bashir",
     position: "Head of Business Development",
@@ -58,6 +60,7 @@ const stories = [
     },
   },
   {
+    key: "hassan",
     image: "/hassan.webp",
     name: "Hassan (Elhag) Omer Ahmed Omer",
     position: "Digital & Social Media Analyst",
@@ -71,6 +74,7 @@ const stories = [
     },
   },
   {
+    key: "swekshya",
     image: "/swekshya.webp",
     name: "Swekshya Basnet",
     position: "HR & Finance",
@@ -84,6 +88,7 @@ const stories = [
     },
   },
   {
+    key: "afrid",
     image: "/11.webp",
     name: "Afrid Ahamed",
     position: "Social Media Stratergist",
@@ -97,6 +102,7 @@ const stories = [
     },
   },
   {
+    key: "nazim",
     image: "/gal2.webp",
     name: "Mohammed Nazim",
     position: "Marketing Advisor",
@@ -110,6 +116,7 @@ const stories = [
     },
   },
   {
+    key: "saad",
     image: "/saad.webp",
     name: "Saad",
     position: "SEO Specialist",
@@ -123,6 +130,7 @@ const stories = [
     },
   },
   {
+    key: "yasir",
     image: "/10.webp",
     name: "Muhammed Yasir",
     position: "Web Developer",
@@ -137,7 +145,7 @@ const stories = [
   },
 ];
 
-const Carousel = () => {
+const Carousel = ({ teamImages = {} }) => {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -155,7 +163,10 @@ const Carousel = () => {
             scrollYProgress={scrollYProgress}
             position={index + 1}
             numItems={stories.length}
-            story={story}
+            story={{
+              ...story,
+              image: teamImages[story.key] || story.image,
+            }}
           />
         ))}
       </div>

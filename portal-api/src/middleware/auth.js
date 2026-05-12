@@ -17,7 +17,7 @@ export async function requireAuth(req, res, next) {
     const decoded = verifyToken(token);
 
     const user = await User.findById(decoded.id).select(
-      "fullName email role permissions extraPermissions revokedPermissions isActive passwordChangedAt"
+      "fullName email role clientId permissions extraPermissions revokedPermissions isActive passwordChangedAt"
     );
 
     if (!user || user.isActive === false) {
@@ -44,6 +44,7 @@ export async function requireAuth(req, res, next) {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
+      clientId: user.clientId ? String(user.clientId) : null,
       permissions: effectivePermissions,
       isActive: user.isActive !== false,
     };

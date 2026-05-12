@@ -102,6 +102,72 @@ const siteSettingsSchema = new mongoose.Schema(
         ref: "Media",
         default: null,
       },
+      missionDeviceImageUrl: { type: String, default: "" },
+      missionDeviceImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      blueprintCustomerImageUrl: { type: String, default: "" },
+      blueprintCustomerImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      blueprintInnovationImageUrl: { type: String, default: "" },
+      blueprintInnovationImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      blueprintQualityImageUrl: { type: String, default: "" },
+      blueprintQualityImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      teamMohamedImageUrl: { type: String, default: "" },
+      teamMohamedImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      teamHassanImageUrl: { type: String, default: "" },
+      teamHassanImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      teamSwekshyaImageUrl: { type: String, default: "" },
+      teamSwekshyaImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      teamAfridImageUrl: { type: String, default: "" },
+      teamAfridImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      teamNazimImageUrl: { type: String, default: "" },
+      teamNazimImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      teamSaadImageUrl: { type: String, default: "" },
+      teamSaadImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
+      teamYasirImageUrl: { type: String, default: "" },
+      teamYasirImageMediaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
+        default: null,
+      },
     },
 
     services: {

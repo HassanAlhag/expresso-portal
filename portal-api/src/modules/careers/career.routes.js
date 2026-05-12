@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
 import multer from "multer";
 import {
   listPublicCareers,
@@ -36,14 +36,14 @@ router.post("/:id/apply", applyForJob);
 router.use(requireAuth);
 
 // Career CRUD
-router.get("/",       requireRole("super_admin", "admin", "staff"), listCareers);
-router.post("/",      requireRole("super_admin", "admin"), createCareer);
-router.patch("/:id",  requireRole("super_admin", "admin"), updateCareer);
-router.delete("/:id", requireRole("super_admin", "admin"), deleteCareer);
+router.get("/",       requirePermission("website.read"), listCareers);
+router.post("/",      requirePermission("website.write"), createCareer);
+router.patch("/:id",  requirePermission("website.write"), updateCareer);
+router.delete("/:id", requirePermission("website.write"), deleteCareer);
 
 // Applications
-router.get("/applications",               requireRole("super_admin", "admin", "staff"), listAllApplications);
-router.get("/:id/applications",           requireRole("super_admin", "admin", "staff"), listApplications);
-router.patch("/applications/:id/status",  requireRole("super_admin", "admin"), updateApplicationStatus);
+router.get("/applications",               requirePermission("website.read"), listAllApplications);
+router.get("/:id/applications",           requirePermission("website.read"), listApplications);
+router.patch("/applications/:id/status",  requirePermission("website.write"), updateApplicationStatus);
 
 export default router;

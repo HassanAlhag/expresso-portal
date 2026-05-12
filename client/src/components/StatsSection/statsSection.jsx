@@ -4,13 +4,16 @@ import HomeSection from "../HomeSection/HomeSection";
 
 const BRAND = "#7F8AD1";
 
-export const CountUpStats = ({ stats = [], heading }) => {
+export const CountUpStats = ({ stats = [], heading, subtitle }) => {
   return (
     <HomeSection
-      eyebrow="RESULTS"
+      eyebrow={heading?.eyebrow || "RESULTS"}
       title={heading?.textBefore || "Drive success with"}
       highlight={heading?.highlight || "Expresso Digital"}
-      subtitle="A quick snapshot of the kind of growth-focused outcomes we help brands achieve."
+      subtitle={
+        subtitle ||
+        "A quick snapshot of the kind of growth-focused outcomes we help brands achieve."
+      }
       align="center"
       className="bg-neutral-50/70"
     >

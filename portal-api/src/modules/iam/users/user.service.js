@@ -4,7 +4,7 @@ import User from "./user.model.js";
 
 export function canManageRole(actorRole, targetRole) {
   if (actorRole === "super_admin") return true;
-  if (actorRole === "admin") return ["staff", "client"].includes(targetRole);
+  if (actorRole === "admin") return !["super_admin", "admin"].includes(targetRole);
   return false;
 }
 

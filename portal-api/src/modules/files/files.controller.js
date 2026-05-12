@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import File from "./file.model.js";
 import { uploadToS3 } from "../../utils/s3.js";
+import { canSeeAllTenantRecords } from "../../utils/accessControl.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -37,7 +38,7 @@ function role(req) {
 }
 
 function isStaff(req) {
-  return ["super_admin", "admin", "staff"].includes(role(req));
+  return canSeeAllTenantRecords(req);
 }
 
 function toId(v) {
@@ -76,7 +77,7 @@ export async function listFiles(req, res) {
 
     if (approved !== "") filter.approved = String(approved) === "true";
 
-    if (validId(customerId)) filter.customerId = customerId;
+    if (isStaff(req) && validId(customerId)) filter.customerId = customerId;
     if (validId(projectId)) filter.projectId = projectId;
     if (validId(jobId)) filter.jobId = jobId;
     if (validId(productionId)) filter.productionId = productionId;
@@ -160,7 +161,8 @@ export async function getFile(req, res) {
 // POST /api/files
 export async function uploadFiles(req, res) {
   try {
-    if (!isStaff(req)) {
+    const internal = isStaff(req);
+    if (!internal && !req.user?.clientId) {
       return res.status(403).json({ ok: false, message: "Forbidden" });
     }
 
@@ -193,16 +195,19 @@ export async function uploadFiles(req, res) {
       files.map((f) => uploadToS3(f.buffer, "files", f.originalname, f.mimetype))
     );
 
+    const resolvedCustomerId = internal ? toId(customerId) : toId(req.user.clientId);
+    const resolvedVisibility = internal && ["internal", "client"].includes(visibility)
+      ? visibility
+      : "client";
+
     const docs = await File.insertMany(
       files.map((f, i) => ({
-        customerId: toId(customerId),
+        customerId: resolvedCustomerId,
         projectId: toId(projectId),
         jobId: toId(jobId),
         productionId: toId(productionId),
-        visibility: ["internal", "client"].includes(visibility)
-          ? visibility
-          : "internal",
-        approved: String(approved) === "true" || approved === true,
+        visibility: resolvedVisibility,
+        approved: internal && (String(approved) === "true" || approved === true),
         originalName: f.originalname,
         filename: uploaded[i].key,
         url: uploaded[i].url,

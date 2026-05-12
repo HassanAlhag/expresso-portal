@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
 
 import { upload } from "./files.upload.js";
 import {
@@ -15,21 +15,21 @@ const router = express.Router();
 router.get(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff", "client"),
+  requirePermission("files.read"),
   listFiles
 );
 
 router.get(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff", "client"),
+  requirePermission("files.read"),
   getFile
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("files.write"),
   upload.array("files", 20),
   uploadFiles
 );
@@ -37,14 +37,14 @@ router.post(
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("files.write"),
   updateFile
 );
 
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("files.delete"),
   deleteFile
 );
 

@@ -1,5 +1,8 @@
 import Role from "../modules/iam/roles/role.model.js";
-import { DEFAULT_ROLE_PERMISSIONS } from "../config/permissions.js";
+import {
+  DEFAULT_ROLE_PERMISSIONS,
+  VALID_PERMISSION_KEYS,
+} from "../config/permissions.js";
 
 /**
  * Compute the effective permission set for a user.
@@ -22,10 +25,13 @@ export async function resolvePermissions(roleKey, extraPermissions = [], revoked
   try {
     const roleDoc = await Role.findOne({ key: roleKey }).select("permissions").lean();
 
-    const base =
-      roleDoc && Array.isArray(roleDoc.permissions) && roleDoc.permissions.length > 0
-        ? roleDoc.permissions
-        : (DEFAULT_ROLE_PERMISSIONS[roleKey] || []);
+    const rolePermissions = Array.isArray(roleDoc?.permissions)
+      ? roleDoc.permissions.filter((p) => VALID_PERMISSION_KEYS.has(p))
+      : [];
+
+    const base = rolePermissions.length > 0
+      ? rolePermissions
+      : (DEFAULT_ROLE_PERMISSIONS[roleKey] || []);
 
     const effective = new Set([...base, ...extraPermissions]);
     revokedPermissions.forEach((p) => effective.delete(p));

@@ -1,5 +1,6 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
+import { requireInternalUser } from "../../utils/accessControl.js";
 import {
   listVendors,
   getVendor,
@@ -13,35 +14,40 @@ const router = express.Router();
 router.get(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requireInternalUser,
+  requirePermission("procurement.read"),
   listVendors
 );
 
 router.get(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requireInternalUser,
+  requirePermission("procurement.read"),
   getVendor
 );
 
 router.post(
   "/",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requireInternalUser,
+  requirePermission("procurement.write"),
   createVendor
 );
 
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requireInternalUser,
+  requirePermission("procurement.write"),
   updateVendor
 );
 
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requireInternalUser,
+  requirePermission("procurement.delete"),
   deleteVendor
 );
 

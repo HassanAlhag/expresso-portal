@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   listRoles,
   getRole,
@@ -10,22 +10,22 @@ import {
 
 const router = express.Router();
 
-router.get("/", requireAuth, requireRole("super_admin", "admin"), listRoles);
-router.get("/:id", requireAuth, requireRole("super_admin", "admin"), getRole);
+router.get("/", requireAuth, requirePermission("iam.roles.read"), listRoles);
+router.get("/:id", requireAuth, requirePermission("iam.roles.read"), getRole);
 
-router.post("/", requireAuth, requireRole("super_admin", "admin"), createRole);
+router.post("/", requireAuth, requirePermission("iam.roles.write"), createRole);
 
 router.patch(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.roles.write"),
   updateRole
 );
 
 router.delete(
   "/:id",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("iam.roles.write"),
   deleteRole
 );
 

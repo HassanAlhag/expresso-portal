@@ -124,6 +124,8 @@ const ITEMS = {
     hint: "Accounts & relationships",
     Icon: Building2,
     accent: ACCENTS.sand,
+    permission: "customers.read",
+    external: true,
   },
 
   projects: {
@@ -132,6 +134,8 @@ const ITEMS = {
     hint: "Milestones & delivery",
     Icon: FolderKanban,
     accent: ACCENTS.sky,
+    permission: "projects.read",
+    external: true,
   },
 
   productions: {
@@ -140,6 +144,7 @@ const ITEMS = {
     hint: "Jobs, review, publishing",
     Icon: Clapperboard,
     accent: ACCENTS.rose,
+    permission: "productions.read",
   },
 
   jobs: {
@@ -148,6 +153,7 @@ const ITEMS = {
     hint: "Individual delivery tasks",
     Icon: Briefcase,
     accent: ACCENTS.amber,
+    permission: "jobs.read",
   },
 
   media: {
@@ -156,6 +162,7 @@ const ITEMS = {
     hint: "Assets repository",
     Icon: Images,
     accent: ACCENTS.sky,
+    permission: "media.read",
   },
 
   files: {
@@ -164,6 +171,8 @@ const ITEMS = {
     hint: "Documents & uploads",
     Icon: Files,
     accent: ACCENTS.violet,
+    permission: "files.read",
+    external: true,
   },
 
   portfolio: {
@@ -172,6 +181,7 @@ const ITEMS = {
     hint: "Case studies & website work",
     Icon: Layers,
     accent: ACCENTS.rose,
+    permission: "portfolio.read",
   },
 
   services: {
@@ -180,6 +190,7 @@ const ITEMS = {
     hint: "Catalog & templates",
     Icon: BriefcaseBusiness,
     accent: ACCENTS.amber,
+    permission: "services.read",
   },
 
   enrollments: {
@@ -188,6 +199,7 @@ const ITEMS = {
     hint: "Client plans & scope",
     Icon: ReceiptText,
     accent: ACCENTS.brand,
+    permission: "enrollments.read",
   },
 
   billing: {
@@ -196,6 +208,8 @@ const ITEMS = {
     hint: "Invoices & payment",
     Icon: Wallet,
     accent: ACCENTS.sand,
+    permission: "billing.read",
+    external: true,
   },
 
   reports: {
@@ -204,6 +218,8 @@ const ITEMS = {
     hint: "Snapshots & insights",
     Icon: BarChart3,
     accent: ACCENTS.amber,
+    permission: "reports.read",
+    external: true,
   },
 
   activity: {
@@ -212,6 +228,7 @@ const ITEMS = {
     hint: "Audit & timeline",
     Icon: Activity,
     accent: ACCENTS.violet,
+    permission: "activity.read",
   },
 
   users: {
@@ -221,6 +238,7 @@ const ITEMS = {
     Icon: Users,
     accent: ACCENTS.mint,
     end: true,
+    permission: "iam.users.read",
   },
 
   roles: {
@@ -229,6 +247,7 @@ const ITEMS = {
     hint: "RBAC permissions",
     Icon: Shield,
     accent: ACCENTS.violet,
+    permission: "iam.roles.read",
   },
 
   teams: {
@@ -237,6 +256,7 @@ const ITEMS = {
     hint: "Departments & groups",
     Icon: Users,
     accent: ACCENTS.mint,
+    permission: "iam.teams.read",
   },
 
   invites: {
@@ -245,6 +265,7 @@ const ITEMS = {
     hint: "Invite to portal",
     Icon: MailPlus,
     accent: ACCENTS.brand,
+    permission: "iam.invites.send",
   },
 
   profile: {
@@ -269,6 +290,8 @@ const ITEMS = {
     hint: "Support, CRs & procurement",
     Icon: Ticket,
     accent: ACCENTS.brand,
+    permission: "tickets.read",
+    external: true,
   },
 
   crmDashboard: {
@@ -278,6 +301,7 @@ const ITEMS = {
     Icon: LayoutDashboard,
     accent: ACCENTS.brand,
     end: true,
+    permission: "crm.read",
   },
 
   crmLeads: {
@@ -286,6 +310,7 @@ const ITEMS = {
     hint: "Incoming opportunities",
     Icon: Target,
     accent: ACCENTS.amber,
+    permission: "crm.read",
   },
 
   crmDeals: {
@@ -294,6 +319,7 @@ const ITEMS = {
     hint: "Commercial pipeline",
     Icon: Users,
     accent: ACCENTS.mint,
+    permission: "crm.read",
   },
 
   crmAccounts: {
@@ -302,6 +328,7 @@ const ITEMS = {
     hint: "Companies & contacts",
     Icon: Building2,
     accent: ACCENTS.sky,
+    permission: "crm.read",
   },
 
   crmContacts: {
@@ -310,6 +337,7 @@ const ITEMS = {
     hint: "People & relationships",
     Icon: UserRound,
     accent: ACCENTS.violet,
+    permission: "crm.read",
   },
 
   careers: {
@@ -318,6 +346,7 @@ const ITEMS = {
     hint: "Job openings on the website",
     Icon: Globe,
     accent: ACCENTS.sky,
+    permission: "website.read",
   },
 
   homepageSlides: {
@@ -326,6 +355,7 @@ const ITEMS = {
     hint: "Hero slider on the public site",
     Icon: SlidersHorizontal,
     accent: ACCENTS.brand,
+    permission: "website.read",
   },
 
   websiteSettings: {
@@ -334,6 +364,7 @@ const ITEMS = {
     hint: "Logos, heroes & page photos",
     Icon: Palette,
     accent: ACCENTS.violet,
+    permission: "website.read",
   },
 
   procurement: {
@@ -343,6 +374,8 @@ const ITEMS = {
     Icon: ShoppingCart,
     accent: ACCENTS.sky,
     end: true,
+    permission: "procurement.read",
+    external: true,
   },
 
   procurementRequests: {
@@ -351,6 +384,8 @@ const ITEMS = {
     hint: "Client procurement requests",
     Icon: ClipboardList,
     accent: ACCENTS.brand,
+    permission: "procurement.read",
+    external: true,
   },
 
   procurementVendors: {
@@ -359,6 +394,7 @@ const ITEMS = {
     hint: "Supplier directory",
     Icon: Truck,
     accent: ACCENTS.sand,
+    permission: "procurement.read",
   },
 
   procurementCategories: {
@@ -367,6 +403,7 @@ const ITEMS = {
     hint: "Solution types & catalog",
     Icon: Tag,
     accent: ACCENTS.violet,
+    permission: "procurement.read",
   },
 
   vendorApplications: {
@@ -375,6 +412,7 @@ const ITEMS = {
     hint: "Review & approve vendor sign-ups",
     Icon: UserCheck,
     accent: ACCENTS.mint,
+    permission: "procurement.approve",
   },
 
   rfqs: {
@@ -383,6 +421,7 @@ const ITEMS = {
     hint: "Requests for quotation",
     Icon: FileText,
     accent: ACCENTS.sky,
+    permission: "procurement.read",
   },
 
   hr: {
@@ -392,6 +431,7 @@ const ITEMS = {
     Icon: HeartHandshake,
     accent: ACCENTS.brand,
     end: true,
+    permission: "hr.staff.read",
   },
 
   hrStaff: {
@@ -400,6 +440,7 @@ const ITEMS = {
     hint: "Employees & departments",
     Icon: Users,
     accent: ACCENTS.mint,
+    permission: "hr.staff.read",
   },
 
   hrExpenses: {
@@ -408,6 +449,7 @@ const ITEMS = {
     hint: "Staff expense approvals",
     Icon: ReceiptText,
     accent: ACCENTS.amber,
+    permission: "hr.expenses.read",
   },
 
   hrMonthlyExpenses: {
@@ -416,6 +458,7 @@ const ITEMS = {
     hint: "Registered company expenses",
     Icon: Wallet,
     accent: ACCENTS.sand,
+    permission: "hr.expenses.read",
   },
 
   hrLeaves: {
@@ -424,6 +467,7 @@ const ITEMS = {
     hint: "Annual, sick & emergency leave",
     Icon: CalendarDays,
     accent: ACCENTS.sky,
+    permission: "hr.leaves.read",
   },
 
   hrSkills: {
@@ -432,36 +476,128 @@ const ITEMS = {
     hint: "Team skills overview",
     Icon: Grid3x3,
     accent: ACCENTS.mint,
+    permission: "hr.scorecards.read",
   },
 };
 
-export function getNavSectionsByRole(role) {
+const ADMIN_SECTIONS = [
+  {
+    title: "Main",
+    Icon: LayoutDashboard,
+    items: [ITEMS.dashboard, ITEMS.clients, ITEMS.projects],
+  },
+  {
+    title: "CRM",
+    Icon: Building2,
+    items: [
+      ITEMS.crmDashboard,
+      ITEMS.crmLeads,
+      ITEMS.crmDeals,
+      ITEMS.crmAccounts,
+      ITEMS.crmContacts,
+    ],
+  },
+  {
+    title: "Support",
+    Icon: Ticket,
+    items: [ITEMS.tickets],
+  },
+  {
+    title: "Delivery",
+    Icon: Clapperboard,
+    items: [ITEMS.productions, ITEMS.jobs],
+  },
+  {
+    title: "Assets",
+    Icon: Images,
+    items: [ITEMS.media, ITEMS.files, ITEMS.portfolio],
+  },
+  {
+    title: "Commercial",
+    Icon: Wallet,
+    items: [ITEMS.services, ITEMS.enrollments, ITEMS.billing],
+  },
+  {
+    title: "HR",
+    Icon: HeartHandshake,
+    items: [
+      ITEMS.hr,
+      ITEMS.hrStaff,
+      ITEMS.hrExpenses,
+      ITEMS.hrMonthlyExpenses,
+      ITEMS.hrLeaves,
+      ITEMS.hrSkills,
+    ],
+  },
+  {
+    title: "Reporting",
+    Icon: BarChart3,
+    items: [ITEMS.reports, ITEMS.activity],
+  },
+  {
+    title: "IAM",
+    Icon: Shield,
+    items: [ITEMS.users, ITEMS.roles, ITEMS.teams, ITEMS.invites],
+  },
+  {
+    title: "Procurement",
+    Icon: ShoppingCart,
+    items: [
+      ITEMS.procurement,
+      ITEMS.rfqs,
+      ITEMS.procurementRequests,
+      ITEMS.procurementVendors,
+      ITEMS.procurementCategories,
+      ITEMS.vendorApplications,
+    ],
+  },
+  {
+    title: "Website",
+    Icon: Globe,
+    items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.websiteSettings],
+  },
+  {
+    title: "System",
+    Icon: Settings,
+    items: [ITEMS.profile, ITEMS.settings],
+  },
+];
+
+function canSeeItem(item, role, permissionSet) {
+  const r = String(role || "").toLowerCase();
+  if (r === ROLES.SUPER_ADMIN || r === ROLES.ADMIN) return true;
+  if (!item.permission) return true;
+  if (
+    ["client", "staff_client", "procurement_client", "client_admin"].includes(r) &&
+    item.external !== true
+  ) {
+    return false;
+  }
+  return permissionSet.has(item.permission);
+}
+
+function filterSectionsForPermissions(sections, role, permissions) {
+  const permissionSet = new Set(Array.isArray(permissions) ? permissions : []);
+  return sections
+    .map((section) => ({
+      ...section,
+      title: section.title === "System" ? "Account" : section.title,
+      items: section.items.filter((item) => canSeeItem(item, role, permissionSet)),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
+export function getNavSectionsByRole(role, permissions = []) {
   const r = String(role || "").toLowerCase();
 
+  if (!r) return [];
+
+  if (r === ROLES.SUPER_ADMIN || r === ROLES.ADMIN) {
+    return ADMIN_SECTIONS;
+  }
+
   if (r === ROLES.CLIENT) {
-    return [
-      {
-        title: "Workspace",
-        Icon: FolderKanban,
-        items: [
-          ITEMS.dashboard,
-          ITEMS.projects,
-          ITEMS.files,
-          ITEMS.reports,
-          ITEMS.billing,
-        ],
-      },
-      {
-        title: "Support",
-        Icon: Ticket,
-        items: [ITEMS.tickets],
-      },
-      {
-        title: "Account",
-        Icon: User,
-        items: [ITEMS.profile, ITEMS.settings],
-      },
-    ];
+    return filterSectionsForPermissions(ADMIN_SECTIONS, r, permissions);
   }
 
   if (r === "vendor") {
@@ -480,132 +616,10 @@ export function getNavSectionsByRole(role) {
   }
 
   if (r === ROLES.STAFF) {
-    return [
-      {
-        title: "Main",
-        Icon: LayoutDashboard,
-        items: [ITEMS.dashboard, ITEMS.clients, ITEMS.projects],
-      },
-      {
-        title: "Support",
-        Icon: Ticket,
-        items: [ITEMS.tickets],
-      },
-      {
-        title: "Delivery",
-        Icon: Clapperboard,
-        items: [ITEMS.productions, ITEMS.jobs],
-      },
-      {
-        title: "Assets",
-        Icon: Images,
-        items: [ITEMS.media, ITEMS.files, ITEMS.portfolio],
-      },
-      {
-        title: "Commercial",
-        Icon: Wallet,
-        items: [ITEMS.services, ITEMS.enrollments],
-      },
-      {
-        title: "Procurement",
-        Icon: ShoppingCart,
-        items: [ITEMS.rfqs, ITEMS.vendorApplications],
-      },
-      {
-        title: "HR",
-        Icon: HeartHandshake,
-        items: [ITEMS.hrExpenses, ITEMS.hrLeaves, ITEMS.hrSkills],
-      },
-      {
-        title: "Personal",
-        Icon: User,
-        items: [ITEMS.profile, ITEMS.settings],
-      },
-    ];
+    return filterSectionsForPermissions(ADMIN_SECTIONS, r, permissions);
   }
 
-  return [
-    {
-      title: "Main",
-      Icon: LayoutDashboard,
-      items: [ITEMS.dashboard, ITEMS.clients, ITEMS.projects],
-    },
-    {
-      title: "CRM",
-      Icon: Building2,
-      items: [
-        ITEMS.crmDashboard,
-        ITEMS.crmLeads,
-        ITEMS.crmDeals,
-        ITEMS.crmAccounts,
-        ITEMS.crmContacts,
-      ],
-    },
-    {
-      title: "Support",
-      Icon: Ticket,
-      items: [ITEMS.tickets],
-    },
-    {
-      title: "Delivery",
-      Icon: Clapperboard,
-      items: [ITEMS.productions, ITEMS.jobs],
-    },
-    {
-      title: "Assets",
-      Icon: Images,
-      items: [ITEMS.media, ITEMS.files, ITEMS.portfolio],
-    },
-    {
-      title: "Commercial",
-      Icon: Wallet,
-      items: [ITEMS.services, ITEMS.enrollments, ITEMS.billing],
-    },
-    {
-      title: "HR",
-      Icon: HeartHandshake,
-      items: [
-        ITEMS.hr,
-        ITEMS.hrStaff,
-        ITEMS.hrExpenses,
-        ITEMS.hrMonthlyExpenses,
-        ITEMS.hrLeaves,
-        ITEMS.hrSkills,
-      ],
-    },
-    {
-      title: "Reporting",
-      Icon: BarChart3,
-      items: [ITEMS.reports, ITEMS.activity],
-    },
-    {
-      title: "IAM",
-      Icon: Shield,
-      items: [ITEMS.users, ITEMS.roles, ITEMS.teams, ITEMS.invites],
-    },
-    {
-      title: "Procurement",
-      Icon: ShoppingCart,
-      items: [
-        ITEMS.procurement,
-        ITEMS.rfqs,
-        ITEMS.procurementRequests,
-        ITEMS.procurementVendors,
-        ITEMS.procurementCategories,
-        ITEMS.vendorApplications,
-      ],
-    },
-    {
-      title: "Website",
-      Icon: Globe,
-      items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.websiteSettings],
-    },
-    {
-      title: "System",
-      Icon: Settings,
-      items: [ITEMS.profile, ITEMS.settings],
-    },
-  ];
+  return filterSectionsForPermissions(ADMIN_SECTIONS, r, permissions);
 }
 
 export function getPageMeta(pathname) {

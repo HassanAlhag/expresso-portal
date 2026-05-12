@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
 import Invoice from "./invoice.model.js";
 
 import {
@@ -17,7 +17,7 @@ const router = express.Router();
 router.get(
   "/stats",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("billing.read"),
   async (_req, res) => {
     const [byStatus, totals] = await Promise.all([
       Invoice.aggregate([{ $group: { _id: "$status", count: { $sum: 1 }, amount: { $sum: "$total" } } }]),
@@ -39,14 +39,14 @@ router.get(
 router.get(
   "/invoices",
   requireAuth,
-  requireRole("super_admin", "admin", "staff", "client"),
+  requirePermission("billing.read"),
   listInvoices
 );
 
 router.get(
   "/invoices/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff", "client"),
+  requirePermission("billing.read"),
   getInvoice
 );
 
@@ -54,28 +54,28 @@ router.get(
 router.post(
   "/invoices",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("billing.write"),
   createInvoice
 );
 
 router.patch(
   "/invoices/:id",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("billing.write"),
   updateInvoice
 );
 
 router.post(
   "/invoices/:id/mark-paid",
   requireAuth,
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("billing.write"),
   markInvoicePaid
 );
 
 router.post(
   "/invoices/:id/void",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("billing.write"),
   voidInvoice
 );
 

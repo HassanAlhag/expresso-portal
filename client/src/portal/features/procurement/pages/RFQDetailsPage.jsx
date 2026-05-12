@@ -27,6 +27,7 @@ import Modal from "../../../shared/ui/Modal";
 import Skeleton from "../../../shared/ui/Skeleton";
 import EmptyState from "../../../shared/ui/EmptyState";
 import { useToast } from "../../../shared/ui/Toast";
+import { usePortalPermissions } from "../../../shared/hooks/usePortalPermissions";
 
 import {
   getRfq,
@@ -733,6 +734,7 @@ export default function RFQDetailsPage() {
   const nav = useNavigate();
   const { id } = useParams();
   const toast = useToast();
+  const { hasPermission } = usePortalPermissions();
 
   const [rfq, setRfq] = useState(null);
   const [role, setRole] = useState(null);
@@ -784,7 +786,8 @@ export default function RFQDetailsPage() {
   }
 
   const isVendor = role === "vendor";
-  const isAdmin = role === "admin" || role === "super_admin";
+  const canManageRfq = hasPermission("procurement.write");
+  const canApproveRfq = hasPermission("procurement.approve");
 
   if (loading) {
     return (
@@ -837,7 +840,7 @@ export default function RFQDetailsPage() {
               <RefreshCw size={14} />
             </Button>
 
-            {isAdmin && rfq.status === "draft" && (
+            {canManageRfq && rfq.status === "draft" && (
               <>
                 <Button
                   variant="outline"
@@ -847,17 +850,19 @@ export default function RFQDetailsPage() {
                   Edit
                 </Button>
 
-                <Button
-                  onClick={() => setShowPublish(true)}
-                  style={{ backgroundColor: BRAND }}
-                >
-                  <Send size={14} />
-                  Publish
-                </Button>
+                {canApproveRfq && (
+                  <Button
+                    onClick={() => setShowPublish(true)}
+                    style={{ backgroundColor: BRAND }}
+                  >
+                    <Send size={14} />
+                    Publish
+                  </Button>
+                )}
               </>
             )}
 
-            {isAdmin && rfq.status === "published" && (
+            {canApproveRfq && rfq.status === "published" && (
               <Button
                 variant="outline"
                 disabled={closing}
@@ -874,7 +879,7 @@ export default function RFQDetailsPage() {
 
       <RfqHero
         rfq={rfq}
-        isAdmin={isAdmin}
+        isAdmin={canManageRfq}
         onBack={() => nav("/portal/procurement/rfqs")}
       />
 

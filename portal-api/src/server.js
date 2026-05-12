@@ -1,10 +1,18 @@
 // src/server.js
-import "dotenv/config";
-import { createApp } from "./app.js";
-import { connectDB } from "./config/db.js";
-import { env } from "./config/env.js";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
+import { config } from "dotenv";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: resolve(__dirname, "../.env") });
 
 async function start() {
+  const [{ createApp }, { connectDB }, { env }] = await Promise.all([
+    import("./app.js"),
+    import("./config/db.js"),
+    import("./config/env.js"),
+  ]);
+
   await connectDB();
 
   const app = createApp();

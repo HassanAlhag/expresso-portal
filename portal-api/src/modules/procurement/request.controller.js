@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 import ProcurementRequest from "./request.model.js";
+import {
+  canSeeAllTenantRecords,
+  getUserClientId,
+  requireOwnClient,
+} from "../../utils/accessControl.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -30,22 +35,48 @@ const POPULATE_DETAIL = [
   { path: "createdBy", select: "firstName lastName" },
 ];
 
+function buildTenantFilter(req, filter = {}) {
+  if (canSeeAllTenantRecords(req)) return filter;
+  const clientId = getUserClientId(req);
+  if (!clientId) return { ...filter, _id: null };
+  return { ...filter, customerId: clientId };
+}
+
+function sanitizeForExternal(req, item) {
+  if (canSeeAllTenantRecords(req) || !item) return item;
+  const allowedVendorStatuses = new Set(["approved", "ordered", "delivered"]);
+  const plain = { ...item };
+
+  delete plain.notes;
+  delete plain.assignedTo;
+
+  if (!allowedVendorStatuses.has(plain.status)) {
+    delete plain.vendorId;
+    delete plain.quotedAmount;
+    delete plain.proposedDelivery;
+  }
+
+  return plain;
+}
+
 // GET /api/procurement/requests/stats
 export async function getDashboardStats(req, res) {
   try {
     const statuses = ["new", "assessing", "quoted", "approved", "ordered", "delivered", "cancelled"];
     const priorities = ["urgent", "high", "normal", "low"];
 
+    const tenantFilter = buildTenantFilter(req);
+
     const [total, ...statusCounts] = await Promise.all([
-      ProcurementRequest.countDocuments(),
-      ...statuses.map((s) => ProcurementRequest.countDocuments({ status: s })),
+      ProcurementRequest.countDocuments(tenantFilter),
+      ...statuses.map((s) => ProcurementRequest.countDocuments({ ...tenantFilter, status: s })),
     ]);
 
     const priorityCounts = await Promise.all(
-      priorities.map((p) => ProcurementRequest.countDocuments({ priority: p }))
+      priorities.map((p) => ProcurementRequest.countDocuments({ ...tenantFilter, priority: p }))
     );
 
-    const recentRequests = await ProcurementRequest.find({})
+    const recentRequests = await ProcurementRequest.find(tenantFilter)
       .sort({ createdAt: -1 })
       .limit(5)
       .populate(POPULATE_LIST)
@@ -54,7 +85,13 @@ export async function getDashboardStats(req, res) {
     const byStatus = Object.fromEntries(statuses.map((s, i) => [s, statusCounts[i]]));
     const byPriority = Object.fromEntries(priorities.map((p, i) => [p, priorityCounts[i]]));
 
-    return res.json({ ok: true, total, byStatus, byPriority, recentRequests });
+    return res.json({
+      ok: true,
+      total,
+      byStatus,
+      byPriority,
+      recentRequests: recentRequests.map((item) => sanitizeForExternal(req, item)),
+    });
   } catch (e) {
     console.error("getDashboardStats:", e);
     return res.status(500).json({ ok: false, message: e.message });
@@ -78,18 +115,20 @@ export async function listRequests(req, res) {
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
 
-    const filter = {};
+    let filter = {};
 
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (oid(categoryId)) filter.categoryId = categoryId;
-    if (oid(customerId)) filter.customerId = customerId;
+    if (canSeeAllTenantRecords(req) && oid(customerId)) filter.customerId = customerId;
     if (oid(assignedTo)) filter.assignedTo = assignedTo;
 
     if (q.trim()) {
       const rx = new RegExp(escapeRegex(q.trim()), "i");
       filter.$or = [{ title: rx }, { ref: rx }];
     }
+
+    filter = buildTenantFilter(req, filter);
 
     const [total, items] = await Promise.all([
       ProcurementRequest.countDocuments(filter),
@@ -103,7 +142,7 @@ export async function listRequests(req, res) {
 
     return res.json({
       ok: true,
-      items,
+      items: items.map((item) => sanitizeForExternal(req, item)),
       page: pageNum,
       pages: Math.max(1, Math.ceil(total / limitNum)),
       total,
@@ -128,7 +167,10 @@ export async function getRequest(req, res) {
       .lean();
 
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
-    return res.json({ ok: true, item });
+    if (!requireOwnClient(req, item.customerId?._id || item.customerId)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
+    return res.json({ ok: true, item: sanitizeForExternal(req, item) });
   } catch (e) {
     console.error("getRequest:", e);
     return res.status(500).json({ ok: false, message: e.message });
@@ -143,7 +185,10 @@ export async function createRequest(req, res) {
     if (!title) {
       return res.status(400).json({ ok: false, message: "title is required" });
     }
-    if (!oid(body.customerId)) {
+    const externalClientId = canSeeAllTenantRecords(req) ? "" : getUserClientId(req);
+    const resolvedCustomerId = externalClientId || body.customerId;
+
+    if (!oid(resolvedCustomerId)) {
       return res.status(400).json({ ok: false, message: "customerId is required" });
     }
     if (!oid(body.categoryId)) {
@@ -151,7 +196,7 @@ export async function createRequest(req, res) {
     }
 
     const doc = await ProcurementRequest.create({
-      customerId: body.customerId,
+      customerId: resolvedCustomerId,
       categoryId: body.categoryId,
       title,
       description: String(body.description || "").trim(),
@@ -186,8 +231,12 @@ export async function updateRequest(req, res) {
 
     const existing = await ProcurementRequest.findById(id);
     if (!existing) return res.status(404).json({ ok: false, message: "Not found" });
+    if (!requireOwnClient(req, existing.customerId)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
 
     const body = req.body || {};
+    const internal = canSeeAllTenantRecords(req);
 
     if (typeof body.title !== "undefined") existing.title = String(body.title || "").trim();
     if (typeof body.description !== "undefined") existing.description = String(body.description || "").trim();
@@ -195,16 +244,16 @@ export async function updateRequest(req, res) {
     if (typeof body.budget !== "undefined") existing.budget = Number(body.budget);
     if (typeof body.currency !== "undefined") existing.currency = String(body.currency || "AED").trim();
     if (typeof body.priority !== "undefined") existing.priority = body.priority;
-    if (typeof body.assignedTo !== "undefined") existing.assignedTo = oid(body.assignedTo);
-    if (typeof body.vendorId !== "undefined") existing.vendorId = oid(body.vendorId);
-    if (typeof body.quotedAmount !== "undefined") existing.quotedAmount = body.quotedAmount != null ? Number(body.quotedAmount) : null;
-    if (typeof body.proposedDelivery !== "undefined") existing.proposedDelivery = body.proposedDelivery ? new Date(body.proposedDelivery) : null;
-    if (typeof body.notes !== "undefined") existing.notes = String(body.notes || "").trim();
+    if (internal && typeof body.assignedTo !== "undefined") existing.assignedTo = oid(body.assignedTo);
+    if (internal && typeof body.vendorId !== "undefined") existing.vendorId = oid(body.vendorId);
+    if (internal && typeof body.quotedAmount !== "undefined") existing.quotedAmount = body.quotedAmount != null ? Number(body.quotedAmount) : null;
+    if (internal && typeof body.proposedDelivery !== "undefined") existing.proposedDelivery = body.proposedDelivery ? new Date(body.proposedDelivery) : null;
+    if (internal && typeof body.notes !== "undefined") existing.notes = String(body.notes || "").trim();
     if (typeof body.categoryId !== "undefined" && oid(body.categoryId)) existing.categoryId = body.categoryId;
-    if (typeof body.customerId !== "undefined" && oid(body.customerId)) existing.customerId = body.customerId;
+    if (internal && typeof body.customerId !== "undefined" && oid(body.customerId)) existing.customerId = body.customerId;
 
     // Handle status transition and timeline stamping
-    if (body.status && body.status !== existing.status) {
+    if (internal && body.status && body.status !== existing.status) {
       existing.status = body.status;
       const timelineField = STATUS_TIMELINE_MAP[body.status];
       if (timelineField) {
@@ -217,7 +266,7 @@ export async function updateRequest(req, res) {
     await existing.save();
     await existing.populate(POPULATE_DETAIL);
 
-    return res.json({ ok: true, item: existing.toObject() });
+    return res.json({ ok: true, item: sanitizeForExternal(req, existing.toObject()) });
   } catch (e) {
     console.error("updateRequest:", e);
     return res.status(500).json({ ok: false, message: e.message });
@@ -234,6 +283,9 @@ export async function deleteRequest(req, res) {
 
     const existing = await ProcurementRequest.findById(id).lean();
     if (!existing) return res.status(404).json({ ok: false, message: "Not found" });
+    if (!requireOwnClient(req, existing.customerId)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
 
     if (!["new", "cancelled"].includes(existing.status)) {
       return res.status(400).json({

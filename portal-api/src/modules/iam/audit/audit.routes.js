@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import Audit from "./audit.model.js";
 import mongoose from "mongoose";
 
@@ -9,7 +9,7 @@ const router = express.Router();
 router.get(
   "/audit",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("activity.read"),
   async (req, res) => {
     const page  = Math.max(1, parseInt(req.query.page  || "1",  10));
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit || "30", 10)));
@@ -46,7 +46,7 @@ router.get(
 router.get(
   "/users/:id/activity",
   requireAuth,
-  requireRole("super_admin", "admin"),
+  requirePermission("activity.read"),
   async (req, res) => {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {

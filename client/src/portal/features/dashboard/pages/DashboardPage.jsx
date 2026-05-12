@@ -708,6 +708,7 @@ function VendorDashboard({ nav }) {
 export default function DashboardPage() {
   const nav = useNavigate();
   const role = getPortalRole();
+  const isExternalClient = ["client", "staff_client", "procurement_client", "client_admin"].includes(role);
 
   // All hooks must run unconditionally — role-based early returns come after.
   const [loading, setLoading] = useState(true);
@@ -720,7 +721,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Skip admin data fetch for non-admin roles — they have their own dashboards.
-    if (role === "client" || role === "vendor") {
+    if (isExternalClient || role === "vendor") {
       setLoading(false);
       return;
     }
@@ -781,7 +782,7 @@ export default function DashboardPage() {
     [openDeals]
   );
 
-  if (role === "client") return <ClientDashboard nav={nav} />;
+  if (isExternalClient) return <ClientDashboard nav={nav} />;
   if (role === "vendor") return <VendorDashboard nav={nav} />;
 
   return (

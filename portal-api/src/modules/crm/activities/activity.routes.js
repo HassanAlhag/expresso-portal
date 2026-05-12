@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   listActivities,
   getActivity,
@@ -10,12 +10,10 @@ import {
 
 const router = express.Router();
 
-const staff = requireRole("super_admin", "admin", "staff");
-
-router.get("/", requireAuth, staff, listActivities);
-router.get("/:id", requireAuth, staff, getActivity);
-router.post("/", requireAuth, staff, createActivity);
-router.patch("/:id", requireAuth, staff, updateActivity);
-router.delete("/:id", requireAuth, requireRole("super_admin", "admin"), deleteActivity);
+router.get("/", requireAuth, requirePermission("crm.read"), listActivities);
+router.get("/:id", requireAuth, requirePermission("crm.read"), getActivity);
+router.post("/", requireAuth, requirePermission("crm.write"), createActivity);
+router.patch("/:id", requireAuth, requirePermission("crm.write"), updateActivity);
+router.delete("/:id", requireAuth, requirePermission("crm.delete"), deleteActivity);
 
 export default router;

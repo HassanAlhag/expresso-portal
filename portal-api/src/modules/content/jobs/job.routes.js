@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth, requireRole } from "../../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   addApproval,
   attachMedia,
@@ -23,34 +23,34 @@ router.get("/public/website", listPublicWebsiteJobs);
 
 router.use(requireAuth);
 
-router.get("/", requireRole("super_admin", "admin", "staff"), listJobs);
-router.post("/", requireRole("super_admin", "admin", "staff"), createJob);
+router.get("/", requirePermission("jobs.read"), listJobs);
+router.post("/", requirePermission("jobs.write"), createJob);
 
 router.post(
   "/generate/from-enrollment/:enrollmentId",
-  requireRole("super_admin", "admin"),
+  requirePermission("jobs.write"),
   generateJobsForEnrollment
 );
 
-router.get("/:id", requireRole("super_admin", "admin", "staff"), getJob);
-router.patch("/:id", requireRole("super_admin", "admin", "staff"), updateJob);
-router.delete("/:id", requireRole("super_admin", "admin"), deleteJob);
+router.get("/:id", requirePermission("jobs.read"), getJob);
+router.patch("/:id", requirePermission("jobs.write"), updateJob);
+router.delete("/:id", requirePermission("jobs.delete"), deleteJob);
 
 router.post(
   "/:id/attach-media",
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("jobs.write"),
   attachMedia
 );
 
 router.post(
   "/:id/approval",
-  requireRole("super_admin", "admin", "staff"),
+  requirePermission("jobs.write"),
   addApproval
 );
 
 router.post(
   "/:id/publish",
-  requireRole("super_admin", "admin"),
+  requirePermission("jobs.write"),
   publishToWebsite
 );
 
