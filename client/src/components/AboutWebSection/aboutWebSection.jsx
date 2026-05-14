@@ -1,17 +1,23 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { FiArrowUpRight } from "react-icons/fi";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const AboutWebSection = ({
   backgroundImageUrl = "/business.webp",
   deviceImageUrl = "/iphone.webp",
 }) => {
+  const settings = useSiteSettings();
+  const resolvedBackgroundImageUrl = resolveWebsiteImage(settings, backgroundImageUrl);
+  const resolvedDeviceImageUrl = resolveWebsiteImage(settings, deviceImageUrl);
+
   return (
     <section id="mission-vision" className="relative overflow-hidden text-white">
       {/* ✅ Background image (from the 2nd code) */}
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url('${backgroundImageUrl}')` }}
+        style={{ backgroundImage: `url('${resolvedBackgroundImageUrl}')` }}
       />
 
       {/* ✅ Dark cinematic overlays (from the 2nd code) */}
@@ -92,7 +98,7 @@ const AboutWebSection = ({
               style={{ transformStyle: "preserve-3d" }}
             >
               <img
-                src={deviceImageUrl}
+                src={resolvedDeviceImageUrl}
                 alt="iPhone Mockup"
                 className="h-[520px] w-auto object-contain sm:h-[560px] lg:h-[620px]"
                 draggable={false}

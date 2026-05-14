@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
 import { useMemo, useRef, useState } from "react";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImages } from "../../utils/websiteImages";
 
 const BRAND = "#838FC6";
 
 const Testimonials = () => {
+  const settings = useSiteSettings();
   const [order, setOrder] = useState([
     "front",
     "middle",
@@ -20,39 +23,40 @@ const Testimonials = () => {
 
   // (optional) keep data stable
   const cards = useMemo(
-    () => [
+    () =>
+      resolveWebsiteImages(settings, [
       {
-        imgUrl: "avatar1.png",
+        imgUrl: "/avatar1.png",
         testimonial:
           "Our new React website loads in under two seconds and our conversion rate has doubled. The team made our vision come alive beautifully!",
         author: "Sarah M. – Marketing Lead @ Baytward",
       },
       {
-        imgUrl: "avatar6.png",
+        imgUrl: "/avatar6.png",
         testimonial:
           "The WordPress site redesign was seamless. From design to deployment, everything was handled with precision and care. Highly recommend!",
         author: "James L. – Brand Manager @ Godfel Group",
       },
       {
-        imgUrl: "avatar3.png",
+        imgUrl: "/avatar3.png",
         testimonial:
           "Our eCommerce platform now runs smoother than ever. The custom backend integrations saved our team hours every week!",
         author: "Priya K. – Operations Manager @ M-Region",
       },
       {
-        imgUrl: "avatar4.png",
+        imgUrl: "/avatar4.png",
         testimonial:
           "The developers understood our business goals from day one. The site is fast, mobile-friendly, and perfectly reflects our brand.",
         author: "Carlos D. – Head of Growth Marketing @ Odeur",
       },
       {
-        imgUrl: "avatar5.png",
+        imgUrl: "/avatar5.png",
         testimonial:
           "Fantastic experience! Their web team delivered a scalable and modern solution that’s helped us grow 3x faster online.",
         author: "Hannah W. – Co-Founder @ Profit Assurance",
       },
-    ],
-    []
+    ]),
+    [settings]
   );
 
   return (

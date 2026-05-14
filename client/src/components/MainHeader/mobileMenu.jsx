@@ -5,6 +5,8 @@ import { FiMenu, FiArrowRight, FiX, FiChevronDown } from "react-icons/fi";
 import LINKS from "./links";
 import { CTAs } from "./header";
 import { Link } from "react-router-dom";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
 const MobileMenuLink = ({ children, href, FoldContent, setMenuOpen }) => {
   const [ref, { height }] = useMeasure();
@@ -70,6 +72,12 @@ const MobileMenuLink = ({ children, href, FoldContent, setMenuOpen }) => {
 
 const MobileMenu = () => {
   const [open, setOpen] = useState(false);
+  const settings = useSiteSettings();
+  const configuredLogo = settings?.branding?.logoUrl || settings?.branding?.logoWhiteUrl;
+  const logoSrc = configuredLogo
+    ? toWebsiteImageUrl(configuredLogo)
+    : resolveWebsiteImage(settings, "/logo.png");
+
   return (
     <div className="block lg:hidden">
       <button onClick={() => setOpen(true)} className="block text-3xl">
@@ -86,7 +94,7 @@ const MobileMenu = () => {
           >
             <div className="flex items-center justify-between p-6">
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Logo" className="w-28 h-auto" />
+                <img src={logoSrc} alt="Logo" className="w-28 h-auto" />
               </div>
               <button onClick={() => setOpen(false)}>
                 <FiX className="text-3xl text-neutral-950" />

@@ -9,10 +9,13 @@ import portfolioData from "../../pages/SingleViewPortfolio/portfolioData";
 
 import ReelsShowcase from "../../components/ReelsShowcase/ReelsShowcase";
 import CreativePostsShowcase from "../../components/CreativePostsShowcase/CreativePostsShowcase";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImages } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
 export default function PortfolioGrid() {
+  const settings = useSiteSettings();
   const [selectedTab, setSelectedTab] = useState(1);
 
   const scrollToLeadForm = () => {
@@ -26,15 +29,16 @@ export default function PortfolioGrid() {
   }, [selectedTab]);
 
   const filteredPortfolios = useMemo(() => {
-    if (selectedTab === 1) return portfolioData;
+    const resolvedPortfolioData = resolveWebsiteImages(settings, portfolioData);
+    if (selectedTab === 1) return resolvedPortfolioData;
     const needle = selectedTitle.toLowerCase().trim();
-    return portfolioData.filter((item) =>
+    return resolvedPortfolioData.filter((item) =>
       (item.category || "").toLowerCase().includes(needle)
     );
-  }, [selectedTab, selectedTitle]);
+  }, [selectedTab, selectedTitle, settings]);
 
   // Demo data (replace later)
-  const reels = [
+  const reels = resolveWebsiteImages(settings, [
     {
       id: "r1",
       title: "PPC Offer Reel – Hook + CTA",
@@ -45,9 +49,9 @@ export default function PortfolioGrid() {
       poster: "/reels/posters/reel1.jpg",
       src: "/reels/videos/reel1.mp4",
     },
-  ];
+  ]);
 
-  const posts = [
+  const posts = resolveWebsiteImages(settings, [
     {
       id: "p1",
       title: "Launch Creative – Premium Offer",
@@ -58,7 +62,7 @@ export default function PortfolioGrid() {
       src: "/creatives/posts/post1.jpg",
       link: "https://www.instagram.com/",
     },
-  ];
+  ]);
 
   useEffect(() => {
     // optional

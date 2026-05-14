@@ -12,19 +12,7 @@ import {
 } from "../../data/technologySolutionsData";
 import { TECHNOLOGY_SOLUTION_DETAILS } from "../../data/technologySolutionDetailsData";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { getAssetUrl } from "../../portal/shared/utils/assetUrl";
-
-function resolveImageUrl(value, fallback = "/81.webp") {
-  const path = value || fallback;
-  if (!path) return fallback;
-
-  if (path.startsWith("http")) return getAssetUrl(path);
-  if (path.startsWith("/uploads") || path.startsWith("uploads/")) {
-    return getAssetUrl(path);
-  }
-
-  return path;
-}
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 export default function ITSolutionDetailsPage() {
   const { slug } = useParams();
@@ -65,9 +53,11 @@ export default function ITSolutionDetailsPage() {
   };
 
   const heroSettingKey = solution.heroSettingKey;
-  const heroImageUrl = resolveImageUrl(
-    heroSettingKey ? settings?.itSolutions?.[heroSettingKey] : "",
-    "/81.webp"
+  const heroImageUrl = resolveWebsiteImage(
+    settings,
+    (heroSettingKey ? settings?.itSolutions?.[heroSettingKey] : "") ||
+      solution.heroImageUrl ||
+      "/81.webp"
   );
 
   return (

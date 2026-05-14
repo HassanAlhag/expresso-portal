@@ -1,8 +1,13 @@
 import React from "react";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const BRAND = "#838FC6";
 
 const AboutUsSectionForAd = () => {
+  const settings = useSiteSettings();
+  const image = resolveWebsiteImage(settings, "/aboutforppc.png");
+
   const scrollToLeadForm = () => {
     document
       .getElementById("lead-form")
@@ -87,7 +92,7 @@ const AboutUsSectionForAd = () => {
           <div className="md:col-span-6">
             <div className="relative overflow-hidden rounded-[28px] border border-neutral-200 bg-neutral-100 shadow-[0_18px_55px_rgba(0,0,0,0.10)]">
               <img
-                src="/aboutforppc.png"
+                src={image}
                 alt="About Expresso"
                 className="h-[420px] w-full object-cover md:h-[520px]"
                 draggable={false}

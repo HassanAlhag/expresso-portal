@@ -1,5 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const logos = [
   "godfel-logo.png",
@@ -52,10 +54,13 @@ const TranslateWrapper = ({ children, reverse }) => {
 };
 
 const LogoItem = ({ logo }) => {
+  const settings = useSiteSettings();
+  const src = resolveWebsiteImage(settings, `/${logo}`);
+
   return (
     <div className="w-20 md:w-28 h-20 md:h-28 flex justify-center items-center hover:bg-gray-800 transition-colors rounded">
       <img
-        src={`/${logo}`}
+        src={src}
         alt={logo}
         className="max-h-full max-w-full object-contain"
       />

@@ -3,10 +3,7 @@ import { Link } from "react-router-dom";
 import {
   FiArrowRight,
   FiBriefcase,
-  FiCompass,
-  FiFlag,
   FiLayers,
-  FiTarget,
   FiTrendingUp,
   FiUsers,
 } from "react-icons/fi";
@@ -20,16 +17,6 @@ const GROUPS = [
     title: "Company",
     items: [
       { Icon: FiBriefcase, title: "About Expresso", desc: "Who we are and what we build", to: "/about-us" },
-      { Icon: FiLayers, title: "Our Story", desc: "Our background and regional presence", to: "/about-us#our-story" },
-      { Icon: FiFlag, title: "Mission & Vision", desc: "The values behind our work", to: "/about-us#mission-vision" },
-    ],
-  },
-  {
-    title: "Why Expresso",
-    items: [
-      { Icon: FiCompass, title: "Our Approach", desc: "How we think about growth", to: "/about-us#approach" },
-      { Icon: FiUsers, title: "Our Team", desc: "Meet the people behind the work", to: "/about-us#team" },
-      { Icon: FiTarget, title: "Our Process", desc: "From strategy to delivery", to: "/about-us#process" },
     ],
   },
   {
@@ -40,18 +27,12 @@ const GROUPS = [
       { Icon: FiUsers, title: "Clients", desc: "Brands and partners we support", to: "/services#clients" },
     ],
   },
-  {
-    title: "Join Us",
-    items: [
-      { Icon: FiUsers, title: "Careers", desc: "Grow your career with Expresso", to: "/careers" },
-    ],
-  },
 ];
 
 const Item = ({ Icon, title, desc, to }) => (
   <Link
     to={to}
-    className="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-all duration-150 hover:bg-neutral-50"
+    className="group flex min-h-[84px] items-start gap-3 rounded-xl border border-neutral-100 bg-white px-3.5 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.04)] transition-all duration-150 hover:-translate-y-0.5 hover:border-indigo-100 hover:bg-indigo-50/40 hover:shadow-[0_16px_36px_rgba(99,102,241,0.1)]"
   >
     <span
       className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-transform duration-150 group-hover:scale-110"
@@ -118,14 +99,14 @@ export default function AboutDropdown() {
           </div>
         </div>
 
-        <div className="border-l border-neutral-100 bg-white px-5 py-5">
-          <div className="grid grid-cols-4 gap-x-2">
+        <div className="border-l border-neutral-100 bg-white p-5">
+          <div className="grid grid-cols-[0.9fr_1.45fr] gap-4">
             {GROUPS.map((group) => (
               <div key={group.title}>
-                <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">
+                <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">
                   {group.title}
                 </p>
-                <div className="space-y-0.5">
+                <div className="grid gap-2">
                   {group.items.map((item) => (
                     <Item key={item.title} {...item} />
                   ))}

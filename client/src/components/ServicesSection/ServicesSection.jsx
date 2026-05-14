@@ -9,72 +9,99 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import HomeSection from "../HomeSection/HomeSection";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
-export default function ServicesSection({ onPrimaryClick }) {
+const DEFAULT_CARDS = [
+  {
+    title: "Website Design & Development",
+    text: "Conversion-focused websites and landing pages built to look premium and perform fast.",
+    Icon: MonitorSmartphone,
+    tone: "brand",
+    size: "hero",
+  },
+  {
+    title: "SEO Optimization",
+    text: "Structure, content, and search visibility improvements that help quality traffic grow.",
+    Icon: Search,
+    tone: "light",
+  },
+  {
+    title: "Paid Ads & PPC",
+    text: "Performance campaigns designed to generate leads, sales, and measurable growth.",
+    Icon: Megaphone,
+    tone: "light",
+  },
+  {
+    title: "Branding & Visual Direction",
+    text: "Sharper positioning, cleaner visuals, and brand systems that make your business stand out.",
+    Icon: PenTool,
+    tone: "brand-soft",
+  },
+  {
+    title: "Tracking & Analytics",
+    text: "Clear reporting and setup that helps you understand what is working and where to improve.",
+    Icon: BarChart3,
+    tone: "light",
+  },
+  {
+    title: "Social Media Content",
+    text: "Creative content systems for brands that want consistency, reach, and stronger presence.",
+    Icon: Clapperboard,
+    tone: "image",
+    image: "/home2.jpg",
+    size: "tall",
+  },
+];
+
+export default function ServicesSection({
+  onPrimaryClick,
+  eyebrow = "SERVICES",
+  title = "Services built for",
+  highlight = "growth",
+  subtitle = "We combine design, content, SEO, paid media, and analytics to help brands grow with clarity and consistency.",
+  cards = DEFAULT_CARDS,
+  ctaTitle = "Need a custom mix?",
+  ctaDescription = "Tell us your goals and we'll shape the right website, content, ads, branding, and analytics setup for your business.",
+  ctaPrimaryLabel = "Build Your Plan",
+  ctaSecondaryLabel = "Talk to Us",
+  ctaSecondaryLink = "/contact",
+}) {
   return (
     <HomeSection
-      eyebrow="SERVICES"
-      title="Services built for"
-      highlight="growth"
-      subtitle="We combine design, content, SEO, paid media, and analytics to help brands grow with clarity and consistency."
+      eyebrow={eyebrow}
+      title={title}
+      highlight={highlight}
+      subtitle={subtitle}
       align="center"
     >
       <div className="grid gap-4 lg:grid-cols-12">
         <div className="grid gap-4 lg:col-span-7">
-          <ServiceCard
-            title="Website Design & Development"
-            text="Conversion-focused websites and landing pages built to look premium and perform fast."
-            Icon={MonitorSmartphone}
-            tone="brand"
-            size="hero"
-          />
+          <ServiceCard {...cards[0]} />
 
           <div className="grid gap-4 md:grid-cols-2">
-            <ServiceCard
-              title="SEO Optimization"
-              text="Structure, content, and search visibility improvements that help quality traffic grow."
-              Icon={Search}
-              tone="light"
-            />
-
-            <ServiceCard
-              title="Paid Ads & PPC"
-              text="Performance campaigns designed to generate leads, sales, and measurable growth."
-              Icon={Megaphone}
-              tone="light"
-            />
+            <ServiceCard {...cards[1]} />
+            <ServiceCard {...cards[2]} />
           </div>
 
           <div className="grid gap-4 md:grid-cols-[1.15fr,0.85fr]">
-            <ServiceCard
-              title="Branding & Visual Direction"
-              text="Sharper positioning, cleaner visuals, and brand systems that make your business stand out."
-              Icon={PenTool}
-              tone="brand-soft"
-            />
-
-            <ServiceCard
-              title="Tracking & Analytics"
-              text="Clear reporting and setup that helps you understand what is working and where to improve."
-              Icon={BarChart3}
-              tone="light"
-            />
+            <ServiceCard {...cards[3]} />
+            <ServiceCard {...cards[4]} />
           </div>
         </div>
 
         <div className="grid gap-4 lg:col-span-5">
-          <ServiceCard
-            title="Social Media Content"
-            text="Creative content systems for brands that want consistency, reach, and stronger presence."
-            Icon={Clapperboard}
-            tone="image"
-            image="/home2.jpg"
-            size="tall"
+          <ServiceCard {...cards[5]} />
+          <CTAServiceCard
+            onPrimaryClick={onPrimaryClick}
+            title={ctaTitle}
+            description={ctaDescription}
+            primaryLabel={ctaPrimaryLabel}
+            secondaryLabel={ctaSecondaryLabel}
+            secondaryLink={ctaSecondaryLink}
           />
-
-          <CTAServiceCard onPrimaryClick={onPrimaryClick} />
         </div>
       </div>
     </HomeSection>
@@ -89,6 +116,9 @@ function ServiceCard({
   image,
   size = "normal",
 }) {
+  const settings = useSiteSettings();
+  const resolvedImage = resolveWebsiteImage(settings, image);
+  const logo = resolveWebsiteImage(settings, "/logo.png");
   const isImage = tone === "image";
   const isBrand = tone === "brand";
   const isBrandSoft = tone === "brand-soft";
@@ -132,7 +162,7 @@ function ServiceCard({
       {isImage ? (
         <>
           <img
-            src={image}
+            src={resolvedImage}
             alt={title}
             className="absolute inset-0 h-full w-full object-cover"
           />
@@ -141,7 +171,7 @@ function ServiceCard({
         </>
       ) : (
         <img
-          src="/logo.png"
+          src={logo}
           alt=""
           className={[
             "pointer-events-none absolute object-contain",
@@ -210,7 +240,10 @@ function ServiceCard({
   );
 }
 
-function CTAServiceCard({ onPrimaryClick }) {
+function CTAServiceCard({ onPrimaryClick, title, description, primaryLabel, secondaryLabel, secondaryLink }) {
+  const settings = useSiteSettings();
+  const logo = resolveWebsiteImage(settings, "/logo.png");
+
   return (
     <div className="relative flex min-h-[175px] md:min-h-[185px] flex-col justify-between overflow-hidden rounded-[28px] border border-black/10 bg-neutral-950 p-5 md:p-6 text-white shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
       <div
@@ -221,8 +254,8 @@ function CTAServiceCard({ onPrimaryClick }) {
         className="pointer-events-none absolute -left-10 -bottom-10 h-40 w-40 rounded-full blur-3xl"
         style={{ backgroundColor: BRAND, opacity: 0.18 }}
       />
-      <img
-        src="/logo.png"
+        <img
+          src={logo}
         alt=""
         className="pointer-events-none absolute right-4 top-4 h-16 w-16 object-contain opacity-[0.06]"
         draggable={false}
@@ -234,12 +267,11 @@ function CTAServiceCard({ onPrimaryClick }) {
         </div>
 
         <h3 className="mt-3 text-[26px] font-black leading-tight tracking-tight">
-          Need a custom mix?
+          {title}
         </h3>
 
         <p className="mt-2.5 max-w-md text-sm leading-6 text-white/75">
-          Tell us your goals and we’ll shape the right website, content, ads,
-          branding, and analytics setup for your business.
+          {description}
         </p>
       </div>
 
@@ -252,15 +284,15 @@ function CTAServiceCard({ onPrimaryClick }) {
             background: "linear-gradient(135deg, #7F8AD1 0%, #D9DDFC 130%)",
           }}
         >
-          Build Your Plan
+          {primaryLabel}
           <ArrowUpRight size={16} />
         </button>
 
         <a
-          href="/contact"
+          href={secondaryLink}
           className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
         >
-          Talk to Us
+          {secondaryLabel}
         </a>
       </div>
     </div>

@@ -2,15 +2,37 @@ import React, { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { FiArrowUpRight } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const IMG_PADDING = 8;
 const BRAND = "#7F8AD1";
 
+const PARALLAX_FALLBACK = "/home2.jpg";
+const CARD_FALLBACK = "/home4.jpg";
+
 export default function TextParallaxContentExample() {
+  const settings = useSiteSettings();
+
+  // Registry overrides (set via Website Images panel) take priority over structured settings.
+  // resolveWebsiteImage returns the original path unchanged when no registry entry exists.
+  const registryParallax = resolveWebsiteImage(settings, PARALLAX_FALLBACK);
+  const registryCard = resolveWebsiteImage(settings, CARD_FALLBACK);
+
+  const parallaxImg =
+    registryParallax !== PARALLAX_FALLBACK
+      ? registryParallax
+      : settings?.homepageSections?.aboutImageUrl || PARALLAX_FALLBACK;
+
+  const cardImg =
+    registryCard !== CARD_FALLBACK
+      ? registryCard
+      : settings?.homepageSections?.servicesImageUrl || CARD_FALLBACK;
+
   return (
     <div className="bg-white">
       <ParallaxSection
-        imgUrl="/home2.jpg"
+        imgUrl={parallaxImg}
         subheading="Strategic Excellence for Business Growth"
         heading="Empowering Businesses to Lead in the Digital Age."
       >
@@ -18,6 +40,7 @@ export default function TextParallaxContentExample() {
           heading="Igniting Business Growth with Strategy That Matters"
           description1="At Expresso Digital, we unlock your business’s true potential through strategies tailored just for you. We don’t do cookie-cutter solutions — we craft insight-driven, purpose-built plans that align with your goals and drive real results."
           description2="Blending industry expertise with creative innovation, our team transforms challenges into opportunities and vision into action. Let Expresso Digital elevate your digital presence and shape a brand that stands strong in today’s competitive world."
+          cardImgUrl={cardImg}
         />
       </ParallaxSection>
     </div>
@@ -31,6 +54,8 @@ function ParallaxSection({
   children,
   isLast = false,
 }) {
+  const settings = useSiteSettings();
+  const resolvedImgUrl = resolveWebsiteImage(settings, imgUrl);
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -57,7 +82,7 @@ function ParallaxSection({
           <motion.div
             className="absolute inset-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden rounded"
             style={{
-              backgroundImage: `url(${imgUrl})`,
+              backgroundImage: `url(${resolvedImgUrl})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               top: IMG_PADDING,
@@ -103,6 +128,8 @@ function GlassContent({
   cardImgUrl = "/home4.jpg", // use any existing image
   cardImgAlt = "Gallery image",
 }) {
+  const settings = useSiteSettings();
+  const resolvedCardImgUrl = resolveWebsiteImage(settings, cardImgUrl);
   const navigate = useNavigate();
 
   return (
@@ -114,11 +141,11 @@ function GlassContent({
         </h3>
 
         {/* ✅ fills the empty space ONLY (fixed height, does not expand layout) */}
-        {cardImgUrl ? (
+        {resolvedCardImgUrl ? (
           <div className="mt-5 overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_18px_60px_rgba(0,0,0,0.10)]">
             <div className="relative h-[140px] w-full">
               <img
-                src={cardImgUrl}
+                src={resolvedCardImgUrl}
                 alt={cardImgAlt}
                 className="absolute inset-0 h-full w-full object-cover"
                 draggable={false}

@@ -2,10 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   FiArrowRight,
-  FiBriefcase,
   FiClipboard,
   FiFileText,
-  FiLayers,
   FiMail,
   FiPhoneCall,
   FiUsers,
@@ -25,14 +23,7 @@ const GROUPS = [
     ],
   },
   {
-    title: "See Our Work",
-    items: [
-      { Icon: FiBriefcase, title: "Portfolio", desc: "Explore selected projects", to: "/our-portfolio" },
-      { Icon: FiLayers, title: "Case Studies", desc: "Read deeper project stories", to: "/our-portfolio" },
-    ],
-  },
-  {
-    title: "Join Expresso",
+    title: "Careers",
     items: [
       { Icon: FiUsers, title: "Careers", desc: "Open roles and team culture", to: "/careers" },
     ],
@@ -48,7 +39,7 @@ const GROUPS = [
 const Item = ({ Icon, title, desc, to }) => (
   <Link
     to={to}
-    className="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-all duration-150 hover:bg-neutral-50"
+    className="group flex min-h-[84px] items-start gap-3 rounded-xl border border-neutral-100 bg-white px-3.5 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.04)] transition-all duration-150 hover:-translate-y-0.5 hover:border-indigo-100 hover:bg-indigo-50/40 hover:shadow-[0_16px_36px_rgba(99,102,241,0.1)]"
   >
     <span
       className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-transform duration-150 group-hover:scale-110"
@@ -115,20 +106,33 @@ export default function WorkWithUsDropdown() {
           </div>
         </div>
 
-        <div className="border-l border-neutral-100 bg-white px-5 py-5">
-          <div className="grid grid-cols-4 gap-x-2">
-            {GROUPS.map((group) => (
-              <div key={group.title}>
-                <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">
-                  {group.title}
-                </p>
-                <div className="space-y-0.5">
-                  {group.items.map((item) => (
-                    <Item key={item.title} {...item} />
-                  ))}
-                </div>
+        <div className="border-l border-neutral-100 bg-white p-5">
+          <div className="grid grid-cols-[1.35fr_1fr] gap-4">
+            <div>
+              <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">
+                {GROUPS[0].title}
+              </p>
+              <div className="grid gap-2">
+                {GROUPS[0].items.map((item) => (
+                  <Item key={item.title} {...item} />
+                ))}
               </div>
-            ))}
+            </div>
+
+            <div className="grid content-start gap-4">
+              {GROUPS.slice(1).map((group) => (
+                <div key={group.title}>
+                  <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">
+                    {group.title}
+                  </p>
+                  <div className="grid gap-2">
+                    {group.items.map((item) => (
+                      <Item key={item.title} {...item} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

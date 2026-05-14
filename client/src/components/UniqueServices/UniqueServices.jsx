@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 import {
   FaHeadphonesAlt,
   FaLightbulb,
@@ -8,35 +10,45 @@ import {
 
 const BRAND = "#838FC6";
 
-const UniqueServices = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const DEFAULT_SERVICES = [
+  {
+    icon: (
+      <FaProjectDiagram className="text-[22px]" style={{ color: BRAND }} />
+    ),
+    title: "Creative Concepts",
+    desc: "Campaign ideas, landing page structure, and messaging that aligns with your offer—and makes people click.",
+  },
+  {
+    icon: (
+      <FaHeadphonesAlt className="text-[22px]" style={{ color: BRAND }} />
+    ),
+    title: "Expert Support",
+    desc: "Clear communication, fast response, and weekly updates so you always know what's next and what's done.",
+  },
+  {
+    icon: <FaLightbulb className="text-[22px]" style={{ color: BRAND }} />,
+    title: "Conversion Thinking",
+    desc: "We design with intent: strong hierarchy, clean CTAs, and UX decisions that turn visitors into leads.",
+  },
+  {
+    icon: <FaServer className="text-[22px]" style={{ color: BRAND }} />,
+    title: "Scalable Delivery",
+    desc: "Modern components, performance-first builds, and a setup that's easy to expand as you grow.",
+  },
+];
 
-  const services = [
-    {
-      icon: (
-        <FaProjectDiagram className="text-[22px]" style={{ color: BRAND }} />
-      ),
-      title: "Creative Concepts",
-      desc: "Campaign ideas, landing page structure, and messaging that aligns with your offer—and makes people click.",
-    },
-    {
-      icon: (
-        <FaHeadphonesAlt className="text-[22px]" style={{ color: BRAND }} />
-      ),
-      title: "Expert Support",
-      desc: "Clear communication, fast response, and weekly updates so you always know what’s next and what’s done.",
-    },
-    {
-      icon: <FaLightbulb className="text-[22px]" style={{ color: BRAND }} />,
-      title: "Conversion Thinking",
-      desc: "We design with intent: strong hierarchy, clean CTAs, and UX decisions that turn visitors into leads.",
-    },
-    {
-      icon: <FaServer className="text-[22px]" style={{ color: BRAND }} />,
-      title: "Scalable Delivery",
-      desc: "Modern components, performance-first builds, and a setup that’s easy to expand as you grow.",
-    },
-  ];
+const DEFAULT_VIDEO_URL = "https://www.youtube.com/embed/lcMh9DDOlrY?autoplay=1";
+
+const UniqueServices = ({
+  services = DEFAULT_SERVICES,
+  videoUrl = DEFAULT_VIDEO_URL,
+  sectionEyebrow = "VALUE",
+  sectionHeading = "HOW WE\nADD VALUE",
+  sectionDescription = "A premium delivery experience—designed to reduce friction, improve clarity, and drive results.",
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const settings = useSiteSettings();
+  const videoPoster = resolveWebsiteImage(settings, "/youtube.jpg");
 
   const handleGetQuote = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -58,16 +70,15 @@ const UniqueServices = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-neutral-200 pb-6">
           <div>
             <p className="text-xs font-semibold tracking-[0.22em] text-neutral-500">
-              VALUE
+              {sectionEyebrow}
             </p>
-            <h2 className="mt-3 text-4xl md:text-5xl font-extrabold leading-tight tracking-tight text-neutral-950">
-              HOW WE <br /> ADD VALUE
+            <h2 className="mt-3 text-4xl md:text-5xl font-extrabold leading-tight tracking-tight text-neutral-950 whitespace-pre-line">
+              {sectionHeading}
             </h2>
           </div>
 
           <p className="text-neutral-600 max-w-md mt-6 md:mt-0 text-sm leading-relaxed">
-            A premium delivery experience—designed to reduce friction, improve
-            clarity, and drive results.
+            {sectionDescription}
           </p>
         </div>
 
@@ -131,7 +142,7 @@ const UniqueServices = () => {
               className="group relative h-full min-h-[360px] overflow-hidden rounded-3xl border border-neutral-200 bg-black shadow-[0_18px_55px_rgba(0,0,0,0.10)] cursor-pointer"
             >
               <img
-                src="/youtube.jpg"
+                src={videoPoster}
                 alt="See our process"
                 className="h-full w-full object-cover opacity-95 transition duration-500 group-hover:scale-[1.03]"
                 draggable={false}
@@ -199,7 +210,7 @@ const UniqueServices = () => {
           >
             <iframe
               className="w-full h-full"
-              src="https://www.youtube.com/embed/lcMh9DDOlrY?autoplay=1"
+              src={videoUrl}
               title="Expresso Digital"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

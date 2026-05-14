@@ -2,6 +2,8 @@ import React from "react";
 import { FiArrowUpRight } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 import {
   SiAdobe,
   SiReact,
@@ -35,12 +37,15 @@ export const ServiceBanner = ({
   badgeText2,
   badgeLink,
 }) => {
+  const settings = useSiteSettings();
+  const resolvedBackgroundImage = resolveWebsiteImage(settings, backgroundImage);
+
   return (
     <section className="overflow-hidden bg-black">
       <div
         className="relative pb-20 pt-12 md:pt-24"
         style={{
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: `url(${resolvedBackgroundImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

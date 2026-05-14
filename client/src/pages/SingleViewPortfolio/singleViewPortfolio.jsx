@@ -6,10 +6,14 @@ import ContactUsSection from "../../components/ContactUsSection/contactSection";
 import portfolioData from "./portfolioData";
 import PortfolioCaseStudy from "../../components/PortfolioComponents/PortfolioCaseStudy";
 import PortfolioGallerySection from "../../components/PortfolioComponents/PortfolioGallerySection";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImages } from "../../utils/websiteImages";
 
 function PrtofolioSingleViewPage() {
   const { id } = useParams();
-  const portfolio = portfolioData.find((item) => item.id === parseInt(id, 10));
+  const settings = useSiteSettings();
+  const resolvedPortfolioData = resolveWebsiteImages(settings, portfolioData);
+  const portfolio = resolvedPortfolioData.find((item) => item.id === parseInt(id, 10));
 
   if (!portfolio) {
     return <div className="text-center py-20">Portfolio not found!</div>;

@@ -1,5 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const WebDevelopmentProcess = ({
   cards = [],
@@ -39,6 +41,9 @@ const WebDevelopmentProcess = ({
 };
 
 const Card = ({ image, title, description, index }) => {
+  const settings = useSiteSettings();
+  const resolvedImage = resolveWebsiteImage(settings, image);
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 18 }}
@@ -55,7 +60,7 @@ const Card = ({ image, title, description, index }) => {
       <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50">
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-black/0 via-white/0 to-white/25 opacity-0 transition group-hover:opacity-100" />
         <img
-          src={image}
+          src={resolvedImage}
           alt={title}
           className="h-44 w-full object-cover transition duration-500 group-hover:scale-[1.04]"
           loading="lazy"

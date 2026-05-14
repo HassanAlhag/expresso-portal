@@ -3,6 +3,8 @@ import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 import { FaUser, FaEnvelope, FaPhone } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 // ... keep your imports and component as-is
 
@@ -11,6 +13,9 @@ const BRAND = "#838FC6";
 const LandingHeroSection = () => {
   const formRef = useRef();
   const navigate = useNavigate();
+  const settings = useSiteSettings();
+  const backgroundImage = resolveWebsiteImage(settings, "/landinghero.jpg");
+  const logo = resolveWebsiteImage(settings, "/white-logo.png");
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -38,7 +43,7 @@ const LandingHeroSection = () => {
       {/* keep your background */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-35"
-        style={{ backgroundImage: "url('/landinghero.jpg')" }}
+        style={{ backgroundImage: `url('${backgroundImage}')` }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/80" />
       <div
@@ -50,7 +55,7 @@ const LandingHeroSection = () => {
         {/* top logo */}
         <div className="flex items-center justify-between">
           <img
-            src="/white-logo.png"
+            src={logo}
             alt="Expresso Digital"
             className="h-16 w-auto object-contain md:h-20"
           />

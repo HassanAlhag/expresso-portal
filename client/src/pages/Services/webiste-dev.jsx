@@ -1,10 +1,13 @@
 import React from "react";
 import { ServiceBanner } from "../../components/ServicesBanner/servicesBanner";
 import BasicFAQ from "../../components/ServicesComponents/faq";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage, resolveWebsiteImages } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
 function WebsiteDevelopmentPage() {
+  const settings = useSiteSettings();
   const descriptions = [
     "We build fast, responsive websites and apps that look premium and perform even better — tailored to your business goals.",
     "From strategy to launch, we handle everything (design, development, testing, deployment) so you can focus on growth while we deliver an experience your customers trust.",
@@ -99,6 +102,8 @@ function WebsiteDevelopmentPage() {
         "Absolutely — we can support domain, hosting setup, SSL, and production deployment.",
     },
   ];
+  const resolvedSteps = resolveWebsiteImages(settings, steps);
+  const editorialImage = resolveWebsiteImage(settings, "/web6.png");
 
   return (
     <div className="bg-white">
@@ -128,7 +133,7 @@ function WebsiteDevelopmentPage() {
             <div className="md:col-span-6">
               <div className="relative overflow-hidden rounded-[30px] border border-black/10 bg-neutral-100 shadow-[0_30px_100px_rgba(0,0,0,0.10)]">
                 <img
-                  src="/web6.png"
+                  src={editorialImage}
                   alt="Website development"
                   className="h-[380px] w-full object-cover md:h-[460px]"
                   draggable={false}
@@ -202,7 +207,7 @@ function WebsiteDevelopmentPage() {
                   style={{ backgroundColor: `${BRAND}55` }}
                 />
                 <div className="space-y-8">
-                  {steps.map((s, idx) => (
+                  {resolvedSteps.map((s, idx) => (
                     <div key={s.id} className="relative">
                       <div
                         className="absolute -left-[6px] top-1 h-4 w-4 rounded-full"
@@ -257,7 +262,7 @@ function WebsiteDevelopmentPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  {steps.slice(0, 4).map((s) => (
+                  {resolvedSteps.slice(0, 4).map((s) => (
                     <div
                       key={s.id}
                       className="overflow-hidden rounded-3xl border border-black/10 bg-white shadow-[0_18px_60px_rgba(0,0,0,0.06)]"

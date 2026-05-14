@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import HomeSection from "../HomeSection/HomeSection";
 import Lightbox from "../Lightbox/Lightbox";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
@@ -22,6 +24,9 @@ export const DragCards = ({
   images = [],
   onPrimaryClick,
 }) => {
+  const settings = useSiteSettings();
+  const logo = resolveWebsiteImage(settings, "/logo.png");
+
   return (
     <HomeSection
       eyebrow="GALLERY"
@@ -40,7 +45,7 @@ export const DragCards = ({
           style={{ backgroundColor: BRAND, opacity: 0.08 }}
         />
         <img
-          src="/logo.png"
+          src={logo}
           alt=""
           className="pointer-events-none absolute right-6 top-6 h-20 w-20 object-contain opacity-5"
           draggable={false}

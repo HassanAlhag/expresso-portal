@@ -1,16 +1,25 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const WebDevelopmentSolutions = ({ 
   image, 
   heading, 
   descriptions 
 }) => {
+  const settings = useSiteSettings();
+  const sectionBg = resolveWebsiteImage(
+    settings,
+    settings?.services?.sectionBgUrl || "https://demo.casethemes.net/saira/wp-content/uploads/2023/09/u-bg6.jpg"
+  );
+  const resolvedImage = resolveWebsiteImage(settings, image);
+
   return (
     <motion.div
       className="flex flex-col md:flex-row items-start justify-center px-6 py-8 bg-cover bg-center text-white gap-14 max-w-[1270px] mx-auto mt-10"
       style={{
-        backgroundImage: "url('https://demo.casethemes.net/saira/wp-content/uploads/2023/09/u-bg6.jpg')",
+        backgroundImage: `url('${sectionBg}')`,
       }}
       initial={{ opacity: 0, y: 50 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -19,7 +28,7 @@ const WebDevelopmentSolutions = ({
     >
       <div className="w-full md:w-1/2 flex justify-center">
         <img
-          src={image}
+          src={resolvedImage}
           alt={heading}
           className="h-auto w-full md:w-auto object-cover"
         />

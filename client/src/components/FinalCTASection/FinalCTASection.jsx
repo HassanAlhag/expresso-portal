@@ -1,9 +1,23 @@
 import React from "react";
 import { ArrowUpRight } from "lucide-react";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
-export default function FinalCTASection({ onPrimaryClick }) {
+export default function FinalCTASection({
+  onPrimaryClick,
+  badge = "READY TO MOVE?",
+  heading = "Let's turn your idea",
+  headingHighlight = "into a clear growth plan",
+  description = "Tell us your goal, your style, and what you need. We'll help shape the right direction for your brand, website, or campaign.",
+  primaryLabel = "Build Your Plan",
+  secondaryLabel = "Schedule a Call",
+  secondaryLink = "/contact",
+}) {
+  const settings = useSiteSettings();
+  const logo = resolveWebsiteImage(settings, "/logo.png");
+
   return (
     <section className="mx-auto w-[min(1200px,92vw)] pb-20 md:pb-28">
       <div className="relative overflow-hidden rounded-[36px] border border-white/[0.07] bg-[#0B0B11] px-8 py-14 text-white shadow-[0_32px_100px_rgba(0,0,0,0.28)] sm:px-12 sm:py-20">
@@ -43,7 +57,7 @@ export default function FinalCTASection({ onPrimaryClick }) {
 
         {/* Logo watermark */}
         <img
-          src="/logo.png"
+          src={logo}
           alt=""
           className="pointer-events-none absolute right-8 top-8 h-24 w-24 object-contain opacity-[0.04]"
           draggable={false}
@@ -56,17 +70,16 @@ export default function FinalCTASection({ onPrimaryClick }) {
               className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
               style={{ backgroundColor: BRAND }}
             />
-            READY TO MOVE?
+            {badge}
           </div>
 
           <h2 className="mt-6 text-4xl font-black tracking-tight leading-[1.08] sm:text-5xl md:text-6xl">
-            Let's turn your idea{" "}
-            <span style={{ color: BRAND }}>into a clear growth plan</span>
+            {heading}{" "}
+            <span style={{ color: BRAND }}>{headingHighlight}</span>
           </h2>
 
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg">
-            Tell us your goal, your style, and what you need. We'll help shape
-            the right direction for your brand, website, or campaign.
+            {description}
           </p>
         </div>
 
@@ -80,15 +93,15 @@ export default function FinalCTASection({ onPrimaryClick }) {
                 "linear-gradient(135deg, rgba(127,138,209,1) 0%, rgba(220,225,255,0.95) 110%)",
             }}
           >
-            Build Your Plan
+            {primaryLabel}
             <ArrowUpRight size={16} strokeWidth={2.5} />
           </button>
 
           <a
-            href="/contact"
+            href={secondaryLink}
             className="inline-flex items-center rounded-2xl border border-white/12 bg-white/5 px-8 py-4 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10 hover:border-white/20"
           >
-            Schedule a Call
+            {secondaryLabel}
           </a>
         </div>
       </div>

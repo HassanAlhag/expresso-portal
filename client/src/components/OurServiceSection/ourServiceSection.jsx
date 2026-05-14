@@ -2,49 +2,58 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FiArrowUpRight } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
-const RevealCards = () => {
+const DEFAULT_CARDS = [
+  {
+    title: "Website & App Development",
+    description: "High-performing, conversion-first websites and apps built to look premium and load fast.",
+    imgSrc: "/88.jpg",
+    link: "/service/web-dev",
+    tag: "WEB",
+  },
+  {
+    title: "Social Media Management",
+    description: "Scroll-stopping content systems + campaigns that turn attention into real customers.",
+    imgSrc: "/87.jpg",
+    link: "/service/social-media-marketing",
+    tag: "SOCIAL",
+  },
+  {
+    title: "SEO",
+    description: "Rank higher, get discovered, and attract qualified organic traffic that actually converts.",
+    imgSrc: "/85.jpg",
+    link: "/service/seo-marketing",
+    tag: "SEO",
+  },
+  {
+    title: "Google Ads",
+    description: "Performance-first ads with measurable ROI — high intent traffic, better leads, smarter spend.",
+    imgSrc: "/86.jpg",
+    link: "/service/google-ads",
+    tag: "ADS",
+  },
+];
+
+const RevealCards = ({ cards = DEFAULT_CARDS }) => {
   return (
     <section className="bg-white px-4 py-12 md:py-16">
-      {/* Section header (optional) */}
-
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2">
-        <Card
-          title="Website & App Development"
-          description="High-performing, conversion-first websites and apps built to look premium and load fast."
-          imgSrc="/88.jpg"
-          link="/service/web-dev"
-          tag="WEB"
-        />
-        <Card
-          title="Social Media Management"
-          description="Scroll-stopping content systems + campaigns that turn attention into real customers."
-          imgSrc="/87.jpg"
-          link="/service/social-media-marketing"
-          tag="SOCIAL"
-        />
-        <Card
-          title="SEO"
-          description="Rank higher, get discovered, and attract qualified organic traffic that actually converts."
-          imgSrc="/85.jpg"
-          link="/service/seo-marketing"
-          tag="SEO"
-        />
-        <Card
-          title="Google Ads"
-          description="Performance-first ads with measurable ROI — high intent traffic, better leads, smarter spend."
-          imgSrc="/86.jpg"
-          link="/service/google-ads"
-          tag="ADS"
-        />
+        {cards.map((card, index) => (
+          <Card key={index} {...card} />
+        ))}
       </div>
     </section>
   );
 };
 
 const Card = ({ imgSrc, title, description, link, tag }) => {
+  const settings = useSiteSettings();
+  const resolvedImgSrc = resolveWebsiteImage(settings, imgSrc);
+
   return (
     <motion.article
       whileHover={{ y: -8 }}
@@ -57,7 +66,7 @@ const Card = ({ imgSrc, title, description, link, tag }) => {
       {/* IMAGE */}
       <div className="relative aspect-[16/10] w-full">
         <img
-          src={imgSrc}
+          src={resolvedImgSrc}
           alt={title}
           loading="lazy"
           draggable={false}

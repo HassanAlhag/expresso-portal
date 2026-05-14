@@ -1,5 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const WebSteps = ({ features }) => {
   return (
@@ -100,10 +102,13 @@ const Content = ({ setFeatureInView, featureInView }) => {
 };
 
 const ExampleFeature = ({ featureInView }) => {
+  const settings = useSiteSettings();
+  const image = resolveWebsiteImage(settings, featureInView.image);
+
   return (
     <div className="relative h-[29rem] w-full rounded-xl overflow-hidden">
       <img
-        src={featureInView.image}
+        src={image}
         alt={featureInView.title}
         className="absolute inset-0 h-full w-full object-cover"
       />

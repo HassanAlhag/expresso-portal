@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 import Slide from "./slide.model.js";
 
+const cleanString = (value, fallback = "") => String(value || fallback).trim();
+const objectIdOrNull = (value) =>
+  value && mongoose.Types.ObjectId.isValid(value) ? value : null;
+
 export async function listPublicSlides(req, res) {
   try {
     const slides = await Slide.find({ isActive: true }).sort({ order: 1, createdAt: -1 }).lean();
@@ -25,16 +29,22 @@ export async function createSlide(req, res) {
   try {
     const body = req.body || {};
     const slide = await Slide.create({
-      title:        String(body.title || "").trim(),
-      subtitle:     String(body.subtitle || "").trim(),
-      imageUrl:     String(body.imageUrl || "").trim(),
-      imageMediaId: body.imageMediaId && mongoose.Types.ObjectId.isValid(body.imageMediaId) ? body.imageMediaId : null,
-      ctaLabel:     String(body.ctaLabel || "").trim(),
-      ctaUrl:       String(body.ctaUrl || "").trim(),
-      order:        Number(body.order) || 0,
-      isActive:     body.isActive !== false,
-      createdBy:    req.user?.id || null,
-      updatedBy:    req.user?.id || null,
+      eyebrowLeft: cleanString(body.eyebrowLeft, "EXPRESSO DIGITAL"),
+      eyebrowRight: cleanString(body.eyebrowRight, "GROWTH SYSTEMS"),
+      title: cleanString(body.title),
+      subtitle: cleanString(body.subtitle),
+      imageUrl: cleanString(body.imageUrl),
+      imageMediaId: objectIdOrNull(body.imageMediaId),
+      thumbImageUrl: cleanString(body.thumbImageUrl),
+      thumbImageMediaId: objectIdOrNull(body.thumbImageMediaId),
+      ctaLabel: cleanString(body.ctaLabel),
+      ctaUrl: cleanString(body.ctaUrl),
+      secondaryCtaLabel: cleanString(body.secondaryCtaLabel),
+      secondaryCtaUrl: cleanString(body.secondaryCtaUrl),
+      order: Number(body.order) || 0,
+      isActive: body.isActive !== false,
+      createdBy: req.user?.id || null,
+      updatedBy: req.user?.id || null,
     });
     return res.status(201).json({ ok: true, item: slide });
   } catch (e) {
@@ -52,15 +62,31 @@ export async function updateSlide(req, res) {
     const body = req.body || {};
     const patch = { updatedBy: req.user?.id || null };
 
-    if (typeof body.title     !== "undefined") patch.title     = String(body.title || "").trim();
-    if (typeof body.subtitle  !== "undefined") patch.subtitle  = String(body.subtitle || "").trim();
-    if (typeof body.imageUrl  !== "undefined") patch.imageUrl  = String(body.imageUrl || "").trim();
-    if (typeof body.ctaLabel  !== "undefined") patch.ctaLabel  = String(body.ctaLabel || "").trim();
-    if (typeof body.ctaUrl    !== "undefined") patch.ctaUrl    = String(body.ctaUrl || "").trim();
-    if (typeof body.order     !== "undefined") patch.order     = Number(body.order) || 0;
-    if (typeof body.isActive  !== "undefined") patch.isActive  = Boolean(body.isActive);
+    if (typeof body.eyebrowLeft !== "undefined")
+      patch.eyebrowLeft = cleanString(body.eyebrowLeft);
+    if (typeof body.eyebrowRight !== "undefined")
+      patch.eyebrowRight = cleanString(body.eyebrowRight);
+    if (typeof body.title !== "undefined") patch.title = cleanString(body.title);
+    if (typeof body.subtitle !== "undefined")
+      patch.subtitle = cleanString(body.subtitle);
+    if (typeof body.imageUrl !== "undefined")
+      patch.imageUrl = cleanString(body.imageUrl);
+    if (typeof body.thumbImageUrl !== "undefined")
+      patch.thumbImageUrl = cleanString(body.thumbImageUrl);
+    if (typeof body.ctaLabel !== "undefined")
+      patch.ctaLabel = cleanString(body.ctaLabel);
+    if (typeof body.ctaUrl !== "undefined") patch.ctaUrl = cleanString(body.ctaUrl);
+    if (typeof body.secondaryCtaLabel !== "undefined")
+      patch.secondaryCtaLabel = cleanString(body.secondaryCtaLabel);
+    if (typeof body.secondaryCtaUrl !== "undefined")
+      patch.secondaryCtaUrl = cleanString(body.secondaryCtaUrl);
+    if (typeof body.order !== "undefined") patch.order = Number(body.order) || 0;
+    if (typeof body.isActive !== "undefined") patch.isActive = Boolean(body.isActive);
     if (typeof body.imageMediaId !== "undefined") {
-      patch.imageMediaId = body.imageMediaId && mongoose.Types.ObjectId.isValid(body.imageMediaId) ? body.imageMediaId : null;
+      patch.imageMediaId = objectIdOrNull(body.imageMediaId);
+    }
+    if (typeof body.thumbImageMediaId !== "undefined") {
+      patch.thumbImageMediaId = objectIdOrNull(body.thumbImageMediaId);
     }
 
     const item = await Slide.findByIdAndUpdate(id, patch, { new: true }).lean();

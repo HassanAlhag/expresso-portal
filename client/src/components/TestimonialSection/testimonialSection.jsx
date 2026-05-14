@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import HomeSection from "../HomeSection/HomeSection";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage, resolveWebsiteImages } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
-const testimonials = [
+const DEFAULT_TESTIMONIALS = [
   {
     img: "/godfel-logo.png",
     description:
@@ -49,18 +51,26 @@ const testimonials = [
   },
 ];
 
-export default function StackedCardTestimonials() {
+export default function StackedCardTestimonials({ testimonials = DEFAULT_TESTIMONIALS }) {
+  const settings = useSiteSettings();
   const [selected, setSelected] = useState(0);
+  const resolvedTestimonials = useMemo(
+    () => resolveWebsiteImages(settings, testimonials),
+    [settings, testimonials]
+  );
+  const logo = resolveWebsiteImage(settings, "/logo.png");
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setSelected((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
+      setSelected((prev) =>
+        prev === resolvedTestimonials.length - 1 ? 0 : prev + 1
+      );
     }, 5000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [resolvedTestimonials.length]);
 
-  const active = testimonials[selected];
+  const active = resolvedTestimonials[selected] || resolvedTestimonials[0];
 
   return (
     <section className="relative w-full overflow-hidden py-20 md:py-24">
@@ -97,7 +107,7 @@ export default function StackedCardTestimonials() {
             style={{ backgroundColor: BRAND, opacity: 0.1 }}
           />
           <img
-            src="/logo.png"
+            src={logo}
             alt=""
             className="pointer-events-none absolute right-6 top-6 h-20 w-20 object-contain opacity-[0.05]"
             draggable={false}
@@ -129,7 +139,7 @@ export default function StackedCardTestimonials() {
                 <ProgressTabs
                   selected={selected}
                   setSelected={setSelected}
-                  count={testimonials.length}
+                  count={resolvedTestimonials.length}
                 />
               </div>
             </div>
@@ -180,7 +190,7 @@ export default function StackedCardTestimonials() {
               </motion.div>
 
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-                {testimonials.map((item, index) => {
+                {resolvedTestimonials.map((item, index) => {
                   const isActive = selected === index;
 
                   return (

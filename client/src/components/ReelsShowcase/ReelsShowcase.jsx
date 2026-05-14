@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { FiPlay, FiX, FiExternalLink } from "react-icons/fi";
 import { ArrowUpRight } from "lucide-react";
 import HomeSection from "../HomeSection/HomeSection";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
@@ -32,6 +34,8 @@ export default function ReelsShowcase({
   ctaText = "Request reels like these",
   onCtaClick,
 }) {
+  const settings = useSiteSettings();
+  const logo = resolveWebsiteImage(settings, "/logo.png");
   const [active, setActive] = useState(null);
 
   const safeReels = useMemo(() => (Array.isArray(reels) ? reels : []), [reels]);
@@ -89,7 +93,7 @@ export default function ReelsShowcase({
         />
 
         <img
-          src="/logo.png"
+          src={logo}
           alt=""
           className="pointer-events-none absolute right-5 top-5 h-14 w-14 object-contain opacity-5"
           draggable={false}

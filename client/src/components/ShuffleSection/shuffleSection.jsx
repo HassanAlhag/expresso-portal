@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import Lightbox from "../Lightbox/Lightbox";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImages } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
@@ -18,8 +20,11 @@ const DEFAULT_ITEMS = [
 
 export default function ShuffleHero({ items: itemsProp }) {
   const navigate = useNavigate();
+  const settings = useSiteSettings();
   const [active, setActive] = useState(null);
-  const items = (itemsProp && itemsProp.length > 0) ? itemsProp : DEFAULT_ITEMS;
+  const items = (itemsProp && itemsProp.length > 0)
+    ? itemsProp
+    : resolveWebsiteImages(settings, DEFAULT_ITEMS);
   const looped = useMemo(() => [...items, ...items], [items]);
 
   return (

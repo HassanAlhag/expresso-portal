@@ -4,12 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import LINKS from "./links";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
 const LOGO_FALLBACK = "/white-logo.png";
 
 const Header = () => {
   const settings = useSiteSettings();
-  const logoSrc = settings?.branding?.logoWhiteUrl || LOGO_FALLBACK;
+  const logoSrc = settings?.branding?.logoWhiteUrl
+    ? toWebsiteImageUrl(settings.branding.logoWhiteUrl)
+    : resolveWebsiteImage(settings, LOGO_FALLBACK);
 
   return (
     <header className="fixed inset-x-0 top-0 z-[1000] pointer-events-none">

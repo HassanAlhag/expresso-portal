@@ -5,14 +5,17 @@ import ShiftingContactForm from "../../components/ContactForm/contactForm";
 import SectionHeader from "../../components/SectionHeader/SectionHeader";
 import ContactMap from "../../components/ContactMap/contactMap";
 import ContactInfoSection from "../../components/ContactInfo/contactInfo";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
 
 function ContactPage() {
+  const settings = useSiteSettings();
+
   return (
     <div>
       <ServiceBanner
         heading="Get in Touch with Us"
         subHeading="We'd love to hear from you! Whether you have questions, need assistance, or want to collaborate, our team is here to help."
-        backgroundImage="/contact-bg.jpg"
+        backgroundImage={settings?.contact?.heroImageUrl || "/contact-bg.jpg"}
         ctaText="View Our Works"
         ctaLink="/our-portfolio"
         badgeText="Support Available"

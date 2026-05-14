@@ -1,10 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FiFacebook, FiInstagram, FiLinkedin, FiTwitter } from "react-icons/fi";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
 const BRAND = "#7F8AD1";
 
 const Footer = () => {
+  const settings = useSiteSettings();
+  const logoSrc = settings?.branding?.logoWhiteUrl
+    ? toWebsiteImageUrl(settings.branding.logoWhiteUrl)
+    : resolveWebsiteImage(settings, "/white-logo.png");
+
   return (
     <footer className="relative overflow-hidden bg-neutral-950 text-white/80">
       {/* Background vibe (matches your header / dark hero) */}
@@ -25,7 +32,7 @@ const Footer = () => {
               aria-label="Expresso Digital Home"
             >
               <img
-                src="/white-logo.png"
+                src={logoSrc}
                 alt="Expresso Digital"
                 className="h-12 w-auto object-contain"
                 draggable={false}

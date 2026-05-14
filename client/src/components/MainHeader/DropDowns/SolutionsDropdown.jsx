@@ -76,10 +76,10 @@ export default function SolutionsDropdown() {
               <div className="mb-4 h-px w-full bg-white/10" />
 
               <Link
-                to="/contact-us"
+                to="/it-solutions"
                 className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-indigo-300 transition-colors hover:text-white"
               >
-                Talk to an expert
+                Explore all solutions
                 <FiArrowRight size={11} />
               </Link>
             </div>

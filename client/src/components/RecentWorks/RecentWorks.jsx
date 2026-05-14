@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FaChevronLeft, FaChevronRight, FaTimes } from "react-icons/fa";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImages } from "../../utils/websiteImages";
 
 // ✅ MOVE OUTSIDE so it doesn't recreate each render
 const WORKS = [
@@ -65,6 +67,9 @@ const WORKS = [
 ];
 
 const RecentWork = () => {
+  const settings = useSiteSettings();
+  const works = useMemo(() => resolveWebsiteImages(settings, WORKS), [settings]);
+
   // ✅ lightbox state
   const [lightbox, setLightbox] = useState({
     open: false,
@@ -79,8 +84,8 @@ const RecentWork = () => {
 
   // ✅ use WORKS (stable)
   const activeWork = useMemo(
-    () => WORKS[lightbox.workIndex],
-    [lightbox.workIndex]
+    () => works[lightbox.workIndex],
+    [works, lightbox.workIndex]
   );
 
   const activeImages = activeWork?.images || [];
@@ -131,7 +136,7 @@ const RecentWork = () => {
 
         {/* ---- WORK GRID ---- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {WORKS.map((work, i) => (
+          {works.map((work, i) => (
             <WorkCard key={i} work={work} workIndex={i} onOpen={openLightbox} />
           ))}
         </div>

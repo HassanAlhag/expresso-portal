@@ -7,13 +7,14 @@ import ProcurementProcess from "../../components/ProcurementProcess/ProcurementP
 import TechnologyCTA from "../../components/TechnologyCTA/TechnologyCTA";
 import { STATIC_SOLUTIONS } from "../../data/technologySolutionsData";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { getAssetUrl } from "../../portal/shared/utils/assetUrl";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 export default function ITSolutionsPage() {
   const settings = useSiteSettings();
-  const heroImageUrl = settings?.itSolutions?.heroImageUrl
-    ? getAssetUrl(settings.itSolutions.heroImageUrl)
-    : "/81.webp";
+  const heroImageUrl = resolveWebsiteImage(
+    settings,
+    settings?.itSolutions?.heroImageUrl || "/81.webp"
+  );
 
   return (
     <>

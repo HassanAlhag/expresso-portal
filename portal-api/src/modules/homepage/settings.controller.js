@@ -34,7 +34,7 @@ export async function getSettings(req, res) {
 }
 
 // PATCH /api/site-settings  (admin)
-// Body: { section: "branding"|"home"|"homepageSections"|"about"|"services"|"portfolio"|"careers"|"contact"|"gallery"|"itSolutions"|"marquee", data: {...} }
+// Body: { section: "branding"|"home"|"homepageSections"|"about"|"services"|"portfolio"|"careers"|"contact"|"websiteImages"|"gallery"|"itSolutions"|"marquee", data: {...} }
 export async function updateSettings(req, res) {
   try {
     const SECTIONS = [
@@ -46,6 +46,7 @@ export async function updateSettings(req, res) {
       "portfolio",
       "careers",
       "contact",
+      "websiteImages",
       "gallery",
       "itSolutions",
       "marquee",

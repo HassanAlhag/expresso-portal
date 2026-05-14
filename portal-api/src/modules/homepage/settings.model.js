@@ -54,13 +54,6 @@ const siteSettingsSchema = new mongoose.Schema(
     },
 
     homepageSections: {
-      servicesImageUrl: { type: String, default: "" },
-      servicesImageMediaId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Media",
-        default: null,
-      },
-
       aboutImageUrl: { type: String, default: "" },
       aboutImageMediaId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -68,15 +61,8 @@ const siteSettingsSchema = new mongoose.Schema(
         default: null,
       },
 
-      ctaImageUrl: { type: String, default: "" },
-      ctaImageMediaId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Media",
-        default: null,
-      },
-
-      processImageUrl: { type: String, default: "" },
-      processImageMediaId: {
+      servicesImageUrl: { type: String, default: "" },
+      servicesImageMediaId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Media",
         default: null,
@@ -222,6 +208,21 @@ const siteSettingsSchema = new mongoose.Schema(
         ref: "Media",
         default: null,
       },
+    },
+
+    // Generic replacement map for legacy/default public website images.
+    websiteImages: {
+      images: [
+        {
+          key: { type: String, default: "" },
+          url: { type: String, default: "" },
+          mediaId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Media",
+            default: null,
+          },
+        },
+      ],
     },
 
     // Homepage draggable gallery (up to 8 images)

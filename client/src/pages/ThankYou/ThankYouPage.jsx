@@ -1,14 +1,18 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const ThankYouPage = () => {
   const navigate = useNavigate();
+  const settings = useSiteSettings();
+  const logo = resolveWebsiteImage(settings, "/logo.png");
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 text-center">
       {/* Logo */}
       <div className="mb-10">
-        <img src="/logo.png" alt="Logo" className="h-12 md:h-14 w-auto" />
+        <img src={logo} alt="Logo" className="h-12 md:h-14 w-auto" />
       </div>
 
       {/* Icon */}

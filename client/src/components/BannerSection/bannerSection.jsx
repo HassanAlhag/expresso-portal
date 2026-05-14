@@ -7,6 +7,8 @@ import {
   animate,
 } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const COLORS_TOP = ["#13FFAA", "#1E67C6", "#CE84CF", "#DD335C"];
 
@@ -15,7 +17,11 @@ const AuroraHero = ({
   subtitle,
   description,
   backgroundImageUrl = "/81.webp",
+  ctaText = "Start Now",
+  ctaLink = "/contact-us",
 }) => {
+  const settings = useSiteSettings();
+  const resolvedBackgroundImageUrl = resolveWebsiteImage(settings, backgroundImageUrl);
   const color = useMotionValue(COLORS_TOP[0]);
 
   useEffect(() => {
@@ -29,7 +35,7 @@ const AuroraHero = ({
 
   const navigate = useNavigate();
 
-  const backgroundImage = useMotionTemplate`radial-gradient(circle at 10% 90%, ${color} 0%, transparent 40%), url('${backgroundImageUrl}')`;
+  const backgroundImage = useMotionTemplate`radial-gradient(circle at 10% 90%, ${color} 0%, transparent 40%), url('${resolvedBackgroundImageUrl}')`;
   const border = useMotionTemplate`1px solid ${color}`;
   const boxShadow = useMotionTemplate`0px 4px 24px ${color}`;
 
@@ -65,9 +71,9 @@ const AuroraHero = ({
             scale: 0.985,
           }}
           className="group relative flex w-fit items-center gap-1.5 rounded-full bg-gray-950/10 px-4 py-2 text-gray-50 transition-colors hover:bg-gray-950/50"
-          onClick={() => navigate("/contact-us")}
+          onClick={() => navigate(ctaLink)}
         >
-          Start Now
+          {ctaText}
           <FiArrowRight className="transition-transform group-hover:-rotate-45 group-active:-rotate-12" />
         </motion.button>
       </div>
