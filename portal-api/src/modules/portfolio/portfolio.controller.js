@@ -112,6 +112,20 @@ export async function createPortfolio(req, res) {
       metaTitle: body.seo?.metaTitle || "",
       metaDesc: body.seo?.metaDesc || "",
     },
+    clientName: body.clientName || "",
+    bannerTitle: body.bannerTitle || "",
+    bannerDesc: body.bannerDesc || "",
+    bannerImage: body.bannerImage || "",
+    thumbnailImg: body.thumbnailImg || "",
+    startDate: body.startDate || "",
+    endDate: body.endDate || "",
+    introDescription: body.introDescription || "",
+    problems: body.problems || "",
+    solutions: Array.isArray(body.solutions) ? body.solutions : [],
+    solutionImage: body.solutionImage || "",
+    result: body.result || "",
+    imageUrls: Array.isArray(body.imageUrls) ? body.imageUrls : [],
+    sortOrder: typeof body.sortOrder === "number" ? body.sortOrder : 0,
   });
 
   res.status(201).json({ ok: true, item });
@@ -184,6 +198,23 @@ export async function updatePortfolio(req, res) {
       metaTitle: body.seo?.metaTitle || "",
       metaDesc: body.seo?.metaDesc || "",
     };
+  }
+
+  const caseStudyFields = [
+    "clientName", "bannerTitle", "bannerDesc", "bannerImage", "thumbnailImg",
+    "startDate", "endDate", "introDescription", "problems", "solutionImage", "result",
+  ];
+  for (const f of caseStudyFields) {
+    if (typeof body[f] !== "undefined") patch[f] = body[f];
+  }
+  if (typeof body.solutions !== "undefined") {
+    patch.solutions = Array.isArray(body.solutions) ? body.solutions : [];
+  }
+  if (typeof body.imageUrls !== "undefined") {
+    patch.imageUrls = Array.isArray(body.imageUrls) ? body.imageUrls : [];
+  }
+  if (typeof body.sortOrder !== "undefined") {
+    patch.sortOrder = Number(body.sortOrder) || 0;
   }
 
   const item = await Portfolio.findByIdAndUpdate(id, patch, { new: true })

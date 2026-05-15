@@ -220,7 +220,7 @@ export default function PlanBuilder({ onFinish }) {
 
       const payload = buildLeadPayload();
 
-      const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5050/api";
+      const API_BASE = process.env.REACT_APP_API_URL || "/api";
       const res = await fetch(
         `${API_BASE}/public/plan-submissions`,
         {

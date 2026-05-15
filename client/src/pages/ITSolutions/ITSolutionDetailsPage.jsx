@@ -12,7 +12,7 @@ import {
 } from "../../data/technologySolutionsData";
 import { TECHNOLOGY_SOLUTION_DETAILS } from "../../data/technologySolutionDetailsData";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImage } from "../../utils/websiteImages";
+import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
 
 export default function ITSolutionDetailsPage() {
   const { slug } = useParams();
@@ -53,11 +53,10 @@ export default function ITSolutionDetailsPage() {
   };
 
   const heroSettingKey = solution.heroSettingKey;
-  const heroImageUrl = resolveWebsiteImage(
+  const heroImageUrl = resolveWebsiteImageSetting(
     settings,
-    (heroSettingKey ? settings?.itSolutions?.[heroSettingKey] : "") ||
-      solution.heroImageUrl ||
-      "/81.webp"
+    solution.heroImageUrl || "/81.webp",
+    heroSettingKey ? settings?.itSolutions?.[heroSettingKey] : ""
   );
 
   return (

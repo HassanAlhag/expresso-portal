@@ -68,6 +68,23 @@ export function resolveWebsiteImage(settings, fallback) {
   return shouldUseApiAsset(fallback) ? toWebsiteImageUrl(fallback) : fallback;
 }
 
+export function hasWebsiteImageOverride(settings, fallback) {
+  if (!fallback || typeof fallback !== "string") return false;
+
+  const normalizedFallback = normalizeImagePath(fallback);
+  const overrides = getWebsiteImageOverrides(settings);
+
+  return Boolean(overrides[normalizedFallback]);
+}
+
+export function resolveWebsiteImageSetting(settings, fallback, configuredUrl) {
+  if (hasWebsiteImageOverride(settings, fallback)) {
+    return resolveWebsiteImage(settings, fallback);
+  }
+
+  return configuredUrl ? toWebsiteImageUrl(configuredUrl) : resolveWebsiteImage(settings, fallback);
+}
+
 export function resolveWebsiteImages(settings, value) {
   if (typeof value === "string") {
     const normalized = normalizeImagePath(value);

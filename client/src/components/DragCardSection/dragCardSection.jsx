@@ -90,7 +90,7 @@ export const DragCards = ({
               </button>
 
               <a
-                href="/our-portfolio"
+                href="/case-studies"
                 className="rounded-2xl border border-neutral-200 bg-white px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-50"
               >
                 View portfolio

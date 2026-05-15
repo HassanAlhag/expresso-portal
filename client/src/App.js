@@ -20,6 +20,7 @@ const PortalRoutes = lazy(() => import("./portal/app/PortalRoutes"));
 const Home = lazy(() => import("./pages/Home/home"));
 const AboutUsPage = lazy(() => import("./pages/AboutUs/aboutUs"));
 const PortfolioPage = lazy(() => import("./pages/Portfolio/portfolio"));
+const PortfolioGalleryPage = lazy(() => import("./pages/PortfolioGallery/PortfolioGalleryPage"));
 const PrtofolioSingleViewPage = lazy(() =>
   import("./pages/SingleViewPortfolio/singleViewPortfolio")
 );
@@ -117,9 +118,10 @@ function Content() {
           {/* Public Website */}
           <Route path="/" element={<Home />} />
           <Route path="/about-us" element={<AboutUsPage />} />
-          <Route path="/our-portfolio" element={<PortfolioPage />} />
+          <Route path="/case-studies" element={<PortfolioPage />} />
+          <Route path="/portfolio" element={<PortfolioGalleryPage />} />
           <Route
-            path="/portfolio/detail/:id"
+            path="/case-studies/:id"
             element={<PrtofolioSingleViewPage />}
           />
           <Route path="/contact-us" element={<ContactPage />} />

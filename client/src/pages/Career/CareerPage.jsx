@@ -25,7 +25,7 @@ import {
 import AuroraHero from "../../components/BannerSection/bannerSection";
 import HomeSection from "../../components/HomeSection/HomeSection";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImage } from "../../utils/websiteImages";
+import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
 import { listPublicCareers, uploadCV, applyForCareer } from "../../api/careers";
 
 const BRAND = "#7F8AD1";
@@ -438,9 +438,10 @@ export default function CareerPage() {
   const [applyJob, setApplyJob] = useState(null);
   const settings = useSiteSettings();
 
-  const careerHeroImage = resolveWebsiteImage(
+  const careerHeroImage = resolveWebsiteImageSetting(
     settings,
-    settings?.careers?.heroImageUrl || "/81.webp"
+    "/81.webp",
+    settings?.careers?.heroImageUrl
   );
 
   useEffect(() => {

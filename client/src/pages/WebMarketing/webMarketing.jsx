@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import AboutUsSectionForAd from "../../components/About-Us-Section/aboutUsSectionGoogle";
 import LandingHeroSection from "../../components/LandingHero/LandingHero";
 import RecentWork from "../../components/RecentWorks/RecentWorks";
@@ -86,6 +87,19 @@ const WEB_VIDEO_URL = "https://www.youtube.com/embed/lcMh9DDOlrY?autoplay=1";
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function WebMarketing() {
+  const [showSticky, setShowSticky] = useState(true);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const nearBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 300;
+      setShowSticky(!nearBottom);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div className="bg-white">
       {/* HERO contains the lead form target id="lead-form" */}
@@ -110,7 +124,8 @@ function WebMarketing() {
       <UniqueServices services={WEB_UNIQUE_SERVICES} videoUrl={WEB_VIDEO_URL} />
       <Testimonials />
 
-      {/* Sticky bottom CTA for mobile */}
+      {/* Sticky bottom CTA for mobile — hides near footer */}
+      {showSticky && (
       <div className="fixed bottom-4 left-1/2 z-[60] w-[min(560px,92vw)] -translate-x-1/2 md:hidden">
         <button
           type="button"
@@ -130,6 +145,7 @@ function WebMarketing() {
           </span>
         </button>
       </div>
+      )}
     </div>
   );
 }

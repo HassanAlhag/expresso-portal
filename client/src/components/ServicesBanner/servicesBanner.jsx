@@ -31,6 +31,7 @@ export const ServiceBanner = ({
   subHeading,
   backgroundImage,
   overlayOpacity = 0.6,
+  showLogos = true,
   ctaText,
   ctaLink,
   badgeText,
@@ -64,7 +65,7 @@ export const ServiceBanner = ({
           />
         </div>
       </div>
-      <Logos />
+      {showLogos && <Logos />}
     </section>
   );
 };

@@ -6,6 +6,7 @@ import SectionHeader from "../../components/SectionHeader/SectionHeader";
 import ContactMap from "../../components/ContactMap/contactMap";
 import ContactInfoSection from "../../components/ContactInfo/contactInfo";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
 
 function ContactPage() {
   const settings = useSiteSettings();
@@ -15,9 +16,13 @@ function ContactPage() {
       <ServiceBanner
         heading="Get in Touch with Us"
         subHeading="We'd love to hear from you! Whether you have questions, need assistance, or want to collaborate, our team is here to help."
-        backgroundImage={settings?.contact?.heroImageUrl || "/contact-bg.jpg"}
+        backgroundImage={resolveWebsiteImageSetting(
+          settings,
+          "/contact-bg.jpg",
+          settings?.contact?.heroImageUrl
+        )}
         ctaText="View Our Works"
-        ctaLink="/our-portfolio"
+        ctaLink="/case-studies"
         badgeText="Support Available"
         badgeLink="/support"
         additionalInfo="Our team is available 24/7 to assist you with any inquiries."

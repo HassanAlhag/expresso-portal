@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import emailjs from "@emailjs/browser";
 import { useNavigate } from "react-router-dom";
@@ -159,34 +159,24 @@ const Form = ({ selected, setSelected, setIsModalOpen }) => {
             />
           </Field>
 
-          <AnimatePresence initial={false}>
-            {isCompany ? (
-              <motion.div
-                key="company"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={BASE_TRANSITION}
-              >
-                <Field label="Company name" required>
-                  <Input
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={handleInputChange}
-                    placeholder="Expresso Telecom Group"
-                  />
-                </Field>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="spacer"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="hidden md:block"
-              />
-            )}
-          </AnimatePresence>
+          {/* Always in the grid as the 4th slot — grid never reflows */}
+          <div className={!isCompany ? "pointer-events-none hidden md:block" : ""}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isCompany ? 1 : 0 }}
+              transition={BASE_TRANSITION}
+            >
+              <Field label="Company name" required>
+                <Input
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleInputChange}
+                  placeholder="Expresso Telecom Group"
+                  tabIndex={isCompany ? 0 : -1}
+                />
+              </Field>
+            </motion.div>
+          </div>
         </div>
 
         <div className="mt-4">

@@ -26,6 +26,7 @@ import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
 import { getSiteSettings, updateSiteSettings } from "../api";
+import { updateSiteSettingsCache } from "../../../../hooks/useSiteSettings";
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
 import { IT_SOLUTION_IMAGE_FIELDS } from "../../../../data/technologySolutionsData";
 import {
@@ -1648,7 +1649,9 @@ export default function WebsiteSettingsPage() {
 
   const handleSave = async (section, data) => {
     const res = await updateSiteSettings(section, data);
-    setSettings(res.settings || {});
+    const nextSettings = res.settings || {};
+    setSettings(nextSettings);
+    updateSiteSettingsCache(nextSettings, { broadcast: true });
     return res;
   };
 

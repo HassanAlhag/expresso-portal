@@ -1,72 +1,29 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
 import { PortfolioTab, TAB_DATA } from "./portfolioTabs";
 import MagnetButtonExample from "./viewButton";
-import portfolioData from "../../pages/SingleViewPortfolio/portfolioData";
-
-import ReelsShowcase from "../../components/ReelsShowcase/ReelsShowcase";
-import CreativePostsShowcase from "../../components/CreativePostsShowcase/CreativePostsShowcase";
-import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImages } from "../../utils/websiteImages";
+import { usePortfolioItems } from "../../hooks/usePortfolioItems";
 
 const BRAND = "#7F8AD1";
 
 export default function PortfolioGrid() {
-  const settings = useSiteSettings();
+  const { items: allItems } = usePortfolioItems();
   const [selectedTab, setSelectedTab] = useState(1);
-
-  const scrollToLeadForm = () => {
-    document
-      .getElementById("lead-form")
-      ?.scrollIntoView({ behavior: "smooth" });
-  };
 
   const selectedTitle = useMemo(() => {
     return TAB_DATA.find((t) => t.id === selectedTab)?.title || "All";
   }, [selectedTab]);
 
   const filteredPortfolios = useMemo(() => {
-    const resolvedPortfolioData = resolveWebsiteImages(settings, portfolioData);
-    if (selectedTab === 1) return resolvedPortfolioData;
+    if (selectedTab === 1) return allItems;
     const needle = selectedTitle.toLowerCase().trim();
-    return resolvedPortfolioData.filter((item) =>
+    return allItems.filter((item) =>
       (item.category || "").toLowerCase().includes(needle)
     );
-  }, [selectedTab, selectedTitle, settings]);
-
-  // Demo data (replace later)
-  const reels = resolveWebsiteImages(settings, [
-    {
-      id: "r1",
-      title: "PPC Offer Reel – Hook + CTA",
-      platform: "Instagram",
-      category: "Ads",
-      client: "Odeur",
-      duration: "0:18",
-      poster: "/reels/posters/reel1.jpg",
-      src: "/reels/videos/reel1.mp4",
-    },
-  ]);
-
-  const posts = resolveWebsiteImages(settings, [
-    {
-      id: "p1",
-      title: "Launch Creative – Premium Offer",
-      platform: "Instagram",
-      format: "Post",
-      category: "Branding",
-      client: "M-Region",
-      src: "/creatives/posts/post1.jpg",
-      link: "https://www.instagram.com/",
-    },
-  ]);
-
-  useEffect(() => {
-    // optional
-  }, [selectedTab]);
+  }, [selectedTab, selectedTitle, allItems]);
 
   return (
     <section className="mx-auto max-w-[1200px] px-4 py-10 md:py-14">
@@ -96,25 +53,17 @@ export default function PortfolioGrid() {
       {/* Portfolio Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredPortfolios.map((portfolio) => (
-          <ImageCard key={portfolio.id} portfolio={portfolio} />
+          <ImageCard key={portfolio._id} portfolio={portfolio} />
         ))}
       </div>
 
-      {/* Divider */}
-      <div className="my-12 h-px w-full bg-neutral-200" />
-
-      {/* Reels */}
-      <ReelsShowcase reels={reels} onCtaClick={scrollToLeadForm} />
-
-      {/* Creative Posts */}
-      <CreativePostsShowcase posts={posts} onCtaClick={scrollToLeadForm} />
     </section>
   );
 }
 
 function ImageCard({ portfolio }) {
   const navigate = useNavigate();
-  const go = () => navigate(`/portfolio/detail/${portfolio.id}`);
+  const go = () => navigate(`/case-studies/${portfolio._id}`);
 
   return (
     <button

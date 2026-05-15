@@ -11,7 +11,7 @@ import { DrawCircleText } from "../../components/CircleText/circleText";
 import SectionHeader from "../../components/SectionHeader/SectionHeader";
 import { DisappearingFeatures } from "../../components/CaseStudySection/caseStudySection";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImage } from "../../utils/websiteImages";
+import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
@@ -74,25 +74,31 @@ function AboutUsPage() {
 
   const blueprintCards = [
     {
-      image:
-        aboutImages.blueprintCustomerImageUrl ||
-        resolveWebsiteImage(settings, "/professional.webp"),
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/professional.webp",
+        aboutImages.blueprintCustomerImageUrl
+      ),
       title: "Putting Customers at the Center of Everything We Do",
       description:
         "Every business starts with its customers. That's why our strategies are customized to fit your audience's needs. By crafting campaigns that speak directly to your target market, we ensure personalized engagement at every touchpoint. The result? Stronger relationships, higher conversions, and a growth trajectory that aligns with your business goals. With us, your success is not just a plan — it's a partnership.",
     },
     {
-      image:
-        aboutImages.blueprintInnovationImageUrl ||
-        resolveWebsiteImage(settings, "/designer.webp"),
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/designer.webp",
+        aboutImages.blueprintInnovationImageUrl
+      ),
       title: "Innovative Strategies for the Modern Digital World",
       description:
         "Staying ahead of the digital curve is key to long-term growth. At Expresso, we use cutting-edge digital marketing tactics to propel your business forward. Whether it's paid ads, social media campaigns, or conversion rate optimization, we continuously push boundaries to create innovative solutions that set your business apart. Our focus is always on delivering results that help you grow faster, smarter, and more sustainably.",
     },
     {
-      image:
-        aboutImages.blueprintQualityImageUrl ||
-        resolveWebsiteImage(settings, "/developing.webp"),
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/developing.webp",
+        aboutImages.blueprintQualityImageUrl
+      ),
       title: "Quality That Delivers Results Into Success",
       description:
         "At Expresso, we don't just promise quality; we deliver impact. We understand that success in digital marketing isn't about vanity metrics — it's about the numbers that matter: conversions, engagement, sales, and ROI. With a sharp focus on outcomes, we ensure that every campaign, every strategy, and every execution is designed to meet your goals. Excellence isn't a goal; it's a commitment we make to every client, with every project.",
@@ -102,7 +108,11 @@ function AboutUsPage() {
   const teamMembers = [
     {
       key: "mohamed",
-      image: aboutImages.teamMohamedImageUrl || "/manager.webp",
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/manager.webp",
+        aboutImages.teamMohamedImageUrl
+      ),
       name: "Mohamed Bashir",
       position: "Head of Business Development",
       description:
@@ -113,7 +123,11 @@ function AboutUsPage() {
     },
     {
       key: "hassan",
-      image: aboutImages.teamHassanImageUrl || "/hassan.webp",
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/hassan.webp",
+        aboutImages.teamHassanImageUrl
+      ),
       name: "Hassan (Elhag) Omer Ahmed Omer",
       position: "Digital & Social Media Analyst",
       description:
@@ -124,7 +138,11 @@ function AboutUsPage() {
     },
     {
       key: "swekshya",
-      image: aboutImages.teamSwekshyaImageUrl || "/swekshya.webp",
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/swekshya.webp",
+        aboutImages.teamSwekshyaImageUrl
+      ),
       name: "Swekshya Basnet",
       position: "HR & Finance",
       description:
@@ -135,7 +153,11 @@ function AboutUsPage() {
     },
     {
       key: "afrid",
-      image: aboutImages.teamAfridImageUrl || "/11.webp",
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/11.webp",
+        aboutImages.teamAfridImageUrl
+      ),
       name: "Afrid Ahamed",
       position: "Social Media Stratergist",
       description:
@@ -146,7 +168,11 @@ function AboutUsPage() {
     },
     {
       key: "nazim",
-      image: aboutImages.teamNazimImageUrl || "/gal2.webp",
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/gal2.webp",
+        aboutImages.teamNazimImageUrl
+      ),
       name: "Mohammed Nazim",
       position: "Marketing Advisor",
       description:
@@ -157,7 +183,11 @@ function AboutUsPage() {
     },
     {
       key: "saad",
-      image: aboutImages.teamSaadImageUrl || "/saad.webp",
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/saad.webp",
+        aboutImages.teamSaadImageUrl
+      ),
       name: "Saad",
       position: "SEO Specialist",
       description:
@@ -168,7 +198,11 @@ function AboutUsPage() {
     },
     {
       key: "yasir",
-      image: aboutImages.teamYasirImageUrl || "/10.webp",
+      image: resolveWebsiteImageSetting(
+        settings,
+        "/10.webp",
+        aboutImages.teamYasirImageUrl
+      ),
       name: "Muhammed Yasir",
       position: "Web Developer",
       description:
@@ -185,13 +219,19 @@ function AboutUsPage() {
         heading="Who We Are"
         subtitle="Turning Ideas Into Digital Impact"
         description="At Expresso Digital, we don't just market brands — we engineer digital growth. From strategy to storytelling, performance to platforms, we build campaigns that capture attention, convert audiences, and create momentum."
-        backgroundImageUrl={
-          aboutImages.heroImageUrl || resolveWebsiteImage(settings, "/81.webp")
-        }
+        backgroundImageUrl={resolveWebsiteImageSetting(
+          settings,
+          "/81.webp",
+          aboutImages.heroImageUrl
+        )}
       />
 
       <AboutUsSection
-        imageUrl={aboutImages.teamPhotoUrl || "/about.webp"}
+        imageUrl={resolveWebsiteImageSetting(
+          settings,
+          "/about.webp",
+          aboutImages.teamPhotoUrl
+        )}
         subheading="About Expresso"
         heading="Our Story — Expresso Digital Agency"
         paragraphs={ABOUT_PARAGRAPHS}
@@ -213,8 +253,16 @@ function AboutUsPage() {
       </div>
 
       <AboutWebSection
-        backgroundImageUrl={aboutImages.missionImageUrl}
-        deviceImageUrl={aboutImages.missionDeviceImageUrl}
+        backgroundImageUrl={resolveWebsiteImageSetting(
+          settings,
+          "/business.webp",
+          aboutImages.missionImageUrl
+        )}
+        deviceImageUrl={resolveWebsiteImageSetting(
+          settings,
+          "/iphone.webp",
+          aboutImages.missionDeviceImageUrl
+        )}
       />
 
       <section id="process" className="bg-white px-6 py-14 sm:py-16">

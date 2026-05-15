@@ -77,7 +77,7 @@ export default function ShuffleHero({ items: itemsProp }) {
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <button
-              onClick={() => navigate("/our-portfolio")}
+              onClick={() => navigate("/case-studies")}
               className="inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold text-black transition hover:brightness-110"
               style={{
                 background: "linear-gradient(135deg, #7F8AD1 0%, #D9DDFC 130%)",

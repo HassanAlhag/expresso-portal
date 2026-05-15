@@ -19,7 +19,10 @@ import FinalCTASection from "../../components/FinalCTASection/FinalCTASection";
 import { listWebsiteReels } from "../../api/websiteProductions";
 import { mapWebsiteReels } from "../../utils/mapWebsiteReels";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImages } from "../../utils/websiteImages";
+import {
+  hasWebsiteImageOverride,
+  resolveWebsiteImages,
+} from "../../utils/websiteImages";
 
 // ─── Stats ───────────────────────────────────────────────────────────────────
 
@@ -152,6 +155,17 @@ const DEFAULT_GALLERY = [
   { src: "/mih1.png", alt: "Gallery 8" },
 ];
 
+const SHUFFLE_DEFAULT_KEYS = [
+  "/ultimate1.png",
+  "/odeur1.png",
+  "/expresso1.png",
+  "/ayur1.png",
+  "/mih1.png",
+  "/floraison1.png",
+  "/smile1.png",
+  "/angelic1.png",
+];
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function Home() {
@@ -172,15 +186,24 @@ function Home() {
 
   const galleryImages = useMemo(() => {
     const configured = (settings?.gallery?.images || []).filter((i) => i?.url);
-    if (configured.length > 0) {
+    const hasDefaultOverrides = DEFAULT_GALLERY.some((item) =>
+      hasWebsiteImageOverride(settings, item.src)
+    );
+
+    if (!hasDefaultOverrides && configured.length > 0) {
       return configured.map((i) => ({ src: i.url, alt: i.alt || "Gallery" }));
     }
+
     return resolveWebsiteImages(settings, DEFAULT_GALLERY);
   }, [settings]);
 
   const marqueeItems = useMemo(() => {
+    const hasDefaultOverrides = SHUFFLE_DEFAULT_KEYS.some((src) =>
+      hasWebsiteImageOverride(settings, src)
+    );
     const configured = (settings?.marquee?.brands || []).filter((b) => b?.imageUrl);
-    return configured.length > 0 ? configured : null;
+
+    return !hasDefaultOverrides && configured.length > 0 ? configured : null;
   }, [settings]);
 
   return (

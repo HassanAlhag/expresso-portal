@@ -26,11 +26,13 @@ export function CardHeader({ title, subtitle, right, className = "" }) {
       ].join(" ")}
     >
       <div className="min-w-0">
-        {title && (
+        {title && typeof title === "string" ? (
           <h2 className="text-[13px] font-extrabold tracking-tight text-slate-900">
             {title}
           </h2>
-        )}
+        ) : title ? (
+          title
+        ) : null}
         {subtitle && (
           <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
             {subtitle}

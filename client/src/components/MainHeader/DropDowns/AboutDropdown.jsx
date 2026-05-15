@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import {
   FiArrowRight,
   FiBriefcase,
+  FiImage,
   FiLayers,
-  FiTrendingUp,
   FiUsers,
 } from "react-icons/fi";
 
@@ -20,10 +20,10 @@ const GROUPS = [
     ],
   },
   {
-    title: "Proof",
+    title: "Work",
     items: [
-      { Icon: FiTrendingUp, title: "Portfolio", desc: "Selected work and results", to: "/our-portfolio" },
-      { Icon: FiLayers, title: "Case Studies", desc: "Deeper project stories", to: "/our-portfolio" },
+      { Icon: FiImage, title: "Portfolio", desc: "Visual gallery of our best work", to: "/portfolio" },
+      { Icon: FiLayers, title: "Case Studies", desc: "In-depth project breakdowns", to: "/case-studies" },
       { Icon: FiUsers, title: "Clients", desc: "Brands and partners we support", to: "/services#clients" },
     ],
   },

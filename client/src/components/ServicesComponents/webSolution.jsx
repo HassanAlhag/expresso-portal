@@ -1,7 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImage } from "../../utils/websiteImages";
+import {
+  resolveWebsiteImage,
+  resolveWebsiteImageSetting,
+} from "../../utils/websiteImages";
 
 const WebDevelopmentSolutions = ({ 
   image, 
@@ -9,9 +12,10 @@ const WebDevelopmentSolutions = ({
   descriptions 
 }) => {
   const settings = useSiteSettings();
-  const sectionBg = resolveWebsiteImage(
+  const sectionBg = resolveWebsiteImageSetting(
     settings,
-    settings?.services?.sectionBgUrl || "https://demo.casethemes.net/saira/wp-content/uploads/2023/09/u-bg6.jpg"
+    "https://demo.casethemes.net/saira/wp-content/uploads/2023/09/u-bg6.jpg",
+    settings?.services?.sectionBgUrl
   );
   const resolvedImage = resolveWebsiteImage(settings, image);
 

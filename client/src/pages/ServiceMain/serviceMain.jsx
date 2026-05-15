@@ -8,6 +8,7 @@ import StackedCardTestimonials from "../../components/TestimonialSection/testimo
 import ContactUsSection from "../../components/ContactUsSection/contactSection";
 import ShiftingContactForm from "../../components/ContactForm/contactForm";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
+import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
 
 // ─── Service cards ────────────────────────────────────────────────────────────
 
@@ -126,7 +127,11 @@ function ServiceMainPage() {
       <ServiceBanner
         heading="Discover Our Exceptional Services"
         subHeading="We're not your typical digital marketing agency, we're your brand's hype squad, growth engine, and creative powerhouse all rolled into one!"
-        backgroundImage={settings?.services?.heroImageUrl || "https://demo.themenio.com/genox/images/banner-c2.jpg"}
+        backgroundImage={resolveWebsiteImageSetting(
+          settings,
+          "https://demo.themenio.com/genox/images/banner-c2.jpg",
+          settings?.services?.heroImageUrl
+        )}
         ctaText="View Our Work"
         ctaLink="/contact-us"
         badgeText="NEW!"

@@ -103,7 +103,8 @@ const Footer = () => {
                 <div className="mt-4 h-px w-10 bg-white/10" />
                 <ul className="mt-4 space-y-2 text-sm">
                   <FooterLink to="/about-us">About Us</FooterLink>
-                  <FooterLink to="/our-portfolio">Portfolio</FooterLink>
+                  <FooterLink to="/portfolio">Portfolio</FooterLink>
+                  <FooterLink to="/case-studies">Case Studies</FooterLink>
                   <FooterLink to="/contact-us">Contact</FooterLink>
                 </ul>
               </div>
@@ -189,7 +190,7 @@ const SocialIcon = ({ to, label, children }) => (
   <Link
     to={to}
     aria-label={label}
-    className="absolute right-0 mt-2 w-56 rounded-2xl border border-black/10 bg-white/95 shadow-[0_18px_55px_rgba(15,23,42,0.16)] overflow-hidden z-[9999]"
+    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-white/40 hover:text-white"
   >
     <span className="text-lg">{children}</span>
   </Link>
