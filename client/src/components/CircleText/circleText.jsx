@@ -6,7 +6,7 @@ export const DrawCircleText = () => {
   const navigate = useNavigate();
   return (
     <div className="grid place-content-center px-4 py-20 text-black">
-      <h1 className="max-w-2xl text-center text-5xl leading-snug">
+      <h1 className="max-w-2xl text-center text-2xl sm:text-3xl md:text-5xl leading-snug px-2">
         Empower Your{" "}
         <span className="relative">
           Marketing

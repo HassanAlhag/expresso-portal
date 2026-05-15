@@ -100,7 +100,7 @@ const AboutWebSection = ({
               <img
                 src={resolvedDeviceImageUrl}
                 alt="iPhone Mockup"
-                className="h-[520px] w-auto object-contain sm:h-[560px] lg:h-[620px]"
+                className="h-[300px] w-auto object-contain sm:h-[420px] md:h-[520px] lg:h-[620px]"
                 draggable={false}
               />
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../../../shared/ui/PageHeader";
 import Card, { CardBody, CardHeader } from "../../../shared/ui/Card";
@@ -19,7 +19,6 @@ import {
   Archive,
   Save,
   Layers,
-  Tag,
   Image as ImageIcon,
   Images,
   UploadCloud,
@@ -29,13 +28,13 @@ import {
 } from "lucide-react";
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
 
-function slugify(s) {
-  return s
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+const CATEGORY_OPTIONS = [
+  { value: "Website Design", label: "Website Design" },
+  { value: "Website", label: "Website" },
+  { value: "Social Media", label: "Social Media" },
+  { value: "Google Ads", label: "Google Ads" },
+  { value: "SEO", label: "SEO" },
+];
 
 const STATUS_META = {
   published: {
@@ -129,7 +128,7 @@ function TextareaField({ label, value, onChange, rows = 3, placeholder = "" }) {
   );
 }
 
-function ImagePickerField({ label, hint, value, onChange, onPick, onClear }) {
+function ImagePickerField({ label, hint, value, onPick }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-3">
       <div className="grid gap-3 sm:grid-cols-[150px,1fr]">
@@ -155,27 +154,14 @@ function ImagePickerField({ label, hint, value, onChange, onPick, onClear }) {
               <p className="text-sm font-black text-slate-900">{label}</p>
               {hint ? <p className="mt-1 text-xs leading-relaxed text-slate-500">{hint}</p> : null}
             </div>
-            {value ? (
-              <button
-                type="button"
-                onClick={onClear}
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                aria-label={`Clear ${label}`}
-              >
-                <X size={15} />
-              </button>
-            ) : null}
           </div>
 
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-            <input
-              value={value}
-              onChange={onChange}
-              placeholder="/current-default.jpg or media URL"
-              className="h-10 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 font-mono text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-            />
+            <div className="flex h-10 min-w-0 flex-1 items-center truncate rounded-xl border border-slate-200 bg-slate-50 px-3 font-mono text-xs text-slate-500">
+              {value || "No image selected"}
+            </div>
             <Button variant="outline" size="md" onClick={onPick}>
-              <UploadCloud size={15} /> Pick
+              <UploadCloud size={15} /> Replace
             </Button>
           </div>
         </div>
@@ -255,14 +241,9 @@ export default function PortfolioDetailsPage() {
 
   const [form, setForm] = useState({
     title: "",
-    slug: "",
     excerpt: "",
-    description: "",
     category: "",
     status: "draft",
-    tags: "",
-    seoTitle: "",
-    seoDesc: "",
     /* case-study fields */
     clientName: "",
     bannerTitle: "",
@@ -279,7 +260,6 @@ export default function PortfolioDetailsPage() {
     imageUrls: "",
     coverMediaId: "",
     galleryMediaIds: [],
-    sortOrder: "",
   });
   const [picker, setPicker] = useState(null);
   const [dirty, setDirty] = useState(false);
@@ -299,14 +279,9 @@ export default function PortfolioDetailsPage() {
       setItem(found);
       setForm({
         title: found.title || "",
-        slug: found.slug || "",
         excerpt: found.excerpt || "",
-        description: found.description || "",
         category: found.category || "",
         status: found.status || "draft",
-        tags: Array.isArray(found.tags) ? found.tags.join(", ") : "",
-        seoTitle: found.seo?.metaTitle || "",
-        seoDesc: found.seo?.metaDesc || "",
         clientName: found.clientName || "",
         bannerTitle: found.bannerTitle || "",
         bannerDesc: found.bannerDesc || "",
@@ -326,7 +301,6 @@ export default function PortfolioDetailsPage() {
         galleryMediaIds: Array.isArray(found.gallery)
           ? found.gallery.map((m) => m?._id || m).filter(Boolean)
           : [],
-        sortOrder: found.sortOrder != null ? String(found.sortOrder) : "0",
       });
       setDirty(false);
     } catch (e) {
@@ -344,11 +318,6 @@ export default function PortfolioDetailsPage() {
   const set = (k) => (e) => {
     const val = e.target.value;
     setForm((f) => ({ ...f, [k]: val }));
-    setDirty(true);
-  };
-
-  const setValue = (key, value) => {
-    setForm((f) => ({ ...f, [key]: value }));
     setDirty(true);
   };
 
@@ -415,13 +384,9 @@ export default function PortfolioDetailsPage() {
     try {
       const payload = {
         title: form.title.trim(),
-        slug: slugify(form.slug),
         excerpt: form.excerpt.trim(),
-        description: form.description.trim(),
         category: form.category.trim(),
         status: form.status,
-        tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
-        seo: { metaTitle: form.seoTitle.trim(), metaDesc: form.seoDesc.trim() },
         clientName: form.clientName.trim(),
         bannerTitle: form.bannerTitle.trim(),
         bannerDesc: form.bannerDesc.trim(),
@@ -441,7 +406,6 @@ export default function PortfolioDetailsPage() {
           .map((s) => s.trim())
           .filter(Boolean)
           .map((src) => ({ src, alt: "" })),
-        sortOrder: parseInt(form.sortOrder, 10) || 0,
       };
       const res = await updatePortfolio(id, payload);
       setItem(res?.item);
@@ -478,7 +442,7 @@ export default function PortfolioDetailsPage() {
         setConfirmState(null);
         try {
           await deletePortfolio(id);
-          nav("/portal/portfolio");
+          nav("/portal/website/portfolio");
         } catch (err) {
           toast.error(err?.response?.data?.message || "Delete failed.");
           setBusy(false);
@@ -486,6 +450,14 @@ export default function PortfolioDetailsPage() {
       },
     });
   };
+
+  const categoryOptions = useMemo(() => {
+    if (!form.category) return CATEGORY_OPTIONS;
+    if (CATEGORY_OPTIONS.some((option) => option.value === form.category)) {
+      return CATEGORY_OPTIONS;
+    }
+    return [{ value: form.category, label: form.category }, ...CATEGORY_OPTIONS];
+  }, [form.category]);
 
   if (loading) {
     return (
@@ -533,14 +505,15 @@ export default function PortfolioDetailsPage() {
         }
         breadcrumb={[
           { label: "Portal", to: "/portal" },
-          { label: "Portfolio", to: "/portal/portfolio" },
+          { label: "Website" },
+          { label: "Portfolio", to: "/portal/website/portfolio" },
           { label: item?.title || "Item" },
         ]}
         right={
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              onClick={() => nav("/portal/portfolio")}
+              onClick={() => nav("/portal/website/portfolio")}
               disabled={busy}
             >
               <ArrowLeft size={15} />
@@ -570,7 +543,7 @@ export default function PortfolioDetailsPage() {
         <div className="grid min-w-0 gap-6">
           <Card className="overflow-hidden">
             <CardHeader
-              title={<SectionTitle icon={FileText} title="Content identity" subtitle="Naming, URL, and the short text used in portfolio lists." />}
+              title={<SectionTitle icon={FileText} title="Listing content" subtitle="Name and short text used on portfolio listing pages." />}
             />
             <CardBody className="bg-slate-50/40">
               <div className="grid gap-4">
@@ -580,18 +553,12 @@ export default function PortfolioDetailsPage() {
                   onChange={set("title")}
                   placeholder="Portfolio title"
                 />
-                <div className="grid gap-2">
-                  <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">
-                    SLUG
-                  </label>
-                  <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4">
-                    <span className="text-sm text-slate-400">/</span>
-                    <input
-                      value={form.slug}
-                      onChange={set("slug")}
-                      className="h-11 flex-1 bg-transparent font-mono text-sm text-slate-900 outline-none"
-                      placeholder="my-case-study"
-                    />
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                  <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">
+                    WEBSITE URL
+                  </div>
+                  <div className="mt-1 font-mono text-sm text-slate-500">
+                    /{item?.slug}
                   </div>
                 </div>
                 <TextareaField
@@ -600,13 +567,6 @@ export default function PortfolioDetailsPage() {
                   onChange={set("excerpt")}
                   rows={2}
                   placeholder="Short summary shown on listing pages..."
-                />
-                <TextareaField
-                  label="DESCRIPTION"
-                  value={form.description}
-                  onChange={set("description")}
-                  rows={5}
-                  placeholder="Optional internal/public description for this portfolio record..."
                 />
               </div>
             </CardBody>
@@ -625,16 +585,12 @@ export default function PortfolioDetailsPage() {
                 <ImagePickerField
                   {...IMAGE_FIELDS.bannerImage}
                   value={form.bannerImage}
-                  onChange={set("bannerImage")}
                   onPick={() => setPicker({ kind: "single", field: "bannerImage", title: "Select banner image" })}
-                  onClear={() => setValue("bannerImage", "")}
                 />
                 <ImagePickerField
                   {...IMAGE_FIELDS.thumbnailImg}
                   value={form.thumbnailImg}
-                  onChange={set("thumbnailImg")}
                   onPick={() => setPicker({ kind: "single", field: "thumbnailImg", title: "Select listing thumbnail" })}
-                  onClear={() => setValue("thumbnailImg", "")}
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <Input label="START DATE" value={form.startDate} onChange={set("startDate")} placeholder="10 March 2023" />
@@ -663,9 +619,7 @@ export default function PortfolioDetailsPage() {
                 <ImagePickerField
                   {...IMAGE_FIELDS.solutionImage}
                   value={form.solutionImage}
-                  onChange={set("solutionImage")}
                   onPick={() => setPicker({ kind: "single", field: "solutionImage", title: "Select solution visual" })}
-                  onClear={() => setValue("solutionImage", "")}
                 />
                 <TextareaField label="THE OUTCOME" value={form.result} onChange={set("result")} rows={4} />
               </div>
@@ -683,41 +637,6 @@ export default function PortfolioDetailsPage() {
                 onPick={() => setPicker({ kind: "gallery", title: "Select gallery images" })}
                 onRemove={removeGalleryUrl}
               />
-              <details className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-                <summary className="cursor-pointer text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                  Advanced URL list
-                </summary>
-                <textarea
-                  value={form.imageUrls}
-                  onChange={set("imageUrls")}
-                  rows={8}
-                  placeholder={"/image1.jpg\n/image2.jpg\n/image3.png"}
-                  className="mt-4 w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-xs outline-none focus:ring-4 focus:ring-black/5"
-                />
-              </details>
-            </CardBody>
-          </Card>
-
-          <Card className="overflow-hidden">
-            <CardHeader
-              title={<SectionTitle icon={Globe} title="SEO" subtitle="Controls how this item appears in search results." />}
-            />
-            <CardBody className="bg-slate-50/40">
-              <div className="grid gap-4">
-                <Input
-                  label="META TITLE"
-                  value={form.seoTitle}
-                  onChange={set("seoTitle")}
-                  placeholder="Override the default page title..."
-                />
-                <TextareaField
-                  label="META DESCRIPTION"
-                  value={form.seoDesc}
-                  onChange={set("seoDesc")}
-                  rows={3}
-                  placeholder="Brief description for search results (under 160 chars)..."
-                />
-              </div>
             </CardBody>
           </Card>
         </div>
@@ -742,29 +661,23 @@ export default function PortfolioDetailsPage() {
                     <option value="archived">Archived</option>
                   </select>
                 </div>
-                <Input
-                  label="CATEGORY"
-                  value={form.category}
-                  onChange={set("category")}
-                  placeholder="Branding, Social, Video..."
-                />
                 <div className="grid gap-2">
-                  <label className="flex items-center gap-1 text-[11px] font-black tracking-[0.18em] text-slate-500">
-                    <Tag size={11} /> TAGS (comma separated)
+                  <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">
+                    CATEGORY
                   </label>
-                  <input
-                    value={form.tags}
-                    onChange={set("tags")}
-                    placeholder="branding, video, social media"
+                  <select
+                    value={form.category}
+                    onChange={set("category")}
                     className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-                  />
+                  >
+                    <option value="">Select category</option>
+                    {categoryOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <Input
-                  label="SORT ORDER"
-                  value={form.sortOrder}
-                  onChange={set("sortOrder")}
-                  placeholder="1"
-                />
               </div>
             </CardBody>
           </Card>

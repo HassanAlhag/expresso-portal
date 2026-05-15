@@ -397,9 +397,10 @@ body,
   .tb-cta span { display: none; }
   .tb-cta { width: 36px; padding: 0; justify-content: center; }
 }
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .tb-search { display: none; }
   .tb-user-info, .tb-divider { display: none; }
+  .tb-root { padding: 0 12px; gap: 8px; }
 }
 
 /* ============================================================
@@ -936,5 +937,91 @@ body,
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
+  }
+}
+
+@keyframes portal-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ============================================================
+   Mobile / Tablet responsive overrides (< 768 px)
+   ============================================================ */
+
+@media (max-width: 767px) {
+  /* Body: remove gap so sidebar overlay doesn't shift content */
+  .portal-body {
+    padding: 8px;
+    gap: 0;
+  }
+
+  /* Sidebar becomes a fixed left-edge drawer */
+  .portal-sidebar {
+    position: fixed !important;
+    top: var(--topbar-h) !important;
+    left: 0;
+    bottom: 0;
+    width: 256px !important;
+    z-index: 40;
+    border-radius: 0 var(--r-xl) var(--r-xl) 0 !important;
+    box-shadow: var(--shadow-lg);
+    transform: translateX(-110%);
+    transition: transform var(--ease-med) !important;
+  }
+
+  .portal-sidebar--mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Backdrop dim behind the open drawer */
+  .portal-mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    top: var(--topbar-h);
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 39;
+    animation: portal-backdrop-in 0.18s ease;
+  }
+
+  /* Page title sizing */
+  .portal-title {
+    font-size: 20px;
+  }
+}
+
+/* Tablet (768 – 1024 px): keep sidebar but narrower + tighter padding */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .portal-body {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .portal-title {
+    font-size: 22px;
+  }
+}
+
+/* Portal tabs — horizontal scroll on small screens */
+@media (max-width: 640px) {
+  .portal-tabs {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .portal-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .portal-tabpanel {
+    padding: 14px;
+  }
+
+  .portal-surface-header {
+    padding: 14px;
   }
 }

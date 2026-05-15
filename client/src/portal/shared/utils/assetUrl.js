@@ -21,5 +21,11 @@ export function getAssetUrl(path) {
     }
   }
 
-  return `${API_ORIGIN}${path.startsWith("/") ? path : `/${path}`}`;
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+
+  if (normalized.startsWith("/uploads/")) {
+    return `${API_ORIGIN}${normalized}`;
+  }
+
+  return normalized;
 }

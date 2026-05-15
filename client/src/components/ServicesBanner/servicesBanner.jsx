@@ -53,7 +53,7 @@ export const ServiceBanner = ({
         }}
       >
         <div className="absolute inset-0 bg-black" style={{ opacity: overlayOpacity }}></div>
-        <div className="z-50 relative flex flex-col items-center justify-center px-12 md-down:px-2 pt-12 md:pt-24">
+        <div className="z-50 relative flex flex-col items-center justify-center px-4 sm:px-8 md:px-12 pt-12 md:pt-24">
           <Copy
             heading={heading}
             subHeading={subHeading}
@@ -95,7 +95,7 @@ const Copy = ({
           <FiArrowUpRight className="mr-2 inline-block" />
         </button>
       </div>
-      <h1 className="max-w-4xl text-center text-4xl font-black leading-[1.15] md:text-6xl md:leading-[1.15] text-white">
+      <h1 className="max-w-4xl text-center text-2xl font-black leading-[1.15] sm:text-4xl md:text-6xl md:leading-[1.15] text-white">
         {heading}
       </h1>
       <p className="mx-auto my-4 max-w-3xl text-center text-white text-base leading-relaxed md:my-6 md:text-xl md:leading-relaxed">

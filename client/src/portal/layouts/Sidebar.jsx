@@ -23,7 +23,7 @@ function findActiveSection(navSections, pathname) {
   );
 }
 
-export default function Sidebar({ sidebarOpen, navSections = [], user, onLogout }) {
+export default function Sidebar({ sidebarOpen, navSections = [], user, onLogout, onNavClick }) {
   const location = useLocation();
   const [openSection, setOpenSection] = useState(() => {
     const active = findActiveSection(navSections, location.pathname);
@@ -49,9 +49,10 @@ export default function Sidebar({ sidebarOpen, navSections = [], user, onLogout 
               section={sec}
               isOpen={openSection === sec.title}
               onToggle={() => toggle(sec.title)}
+              onNavClick={onNavClick}
             />
           ) : (
-            <CollapsedSection key={sec.title} section={sec} />
+            <CollapsedSection key={sec.title} section={sec} onNavClick={onNavClick} />
           )
         )}
       </nav>
@@ -90,7 +91,7 @@ export default function Sidebar({ sidebarOpen, navSections = [], user, onLogout 
   );
 }
 
-function AccordionSection({ section, isOpen, onToggle }) {
+function AccordionSection({ section, isOpen, onToggle, onNavClick }) {
   const SectionIcon = section.Icon;
   return (
     <div className="sb-section">
@@ -114,7 +115,7 @@ function AccordionSection({ section, isOpen, onToggle }) {
       <div className={`sb-section-items${isOpen ? " sb-section-items--open" : ""}`}>
         <ul className="sb-list sb-list--nested">
           {section.items.map((item) => (
-            <NavItem key={item.to} item={item} collapsed={false} />
+            <NavItem key={item.to} item={item} collapsed={false} onNavClick={onNavClick} />
           ))}
         </ul>
       </div>
@@ -122,26 +123,27 @@ function AccordionSection({ section, isOpen, onToggle }) {
   );
 }
 
-function CollapsedSection({ section }) {
+function CollapsedSection({ section, onNavClick }) {
   return (
     <div className="sb-section">
       <hr className="sb-section-divider" />
       <ul className="sb-list">
         {section.items.map((item) => (
-          <NavItem key={item.to} item={item} collapsed />
+          <NavItem key={item.to} item={item} collapsed onNavClick={onNavClick} />
         ))}
       </ul>
     </div>
   );
 }
 
-function NavItem({ item, collapsed }) {
+function NavItem({ item, collapsed, onNavClick }) {
   const Icon = item.Icon;
   return (
     <li>
       <NavLink
         to={item.to}
         end={item.end ?? (item.to === "/portal")}
+        onClick={onNavClick}
         className={({ isActive }) =>
           "sb-item" + (isActive ? " sb-item--active" : "")
         }

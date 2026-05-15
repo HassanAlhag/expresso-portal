@@ -7,7 +7,7 @@ import EmptyState from "../../../shared/ui/EmptyState";
 import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
-import StatCard from "../../../shared/ui/StatCard";
+import ViewToggle from "../../../shared/ui/ViewToggle";
 import { listPortfolio, createPortfolio, deletePortfolio } from "../api";
 import {
   Layers,
@@ -23,8 +23,18 @@ import {
   CalendarDays,
   Image as ImageIcon,
   CheckCircle2,
+  LayoutGrid,
+  LayoutList,
 } from "lucide-react";
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
+
+const CATEGORY_OPTIONS = [
+  { value: "Website Design", label: "Website Design" },
+  { value: "Website", label: "Website" },
+  { value: "Social Media", label: "Social Media" },
+  { value: "Google Ads", label: "Google Ads" },
+  { value: "SEO", label: "SEO" },
+];
 
 const STATUS_META = {
   published: {
@@ -68,17 +78,6 @@ function StatusPill({ status }) {
   );
 }
 
-function MiniMetric({ label, value }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-      <div className="text-2xl font-black leading-none text-white">{value}</div>
-      <div className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/40">
-        {label}
-      </div>
-    </div>
-  );
-}
-
 function resolveItemImage(item) {
   return (
     item.coverMedia?.thumbnailUrl ||
@@ -106,10 +105,77 @@ function getReadiness(item) {
   };
 }
 
-function PortfolioRecordCard({ item, onOpen, onDelete }) {
+function PortfolioRecordCard({ item, onOpen, onDelete, view = "grid" }) {
   const image = resolveItemImage(item);
   const readiness = getReadiness(item);
   const progress = Math.round((readiness.done / readiness.total) * 100);
+
+  if (view === "list") {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onOpen}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") onOpen();
+        }}
+        className="group grid cursor-pointer gap-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-indigo-200 hover:shadow-md sm:grid-cols-[108px,1fr,auto]"
+      >
+        <div className="overflow-hidden rounded-xl bg-slate-100">
+          {image ? (
+            <img
+              src={getAssetUrl(image)}
+              alt={item.title}
+              loading="lazy"
+              decoding="async"
+              className="aspect-[4/3] h-full w-full object-cover"
+            />
+          ) : (
+            <div className="grid aspect-[4/3] place-items-center text-slate-300">
+              <ImageIcon size={24} />
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 self-center">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusPill status={item.status} />
+            {item.category && (
+              <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-700">
+                {item.category}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-500">
+              <CalendarDays size={11} />
+              {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "Not dated"}
+            </span>
+          </div>
+          <h3 className="mt-2 truncate text-base font-black text-slate-950 group-hover:text-indigo-700">
+            {item.title}
+          </h3>
+          <p className="mt-1 line-clamp-1 text-sm text-slate-500">
+            {item.excerpt || item.bannerDesc || "No summary yet."}
+          </p>
+        </div>
+        <div className="flex items-center justify-between gap-4 sm:justify-end">
+          <div className="hidden min-w-[96px] text-right sm:block">
+            <div className="text-xs font-bold text-slate-500">Readiness</div>
+            <div className="mt-1 font-black text-slate-950">{readiness.done}/{readiness.total}</div>
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="grid h-9 w-9 place-items-center rounded-lg text-slate-300 transition hover:bg-rose-50 hover:text-rose-500"
+            aria-label={`Delete ${item.title}`}
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -215,9 +281,8 @@ function slugify(s) {
 function NewPortfolioModal({ open, busy, onClose, onSubmit }) {
   const [form, setForm] = useState({
     title: "",
-    slug: "",
     excerpt: "",
-    category: "",
+    category: CATEGORY_OPTIONS[0].value,
     status: "draft",
   });
   const set = (k) => (e) => {
@@ -225,7 +290,6 @@ function NewPortfolioModal({ open, busy, onClose, onSubmit }) {
     setForm((f) => ({
       ...f,
       [k]: val,
-      ...(k === "title" && !f._slugEdited ? { slug: slugify(val) } : {}),
     }));
   };
 
@@ -254,22 +318,13 @@ function NewPortfolioModal({ open, busy, onClose, onSubmit }) {
               className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
             />
           </div>
-          <div className="grid gap-2">
-            <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">
-              SLUG *
-            </label>
-            <input
-              value={form.slug}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  slug: slugify(e.target.value),
-                  _slugEdited: true,
-                }))
-              }
-              placeholder="brand-campaign-acme"
-              className="h-11 rounded-2xl border border-slate-200 bg-white px-4 font-mono text-sm outline-none focus:ring-4 focus:ring-black/5"
-            />
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">
+              WEBSITE URL
+            </div>
+            <div className="mt-1 font-mono text-sm text-slate-600">
+              /{slugify(form.title) || "generated-from-title"}
+            </div>
           </div>
           <div className="grid gap-2">
             <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">
@@ -288,12 +343,17 @@ function NewPortfolioModal({ open, busy, onClose, onSubmit }) {
               <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">
                 CATEGORY
               </label>
-              <input
+              <select
                 value={form.category}
                 onChange={set("category")}
-                placeholder="Branding, Social, Video..."
                 className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
+              >
+                {CATEGORY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="grid gap-2">
               <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">
@@ -318,7 +378,7 @@ function NewPortfolioModal({ open, busy, onClose, onSubmit }) {
           <Button
             onClick={() => onSubmit(form)}
             loading={busy}
-            disabled={!form.title.trim() || !form.slug.trim()}
+            disabled={!form.title.trim()}
           >
             <Plus size={14} /> Create
           </Button>
@@ -337,6 +397,8 @@ export default function PortfolioPage() {
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [view, setView] = useState("grid");
   const [addOpen, setAddOpen] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
 
@@ -360,11 +422,14 @@ export default function PortfolioPage() {
   const handleCreate = async (form) => {
     setBusy(true);
     try {
-      const res = await createPortfolio(form);
+      const res = await createPortfolio({
+        ...form,
+        slug: slugify(form.title),
+      });
       setItems((prev) => [res.item, ...prev]);
       setAddOpen(false);
       toast.success("Portfolio item created.");
-      nav(`/portal/portfolio/${res.item._id}`);
+      nav(`/portal/website/portfolio/${res.item._id}`);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Create failed.");
     } finally {
@@ -399,28 +464,32 @@ export default function PortfolioPage() {
           .toLowerCase()
           .includes(q.toLowerCase());
       const matchStatus = !statusFilter || x.status === statusFilter;
-      return matchQ && matchStatus;
+      const matchCategory = !categoryFilter || x.category === categoryFilter;
+      return matchQ && matchStatus && matchCategory;
     });
-  }, [items, q, statusFilter]);
+  }, [items, q, statusFilter, categoryFilter]);
 
-  const stats = useMemo(
-    () => ({
-      total: items.length,
-      published: items.filter((x) => x.status === "published").length,
-      draft: items.filter((x) => x.status === "draft").length,
-      archived: items.filter((x) => x.status === "archived").length,
-    }),
-    [items]
-  );
+  const categoryOptions = useMemo(() => {
+    const current = items
+      .map((item) => item.category)
+      .filter(Boolean)
+      .map((category) => ({ value: category, label: category }));
+    const merged = [...CATEGORY_OPTIONS, ...current];
+    return merged.filter(
+      (option, index, list) =>
+        list.findIndex((candidate) => candidate.value === option.value) === index
+    );
+  }, [items]);
 
   return (
     <div className="grid gap-6">
       <PageHeader
         eyebrow="CONTENT OPERATIONS"
-        title="Portfolio Manager"
-        subtitle="Manage case-study records, publishing status, and website-ready portfolio content."
+        title="Portfolio"
+        subtitle="Manage the case studies shown on the public website."
         breadcrumb={[
           { label: "Portal", to: "/portal" },
+          { label: "Website" },
           { label: "Portfolio" },
         ]}
         right={
@@ -435,58 +504,8 @@ export default function PortfolioPage() {
         }
       />
 
-      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-[#0B0C12] text-white shadow-sm">
-        <div className="grid gap-6 p-6 lg:grid-cols-[1fr,360px] lg:p-7">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-white/60">
-              <Layers size={13} />
-              Website portfolio
-            </div>
-            <h2 className="mt-4 max-w-2xl text-2xl font-black tracking-tight md:text-3xl">
-              Keep case studies organized before they reach the public website.
-            </h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-white/58">
-              Current default images stay in place. Open an item to replace visuals through the media picker, update story fields, and publish when the page is ready.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
-            <MiniMetric label="Published" value={stats.published} />
-            <MiniMetric label="Drafts" value={stats.draft} />
-            <MiniMetric label="Archived" value={stats.archived} />
-            <MiniMetric label="Total" value={stats.total} />
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-4">
-        <StatCard
-          icon={Layers}
-          label="Total"
-          value={stats.total}
-          color="indigo"
-        />
-        <StatCard
-          icon={Eye}
-          label="Published"
-          value={stats.published}
-          color="emerald"
-        />
-        <StatCard
-          icon={EyeOff}
-          label="Draft"
-          value={stats.draft}
-          color="slate"
-        />
-        <StatCard
-          icon={Archive}
-          label="Archived"
-          value={stats.archived}
-          color="rose"
-        />
-      </div>
-
       <Card className="p-4">
-        <div className="grid gap-3 lg:grid-cols-[1fr,220px,auto]">
+        <div className="grid gap-3 lg:grid-cols-[1fr,180px,180px,auto,auto]">
           <label className="relative">
             <Search size={17} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -506,15 +525,38 @@ export default function PortfolioPage() {
             <option value="draft">Draft</option>
             <option value="archived">Archived</option>
           </select>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="">All categories</option>
+                {categoryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+            ))}
+          </select>
           <Button
             variant="outline"
             onClick={() => {
               setQ("");
               setStatusFilter("");
+              setCategoryFilter("");
             }}
           >
             Clear
           </Button>
+          <div className="flex items-center justify-end">
+            <ViewToggle
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "grid", icon: LayoutGrid, label: "Grid view" },
+                { value: "list", icon: LayoutList, label: "List view" },
+              ]}
+            />
+          </div>
         </div>
       </Card>
 
@@ -536,12 +578,13 @@ export default function PortfolioPage() {
           />
         </Card>
       ) : (
-        <div className="grid gap-5 xl:grid-cols-2">
+        <div className={view === "grid" ? "grid gap-5 xl:grid-cols-2" : "grid gap-3"}>
           {filtered.map((item) => (
             <PortfolioRecordCard
               key={item._id}
               item={item}
-              onOpen={() => nav(`/portal/portfolio/${item._id}`)}
+              view={view}
+              onOpen={() => nav(`/portal/website/portfolio/${item._id}`)}
               onDelete={() => handleDelete(item._id, item.title)}
             />
           ))}

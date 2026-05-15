@@ -2,56 +2,36 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   FiArrowRight,
-  FiBriefcase,
   FiImage,
   FiLayers,
   FiUsers,
 } from "react-icons/fi";
 
-const BRAND = "#6366f1";
-const BRAND_BG = "rgba(99,102,241,0.1)";
 const BRAND_GLOW = "rgba(99,102,241,0.18)";
 
-const GROUPS = [
-  {
-    title: "Company",
-    items: [
-      { Icon: FiBriefcase, title: "About Expresso", desc: "Who we are and what we build", to: "/about-us" },
-    ],
-  },
-  {
-    title: "Work",
-    items: [
-      { Icon: FiImage, title: "Portfolio", desc: "Visual gallery of our best work", to: "/portfolio" },
-      { Icon: FiLayers, title: "Case Studies", desc: "In-depth project breakdowns", to: "/case-studies" },
-      { Icon: FiUsers, title: "Clients", desc: "Brands and partners we support", to: "/services#clients" },
-    ],
-  },
+const WORK_LINKS = [
+  { Icon: FiImage, title: "Portfolio", desc: "Visual gallery of selected work", to: "/portfolio" },
+  { Icon: FiLayers, title: "Case Studies", desc: "Project stories, process, and results", to: "/case-studies" },
+  { Icon: FiUsers, title: "Clients", desc: "Brands and partners we support", to: "/services#clients" },
 ];
 
-const Item = ({ Icon, title, desc, to }) => (
+const RowLink = ({ Icon, title, desc, to }) => (
   <Link
     to={to}
-    className="group flex min-h-[84px] items-start gap-3 rounded-xl border border-neutral-100 bg-white px-3.5 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.04)] transition-all duration-150 hover:-translate-y-0.5 hover:border-indigo-100 hover:bg-indigo-50/40 hover:shadow-[0_16px_36px_rgba(99,102,241,0.1)]"
+    className="group grid grid-cols-[32px_1fr_14px] items-center gap-3 border-t border-neutral-100 py-3 first:border-t-0"
   >
-    <span
-      className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-transform duration-150 group-hover:scale-110"
-      style={{ backgroundColor: BRAND_BG, color: BRAND }}
-    >
+    <span className="grid h-8 w-8 place-items-center rounded-lg bg-neutral-100 text-neutral-500 transition group-hover:bg-indigo-50 group-hover:text-indigo-600">
       <Icon size={14} />
     </span>
-    <span className="min-w-0 flex-1">
-      <span className="block text-[12.5px] font-semibold leading-tight text-neutral-800 group-hover:text-neutral-900">
+    <span className="min-w-0">
+      <span className="block text-[13px] font-bold leading-tight text-neutral-800 group-hover:text-indigo-700">
         {title}
       </span>
-      <span className="mt-0.5 block text-[11px] leading-relaxed text-neutral-400">
+      <span className="mt-0.5 block text-[11px] leading-snug text-neutral-500">
         {desc}
       </span>
     </span>
-    <FiArrowRight
-      size={11}
-      className="mt-1 flex-shrink-0 text-indigo-400 opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100"
-    />
+    <FiArrowRight size={12} className="text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500" />
   </Link>
 );
 
@@ -99,21 +79,20 @@ export default function AboutDropdown() {
           </div>
         </div>
 
-        <div className="border-l border-neutral-100 bg-white p-5">
-          <div className="grid grid-cols-[0.9fr_1.45fr] gap-4">
-            {GROUPS.map((group) => (
-              <div key={group.title}>
-                <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">
-                  {group.title}
-                </p>
-                <div className="grid gap-2">
-                  {group.items.map((item) => (
-                    <Item key={item.title} {...item} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="border-l border-neutral-100 bg-white p-6">
+          <section className="flex h-full flex-col justify-center">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-neutral-400">
+                Work
+              </p>
+              <span className="ml-4 h-px flex-1 bg-neutral-100" />
+            </div>
+            <div className="rounded-2xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50 px-5 py-3">
+              {WORK_LINKS.map((item) => (
+                <RowLink key={item.title} {...item} />
+              ))}
+            </div>
+          </section>
         </div>
       </div>
     </div>

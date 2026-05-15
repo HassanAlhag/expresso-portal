@@ -7,6 +7,10 @@ function safeRx(s) {
   return new RegExp(v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 }
 
+function canManagePortfolioSystemFields(req) {
+  return ["super_admin", "admin"].includes(String(req.user?.role || "").toLowerCase());
+}
+
 export async function listPortfolio(req, res) {
   const {
     q = "",
@@ -138,6 +142,17 @@ export async function updatePortfolio(req, res) {
 
   const body = req.body || {};
   const patch = {};
+  const restrictedFields = ["slug", "tags", "seo", "sortOrder"];
+  const touchedRestrictedField = restrictedFields.some((field) =>
+    Object.prototype.hasOwnProperty.call(body, field)
+  );
+
+  if (touchedRestrictedField && !canManagePortfolioSystemFields(req)) {
+    return res.status(403).json({
+      ok: false,
+      message: "This field is managed by administrators.",
+    });
+  }
 
   if (typeof body.title !== "undefined") patch.title = body.title;
   if (typeof body.excerpt !== "undefined") patch.excerpt = body.excerpt;

@@ -85,7 +85,7 @@ const Content = ({ setFeatureInView, featureInView }) => {
           <span className="rounded-full bg-indigo-600 px-2 py-1.5 text-xs font-medium text-white">
             {featureInView.callout}
           </span>
-          <p className="my-3 text-5xl font-bold">{featureInView.title}</p>
+          <p className="my-3 text-3xl font-bold sm:text-4xl md:text-5xl">{featureInView.title}</p>
           <p className="text-slate-600">{featureInView.description}</p>
         </motion.div>
         <motion.div

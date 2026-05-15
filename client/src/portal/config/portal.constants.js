@@ -68,6 +68,7 @@ export const ROUTES = {
   TEAMS: "/portal/teams",
 
   CAREERS: "/portal/careers",
+  WEBSITE_PORTFOLIO: "/portal/website/portfolio",
   HOMEPAGE_SLIDES: "/portal/website/slides",
 
   PROFILE: "/portal/profile",
@@ -163,9 +164,9 @@ const ITEMS = {
   },
 
   portfolio: {
-    to: ROUTES.PORTFOLIO,
+    to: ROUTES.WEBSITE_PORTFOLIO,
     label: "Portfolio",
-    hint: "Case studies & website work",
+    hint: "Case studies on the website",
     Icon: Layers,
     accent: ACCENTS.rose,
   },
@@ -479,7 +480,7 @@ export function getNavSectionsByRole(role) {
       {
         title: "Assets",
         Icon: Images,
-        items: [ITEMS.media, ITEMS.files, ITEMS.portfolio],
+        items: [ITEMS.media, ITEMS.files],
       },
       {
         title: "Commercial",
@@ -534,7 +535,7 @@ export function getNavSectionsByRole(role) {
     {
       title: "Assets",
       Icon: Images,
-      items: [ITEMS.media, ITEMS.files, ITEMS.portfolio],
+        items: [ITEMS.media, ITEMS.files],
     },
     {
       title: "Commercial",
@@ -577,7 +578,7 @@ export function getNavSectionsByRole(role) {
     {
       title: "Website",
       Icon: Globe,
-      items: [ITEMS.careers, ITEMS.homepageSlides],
+      items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.portfolio],
     },
     {
       title: "System",
@@ -647,7 +648,7 @@ export function getPageMeta(pathname) {
     };
   }
 
-  if (starts(ROUTES.PORTFOLIO)) {
+  if (starts(ROUTES.WEBSITE_PORTFOLIO) || starts(ROUTES.PORTFOLIO)) {
     return {
       label: "Portfolio",
       subtitle: "Case studies and work samples for the website",

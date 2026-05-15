@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import Loader from "../shared/ui/Loader";
 import { ToastProvider } from "../shared/ui/Toast";
@@ -186,6 +186,11 @@ const SkillMatrixPage = lazy(() =>
   import("../features/hr/pages/SkillMatrixPage")
 );
 
+function LegacyPortfolioDetailsRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/portal/website/portfolio/${id}`} replace />;
+}
+
 export default function PortalRoutes() {
   return (
     <Suspense fallback={<Loader />}>
@@ -294,8 +299,8 @@ export default function PortalRoutes() {
                     {
                       id: "go-portfolio",
                       label: "Go to Portfolio",
-                      to: "/portal/portfolio",
-                      hint: "Content",
+                      to: "/portal/website/portfolio",
+                      hint: "Website",
                       keywords: "portfolio case studies work samples website",
                     },
                     {
@@ -390,8 +395,14 @@ export default function PortalRoutes() {
           <Route path="services/:id" element={<ServiceDetailsPage />} />
           <Route path="enrollments" element={<EnrollmentsPage />} />
           <Route path="enrollments/:id" element={<EnrollmentDetailsPage />} />
-          <Route path="portfolio" element={<PortfolioPage />} />
-          <Route path="portfolio/:id" element={<PortfolioDetailsPage />} />
+          <Route
+            path="portfolio"
+            element={<Navigate to="/portal/website/portfolio" replace />}
+          />
+          <Route
+            path="portfolio/:id"
+            element={<LegacyPortfolioDetailsRedirect />}
+          />
           <Route path="billing" element={<BillingPage />} />
           <Route path="billing/:id" element={<InvoiceDetailsPage />} />
 
@@ -445,6 +456,8 @@ export default function PortalRoutes() {
 
           {/* Website content */}
           <Route path="careers" element={<CareersAdminPage />} />
+          <Route path="website/portfolio" element={<PortfolioPage />} />
+          <Route path="website/portfolio/:id" element={<PortfolioDetailsPage />} />
           <Route path="website/slides" element={<HomepageSlidersPage />} />
           <Route path="website/settings" element={<WebsiteSettingsPage />} />
 

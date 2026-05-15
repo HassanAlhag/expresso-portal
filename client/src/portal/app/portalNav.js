@@ -70,6 +70,7 @@ export const ROUTES = {
   TEAMS: "/portal/teams",
 
   CAREERS: "/portal/careers",
+  WEBSITE_PORTFOLIO: "/portal/website/portfolio",
   HOMEPAGE_SLIDES: "/portal/website/slides",
   WEBSITE_SETTINGS: "/portal/website/settings",
 
@@ -176,9 +177,9 @@ const ITEMS = {
   },
 
   portfolio: {
-    to: ROUTES.PORTFOLIO,
+    to: ROUTES.WEBSITE_PORTFOLIO,
     label: "Portfolio",
-    hint: "Case studies & website work",
+    hint: "Case studies on the website",
     Icon: Layers,
     accent: ACCENTS.rose,
     permission: "portfolio.read",
@@ -510,7 +511,7 @@ const ADMIN_SECTIONS = [
   {
     title: "Assets",
     Icon: Images,
-    items: [ITEMS.media, ITEMS.files, ITEMS.portfolio],
+    items: [ITEMS.media, ITEMS.files],
   },
   {
     title: "Commercial",
@@ -554,7 +555,7 @@ const ADMIN_SECTIONS = [
   {
     title: "Website",
     Icon: Globe,
-    items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.websiteSettings],
+    items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.portfolio, ITEMS.websiteSettings],
   },
   {
     title: "System",
@@ -682,7 +683,7 @@ export function getPageMeta(pathname) {
     };
   }
 
-  if (starts(ROUTES.PORTFOLIO)) {
+  if (starts(ROUTES.WEBSITE_PORTFOLIO) || starts(ROUTES.PORTFOLIO)) {
     return {
       label: "Portfolio",
       subtitle: "Case studies and work samples for the website",

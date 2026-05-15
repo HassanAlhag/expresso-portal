@@ -21,6 +21,7 @@ const ROUTE_PERMISSIONS = [
   ["/portal/jobs", "jobs.read"],
   ["/portal/media-library", "media.read"],
   ["/portal/files", "files.read"],
+  ["/portal/website/portfolio", "portfolio.read"],
   ["/portal/portfolio", "portfolio.read"],
   ["/portal/services", "services.read"],
   ["/portal/enrollments", "enrollments.read"],
