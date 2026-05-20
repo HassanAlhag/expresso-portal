@@ -23,6 +23,25 @@ function stageToStatus(stage) {
   return "open";
 }
 
+function slugify(s) {
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+}
+
+async function uniqueCustomerSlug(base) {
+  let slug = slugify(base) || `customer-${Date.now()}`;
+  let exists = await Customer.findOne({ slug }).lean();
+  let i = 2;
+  while (exists) {
+    slug = `${slugify(base)}-${i++}`;
+    exists = await Customer.findOne({ slug }).lean();
+  }
+  return slug;
+}
+
 export async function convertDealToCustomer(req, res) {
   try {
     const { id } = req.params;
@@ -88,9 +107,11 @@ export async function convertDealToCustomer(req, res) {
     let customer = existingCustomer;
 
     if (!customer) {
+      const slug = await uniqueCustomerSlug(companyName);
       customer = await Customer.create({
         companyName,
         contactName,
+        slug,
         primaryEmail,
         phone,
         industry: deal.industry || "",

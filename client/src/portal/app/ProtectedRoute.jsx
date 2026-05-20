@@ -49,19 +49,33 @@ const EXTERNAL_CLIENT_ROLES = new Set([
   "client_admin",
 ]);
 
+// Routes that are ALWAYS internal — no client role may access them,
+// even if permissions were accidentally granted via the role editor.
 const EXTERNAL_ROUTE_DENYLIST = [
+  // CRM — internal pipeline data
+  "/portal/crm",
+  // HR — internal people management
+  "/portal/hr",
+  // IAM — internal access control
+  "/portal/users",
+  "/portal/roles",
+  "/portal/teams",
+  // Audit — internal system logs
+  "/portal/activity",
+  // Website / content management — internal publishing tools
+  "/portal/website",
+  "/portal/careers",
+  // Asset & content management — internal library/publishing tools
+  "/portal/media-library",
+  "/portal/website/portfolio",
+  // Service catalog & enrollment management — internal commercial tools
+  "/portal/services",
+  "/portal/enrollments",
+  // Procurement internals — vendors, categories, RFQs, applications
   "/portal/procurement/vendor-applications",
   "/portal/procurement/vendors",
   "/portal/procurement/categories",
   "/portal/procurement/rfqs",
-  "/portal/crm",
-  "/portal/hr",
-  "/portal/users",
-  "/portal/roles",
-  "/portal/teams",
-  "/portal/activity",
-  "/portal/website",
-  "/portal/careers",
 ];
 
 function readPermissions() {

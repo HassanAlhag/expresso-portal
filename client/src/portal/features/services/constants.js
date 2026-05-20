@@ -50,6 +50,7 @@ export const DEFAULT_TEMPLATE = {
   billingCycle: "monthly",
   price: undefined,
   executionMode: "recurring",
+  coverImageId: null,
 
   scopeGroups: [],
 

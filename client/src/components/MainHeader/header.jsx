@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import LINKS from "./links";
+import MobileMenu from "./mobileMenu";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
@@ -20,13 +21,18 @@ const Header = () => {
         <div className="flex items-center justify-between gap-4">
           <Logo src={logoSrc} />
 
-          <div className="hidden items-center gap-7 md:flex">
+          <div className="hidden items-center gap-7 lg:flex">
             {LINKS.map((l) => (
               <NavLink key={l.text} {...l} />
             ))}
           </div>
 
-          <CTAs />
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:block">
+              <CTAs />
+            </div>
+            <MobileMenu />
+          </div>
         </div>
       </nav>
     </header>
@@ -59,7 +65,7 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
     if (hasFlyout) setOpen(true);
   };
   const hide = () => {
-    timer.current = setTimeout(() => setOpen(false), 120);
+    timer.current = setTimeout(() => setOpen(false), 220);
   };
 
   // Center the panel on the viewport without any CSS transform.
@@ -81,6 +87,15 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
         {text}
       </Link>
 
+      {/* transparent bridge fills the gap between nav bar and flyout panel */}
+      {hasFlyout && open && (
+        <div
+          className="fixed left-0 right-0"
+          style={{ top: 72, height: 40, zIndex: 1099 }}
+          onMouseEnter={show}
+        />
+      )}
+
       {hasFlyout &&
         ReactDOM.createPortal(
           <AnimatePresence>
@@ -89,10 +104,10 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
                 onMouseEnter={show}
                 onMouseLeave={hide}
                 style={flyoutStyle}
-                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                initial={{ opacity: 0, y: 6, scale: 0.99 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                transition={{ duration: 0.18 }}
+                exit={{ opacity: 0, y: 6, scale: 0.99 }}
+                transition={{ duration: 0.15 }}
               >
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-1.5 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
                   <FlyoutContent />
@@ -106,7 +121,7 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
   );
 };
 
-const CTAs = () => {
+export const CTAs = () => {
   const navigate = useNavigate();
   return (
     <div className="flex items-center gap-2">

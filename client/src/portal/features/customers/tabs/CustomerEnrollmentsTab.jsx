@@ -4,7 +4,7 @@ import Button from "../../../shared/ui/Button";
 import Skeleton from "../../../shared/ui/Skeleton";
 import EmptyState from "../../../shared/ui/EmptyState";
 import Badge from "../../../shared/ui/Badge";
-import { Layers3 } from "lucide-react";
+import { Layers3, Plus } from "lucide-react";
 
 function executionModeLabel(mode) {
   const raw = String(mode || "").trim();
@@ -21,6 +21,7 @@ export default function CustomerEnrollmentsTab({
   selectedEnrollmentId,
   busy,
   convertingEnrollmentId,
+  onNewEnrollment,
   onOpenJobs,
   onConvert,
 }) {
@@ -50,12 +51,23 @@ export default function CustomerEnrollmentsTab({
         icon={Layers3}
         title="No enrollments yet"
         message="This client is not enrolled in any fixed service yet."
+        actionLabel="New Enrollment"
+        onAction={onNewEnrollment}
       />
     );
   }
 
   return (
     <div className="grid gap-3">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-black text-slate-500">
+          {enrollments.length} enrollment{enrollments.length !== 1 ? "s" : ""}
+        </div>
+        <Button onClick={onNewEnrollment} disabled={busy}>
+          <Plus size={14} />
+          New Enrollment
+        </Button>
+      </div>
       {enrollments.map((item) => {
         const serviceName = item?.serviceTemplateId?.name || "Unknown service";
         const mode =

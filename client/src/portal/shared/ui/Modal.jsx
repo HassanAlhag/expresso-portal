@@ -14,15 +14,18 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
       onMouseDown={() => onClose?.()}
     >
       <div
-        className="flex max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
-        style={{ width: `min(${width}, 96vw)` }}
+        className="flex w-full flex-col overflow-hidden rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl"
+        style={{
+          width: `min(${width}, 100%)`,
+          maxHeight: "calc(100dvh - env(safe-area-inset-top, 20px) - 20px)",
+        }}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
           <div>
             {title ? (
               <h2 className="text-lg font-black text-slate-900">{title}</h2>
@@ -42,10 +45,13 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">{children}</div>
 
         {footer ? (
-          <div className="border-t border-slate-100 px-6 py-4">{footer}</div>
+          <div
+            className="flex-shrink-0 border-t border-slate-100 px-5 py-4 sm:px-6"
+            style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+          >{footer}</div>
         ) : null}
       </div>
     </div>

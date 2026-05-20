@@ -169,6 +169,31 @@ const JobSchema = new mongoose.Schema(
       default: [],
     },
 
+    approvalSteps: {
+      type: [
+        {
+          id:           { type: String, default: "" },
+          title:        { type: String, default: "" },
+          role:         { type: String, default: "client" },
+          required:     { type: Boolean, default: true },
+          instructions: { type: String, default: "" },
+        },
+      ],
+      default: [],
+    },
+
+    approvalChecklist: {
+      type: [
+        {
+          id:       { type: String, default: "" },
+          text:     { type: String, default: "" },
+          required: { type: Boolean, default: true },
+          done:     { type: Boolean, default: false },
+        },
+      ],
+      default: [],
+    },
+
     approvals: {
       type: [
         {

@@ -10,7 +10,6 @@ import { useToast } from "../../../shared/ui/Toast";
 import {
   ArrowLeft,
   Pencil,
-  Sparkles,
   Clock3,
   FileCheck2,
   ShieldCheck,
@@ -22,20 +21,64 @@ import {
   ChevronRight,
   RefreshCw,
   Trash2,
+  Image as ImageIcon,
 } from "lucide-react";
 
 import { getService, deleteService } from "../api";
 import ServiceStatusPill from "../components/ServiceStatusPill";
 
+// ── Creative type helpers ─────────────────────────────────────────────────────
+
+const CREATIVE_CHIP = {
+  post:     { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },
+  reel:     { bg: "bg-violet-50",  text: "text-violet-700",  border: "border-violet-200" },
+  story:    { bg: "bg-pink-50",    text: "text-pink-700",    border: "border-pink-200" },
+  video:    { bg: "bg-red-50",     text: "text-red-700",     border: "border-red-200" },
+  design:   { bg: "bg-teal-50",    text: "text-teal-700",    border: "border-teal-200" },
+  carousel: { bg: "bg-orange-50",  text: "text-orange-700",  border: "border-orange-200" },
+  page:     { bg: "bg-cyan-50",    text: "text-cyan-700",    border: "border-cyan-200" },
+  phase:    { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200" },
+  task:     { bg: "bg-slate-50",   text: "text-slate-500",   border: "border-slate-200" },
+  other:    { bg: "bg-slate-50",   text: "text-slate-500",   border: "border-slate-200" },
+};
+
+function countCreativesByType(scopeGroups) {
+  const groups = Array.isArray(scopeGroups) ? scopeGroups : [];
+  const counts = {};
+  for (const group of groups) {
+    const jobs = Array.isArray(group?.jobs) ? group.jobs : [];
+    for (const job of jobs) {
+      const type = job.type || "task";
+      const qty = Math.max(1, Number(job.quantity || 1));
+      counts[type] = (counts[type] || 0) + qty;
+    }
+  }
+  return Object.entries(counts)
+    .filter(([, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1]);
+}
+
+function CreativeChip({ type, count }) {
+  const style = CREATIVE_CHIP[type] || CREATIVE_CHIP.other;
+  return (
+    <span
+      className={[
+        "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-black capitalize",
+        style.bg, style.text, style.border,
+      ].join(" ")}
+    >
+      {count} {type}
+    </span>
+  );
+}
+
+// ── Misc helpers ──────────────────────────────────────────────────────────────
+
 function money(x) {
   if (typeof x !== "number") return "—";
   try {
-    return new Intl.NumberFormat(undefined, {
-      maximumFractionDigits: 0,
-    }).format(x);
-  } catch {
-    return String(x);
-  }
+    return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(x);
+  } catch { return String(x); }
 }
 
 function MetaPill({ children }) {
@@ -51,15 +94,10 @@ function StatTile({ label, value, hint, Icon }) {
     <div className="rounded-[22px] border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-            {label}
-          </div>
+          <div className="text-[11px] font-black tracking-[0.22em] text-slate-500">{label}</div>
           <div className="mt-1 text-lg font-black text-slate-900">{value}</div>
-          {hint ? (
-            <div className="mt-1 text-xs text-slate-500">{hint}</div>
-          ) : null}
+          {hint ? <div className="mt-1 text-xs text-slate-500">{hint}</div> : null}
         </div>
-
         {Icon ? (
           <div className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-slate-50">
             <Icon size={16} className="text-slate-700" />
@@ -79,15 +117,11 @@ function SectionHeader({ title, subtitle, Icon, action }) {
             <Icon size={18} className="text-slate-700" />
           </div>
         ) : null}
-
         <div>
           <div className="text-base font-black text-slate-900">{title}</div>
-          {subtitle ? (
-            <div className="mt-1 text-sm text-slate-600">{subtitle}</div>
-          ) : null}
+          {subtitle ? <div className="mt-1 text-sm text-slate-600">{subtitle}</div> : null}
         </div>
       </div>
-
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   );
@@ -95,13 +129,9 @@ function SectionHeader({ title, subtitle, Icon, action }) {
 
 function ChecklistBlock({ title, items }) {
   if (!Array.isArray(items) || items.length === 0) return null;
-
   return (
     <div className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50/80 p-4">
-      <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">
-        {title}
-      </div>
-
+      <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">{title}</div>
       <div className="mt-3 grid gap-2">
         {items.map((c, index) => (
           <div
@@ -118,7 +148,6 @@ function ChecklistBlock({ title, items }) {
 
 function ScopeGroupCard({ group, index }) {
   const jobs = Array.isArray(group?.jobs) ? group.jobs : [];
-
   return (
     <div className="rounded-[24px] border border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-center gap-2">
@@ -131,45 +160,29 @@ function ScopeGroupCard({ group, index }) {
       </div>
 
       {group.description ? (
-        <div className="mt-3 text-sm leading-6 text-slate-600">
-          {group.description}
-        </div>
+        <div className="mt-3 text-sm leading-6 text-slate-600">{group.description}</div>
       ) : null}
 
       {jobs.length === 0 ? (
-        <div className="mt-4 text-sm text-slate-500">
-          No items in this group.
-        </div>
+        <div className="mt-4 text-sm text-slate-500">No items in this group.</div>
       ) : (
         <div className="mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-slate-50/60">
           <div className="divide-y divide-slate-200">
             {jobs.map((job, jobIndex) => (
-              <div
-                key={job.id || `${job.title}-${jobIndex}`}
-                className="px-4 py-4"
-              >
+              <div key={job.id || `${job.title}-${jobIndex}`} className="px-4 py-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="text-sm font-black text-slate-900">
                     {job.title || "Untitled item"}
                   </div>
-                  <MetaPill>{job.type || "job"}</MetaPill>
-                  <MetaPill>
-                    {job.quantity ?? 1} {job.unit || "item"}
-                  </MetaPill>
+                  <CreativeChip type={job.type || "task"} count={job.quantity ?? 1} />
+                  {job.unit ? <MetaPill>{job.unit}</MetaPill> : null}
                   <MetaPill>Due in {job.dueDays ?? 0} days</MetaPill>
                 </div>
-
                 {job.description ? (
-                  <div className="mt-2 text-sm leading-6 text-slate-600">
-                    {job.description}
-                  </div>
+                  <div className="mt-2 text-sm leading-6 text-slate-600">{job.description}</div>
                 ) : null}
-
                 {Array.isArray(job.checklist) && job.checklist.length > 0 ? (
-                  <ChecklistBlock
-                    title="ITEM CHECKLIST"
-                    items={job.checklist}
-                  />
+                  <ChecklistBlock title="ITEM CHECKLIST" items={job.checklist} />
                 ) : null}
               </div>
             ))}
@@ -190,15 +203,14 @@ function ApprovalStepCard({ step, index }) {
         <MetaPill>{step.role || "client"}</MetaPill>
         <MetaPill>{step.required !== false ? "Required" : "Optional"}</MetaPill>
       </div>
-
       {step.instructions ? (
-        <div className="mt-3 text-sm leading-6 text-slate-600">
-          {step.instructions}
-        </div>
+        <div className="mt-3 text-sm leading-6 text-slate-600">{step.instructions}</div>
       ) : null}
     </div>
   );
 }
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function ServiceDetailsPage() {
   const nav = useNavigate();
@@ -214,14 +226,11 @@ export default function ServiceDetailsPage() {
   const load = async () => {
     setLoading(true);
     setError("");
-
     try {
       const res = await getService(id);
       setItem(res?.item || res?.service || null);
     } catch (e) {
-      setError(
-        e?.response?.data?.message || e?.message || "Failed to load service"
-      );
+      setError(e?.response?.data?.message || e?.message || "Failed to load service");
     } finally {
       setLoading(false);
     }
@@ -232,30 +241,16 @@ export default function ServiceDetailsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const scopeGroups = useMemo(() => {
-    return Array.isArray(item?.scopeGroups) ? item.scopeGroups : [];
-  }, [item]);
+  const scopeGroups = useMemo(() => Array.isArray(item?.scopeGroups) ? item.scopeGroups : [], [item]);
 
-  const groupsCount = useMemo(() => scopeGroups.length, [scopeGroups]);
+  const creatives = useMemo(() => countCreativesByType(scopeGroups), [scopeGroups]);
 
-  const jobsCount = useMemo(() => {
-    return scopeGroups.reduce((sum, group) => {
-      const jobs = Array.isArray(group?.jobs) ? group.jobs : [];
-      return (
-        sum +
-        jobs.reduce(
-          (jobSum, job) => jobSum + Math.max(1, Number(job?.quantity || 1)),
-          0
-        )
-      );
-    }, 0);
-  }, [scopeGroups]);
+  const approvalStepsCount = useMemo(() =>
+    Array.isArray(item?.approvals?.steps) ? item.approvals.steps.length : 0,
+    [item]
+  );
 
-  const approvalStepsCount = useMemo(() => {
-    return Array.isArray(item?.approvals?.steps)
-      ? item.approvals.steps.length
-      : 0;
-  }, [item]);
+  const coverSrc = item?.coverImageId?.thumbnailUrl || item?.coverImageId?.url || null;
 
   const handleDelete = () => {
     setConfirmState({
@@ -315,19 +310,56 @@ export default function ServiceDetailsPage() {
         onClose={() => setConfirmState(null)}
       />
 
+      {/* ── Back nav ── */}
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <button
-            type="button"
-            onClick={() => nav("/portal/services")}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-900 transition hover:bg-slate-50"
-          >
-            <ArrowLeft size={14} />
-            Back to services
-          </button>
+        <button
+          type="button"
+          onClick={() => nav("/portal/services")}
+          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-900 transition hover:bg-slate-50"
+        >
+          <ArrowLeft size={14} />
+          Back to services
+        </button>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          <Button variant="outline" onClick={load} disabled={busy}>
+            <RefreshCw size={16} />
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={() => nav(`/portal/services/${id}/edit`)} disabled={busy}>
+            <Pencil size={16} />
+            Edit in builder
+          </Button>
+          <Button variant="outline" onClick={handleDelete} disabled={busy}>
+            <Trash2 size={16} />
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Hero card ── */}
+      <Card className="overflow-hidden p-0">
+        {/* Cover image */}
+        <div className="relative h-56 w-full overflow-hidden bg-slate-100 sm:h-72">
+          {coverSrc ? (
+            <img src={coverSrc} alt={item.name} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[radial-gradient(circle_at_top_right,rgba(127,138,209,0.18),transparent_50%)]">
+              <div className="grid h-16 w-16 place-items-center rounded-2xl border border-black/5 bg-white/60 text-slate-300">
+                <ImageIcon size={28} />
+              </div>
+              <div className="text-lg font-black text-slate-200">
+                {(item.name || "SV").slice(0, 2).toUpperCase()}
+              </div>
+            </div>
+          )}
+          <div className="absolute bottom-4 left-4">
             <ServiceStatusPill status={item.status} />
+          </div>
+        </div>
+
+        {/* Meta row */}
+        <div className="px-6 py-5">
+          <div className="flex flex-wrap items-center gap-2">
             <MetaPill>/{item.slug || "—"}</MetaPill>
             <MetaPill>{item.billingCycle || "—"}</MetaPill>
             <MetaPill>{item.executionMode || "—"}</MetaPill>
@@ -340,88 +372,52 @@ export default function ServiceDetailsPage() {
           <div className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
             {item.summary || item.description || "No summary added."}
           </div>
-        </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <Button variant="outline" onClick={load} disabled={busy}>
-            <RefreshCw size={16} />
-            Refresh
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => nav(`/portal/services/${id}/edit`)}
-            disabled={busy}
-          >
-            <Pencil size={16} />
-            Edit in builder
-          </Button>
-
-          <Button variant="outline" onClick={handleDelete} disabled={busy}>
-            <Trash2 size={16} />
-          </Button>
-        </div>
-      </div>
-
-      <Card className="relative overflow-hidden p-6">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(127,138,209,0.12),transparent_42%)]" />
-
-        <div className="relative grid gap-5 xl:grid-cols-5">
-          <div className="xl:col-span-2">
-            <div className="rounded-[24px] border border-slate-200 bg-white/85 p-5">
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700">
-                <Sparkles size={14} />
-                Service blueprint
+          {/* Creative breakdown */}
+          {creatives.length > 0 ? (
+            <div className="mt-4">
+              <div className="mb-2 text-[11px] font-black tracking-[0.18em] text-slate-400">
+                CREATIVES
               </div>
-
-              {item.description ? (
-                <div className="mt-4">
-                  <div className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-                    DESCRIPTION
-                  </div>
-                  <div className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-700">
-                    {item.description}
-                  </div>
-                </div>
-              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {creatives.map(([type, count]) => (
+                  <CreativeChip key={type} type={type} count={count} />
+                ))}
+              </div>
             </div>
-          </div>
-
-          <div className="xl:col-span-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatTile
-              label="PRICING"
-              value={`${money(item.price)}${
-                item.billingCycle ? ` / ${item.billingCycle}` : ""
-              }`}
-              hint="billing model"
-              Icon={Clock3}
-            />
-            <StatTile
-              label="GROUPS"
-              value={String(groupsCount)}
-              hint="scope sections"
-              Icon={Layers3}
-            />
-            <StatTile
-              label="JOBS"
-              value={String(jobsCount)}
-              hint="template items"
-              Icon={FileCheck2}
-            />
-            <StatTile
-              label="APPROVALS"
-              value={
-                item.approvals?.required === false ? "Optional" : "Required"
-              }
-              hint={`${approvalStepsCount} step${
-                approvalStepsCount === 1 ? "" : "s"
-              }`}
-              Icon={ShieldCheck}
-            />
-          </div>
+          ) : null}
         </div>
       </Card>
 
+      {/* ── Stats grid ── */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatTile
+          label="PRICING"
+          value={`${money(item.price)}${item.billingCycle ? ` / ${item.billingCycle}` : ""}`}
+          hint="billing model"
+          Icon={Clock3}
+        />
+        <StatTile
+          label="SCOPE GROUPS"
+          value={String(scopeGroups.length)}
+          hint="delivery blocks"
+          Icon={Layers3}
+        />
+        <StatTile
+          label="CREATIVES"
+          value={String(creatives.reduce((sum, [, c]) => sum + c, 0))}
+          hint="total deliverables"
+          Icon={FileCheck2}
+        />
+        <StatTile
+          label="APPROVALS"
+          value={item.approvals?.required === false ? "Optional" : "Required"}
+          hint={`${approvalStepsCount} step${approvalStepsCount === 1 ? "" : "s"}`}
+          Icon={ShieldCheck}
+        />
+      </div>
+
+      {/* ── Scope structure ── */}
       <Card className="p-6">
         <SectionHeader
           Icon={Layers3}
@@ -430,9 +426,7 @@ export default function ServiceDetailsPage() {
         />
 
         {scopeGroups.length === 0 ? (
-          <div className="mt-5 text-sm text-slate-500">
-            No scope groups defined.
-          </div>
+          <div className="mt-5 text-sm text-slate-500">No scope groups defined.</div>
         ) : (
           <div className="mt-5 grid gap-4">
             {scopeGroups.map((group, index) => (
@@ -446,6 +440,7 @@ export default function ServiceDetailsPage() {
         )}
       </Card>
 
+      {/* ── SLA + Approvals ── */}
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="p-6">
           <SectionHeader
@@ -457,9 +452,7 @@ export default function ServiceDetailsPage() {
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <StatTile
               label="RESPONSE"
-              value={`${item.sla?.responseTime ?? 24} ${
-                item.sla?.responseUnit || "hours"
-              }`}
+              value={`${item.sla?.responseTime ?? 24} ${item.sla?.responseUnit || "hours"}`}
               hint="response expectation"
               Icon={Clock3}
             />
@@ -503,8 +496,7 @@ export default function ServiceDetailsPage() {
               : "Approval is required before final delivery or publishing."}
           </div>
 
-          {Array.isArray(item.approvals?.steps) &&
-          item.approvals.steps.length > 0 ? (
+          {Array.isArray(item.approvals?.steps) && item.approvals.steps.length > 0 ? (
             <div className="mt-5 grid gap-3">
               {item.approvals.steps.map((step, index) => (
                 <ApprovalStepCard
@@ -515,18 +507,14 @@ export default function ServiceDetailsPage() {
               ))}
             </div>
           ) : (
-            <div className="mt-4 text-sm text-slate-500">
-              No approval steps defined.
-            </div>
+            <div className="mt-4 text-sm text-slate-500">No approval steps defined.</div>
           )}
 
-          <ChecklistBlock
-            title="APPROVAL CHECKLIST"
-            items={item.approvals?.checklist || []}
-          />
+          <ChecklistBlock title="APPROVAL CHECKLIST" items={item.approvals?.checklist || []} />
         </Card>
       </div>
 
+      {/* ── Files ── */}
       <Card className="p-6">
         <SectionHeader
           Icon={Paperclip}
@@ -536,71 +524,46 @@ export default function ServiceDetailsPage() {
 
         <div className="mt-5 grid gap-4 xl:grid-cols-2">
           <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">
-              UPLOADS
-            </div>
-
-            {Array.isArray(item.files?.uploads) &&
-            item.files.uploads.length > 0 ? (
+            <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">UPLOADS</div>
+            {Array.isArray(item.files?.uploads) && item.files.uploads.length > 0 ? (
               <div className="mt-4 overflow-hidden rounded-[18px] border border-slate-200 bg-slate-50/60">
                 <div className="divide-y divide-slate-200">
                   {item.files.uploads.map((u, i) => (
-                    <div
-                      key={u.id || u.name || i}
-                      className="flex items-center justify-between gap-3 px-4 py-3"
-                    >
+                    <div key={u.id || u.name || i} className="flex items-center justify-between gap-3 px-4 py-3">
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-black text-slate-900">
-                          {u.name || "File"}
-                        </div>
-                        <div className="truncate text-xs text-slate-500">
-                          {u.url || "—"}
-                        </div>
+                        <div className="truncate text-sm font-black text-slate-900">{u.name || "File"}</div>
+                        <div className="truncate text-xs text-slate-500">{u.url || "—"}</div>
                       </div>
-
-                      <ChevronRight
-                        size={16}
-                        className="shrink-0 text-slate-400"
-                      />
+                      <ChevronRight size={16} className="shrink-0 text-slate-400" />
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="mt-3 text-sm text-slate-500">
-                No uploaded files.
-              </div>
+              <div className="mt-3 text-sm text-slate-500">No uploaded files.</div>
             )}
           </div>
 
           <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">
-              MEDIA REFERENCES
-            </div>
-
-            {Array.isArray(item.files?.mediaRefs) &&
-            item.files.mediaRefs.length > 0 ? (
+            <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">MEDIA REFERENCES</div>
+            {Array.isArray(item.files?.mediaRefs) && item.files.mediaRefs.length > 0 ? (
               <div className="mt-4 overflow-hidden rounded-[18px] border border-slate-200 bg-slate-50/60">
                 <div className="divide-y divide-slate-200">
                   {item.files.mediaRefs.map((m, i) => (
-                    <div
-                      key={m.mediaId || i}
-                      className="px-4 py-3 text-sm text-slate-700"
-                    >
+                    <div key={m.mediaId || i} className="px-4 py-3 text-sm text-slate-700">
                       • {m.mediaId || "Media ref"}
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="mt-3 text-sm text-slate-500">
-                No media refs attached.
-              </div>
+              <div className="mt-3 text-sm text-slate-500">No media refs attached.</div>
             )}
           </div>
         </div>
       </Card>
 
+      {/* ── Operational summary ── */}
       <Card className="p-6">
         <SectionHeader
           Icon={BriefcaseBusiness}
@@ -614,29 +577,21 @@ export default function ServiceDetailsPage() {
               <Building2 size={14} />
               EXECUTION MODE
             </div>
-            <div className="mt-2 text-sm font-black text-slate-900">
-              {item.executionMode || "—"}
-            </div>
+            <div className="mt-2 text-sm font-black text-slate-900">{item.executionMode || "—"}</div>
           </div>
-
           <div className="rounded-[22px] border border-slate-200 bg-slate-50/70 p-4">
             <div className="inline-flex items-center gap-2 text-[11px] font-black tracking-[0.18em] text-slate-500">
               <Clock3 size={14} />
               BILLING CYCLE
             </div>
-            <div className="mt-2 text-sm font-black text-slate-900">
-              {item.billingCycle || "—"}
-            </div>
+            <div className="mt-2 text-sm font-black text-slate-900">{item.billingCycle || "—"}</div>
           </div>
-
           <div className="rounded-[22px] border border-slate-200 bg-slate-50/70 p-4">
             <div className="inline-flex items-center gap-2 text-[11px] font-black tracking-[0.18em] text-slate-500">
               <BadgeCheck size={14} />
               STATUS
             </div>
-            <div className="mt-2 text-sm font-black text-slate-900">
-              {item.status || "—"}
-            </div>
+            <div className="mt-2 text-sm font-black text-slate-900">{item.status || "—"}</div>
           </div>
         </div>
       </Card>

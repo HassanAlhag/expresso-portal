@@ -18,13 +18,22 @@ import {
 } from "../api";
 import { DEFAULT_TEMPLATE } from "../constants";
 
-import ServiceTemplateTabs from "../tabs/ServiceTemplateTabs";
+import Tabs from "../../../shared/ui/Tabs";
 import ServiceTemplateOverview from "../tabs/ServiceTemplateOverview";
 import ServiceTemplateScope from "../tabs/ServiceTemplateScope";
 import ServiceTemplateSLA from "../tabs/ServiceTemplateSLA";
 import ServiceTemplateApprovals from "../tabs/ServiceTemplateApprovals";
 import ServiceTemplateFiles from "../tabs/ServiceTemplateFiles";
 import ServiceTemplatePreview from "../tabs/ServiceTemplatePreview";
+
+const BUILDER_TABS = [
+  { value: "overview",  label: "Overview" },
+  { value: "scope",     label: "Scope" },
+  { value: "sla",       label: "SLA" },
+  { value: "approvals", label: "Approvals" },
+  { value: "files",     label: "Files" },
+  { value: "preview",   label: "Preview" },
+];
 
 function MetaPill({ label, value, tone = "default" }) {
   const tones = {
@@ -146,6 +155,7 @@ export default function ServiceBuilderPage() {
         status: doc.status || "draft",
         billingCycle: doc.billingCycle || "",
         executionMode: doc.executionMode || "recurring",
+        coverImageId: doc.coverImageId?._id || doc.coverImageId || null,
         price:
           doc.price === "" ||
           doc.price === null ||
@@ -396,7 +406,7 @@ export default function ServiceBuilderPage() {
       </Card>
 
       <Card className="p-3">
-        <ServiceTemplateTabs value={tab} onChange={setTab} />
+        <Tabs tabs={BUILDER_TABS} value={tab} onChange={setTab} />
       </Card>
 
       {tab === "overview" ? (

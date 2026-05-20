@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 import Button from "../../../shared/ui/Button";
 import Skeleton from "../../../shared/ui/Skeleton";
@@ -17,19 +17,18 @@ import {
   FileText,
   FolderKanban,
   Globe,
-  Image as ImageIcon,
-  Lock,
-  MessageSquare,
+  ListChecks,
   RefreshCw,
   Send,
+  ShieldCheck,
   Trash2,
-  UploadCloud,
   X,
 } from "lucide-react";
 
 import { addApproval, attachMedia, deleteJob, getJob, publishJob, updateJob } from "../api";
 import { listUsers } from "../../iam/users/api";
 import { BRAND } from "../constants";
+import CreativeReviewPanel from "../components/CreativeReviewPanel";
 
 const PIPELINE_STAGES = [
   { key: "brief",           label: "Brief" },
@@ -79,54 +78,6 @@ function Badge({ tone = "slate", children }) {
   );
 }
 
-function threadStyle(status) {
-  switch (status) {
-    case "approved":
-      return { bg: "bg-emerald-50 border-emerald-200", Icon: CheckCircle2, iconCls: "text-emerald-600", label: "Approved" };
-    case "changes_requested":
-      return { bg: "bg-orange-50 border-orange-200", Icon: AlertTriangle, iconCls: "text-orange-500", label: "Changes requested" };
-    case "client_sent":
-      return { bg: "bg-blue-50 border-blue-200", Icon: Send, iconCls: "text-blue-500", label: "Sent to client" };
-    case "client_note":
-      return { bg: "bg-violet-50 border-violet-200", Icon: MessageSquare, iconCls: "text-violet-500", label: "Client note" };
-    default:
-      return { bg: "bg-slate-50 border-slate-200", Icon: Lock, iconCls: "text-slate-400", label: "Internal note" };
-  }
-}
-
-function formatTime(dateStr) {
-  if (!dateStr) return "";
-  try {
-    const d = new Date(dateStr);
-    const diff = (Date.now() - d) / 1000;
-    if (diff < 60) return "Just now";
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return d.toLocaleDateString();
-  } catch { return ""; }
-}
-
-function ThreadEntry({ entry }) {
-  const { bg, Icon, iconCls, label } = threadStyle(entry.status);
-  const author = entry.createdBy?.fullName || entry.createdBy?.email || "Staff";
-  return (
-    <div className={`rounded-2xl border p-4 ${bg}`}>
-      <div className="flex items-start gap-3">
-        <div className={`mt-0.5 shrink-0 ${iconCls}`}><Icon size={15} /></div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-extrabold text-slate-700">{label}</span>
-            <span className="text-[11px] text-slate-400">{formatTime(entry.createdAt)}</span>
-          </div>
-          {entry.note && (
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{entry.note}</p>
-          )}
-          <div className="mt-1.5 text-[11px] font-bold text-slate-400">{author}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function getInitials(name = "") {
   return name.split(" ").map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?";
@@ -135,17 +86,20 @@ function getInitials(name = "") {
 export default function JobDetailsPage() {
   const nav = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   const toast = useToast();
+
+  const returnTo = location.state?.returnTo || null;
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [job, setJob] = useState(null);
 
-  const [note, setNote] = useState("");
-  const [noteType, setNoteType] = useState("internal_note");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [staffUsers, setStaffUsers] = useState([]);
+  const [staffLoading, setStaffLoading] = useState(true);
+  const [staffError, setStaffError] = useState("");
   const [planningDirty, setPlanningDirty] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
 
@@ -166,6 +120,8 @@ export default function JobDetailsPage() {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
+    setStaffLoading(true);
+    setStaffError("");
     Promise.all([
       listUsers({ role: "staff", isActive: true, limit: 100 }),
       listUsers({ role: "admin", isActive: true, limit: 50 }),
@@ -173,7 +129,11 @@ export default function JobDetailsPage() {
       const all = [...(s?.items || []), ...(a?.items || [])];
       const seen = new Set();
       setStaffUsers(all.filter((u) => { if (seen.has(u._id)) return false; seen.add(u._id); return true; }));
-    }).catch(() => {});
+    }).catch((e) => {
+      setStaffError(e?.response?.data?.message || e?.message || "Could not load staff");
+    }).finally(() => {
+      setStaffLoading(false);
+    });
   }, []);
 
   const customerLabel = useMemo(() => {
@@ -208,24 +168,11 @@ export default function JobDetailsPage() {
     } finally { setBusy(false); }
   };
 
-  const handleAddNote = async () => {
-    if (!note.trim()) return;
-    setBusy(true);
-    try {
-      await addApproval(id, { status: noteType, note });
-      setNote("");
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to add note");
-    } finally { setBusy(false); }
-  };
-
   const handleSendToClient = async () => {
     setBusy(true);
     try {
       await updateJob(id, { status: "client_review" });
-      await addApproval(id, { status: "client_sent", note: note.trim() || "Job sent to client for review." });
-      setNote("");
+      await addApproval(id, { status: "client_sent", note: "Job sent to client for review." });
       await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed to send to client");
@@ -235,9 +182,8 @@ export default function JobDetailsPage() {
   const handleApprove = async () => {
     setBusy(true);
     try {
-      await addApproval(id, { status: "approved", note: note.trim() || "Approved." });
+      await addApproval(id, { status: "approved", note: "Approved." });
       await updateJob(id, { status: "approved" });
-      setNote("");
       await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Approval failed");
@@ -245,16 +191,7 @@ export default function JobDetailsPage() {
   };
 
   const handleRequestChanges = async () => {
-    if (!note.trim()) { toast.error("Add a note describing the changes needed."); return; }
-    setBusy(true);
-    try {
-      await addApproval(id, { status: "changes_requested", note });
-      await updateJob(id, { status: "editing" });
-      setNote("");
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to request changes");
-    } finally { setBusy(false); }
+    toast.error("Add a note in the Creative Review panel below, then click Request changes.");
   };
 
   const handlePublish = async () => {
@@ -268,6 +205,13 @@ export default function JobDetailsPage() {
     } finally { setBusy(false); }
   };
 
+  const backTarget = () => {
+    if (returnTo) return returnTo;
+    const cId = job?.customerId?._id || job?.customerId;
+    if (cId) return `/portal/customers/${cId}`;
+    return "/portal/jobs";
+  };
+
   const handleDelete = () => {
     setConfirmState({
       title: "Delete job",
@@ -278,7 +222,7 @@ export default function JobDetailsPage() {
         setConfirmState(null);
         try {
           await deleteJob(id);
-          nav("/portal/jobs");
+          nav(backTarget());
         } catch (e) {
           toast.error(e?.response?.data?.message || e?.message || "Delete failed");
           setBusy(false);
@@ -316,23 +260,27 @@ export default function JobDetailsPage() {
 
   const addAssignee = async (userId) => {
     if (!userId || busy) return;
-    const existing = (job.assignees || []).map((x) => x._id || x);
-    if (existing.includes(userId)) return;
+    const existing = (job.assignees || []).map((x) => String(x._id || x));
+    if (existing.includes(String(userId))) return;
     setBusy(true);
     try {
       await updateJob(job._id, { assignees: [...existing, userId] });
       await load();
-    } catch { } finally { setBusy(false); }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed to assign staff");
+    } finally { setBusy(false); }
   };
 
   const removeAssignee = async (userId) => {
     if (busy) return;
-    const next = (job.assignees || []).map((x) => x._id || x).filter((x) => x !== userId);
+    const next = (job.assignees || []).map((x) => String(x._id || x)).filter((x) => x !== String(userId));
     setBusy(true);
     try {
       await updateJob(job._id, { assignees: next });
       await load();
-    } catch { } finally { setBusy(false); }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed to remove staff");
+    } finally { setBusy(false); }
   };
 
   if (loading) {
@@ -374,7 +322,24 @@ export default function JobDetailsPage() {
   const approvals = Array.isArray(job.approvals) ? job.approvals : [];
   const assignees = Array.isArray(job.assignees) ? job.assignees : [];
   const media = Array.isArray(job.media) ? job.media : [];
+  const approvalSteps = Array.isArray(job.approvalSteps) ? job.approvalSteps : [];
+  const approvalChecklist = Array.isArray(job.approvalChecklist) ? job.approvalChecklist : [];
   const isClientReview = job.status === "client_review";
+
+  const toggleChecklistItem = async (itemId) => {
+    const updated = approvalChecklist.map((c) =>
+      c.id === itemId || String(c._id) === itemId ? { ...c, done: !c.done } : c
+    );
+    try {
+      await updateJob(job._id, { approvalChecklist: updated });
+      await load();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed to update checklist");
+    }
+  };
+
+  const checklistDone = approvalChecklist.filter((c) => c.done).length;
+  const checklistTotal = approvalChecklist.length;
 
   return (
     <div className="grid gap-5">
@@ -390,11 +355,11 @@ export default function JobDetailsPage() {
       <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 sm:p-6">
         <button
           type="button"
-          onClick={() => nav("/portal/jobs")}
+          onClick={() => nav(backTarget())}
           className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-extrabold text-slate-700 transition hover:bg-black/[0.03]"
         >
           <ArrowLeft size={13} />
-          Back to jobs
+          {returnTo ? "Back to client" : "Back to jobs"}
         </button>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -498,87 +463,40 @@ export default function JobDetailsPage() {
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
         {/* Left column */}
         <div className="grid gap-5">
-          {/* Communication thread */}
-          <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 sm:p-6">
-            <div className="mb-5 flex items-center gap-2">
-              <MessageSquare size={16} className="text-slate-500" />
-              <h2 className="text-sm font-extrabold text-slate-900">Review &amp; Communication</h2>
-              {approvals.length > 0 && (
-                <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-extrabold text-slate-500">
-                  {approvals.length}
-                </span>
-              )}
-            </div>
-
-            {approvals.length > 0 ? (
-              <div className="mb-5 grid gap-3">
-                {approvals.map((entry, i) => (
-                  <ThreadEntry key={entry._id || i} entry={entry} />
-                ))}
-              </div>
-            ) : (
-              <div className="mb-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
-                <MessageSquare size={20} className="mx-auto mb-2 text-slate-300" />
-                <p className="text-sm font-bold text-slate-400">No activity yet</p>
-                <p className="text-xs text-slate-400 mt-0.5">Add a note or send to client to start the thread.</p>
-              </div>
-            )}
-
-            {/* Compose */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="mb-3 flex gap-1.5">
-                {[
-                  { value: "internal_note", label: "Internal note", Icon: Lock },
-                  { value: "client_note", label: "Client note", Icon: MessageSquare },
-                ].map(({ value, label, Icon: Ic }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setNoteType(value)}
-                    className={[
-                      "flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition",
-                      noteType === value
-                        ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                        : "border-slate-200 bg-white text-slate-600 hover:bg-white",
-                    ].join(" ")}
-                  >
-                    <Ic size={12} />
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              <textarea
-                rows={3}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder={
-                  noteType === "internal_note"
-                    ? "Write an internal note visible only to staff…"
-                    : "Write a note visible to the client…"
-                }
-                className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button variant="outline" onClick={handleAddNote} disabled={busy || !note.trim()}>
-                  Add note
-                </Button>
-                <Button variant="outline" onClick={handleSendToClient} disabled={busy}>
-                  <Send size={14} />
-                  Send to client
-                </Button>
-                <Button variant="outline" onClick={handleRequestChanges} disabled={busy}>
-                  <AlertTriangle size={14} />
-                  Request changes
-                </Button>
-                <Button onClick={handleApprove} disabled={busy} style={{ backgroundColor: "#059669" }}>
-                  <CheckCircle2 size={14} />
-                  Approve
-                </Button>
-              </div>
-            </div>
-          </div>
+          {/* Creative Review — main artwork review area */}
+          <CreativeReviewPanel
+            media={media}
+            approvals={approvals}
+            busy={busy}
+            onAttach={() => setPickerOpen(true)}
+            onApprove={async (msg) => {
+              setBusy(true);
+              try {
+                await addApproval(id, { status: "approved", note: msg });
+                await updateJob(id, { status: "approved" });
+                await load();
+              } catch (e) { toast.error(e?.response?.data?.message || e?.message || "Approval failed"); }
+              finally { setBusy(false); }
+            }}
+            onRequestChanges={async (msg) => {
+              setBusy(true);
+              try {
+                await addApproval(id, { status: "changes_requested", note: msg });
+                await updateJob(id, { status: "editing" });
+                await load();
+              } catch (e) { toast.error(e?.response?.data?.message || e?.message || "Failed"); }
+              finally { setBusy(false); }
+            }}
+            onSendToClient={handleSendToClient}
+            onAddNote={async (type, msg) => {
+              setBusy(true);
+              try {
+                await addApproval(id, { status: type, note: msg });
+                await load();
+              } catch (e) { toast.error(e?.response?.data?.message || e?.message || "Failed to add note"); }
+              finally { setBusy(false); }
+            }}
+          />
 
           {/* Planning */}
           <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 sm:p-6">
@@ -699,7 +617,17 @@ export default function JobDetailsPage() {
                 ))}
               </div>
             )}
-            {staffUsers.length > 0 && (
+            {staffLoading ? (
+              <div className="h-9 w-full animate-pulse rounded-xl bg-slate-100" />
+            ) : staffError ? (
+              <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
+                {staffError}
+              </div>
+            ) : staffUsers.length === 0 ? (
+              <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-400">
+                No staff users found.
+              </div>
+            ) : (
               <select
                 value=""
                 disabled={busy}
@@ -708,7 +636,7 @@ export default function JobDetailsPage() {
               >
                 <option value="">+ Add staff member…</option>
                 {staffUsers
-                  .filter((u) => !assignees.some((a) => (a._id || a) === u._id))
+                  .filter((u) => !assignees.some((a) => String(a._id || a) === String(u._id)))
                   .map((u) => (
                     <option key={u._id} value={u._id}>{u.fullName || u.email}</option>
                   ))}
@@ -716,38 +644,104 @@ export default function JobDetailsPage() {
             )}
           </div>
 
-          {/* Media */}
-          <div className="rounded-[24px] border border-black/[0.07] bg-white p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-[11px] font-extrabold tracking-[0.2em] text-slate-400">MEDIA</h3>
-              <button
-                type="button"
-                onClick={() => setPickerOpen(true)}
-                disabled={busy}
-                className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
-              >
-                <UploadCloud size={12} />
-                Attach
-              </button>
-            </div>
-            {media.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-400">
-                No media attached
+
+          {/* Approval Workflow */}
+          {approvalSteps.length > 0 && (
+            <div className="rounded-[24px] border border-black/[0.07] bg-white p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <ShieldCheck size={14} className="text-indigo-500" />
+                <h3 className="text-[11px] font-extrabold tracking-[0.2em] text-slate-400">APPROVAL WORKFLOW</h3>
               </div>
-            ) : (
               <div className="grid gap-2">
-                {media.map((m) => (
-                  <div key={m._id} className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <ImageIcon size={14} className="shrink-0 text-slate-400" />
-                    <span className="min-w-0 truncate text-xs font-semibold text-slate-700">{m.title || "Media item"}</span>
-                    <span className="ml-auto shrink-0 rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-                      {m.type || "file"}
-                    </span>
+                {approvalSteps.map((step, idx) => (
+                  <div key={step.id || idx} className="rounded-xl border border-black/[0.07] bg-slate-50 px-3 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[9px] font-black text-indigo-700">
+                        {idx + 1}
+                      </div>
+                      <span className="flex-1 text-xs font-semibold text-slate-800">{step.title}</span>
+                      {step.role && (
+                        <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500">
+                          {String(step.role).replace(/_/g, " ")}
+                        </span>
+                      )}
+                      {step.required && (
+                        <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[9px] font-black text-rose-500">
+                          REQ
+                        </span>
+                      )}
+                    </div>
+                    {step.instructions && (
+                      <p className="mt-1.5 pl-7 text-[11px] leading-relaxed text-slate-500">{step.instructions}</p>
+                    )}
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* QA Checklist */}
+          {approvalChecklist.length > 0 && (
+            <div className="rounded-[24px] border border-black/[0.07] bg-white p-5">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ListChecks size={14} className="text-indigo-500" />
+                  <h3 className="text-[11px] font-extrabold tracking-[0.2em] text-slate-400">QA CHECKLIST</h3>
+                </div>
+                <span className={[
+                  "text-[11px] font-black",
+                  checklistDone === checklistTotal ? "text-emerald-600" : "text-slate-400",
+                ].join(" ")}>
+                  {checklistDone}/{checklistTotal}
+                </span>
+              </div>
+              {checklistTotal > 0 && (
+                <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-emerald-400 transition-all"
+                    style={{ width: `${(checklistDone / checklistTotal) * 100}%` }}
+                  />
+                </div>
+              )}
+              <div className="grid gap-1.5">
+                {approvalChecklist.map((item) => {
+                  const itemId = item.id || String(item._id);
+                  return (
+                    <button
+                      key={itemId}
+                      type="button"
+                      onClick={() => toggleChecklistItem(itemId)}
+                      disabled={busy}
+                      className={[
+                        "flex items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition",
+                        item.done
+                          ? "border-emerald-200 bg-emerald-50"
+                          : "border-black/[0.07] bg-white hover:bg-slate-50",
+                      ].join(" ")}
+                    >
+                      <div className={[
+                        "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
+                        item.done
+                          ? "border-emerald-400 bg-emerald-400 text-white"
+                          : "border-slate-300 bg-white",
+                      ].join(" ")}>
+                        {item.done && <CheckCircle2 size={10} />}
+                      </div>
+                      <span className={[
+                        "text-xs",
+                        item.done ? "font-semibold text-emerald-700 line-through" : "font-semibold text-slate-700",
+                      ].join(" ")}>
+                        {item.text}
+                      </span>
+                      {item.required && !item.done && (
+                        <span className="ml-auto shrink-0 text-[9px] font-black text-rose-400">REQ</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

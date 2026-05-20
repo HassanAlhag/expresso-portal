@@ -39,8 +39,10 @@ import {
 } from "../api";
 import {
   listEnrollments,
+  createEnrollment,
   generateJobsFromEnrollment,
 } from "../../enrollments/api";
+import CreateEnrollmentModal from "../../enrollments/components/CreateEnrollmentModal";
 import { listProjects, createProject } from "../../projects/api";
 import { listJobs, createJob } from "../../jobs/api";
 import NewJobModal from "../../jobs/components/NewJobModal";
@@ -104,6 +106,8 @@ export default function CustomerDetailsPage() {
 
   const [newJobOpen, setNewJobOpen] = useState(false);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newEnrollOpen, setNewEnrollOpen] = useState(false);
+  const [enrollBusy, setEnrollBusy] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
 
@@ -207,6 +211,7 @@ export default function CustomerDetailsPage() {
       const res = await listJobs({
         q: jobQ,
         customerId: customer._id,
+        notWorkflowType: "video",
         limit: 50,
         page: 1,
       });
@@ -292,6 +297,25 @@ export default function CustomerDetailsPage() {
       );
     } finally {
       setConvertingEnrollmentId("");
+    }
+  };
+
+  const handleCreateEnrollment = async (payload) => {
+    setEnrollBusy(true);
+    try {
+      const res = await createEnrollment({ ...payload, customerId: customer._id });
+      setNewEnrollOpen(false);
+      toast.success("Enrollment created.");
+      const enrollmentId = res?.item?._id || res?._id;
+      if (enrollmentId) {
+        nav(`/portal/enrollments/${enrollmentId}`);
+      } else {
+        await loadEnrollments();
+      }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Enrollment failed");
+    } finally {
+      setEnrollBusy(false);
     }
   };
 
@@ -599,6 +623,17 @@ export default function CustomerDetailsPage() {
             )}
 
             {showAgencyTabs && (
+              <Button
+                variant="outline"
+                onClick={() => setNewEnrollOpen(true)}
+                disabled={busy}
+              >
+                <Layers3 size={16} />
+                New Enrollment
+              </Button>
+            )}
+
+            {showAgencyTabs && (
               <Button onClick={() => setNewJobOpen(true)} disabled={busy}>
                 <Plus size={16} />
                 Create Job
@@ -626,6 +661,7 @@ export default function CustomerDetailsPage() {
           selectedEnrollmentId={selectedEnrollmentId}
           busy={busy}
           convertingEnrollmentId={convertingEnrollmentId}
+          onNewEnrollment={() => setNewEnrollOpen(true)}
           onOpenJobs={(item) => {
             setActiveTab("jobs", { enrollment: item?._id });
             loadJobs();
@@ -654,7 +690,7 @@ export default function CustomerDetailsPage() {
           busy={busy}
           onLoadJobs={loadJobs}
           onOpenNewJob={() => setNewJobOpen(true)}
-          onOpenJob={(jobId) => nav(`/portal/jobs/${jobId}`)}
+          onOpenJob={(jobId) => nav(`/portal/jobs/${jobId}`, { state: { returnTo: `/portal/customers/${customer._id}` } })}
         />
       ) : null}
 
@@ -717,9 +753,19 @@ export default function CustomerDetailsPage() {
           if (tab === "jobs") loadJobs();
         }}
         listCustomers={listCustomersForModal}
+        listProjects={listProjects}
+        listEnrollments={listEnrollments}
         createJob={createJobForModal}
         initialCustomer={customer}
         lockCustomer={true}
+      />
+
+      <CreateEnrollmentModal
+        open={newEnrollOpen}
+        initialCustomerId={customer._id}
+        onClose={() => setNewEnrollOpen(false)}
+        onSubmit={handleCreateEnrollment}
+        busy={enrollBusy}
       />
     </div>
   );

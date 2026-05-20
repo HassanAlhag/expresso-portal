@@ -26,6 +26,7 @@ import {
   Clock3,
   FileText,
   ChevronRight,
+  Image as ImageIcon,
 } from "lucide-react";
 
 import {
@@ -38,6 +39,60 @@ import { BRAND, STATUS_OPTIONS, SORT_OPTIONS } from "../constants";
 
 import ServiceStatusPill from "../components/ServiceStatusPill";
 import ServiceFormModal from "../components/ServiceFormModal";
+
+// ── Creative type helpers ─────────────────────────────────────────────────────
+
+const CREATIVE_CHIP = {
+  post:     { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },
+  reel:     { bg: "bg-violet-50",  text: "text-violet-700",  border: "border-violet-200" },
+  story:    { bg: "bg-pink-50",    text: "text-pink-700",    border: "border-pink-200" },
+  video:    { bg: "bg-red-50",     text: "text-red-700",     border: "border-red-200" },
+  design:   { bg: "bg-teal-50",    text: "text-teal-700",    border: "border-teal-200" },
+  carousel: { bg: "bg-orange-50",  text: "text-orange-700",  border: "border-orange-200" },
+  page:     { bg: "bg-cyan-50",    text: "text-cyan-700",    border: "border-cyan-200" },
+  phase:    { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200" },
+  task:     { bg: "bg-slate-50",   text: "text-slate-500",   border: "border-slate-200" },
+  other:    { bg: "bg-slate-50",   text: "text-slate-500",   border: "border-slate-200" },
+};
+
+function countCreativesByType(service) {
+  const groups = Array.isArray(service?.scopeGroups) ? service.scopeGroups : [];
+  const counts = {};
+  for (const group of groups) {
+    const jobs = Array.isArray(group?.jobs) ? group.jobs : [];
+    for (const job of jobs) {
+      const type = job.type || "task";
+      const qty = Math.max(1, Number(job.quantity || 1));
+      counts[type] = (counts[type] || 0) + qty;
+    }
+  }
+  return Object.entries(counts)
+    .filter(([, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1]);
+}
+
+function CreativeChip({ type, count }) {
+  const style = CREATIVE_CHIP[type] || CREATIVE_CHIP.other;
+  return (
+    <span
+      className={[
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-black capitalize",
+        style.bg,
+        style.text,
+        style.border,
+      ].join(" ")}
+    >
+      {count} {type}
+    </span>
+  );
+}
+
+function coverSrc(service) {
+  const cov = service?.coverImageId;
+  return cov?.thumbnailUrl || cov?.url || null;
+}
+
+// ── Misc helpers ──────────────────────────────────────────────────────────────
 
 function StatCard({ label, value, hint, Icon, tone = "brand" }) {
   const tones = {
@@ -59,7 +114,6 @@ function StatCard({ label, value, hint, Icon, tone = "brand" }) {
             <div className="mt-1 text-xs text-slate-500">{hint}</div>
           ) : null}
         </div>
-
         {Icon ? (
           <div
             className={[
@@ -86,20 +140,11 @@ function ViewToggle({ value, onChange }) {
 
   return (
     <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/80 p-1">
-      <button
-        type="button"
-        onClick={() => onChange("cards")}
-        className={itemClass(value === "cards")}
-      >
+      <button type="button" onClick={() => onChange("cards")} className={itemClass(value === "cards")}>
         <LayoutGrid size={16} />
         Cards
       </button>
-
-      <button
-        type="button"
-        onClick={() => onChange("list")}
-        className={itemClass(value === "list")}
-      >
+      <button type="button" onClick={() => onChange("list")} className={itemClass(value === "list")}>
         <List size={16} />
         List
       </button>
@@ -109,89 +154,84 @@ function ViewToggle({ value, onChange }) {
 
 function money(value) {
   if (typeof value !== "number") return null;
-
   try {
-    return new Intl.NumberFormat(undefined, {
-      maximumFractionDigits: 0,
-    }).format(value);
+    return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(value);
   } catch {
     return String(value);
   }
 }
 
-function countGroups(service) {
-  return Array.isArray(service?.scopeGroups) ? service.scopeGroups.length : 0;
-}
-
-function countJobs(service) {
-  const groups = Array.isArray(service?.scopeGroups) ? service.scopeGroups : [];
-
-  return groups.reduce((sum, group) => {
-    const jobs = Array.isArray(group?.jobs) ? group.jobs : [];
-    return (
-      sum +
-      jobs.reduce(
-        (jobSum, job) => jobSum + Math.max(1, Number(job?.quantity || 1)),
-        0
-      )
-    );
-  }, 0);
-}
+// ── ServiceCard ───────────────────────────────────────────────────────────────
 
 function ServiceCard({ service, busy, nav, onEditQuick, onArchive }) {
   const name = service.name || service.title || "Untitled";
   const slug = service.slug || "—";
   const summary = service.summary || service.description || "—";
   const price = money(service.price);
-  const jobsCount = countJobs(service);
-  const groupsCount = countGroups(service);
+  const creatives = countCreativesByType(service);
+  const thumb = coverSrc(service);
 
   return (
-    <div className="group overflow-hidden rounded-[28px] border border-black/[0.07] bg-white p-0 shadow-sm transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.14)]">
+    <div className="group overflow-hidden rounded-[28px] border border-black/[0.07] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.14)]">
       <button
         type="button"
         onClick={() => nav(`/portal/services/${service._id}`)}
         className="block w-full text-left"
       >
-        <div className="p-5">
-          <div className="rounded-[24px] border border-black/5 bg-slate-50 p-4">
-            <div className="flex h-40 items-center justify-center overflow-hidden rounded-[20px] border border-black/5 bg-white">
-              <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_top_right,rgba(127,138,209,0.16),transparent_45%)]">
-                <Layers size={34} className="text-slate-400" />
-                <div className="text-sm font-bold text-slate-500">
-                  {name.slice(0, 2).toUpperCase() || "SV"}
-                </div>
+        {/* Cover image */}
+        <div className="relative h-44 w-full overflow-hidden bg-slate-100">
+          {thumb ? (
+            <img
+              src={thumb}
+              alt={name}
+              className="h-full w-full object-cover transition group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_top_right,rgba(127,138,209,0.22),transparent_55%)]">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl border border-black/5 bg-white/70 text-slate-300">
+                <ImageIcon size={26} />
+              </div>
+              <div className="text-sm font-black text-slate-300">
+                {name.slice(0, 2).toUpperCase() || "SV"}
               </div>
             </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          )}
+          <div className="absolute bottom-3 left-3">
             <ServiceStatusPill status={service.status} />
-            <Badge tone="neutral">
-              {jobsCount} {jobsCount === 1 ? "JOB" : "JOBS"}
-            </Badge>
-            <Badge tone="neutral">
-              {groupsCount} {groupsCount === 1 ? "GROUP" : "GROUPS"}
-            </Badge>
+          </div>
+        </div>
+
+        <div className="p-5">
+          {/* Name + slug */}
+          <div className="mt-1">
+            <div className="line-clamp-1 text-lg font-black text-slate-900">{name}</div>
+            <div className="mt-0.5 line-clamp-1 text-xs text-slate-400">/{slug}</div>
           </div>
 
-          <div className="mt-3">
-            <div className="line-clamp-1 text-lg font-black text-slate-900">
-              {name}
-            </div>
-            <div className="mt-1 line-clamp-1 text-sm text-slate-600">
-              {summary}
-            </div>
-            <div className="mt-1 line-clamp-1 text-xs text-slate-500">
-              /{slug}
-            </div>
-          </div>
+          <div className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{summary}</div>
 
-          <div className="mt-4 grid gap-3 rounded-[20px] border border-black/5 bg-white/70 p-4 sm:grid-cols-2">
+          {/* Creative type chips */}
+          {creatives.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {creatives.slice(0, 5).map(([type, count]) => (
+                <CreativeChip key={type} type={type} count={count} />
+              ))}
+              {creatives.length > 5 && (
+                <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-black text-slate-400">
+                  +{creatives.length - 5} more
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="mt-3">
+              <Badge tone="neutral">No creatives</Badge>
+            </div>
+          )}
+
+          {/* Stats row */}
+          <div className="mt-4 grid gap-3 rounded-[20px] border border-black/5 bg-slate-50/70 p-4 sm:grid-cols-2">
             <div>
-              <div className="text-[11px] font-black tracking-[0.18em] text-slate-400">
-                PRICING
-              </div>
+              <div className="text-[11px] font-black tracking-[0.18em] text-slate-400">PRICING</div>
               <div className="mt-1 text-sm font-black text-slate-900">
                 {price || "—"}{" "}
                 <span className="text-slate-500">
@@ -199,57 +239,32 @@ function ServiceCard({ service, busy, nav, onEditQuick, onArchive }) {
                 </span>
               </div>
             </div>
-
             <div>
-              <div className="text-[11px] font-black tracking-[0.18em] text-slate-400">
-                SLA
-              </div>
+              <div className="text-[11px] font-black tracking-[0.18em] text-slate-400">SLA</div>
               <div className="mt-1 text-sm font-black text-slate-900">
-                {service.sla?.deliveryDays ?? "—"}d
+                {service.sla?.deliveryDays ?? "—"}d delivery
               </div>
             </div>
           </div>
 
           <div className="mt-4 flex items-center justify-between">
-            <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
-              Open service
-            </div>
-            <ChevronRight
-              size={18}
-              className="text-slate-400 transition group-hover:translate-x-1"
-            />
+            <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Open service</div>
+            <ChevronRight size={18} className="text-slate-400 transition group-hover:translate-x-1" />
           </div>
         </div>
       </button>
 
-      <div className="border-t border-black/5 bg-white/70 p-4">
+      <div className="border-t border-black/5 bg-white/70 px-5 py-3">
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => nav(`/portal/services/${service._id}/edit`)}
-            disabled={busy}
-          >
-            <Pencil size={16} />
+          <Button variant="outline" size="sm" onClick={() => nav(`/portal/services/${service._id}/edit`)} disabled={busy}>
+            <Pencil size={14} />
             Builder
           </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEditQuick(service)}
-            disabled={busy}
-          >
+          <Button variant="outline" size="sm" onClick={() => onEditQuick(service)} disabled={busy}>
             Edit
           </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onArchive(service)}
-            disabled={busy}
-          >
-            <Archive size={16} />
+          <Button variant="outline" size="sm" onClick={() => onArchive(service)} disabled={busy}>
+            <Archive size={14} />
           </Button>
         </div>
       </div>
@@ -257,13 +272,15 @@ function ServiceCard({ service, busy, nav, onEditQuick, onArchive }) {
   );
 }
 
+// ── ServiceRow (list view) ────────────────────────────────────────────────────
+
 function ServiceRow({ service, busy, nav, onArchive }) {
   const name = service.name || service.title || "Untitled";
   const slug = service.slug || "—";
   const summary = service.summary || service.description || "—";
   const price = money(service.price);
-  const jobsCount = countJobs(service);
-  const groupsCount = countGroups(service);
+  const creatives = countCreativesByType(service);
+  const thumb = coverSrc(service);
 
   return (
     <div
@@ -278,33 +295,42 @@ function ServiceRow({ service, busy, nav, onArchive }) {
       }}
       className="group cursor-pointer px-5 py-5 transition hover:bg-slate-50/80"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start gap-4">
+        {/* Thumbnail */}
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-black/[0.07] bg-slate-100">
+          {thumb ? (
+            <img src={thumb} alt={name} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top_right,rgba(127,138,209,0.2),transparent_60%)] text-slate-300">
+              <Layers size={22} />
+            </div>
+          )}
+        </div>
+
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="truncate text-base font-black text-slate-900">
-              {name}
-            </div>
+            <div className="truncate text-base font-black text-slate-900">{name}</div>
             <ServiceStatusPill status={service.status} />
-            <span className="truncate text-xs text-slate-500">/{slug}</span>
+            <span className="truncate text-xs text-slate-400">/{slug}</span>
           </div>
 
-          <div className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
-            {summary}
-          </div>
+          <div className="mt-1.5 line-clamp-1 text-sm leading-6 text-slate-600">{summary}</div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-500">
-            <span>
-              Jobs:{" "}
-              <span className="font-extrabold text-slate-700">{jobsCount}</span>
-            </span>
+          {/* Creative chips */}
+          {creatives.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {creatives.slice(0, 6).map(([type, count]) => (
+                <CreativeChip key={type} type={type} count={count} />
+              ))}
+              {creatives.length > 6 && (
+                <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-black text-slate-400">
+                  +{creatives.length - 6}
+                </span>
+              )}
+            </div>
+          ) : null}
 
-            <span>
-              Groups:{" "}
-              <span className="font-extrabold text-slate-700">
-                {groupsCount}
-              </span>
-            </span>
-
+          <div className="mt-2.5 flex flex-wrap items-center gap-4 text-xs text-slate-500">
             <span>
               Pricing:{" "}
               <span className="font-extrabold text-slate-700">
@@ -312,20 +338,16 @@ function ServiceRow({ service, busy, nav, onArchive }) {
                 {service.billingCycle ? ` / ${service.billingCycle}` : ""}
               </span>
             </span>
-
             <span>
               SLA:{" "}
               <span className="font-extrabold text-slate-700">
                 {service.sla?.deliveryDays ?? "—"}d
               </span>
             </span>
-
             <span>
               Updated:{" "}
               <span className="font-extrabold text-slate-700">
-                {service.updatedAt
-                  ? new Date(service.updatedAt).toLocaleDateString()
-                  : "—"}
+                {service.updatedAt ? new Date(service.updatedAt).toLocaleDateString() : "—"}
               </span>
             </span>
           </div>
@@ -343,9 +365,8 @@ function ServiceRow({ service, busy, nav, onArchive }) {
             title="Edit in builder"
             disabled={busy}
           >
-            <Pencil size={16} />
+            <Pencil size={15} />
           </button>
-
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
@@ -353,23 +374,15 @@ function ServiceRow({ service, busy, nav, onArchive }) {
             title="Archive"
             disabled={busy}
           >
-            <Archive size={16} />
+            <Archive size={15} />
           </button>
         </div>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between">
-        <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
-          Open service
-        </div>
-        <ChevronRight
-          size={18}
-          className="text-slate-400 transition group-hover:translate-x-1"
-        />
       </div>
     </div>
   );
 }
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function ServicesPage() {
   const nav = useNavigate();
@@ -398,13 +411,11 @@ export default function ServicesPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
-
     try {
       const res = await listServices({ q, status, sort, page, limit });
       const rows = Array.isArray(res?.items || res?.services)
         ? res.items || res.services
         : [];
-
       setItems(rows);
       setMeta({
         page: res?.page || page,
@@ -412,26 +423,19 @@ export default function ServicesPage() {
         total: res?.total ?? rows.length,
       });
     } catch (e) {
-      setError(
-        e?.response?.data?.message || e?.message || "Failed to load services"
-      );
+      setError(e?.response?.data?.message || e?.message || "Failed to load services");
     } finally {
       setLoading(false);
     }
   }, [page, q, sort, status]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  const stats = useMemo(() => {
-    return {
-      total: meta.total || 0,
-      activePage: items.filter((x) => x.status === "active").length,
-      draftPage: items.filter((x) => x.status === "draft").length,
-      jobsOnPage: items.reduce((sum, service) => sum + countJobs(service), 0),
-    };
-  }, [items, meta.total]);
+  const stats = useMemo(() => ({
+    total: meta.total || 0,
+    activePage: items.filter((x) => x.status === "active").length,
+    draftPage: items.filter((x) => x.status === "draft").length,
+  }), [items, meta.total]);
 
   const handleCreate = async (payload) => {
     setBusy(true);
@@ -440,7 +444,6 @@ export default function ServicesPage() {
       setCreateOpen(false);
       setPage(1);
       await load();
-
       const id = res?.item?._id || res?._id;
       if (id) nav(`/portal/services/${id}`);
     } catch (e) {
@@ -452,7 +455,6 @@ export default function ServicesPage() {
 
   const handleEdit = async (payload) => {
     if (!selected?._id) return;
-
     setBusy(true);
     try {
       await updateService(selected._id, payload);
@@ -500,12 +502,7 @@ export default function ServicesPage() {
               <RefreshCw size={16} />
               Refresh
             </Button>
-
-            <Button
-              onClick={() => setCreateOpen(true)}
-              disabled={busy}
-              style={{ backgroundColor: BRAND }}
-            >
+            <Button onClick={() => setCreateOpen(true)} disabled={busy} style={{ backgroundColor: BRAND }}>
               <Plus size={16} />
               New service
             </Button>
@@ -518,16 +515,11 @@ export default function ServicesPage() {
           <Card className="xl:col-span-7 p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
-                <div className="text-base font-black text-slate-900">
-                  Service Catalog
-                </div>
+                <div className="text-base font-black text-slate-900">Service Catalog</div>
                 <div className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
-                  Keep every agency offering here as a structured template.
-                  Reuse it later in projects, scope items, jobs, pricing, and
-                  approvals.
+                  Keep every agency offering here as a structured template. Reuse it later in projects, scope items, jobs, pricing, and approvals.
                 </div>
               </div>
-
               <div className="shrink-0">
                 <ViewToggle value={view} onChange={setView} />
               </div>
@@ -535,27 +527,9 @@ export default function ServicesPage() {
           </Card>
 
           <div className="xl:col-span-5 grid gap-4 sm:grid-cols-3">
-            <StatCard
-              label="ACTIVE"
-              value={stats.activePage}
-              hint="ready to use"
-              Icon={CheckCircle2}
-              tone="green"
-            />
-            <StatCard
-              label="DRAFT"
-              value={stats.draftPage}
-              hint="being prepared"
-              Icon={Clock3}
-              tone="amber"
-            />
-            <StatCard
-              label="JOBS"
-              value={stats.jobsOnPage}
-              hint="on this page"
-              Icon={FileText}
-              tone="brand"
-            />
+            <StatCard label="ACTIVE" value={stats.activePage} hint="ready to use" Icon={CheckCircle2} tone="green" />
+            <StatCard label="DRAFT" value={stats.draftPage} hint="being prepared" Icon={Clock3} tone="amber" />
+            <StatCard label="TOTAL" value={stats.total} hint="in catalog" Icon={FileText} tone="brand" />
           </div>
         </div>
       ) : null}
@@ -567,10 +541,7 @@ export default function ServicesPage() {
               <Input
                 label="Search"
                 value={q}
-                onChange={(e) => {
-                  setPage(1);
-                  setQ(e.target.value);
-                }}
+                onChange={(e) => { setPage(1); setQ(e.target.value); }}
                 placeholder="Name, slug, summary…"
               />
               <div className="pointer-events-none absolute right-3 top-[38px] text-slate-400">
@@ -587,16 +558,11 @@ export default function ServicesPage() {
               </span>
               <select
                 value={status}
-                onChange={(e) => {
-                  setPage(1);
-                  setStatus(e.target.value);
-                }}
+                onChange={(e) => { setPage(1); setStatus(e.target.value); }}
                 className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
               >
                 {STATUS_OPTIONS.map((o) => (
-                  <option key={`${o.value}-${o.label}`} value={o.value}>
-                    {o.label}
-                  </option>
+                  <option key={`${o.value}-${o.label}`} value={o.value}>{o.label}</option>
                 ))}
               </select>
             </label>
@@ -610,16 +576,11 @@ export default function ServicesPage() {
               </span>
               <select
                 value={sort}
-                onChange={(e) => {
-                  setPage(1);
-                  setSort(e.target.value);
-                }}
+                onChange={(e) => { setPage(1); setSort(e.target.value); }}
                 className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
               >
                 {SORT_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
+                  <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
             </label>
@@ -628,17 +589,11 @@ export default function ServicesPage() {
           <div className="lg:col-span-12 flex items-center gap-2 pt-1">
             <Button
               variant="outline"
-              onClick={() => {
-                setQ("");
-                setStatus("");
-                setSort("-createdAt");
-                setPage(1);
-              }}
+              onClick={() => { setQ(""); setStatus(""); setSort("-createdAt"); setPage(1); }}
               disabled={busy}
             >
               Clear
             </Button>
-
             <div className="ml-auto text-xs text-slate-500">
               Page <span className="font-extrabold">{meta.page}</span> /{" "}
               <span className="font-extrabold">{meta.pages}</span> • Total{" "}
@@ -652,7 +607,6 @@ export default function ServicesPage() {
         <Card className="p-6">
           <div className="grid gap-3">
             <Skeleton className="h-6 w-56" />
-            <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
           </div>
@@ -677,10 +631,7 @@ export default function ServicesPage() {
               service={service}
               busy={busy}
               nav={nav}
-              onEditQuick={(item) => {
-                setSelected(item);
-                setEditOpen(true);
-              }}
+              onEditQuick={(item) => { setSelected(item); setEditOpen(true); }}
               onArchive={handleArchive}
             />
           ))}
@@ -701,25 +652,14 @@ export default function ServicesPage() {
 
           <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
             <div className="text-xs text-slate-500">
-              Showing page <span className="font-extrabold">{meta.page}</span>{" "}
-              of <span className="font-extrabold">{meta.pages}</span>
+              Showing page <span className="font-extrabold">{meta.page}</span> of{" "}
+              <span className="font-extrabold">{meta.pages}</span>
             </div>
-
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={meta.page <= 1}
-              >
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={meta.page <= 1}>
                 Prev
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(meta.pages, p + 1))}
-                disabled={meta.page >= meta.pages}
-              >
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(meta.pages, p + 1))} disabled={meta.page >= meta.pages}>
                 Next
               </Button>
             </div>
@@ -740,10 +680,7 @@ export default function ServicesPage() {
         mode="edit"
         initial={selected}
         busy={busy}
-        onClose={() => {
-          setEditOpen(false);
-          setSelected(null);
-        }}
+        onClose={() => { setEditOpen(false); setSelected(null); }}
         onSubmit={handleEdit}
       />
 

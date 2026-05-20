@@ -9,6 +9,7 @@ const WebDevelopmentProcess = ({
   title,
   subtitle,
 }) => {
+  const settings = useSiteSettings();
   const cols =
     cards.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2 lg:grid-cols-4";
 
@@ -32,7 +33,7 @@ const WebDevelopmentProcess = ({
 
         <div className={`grid gap-6 md:gap-8 ${cols}`}>
           {cards.map((card, index) => (
-            <Card key={index} {...card} index={index} />
+            <Card key={index} {...card} index={index} resolvedImage={resolveWebsiteImage(settings, card.image)} />
           ))}
         </div>
       </div>
@@ -40,9 +41,7 @@ const WebDevelopmentProcess = ({
   );
 };
 
-const Card = ({ image, title, description, index }) => {
-  const settings = useSiteSettings();
-  const resolvedImage = resolveWebsiteImage(settings, image);
+const Card = ({ resolvedImage, title, description, index }) => {
 
   return (
     <motion.article
@@ -66,6 +65,7 @@ const Card = ({ image, title, description, index }) => {
           loading="lazy"
           draggable={false}
         />
+
       </div>
 
       {/* content */}

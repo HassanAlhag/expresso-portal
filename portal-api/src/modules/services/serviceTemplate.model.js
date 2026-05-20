@@ -137,7 +137,13 @@ const ServiceTemplateSchema = new mongoose.Schema(
     approvals: {
       required: { type: Boolean, default: true },
       steps: { type: [ApprovalStepSchema], default: [] },
-      checklist: { type: [String], default: [] },
+      checklist: { type: [ChecklistItemSchema], default: [] },
+    },
+
+    coverImageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Media",
+      default: null,
     },
 
     files: {

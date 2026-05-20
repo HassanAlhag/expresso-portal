@@ -9,13 +9,15 @@ import SegmentTabs from "../../../shared/ui/SegmentTabs";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import { useToast } from "../../../shared/ui/Toast";
 
-import { ArrowLeft, RefreshCw, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { ArrowLeft, RefreshCw, Pencil, Trash2, ExternalLink, BookPlus } from "lucide-react";
 
 import { getDeal, updateDeal, deleteDeal, convertDealToCustomer } from "../api";
+import { createEnrollment } from "../../enrollments/api";
 import { stageLabel } from "../constants";
 import DealFormModal from "../components/DealFormModal";
 import DealOverviewTab from "../tabs/DealOverviewTab";
 import DealActivitiesTab from "../tabs/DealActivitiesTab";
+import CreateEnrollmentModal from "../../enrollments/components/CreateEnrollmentModal";
 
 const TABS = [
   { value: "overview",   label: "Overview"   },
@@ -35,6 +37,10 @@ export default function DealDetailsPage() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
+  const [enrollOpen, setEnrollOpen] = useState(false);
+  const [enrollCustomerId, setEnrollCustomerId] = useState("");
+  const [enrollBusy, setEnrollBusy] = useState(false);
+  const [enrollFromConversion, setEnrollFromConversion] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -114,20 +120,43 @@ export default function DealDetailsPage() {
         try {
           const res = await convertDealToCustomer(item._id);
           const customerId = res?.customer?._id;
-          toast.success("Deal converted to client successfully.");
+          toast.success("Client created — enroll them in a service below.");
+          setConfirmState(null);
           if (customerId) {
-            nav(`/portal/customers/${customerId}`);
-            return;
+            setEnrollCustomerId(customerId);
+            setEnrollFromConversion(true);
+            await load();
+            setEnrollOpen(true);
+          } else {
+            await load();
           }
-          await load();
         } catch (e) {
           toast.error(e?.response?.data?.message || e?.message || "Conversion failed");
+          setConfirmState(null);
         } finally {
           setBusy(false);
-          setConfirmState(null);
         }
       },
     });
+  };
+
+  const handleEnrollSubmit = async (payload) => {
+    setEnrollBusy(true);
+    try {
+      const res = await createEnrollment(payload);
+      toast.success("Enrollment created successfully.");
+      setEnrollOpen(false);
+      const enrollmentId = res?.item?._id || res?._id;
+      if (enrollmentId) {
+        nav(`/portal/enrollments/${enrollmentId}`);
+      } else {
+        nav(`/portal/customers/${enrollCustomerId}`);
+      }
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Enrollment failed");
+    } finally {
+      setEnrollBusy(false);
+    }
   };
 
   if (loading) {
@@ -185,13 +214,26 @@ export default function DealDetailsPage() {
               Edit
             </Button>
             {item.customerId ? (
-              <Button
-                onClick={() => nav(`/portal/customers/${item.customerId._id || item.customerId}`)}
-                disabled={busy}
-              >
-                <ExternalLink size={15} />
-                View client
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEnrollCustomerId(item.customerId._id || item.customerId);
+                    setEnrollOpen(true);
+                  }}
+                  disabled={busy}
+                >
+                  <BookPlus size={15} />
+                  Enroll in service
+                </Button>
+                <Button
+                  onClick={() => nav(`/portal/customers/${item.customerId._id || item.customerId}`)}
+                  disabled={busy}
+                >
+                  <ExternalLink size={15} />
+                  View client
+                </Button>
+              </>
             ) : (
               <Button
                 onClick={handleConvertToCustomer}
@@ -234,8 +276,24 @@ export default function DealDetailsPage() {
         message={confirmState?.message}
         danger={confirmState?.danger}
         confirmLabel={confirmState?.confirmLabel}
+        cancelLabel={confirmState?.cancelLabel}
         onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
+        onClose={confirmState?.onClose || (() => setConfirmState(null))}
+      />
+
+      <CreateEnrollmentModal
+        open={enrollOpen}
+        initialCustomerId={enrollCustomerId}
+        cancelLabel={enrollFromConversion ? "Skip — Go to client" : "Cancel"}
+        onClose={() => {
+          setEnrollOpen(false);
+          if (enrollFromConversion && enrollCustomerId) {
+            setEnrollFromConversion(false);
+            nav(`/portal/customers/${enrollCustomerId}`);
+          }
+        }}
+        onSubmit={handleEnrollSubmit}
+        busy={enrollBusy}
       />
     </div>
   );

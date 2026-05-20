@@ -115,9 +115,10 @@ export default function RoleEditor({
   busy,
   setBusy,
 }) {
-  const isEdit = Boolean(initial?._id || initial?.key);
   const isSynthetic = Boolean(initial?.synthetic);
-  const canPersist = !isSynthetic;
+  // A synthetic role has no real DB document yet — save via POST (createRole).
+  // A persisted role edit uses PATCH (updateRole) with its real ObjectId.
+  const isEdit = Boolean(initial?._id || initial?.key) && !isSynthetic;
 
   const [key, setKey] = useState("");
   const [label, setLabel] = useState("");
@@ -179,7 +180,7 @@ export default function RoleEditor({
     [permissionSet]
   );
 
-  const canSave = key.trim() && label.trim() && canPersist;
+  const canSave = key.trim() && label.trim();
 
   const handleToggle = (keys, add) => {
     setPermissions((prev) => {
@@ -193,7 +194,6 @@ export default function RoleEditor({
   };
 
   const save = async () => {
-    if (!canPersist) return;
     setError("");
     setBusy(true);
 
@@ -205,8 +205,11 @@ export default function RoleEditor({
         permissions,
       };
 
-      if (isEdit) await updateRole(initial._id || initial.key, payload);
-      else await createRole(payload);
+      if (isEdit) {
+        await updateRole(initial._id, payload);
+      } else {
+        await createRole(payload);
+      }
 
       onSaved?.();
     } catch (e) {
@@ -220,7 +223,7 @@ export default function RoleEditor({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="text-xs font-semibold text-slate-500">
         {isSynthetic
-          ? "This default role is available immediately. Run the role seed to persist it before editing."
+          ? "Default role — saving will persist it to the database with your chosen permissions."
           : `${permissions.length} permission${permissions.length === 1 ? "" : "s"} selected`}
       </div>
       <div className="flex justify-end gap-2">
@@ -277,7 +280,7 @@ export default function RoleEditor({
               onChange={(e) => setKey(e.target.value)}
               placeholder="project_manager"
               disabled={isEdit && initial?.isSystem}
-              hint={initial?.isSystem ? "System role keys are locked." : "Use lowercase words with underscores."}
+              hint={initial?.isSystem && !isSynthetic ? "System role keys are locked." : "Use lowercase words with underscores."}
             />
 
             <Input
@@ -285,7 +288,6 @@ export default function RoleEditor({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Project Manager"
-              disabled={isSynthetic}
             />
 
             <div className="grid gap-1.5">
@@ -297,8 +299,7 @@ export default function RoleEditor({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Short summary of what this role can do."
-                disabled={isSynthetic}
-                className="resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 disabled:bg-slate-50 disabled:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+                className="resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
           </div>
@@ -373,7 +374,6 @@ export default function RoleEditor({
                 size="sm"
                 variant="outline"
                 onClick={() => handleToggle(allKeys, true)}
-                disabled={isSynthetic}
               >
                 Select all
               </Button>
@@ -381,7 +381,6 @@ export default function RoleEditor({
                 size="sm"
                 variant="outline"
                 onClick={() => setPermissions([])}
-                disabled={isSynthetic}
               >
                 Clear
               </Button>
@@ -404,7 +403,7 @@ export default function RoleEditor({
                 key={domain.domain}
                 domain={domain}
                 active={permissions}
-                onToggle={isSynthetic ? () => {} : handleToggle}
+                onToggle={handleToggle}
               />
             ))}
 

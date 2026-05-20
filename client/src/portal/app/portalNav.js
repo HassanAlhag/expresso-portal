@@ -564,16 +564,30 @@ const ADMIN_SECTIONS = [
   },
 ];
 
+// Nav sections that are strictly internal — never show to any client role,
+// regardless of which permissions have been granted on their role.
+const INTERNAL_PERMISSIONS = new Set([
+  "crm.read",
+  "hr.staff.read", "hr.expenses.read", "hr.leaves.read", "hr.scorecards.read",
+  "iam.users.read", "iam.roles.read", "iam.teams.read", "iam.invites.send",
+  "activity.read",
+  "website.read",
+  "media.read",
+  "portfolio.read",
+  "services.read",
+  "enrollments.read",
+]);
+
+const CLIENT_ROLES = new Set([
+  "client", "staff_client", "procurement_client", "client_admin",
+]);
+
 function canSeeItem(item, role, permissionSet) {
   const r = String(role || "").toLowerCase();
   if (r === ROLES.SUPER_ADMIN || r === ROLES.ADMIN) return true;
   if (!item.permission) return true;
-  if (
-    ["client", "staff_client", "procurement_client", "client_admin"].includes(r) &&
-    item.external !== true
-  ) {
-    return false;
-  }
+  // Hard-block internal sections from all client roles, regardless of permissions
+  if (CLIENT_ROLES.has(r) && INTERNAL_PERMISSIONS.has(item.permission)) return false;
   return permissionSet.has(item.permission);
 }
 

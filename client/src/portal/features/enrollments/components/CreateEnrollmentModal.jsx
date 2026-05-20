@@ -77,6 +77,8 @@ export default function CreateEnrollmentModal({
   onClose,
   onSubmit,
   busy = false,
+  initialCustomerId = "",
+  cancelLabel = "Cancel",
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -93,7 +95,17 @@ export default function CreateEnrollmentModal({
   const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setCustomerId("");
+      setServiceTemplateId("");
+      setStatus("active");
+      setNotes("");
+      setStartDate("");
+      setEndDate("");
+      return;
+    }
+
+    setCustomerId(initialCustomerId || "");
 
     let ignore = false;
 
@@ -135,7 +147,7 @@ export default function CreateEnrollmentModal({
     return () => {
       ignore = true;
     };
-  }, [open]);
+  }, [open, initialCustomerId]);
 
   const selectedCustomer = useMemo(() => {
     return customers.find((x) => x._id === customerId) || null;
@@ -209,6 +221,17 @@ export default function CreateEnrollmentModal({
               ) : null}
 
               <div className="grid gap-4 md:grid-cols-2">
+                {initialCustomerId && selectedCustomer ? (
+                  <div className="grid gap-2">
+                    <span className="inline-flex items-center gap-2 text-[11px] font-black tracking-[0.22em] text-slate-500">
+                      <Building2 size={14} />
+                      CLIENT
+                    </span>
+                    <div className="flex h-11 items-center rounded-2xl border border-indigo-200 bg-indigo-50 px-4 text-sm font-semibold text-indigo-900">
+                      {selectedCustomer.companyName || selectedCustomer.contactName || "Client"}
+                    </div>
+                  </div>
+                ) : (
                 <SelectField
                   label="CLIENT"
                   value={customerId}
@@ -225,6 +248,7 @@ export default function CreateEnrollmentModal({
                     </option>
                   ))}
                 </SelectField>
+                )}
 
                 <SelectField
                   label="SERVICE TEMPLATE"
@@ -342,7 +366,7 @@ export default function CreateEnrollmentModal({
 
           <div className="flex items-center justify-end gap-2 border-t border-slate-200 pt-5">
             <Button variant="outline" type="button" onClick={handleClose}>
-              Cancel
+              {cancelLabel}
             </Button>
 
             <Button

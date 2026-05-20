@@ -314,7 +314,7 @@ export default function Banner() {
         />
       </div>
 
-      <div className="mx-auto grid min-h-screen w-[min(1220px,92vw)] items-center gap-10 py-20 lg:grid-cols-12">
+      <div className="mx-auto grid min-h-screen w-[min(1220px,92vw)] items-center gap-10 py-24 md:py-20 lg:grid-cols-12">
         <div className={textColumnClass}>
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold tracking-[0.22em] text-white/80 backdrop-blur-xl">
             {current?.eyebrowLeft || "EXPRESSO DIGITAL"}
@@ -325,7 +325,7 @@ export default function Banner() {
             {current?.eyebrowRight || "GROWTH SYSTEMS"}
           </div>
 
-          <h1 className="mt-6 text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-white sm:text-6xl">
+          <h1 className="mt-6 text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
             <span className="relative">
               {current?.heading || "Build Your Digital Presence"}
               <span
@@ -397,7 +397,7 @@ export default function Banner() {
         </div>
 
         {hasSlideMedia ? (
-          <div className="flex lg:col-span-5 lg:justify-end">
+          <div className="hidden lg:flex lg:col-span-5 lg:justify-end">
             <div
               className="relative w-full max-w-[500px]"
               style={{ height: 600, overflow: "visible" }}

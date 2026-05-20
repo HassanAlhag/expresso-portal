@@ -1,14 +1,15 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { ServiceBanner } from "../../components/ServicesBanner/servicesBanner";
 import ServiceMainHeader from "../../components/ServicesComponents/serviceMainSection";
 import RevealCards from "../../components/OurServiceSection/ourServiceSection";
 import WebDevelopmentProcess from "../../components/WebDevolopmentProcess/webDevelopmentProcess";
-import ScrollingLogos from "../../components/Clients/clients";
-import StackedCardTestimonials from "../../components/TestimonialSection/testimonialSection";
-import ContactUsSection from "../../components/ContactUsSection/contactSection";
-import ShiftingContactForm from "../../components/ContactForm/contactForm";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
+
+const ScrollingLogos = lazy(() => import("../../components/Clients/clients"));
+const StackedCardTestimonials = lazy(() => import("../../components/TestimonialSection/testimonialSection"));
+const ContactUsSection = lazy(() => import("../../components/ContactUsSection/contactSection"));
+const ShiftingContactForm = lazy(() => import("../../components/ContactForm/contactForm"));
 
 // ─── Service cards ────────────────────────────────────────────────────────────
 
@@ -164,18 +165,22 @@ function ServiceMainPage() {
         headingColor="text-white"
         descColor="text-gray-300"
       />
-      <ScrollingLogos />
+      <Suspense fallback={null}>
+        <ScrollingLogos />
+      </Suspense>
       <ServiceMainHeader
         subheading="Testimonials"
         heading="We know the best results come from bold ideas. We enjoy what we do and we want you to too."
         headingColor="text-black"
       />
-      <StackedCardTestimonials testimonials={SERVICE_TESTIMONIALS} />
-      <ContactUsSection
-        heading="Crafting Stories Through Design"
-        content="Explore a world where creativity meets precision. Each project is a testament to our passion, skill, and commitment to excellence. From concept to completion, we turn ideas into impactful realities, tailored to leave a lasting impression. Dive in and discover our journey of innovation and artistry."
-      />
-      <ShiftingContactForm />
+      <Suspense fallback={null}>
+        <StackedCardTestimonials testimonials={SERVICE_TESTIMONIALS} />
+        <ContactUsSection
+          heading="Crafting Stories Through Design"
+          content="Explore a world where creativity meets precision. Each project is a testament to our passion, skill, and commitment to excellence. From concept to completion, we turn ideas into impactful realities, tailored to leave a lasting impression. Dive in and discover our journey of innovation and artistry."
+        />
+        <ShiftingContactForm />
+      </Suspense>
     </>
   );
 }

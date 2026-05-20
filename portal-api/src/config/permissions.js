@@ -306,6 +306,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "hr.scorecards.read",
     "reports.read",
     "activity.read",
+    "iam.users.read",
   ],
 
   hr_management: [

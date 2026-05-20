@@ -46,9 +46,9 @@ export default function CustomerProductionsTab({ customerId }) {
     setLoading(true);
     setError("");
     try {
-      const res = await listJobs({ customerId, limit: 100, page: 1, sort: "-createdAt" });
+      const res = await listJobs({ customerId, workflowType: "video", limit: 100, page: 1, sort: "-createdAt" });
       const all = Array.isArray(res?.items) ? res.items : [];
-      setItems(all.filter((j) => ["reel", "video"].includes(j.type)));
+      setItems(all);
     } catch (e) {
       setError(e?.response?.data?.message || e?.message || "Failed to load productions");
     } finally {

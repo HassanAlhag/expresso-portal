@@ -645,7 +645,7 @@ export default function JobsPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await listJobs({ q, status, type, sort, limit: 100, page: 1 });
+      const res = await listJobs({ q, status, type, sort, limit: 100, page: 1, notWorkflowType: "video" });
       const rows = res?.items || [];
       setItems(rows);
       setMeta({ page: res?.page || 1, pages: res?.pages || 1, total: res?.total ?? rows.length });

@@ -522,14 +522,10 @@ export default function ProductionsPage() {
     setLoading(true);
     setError("");
     try {
-      const params = { q, page: 1, limit: 200 };
+      const params = { q, page: 1, limit: 200, workflowType: "video" };
       if (statusFilter) params.status = statusFilter;
       const res = await listProductionJobs(params);
-      // Keep only reels and videos
-      const rows = (Array.isArray(res?.items) ? res.items : []).filter(
-        (x) => ["reel", "video"].includes(x.type)
-      );
-      setItems(rows);
+      setItems(Array.isArray(res?.items) ? res.items : []);
     } catch (e) {
       setError(e?.response?.data?.message || e?.message || "Failed to load");
     } finally {

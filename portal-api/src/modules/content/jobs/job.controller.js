@@ -38,6 +38,7 @@ export async function listJobs(req, res) {
       status = "",
       type = "",
       workflowType = "",
+      notWorkflowType = "",
       publishStatus = "",
       platform = "",
       websiteVisible = "",
@@ -66,6 +67,8 @@ export async function listJobs(req, res) {
 
     if (workflowType && isValidWorkflowType(workflowType)) {
       filter.workflowType = String(workflowType).trim().toLowerCase();
+    } else if (notWorkflowType && isValidWorkflowType(notWorkflowType)) {
+      filter.workflowType = { $ne: String(notWorkflowType).trim().toLowerCase() };
     }
 
     if (publishStatus && isValidPublishStatus(publishStatus)) {
@@ -534,6 +537,17 @@ export async function updateJob(req, res) {
     if (typeof body.deliverables !== "undefined") {
       patch.deliverables = Array.isArray(body.deliverables)
         ? body.deliverables
+        : [];
+    }
+
+    if (typeof body.approvalChecklist !== "undefined") {
+      patch.approvalChecklist = Array.isArray(body.approvalChecklist)
+        ? body.approvalChecklist.map((c) => ({
+            id:       String(c.id || ""),
+            text:     String(c.text || ""),
+            required: c.required !== false,
+            done:     !!c.done,
+          }))
         : [];
     }
 

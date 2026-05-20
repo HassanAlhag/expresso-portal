@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage } from "../../utils/websiteImages";
 
+
 const BRAND = "#7F8AD1";
 
 const DEFAULT_CARDS = [
@@ -39,20 +40,19 @@ const DEFAULT_CARDS = [
 ];
 
 const RevealCards = ({ cards = DEFAULT_CARDS }) => {
+  const settings = useSiteSettings();
   return (
     <section className="bg-white px-4 py-12 md:py-16">
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2">
         {cards.map((card, index) => (
-          <Card key={index} {...card} />
+          <Card key={index} {...card} resolvedImgSrc={resolveWebsiteImage(settings, card.imgSrc)} />
         ))}
       </div>
     </section>
   );
 };
 
-const Card = ({ imgSrc, title, description, link, tag }) => {
-  const settings = useSiteSettings();
-  const resolvedImgSrc = resolveWebsiteImage(settings, imgSrc);
+const Card = ({ resolvedImgSrc, title, description, link, tag }) => {
 
   return (
     <motion.article

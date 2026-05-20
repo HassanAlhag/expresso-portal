@@ -1,4 +1,5 @@
 import Job from "./job.model.js";
+import ServiceTemplate from "../../services/serviceTemplate.model.js";
 import {
   getWorkflowTypeFromJobType,
   normalizeJobType,
@@ -80,7 +81,39 @@ export async function generateJobsFromEnrollment(enrollmentDoc) {
     throw new Error("Enrollment is required");
   }
 
-  const jobs = buildJobsFromGroups(enrollment);
+  // Fetch approval config from the service template
+  let approvalSteps = [];
+  let approvalChecklist = [];
+  if (enrollment.serviceTemplateId) {
+    const tpl = await ServiceTemplate.findById(enrollment.serviceTemplateId)
+      .select("approvals")
+      .lean();
+    if (tpl?.approvals?.required !== false) {
+      approvalSteps = Array.isArray(tpl?.approvals?.steps)
+        ? tpl.approvals.steps.map((s) => ({
+            id:           String(s.id || ""),
+            title:        String(s.title || ""),
+            role:         String(s.role || "client"),
+            required:     s.required !== false,
+            instructions: String(s.instructions || ""),
+          }))
+        : [];
+      approvalChecklist = Array.isArray(tpl?.approvals?.checklist)
+        ? tpl.approvals.checklist.map((c) => ({
+            id:       String(c.id || ""),
+            text:     String(c.text || ""),
+            required: c.required !== false,
+            done:     false,
+          })).filter((c) => c.text)
+        : [];
+    }
+  }
+
+  const jobs = buildJobsFromGroups(enrollment).map((j) => ({
+    ...j,
+    approvalSteps,
+    approvalChecklist,
+  }));
 
   if (!jobs.length) {
     return [];

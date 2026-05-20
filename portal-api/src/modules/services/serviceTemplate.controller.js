@@ -127,12 +127,13 @@ function normalizePayload(body = {}) {
     approvals: {
       required: body?.approvals?.required !== false,
       steps: normalizeApprovalSteps(body?.approvals?.steps || []),
-      checklist: Array.isArray(body?.approvals?.checklist)
-        ? body.approvals.checklist
-            .map((x) => String(x || "").trim())
-            .filter(Boolean)
-        : [],
+      checklist: normalizeChecklist(body?.approvals?.checklist || []),
     },
+
+    coverImageId: (() => {
+      const raw = body.coverImageId?._id || body.coverImageId;
+      return mongoose.Types.ObjectId.isValid(String(raw || "")) ? raw : null;
+    })(),
 
     files: normalizeFiles(body.files || {}),
   };
@@ -165,6 +166,7 @@ export async function listServiceTemplates(req, res) {
         .sort(safeSort(sort))
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
+        .populate("coverImageId", "url thumbnailUrl title type")
         .lean(),
     ]);
 
@@ -190,7 +192,9 @@ export async function getServiceTemplate(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
-    const item = await ServiceTemplate.findById(id).lean();
+    const item = await ServiceTemplate.findById(id)
+      .populate("coverImageId", "url thumbnailUrl title type")
+      .lean();
 
     if (!item) {
       return res.status(404).json({ ok: false, message: "Not found" });
@@ -276,7 +280,9 @@ export async function updateServiceTemplate(req, res) {
 
     const item = await ServiceTemplate.findByIdAndUpdate(id, patch, {
       new: true,
-    }).lean();
+    })
+      .populate("coverImageId", "url thumbnailUrl title type")
+      .lean();
 
     return res.json({ ok: true, item });
   } catch (e) {

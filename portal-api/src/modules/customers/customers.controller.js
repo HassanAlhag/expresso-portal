@@ -324,18 +324,14 @@ export async function updateCustomer(req, res) {
   }
 }
 
-// DELETE /api/customers/:id (soft delete)
+// DELETE /api/customers/:id (permanent delete)
 export async function deleteCustomer(req, res) {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
 
-    const item = await Customer.findByIdAndUpdate(
-      id,
-      { isActive: false, updatedBy: req.user?.id || null },
-      { new: true }
-    ).lean();
+    const item = await Customer.findByIdAndDelete(id).lean();
 
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
     return res.json({ ok: true, item });

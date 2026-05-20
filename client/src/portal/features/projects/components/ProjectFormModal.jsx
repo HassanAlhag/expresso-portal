@@ -175,17 +175,19 @@ export default function ProjectFormModal({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
       onMouseDown={() => onClose?.()}
     >
       <div
-        className="w-[min(980px,96vw)] overflow-hidden rounded-3xl border border-black/10 bg-white shadow-2xl"
+        className="flex w-full flex-col overflow-hidden rounded-t-3xl border border-black/10 bg-white shadow-2xl sm:w-[min(980px,96vw)] sm:rounded-3xl"
+        style={{ maxHeight: "calc(100dvh - env(safe-area-inset-top, 20px) - 20px)" }}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="border-b border-black/10 p-6">
+        {/* Sticky header */}
+        <div className="flex-shrink-0 border-b border-black/10 p-5 sm:p-6">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-2xl font-black text-slate-900">
+              <div className="text-xl font-black text-slate-900 sm:text-2xl">
                 {isEdit ? "Edit Project" : "New Project"}
               </div>
               <div className="mt-1 text-sm text-slate-600">
@@ -197,7 +199,7 @@ export default function ProjectFormModal({
 
             <button
               type="button"
-              className="h-11 w-11 rounded-full border border-black/10 bg-white hover:bg-black/[0.03]"
+              className="h-11 w-11 flex-shrink-0 rounded-full border border-black/10 bg-white hover:bg-black/[0.03]"
               onClick={() => onClose?.()}
               title="Close"
             >
@@ -206,7 +208,9 @@ export default function ProjectFormModal({
           </div>
         </div>
 
-        <div className="grid gap-4 p-6">
+        {/* Scrollable body */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="grid gap-4 p-5 sm:p-6">
           <div className="grid gap-3 sm:grid-cols-2">
             <SelectField
               label="PROJECT MODE"
@@ -350,8 +354,13 @@ export default function ProjectFormModal({
             />
           </label>
         </div>
+        </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-black/10 bg-white p-6">
+        {/* Sticky footer */}
+        <div
+          className="flex flex-shrink-0 items-center justify-end gap-2 border-t border-black/10 bg-white px-5 py-4 sm:px-6"
+          style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+        >
           <Button variant="outline" onClick={() => onClose?.()} disabled={busy}>
             Cancel
           </Button>
@@ -389,3 +398,4 @@ export default function ProjectFormModal({
     </div>
   );
 }
+

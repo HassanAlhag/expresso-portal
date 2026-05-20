@@ -7,6 +7,7 @@ import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
 import ProductionJobFormModal from "../components/ProductionJobFormModal";
+import VideoReviewPanel from "../components/VideoReviewPanel";
 
 import { addApproval } from "../../jobs/api";
 import { listUsers } from "../../iam/users/api";
@@ -19,7 +20,6 @@ import {
 } from "../jobs.api";
 
 import {
-  AlertTriangle,
   ArrowLeft,
   Building2,
   CalendarDays,
@@ -28,14 +28,13 @@ import {
   Film,
   FolderKanban,
   Globe,
-  Lock,
-  MessageSquare,
   Pencil,
   RefreshCw,
   Send,
   Trash2,
   Video,
   X,
+  AlertTriangle,
 } from "lucide-react";
 
 const PROD_STAGES = [
@@ -66,12 +65,12 @@ function statusTone(status) {
 
 const toneCls = {
   emerald: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  indigo: "border-indigo-200 bg-indigo-50 text-indigo-800",
-  orange: "border-orange-200 bg-orange-50 text-orange-800",
-  sky: "border-sky-200 bg-sky-50 text-sky-800",
-  amber: "border-amber-200 bg-amber-50 text-amber-800",
-  red: "border-rose-200 bg-rose-50 text-rose-800",
-  slate: "border-slate-200 bg-slate-50 text-slate-700",
+  indigo:  "border-indigo-200 bg-indigo-50 text-indigo-800",
+  orange:  "border-orange-200 bg-orange-50 text-orange-800",
+  sky:     "border-sky-200 bg-sky-50 text-sky-800",
+  amber:   "border-amber-200 bg-amber-50 text-amber-800",
+  red:     "border-rose-200 bg-rose-50 text-rose-800",
+  slate:   "border-slate-200 bg-slate-50 text-slate-700",
 };
 
 function Badge({ tone = "slate", children }) {
@@ -82,111 +81,8 @@ function Badge({ tone = "slate", children }) {
   );
 }
 
-function threadStyle(status) {
-  switch (status) {
-    case "approved":
-      return { bg: "bg-emerald-50 border-emerald-200", Icon: CheckCircle2, iconCls: "text-emerald-600", label: "Approved" };
-    case "changes_requested":
-      return { bg: "bg-orange-50 border-orange-200", Icon: AlertTriangle, iconCls: "text-orange-500", label: "Changes requested" };
-    case "client_sent":
-      return { bg: "bg-blue-50 border-blue-200", Icon: Send, iconCls: "text-blue-500", label: "Sent to client" };
-    case "client_note":
-      return { bg: "bg-violet-50 border-violet-200", Icon: MessageSquare, iconCls: "text-violet-500", label: "Client note" };
-    default:
-      return { bg: "bg-slate-50 border-slate-200", Icon: Lock, iconCls: "text-slate-400", label: "Internal note" };
-  }
-}
-
-function formatTime(dateStr) {
-  if (!dateStr) return "";
-  try {
-    const d = new Date(dateStr);
-    const diff = (Date.now() - d) / 1000;
-    if (diff < 60) return "Just now";
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return d.toLocaleDateString();
-  } catch { return ""; }
-}
-
-function ThreadEntry({ entry }) {
-  const { bg, Icon, iconCls, label } = threadStyle(entry.status);
-  const author = entry.createdBy?.fullName || entry.createdBy?.email || "Staff";
-  return (
-    <div className={`rounded-2xl border p-4 ${bg}`}>
-      <div className="flex items-start gap-3">
-        <div className={`mt-0.5 shrink-0 ${iconCls}`}><Icon size={15} /></div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-extrabold text-slate-700">{label}</span>
-            <span className="text-[11px] text-slate-400">{formatTime(entry.createdAt)}</span>
-          </div>
-          {entry.note && (
-            <p className="mt-1.5 text-sm leading-relaxed text-slate-700">{entry.note}</p>
-          )}
-          <div className="mt-1.5 text-[11px] font-bold text-slate-400">{author}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function getInitials(name = "") {
   return name.split(" ").map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?";
-}
-
-function getMediaUrl(media) {
-  return media?.url || media?.fileUrl || "";
-}
-
-function MediaSlot({ title, media, kind = "video", onChoose, onClear, disabled }) {
-  const src = getMediaUrl(media);
-  return (
-    <div className="rounded-2xl border border-black/[0.07] bg-white p-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <span className="text-xs font-extrabold text-slate-700">{title}</span>
-        <div className="flex gap-1.5">
-          <button
-            type="button"
-            onClick={onChoose}
-            disabled={disabled}
-            className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
-          >
-            Choose
-          </button>
-          {media && (
-            <button
-              type="button"
-              onClick={onClear}
-              disabled={disabled}
-              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-rose-500 transition hover:bg-rose-50 disabled:opacity-60"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      </div>
-      {!src ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs text-slate-400">
-          No file attached
-        </div>
-      ) : kind === "image" ? (
-        <div className="overflow-hidden rounded-xl border border-black/[0.07] bg-slate-50">
-          <img src={src} alt={title} className="h-40 w-full object-cover" draggable={false} />
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-black/[0.07] bg-black">
-          <video className="h-40 w-full object-contain" src={src} controls playsInline />
-        </div>
-      )}
-      {src && (
-        <a href={src} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:underline">
-          <Eye size={12} />
-          Open file
-        </a>
-      )}
-    </div>
-  );
 }
 
 export default function ProductionDetailsPage() {
@@ -194,20 +90,18 @@ export default function ProductionDetailsPage() {
   const nav = useNavigate();
   const toast = useToast();
 
-  const [item, setItem] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [editOpen, setEditOpen] = useState(false);
+  const [item, setItem]             = useState(null);
+  const [loading, setLoading]       = useState(true);
+  const [busy, setBusy]             = useState(false);
+  const [error, setError]           = useState("");
+  const [editOpen, setEditOpen]     = useState(false);
   const [confirmState, setConfirmState] = useState(null);
 
-  const [note, setNote] = useState("");
-  const [noteType, setNoteType] = useState("internal_note");
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerType, setPickerType] = useState("video");
-  const [pickerSlot, setPickerSlot] = useState("");
+  const [pickerOpen, setPickerOpen]   = useState(false);
+  const [pickerType, setPickerType]   = useState("video");
+  const [pickerSlot, setPickerSlot]   = useState("");
   const [externalUrlDraft, setExternalUrlDraft] = useState("");
-  const [staffUsers, setStaffUsers] = useState([]);
+  const [staffUsers, setStaffUsers]   = useState([]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -224,10 +118,7 @@ export default function ProductionDetailsPage() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
-
-  useEffect(() => {
-    setExternalUrlDraft(item?.externalPostUrl || "");
-  }, [item]);
+  useEffect(() => { setExternalUrlDraft(item?.externalPostUrl || ""); }, [item]);
 
   useEffect(() => {
     Promise.all([
@@ -251,12 +142,13 @@ export default function ProductionDetailsPage() {
     } finally { setBusy(false); }
   };
 
-  const handleAddNote = async () => {
-    if (!note.trim()) return;
+  // ── Review panel handlers ─────────────────────────────────────────────────
+
+  const handleAddNote = async (noteType, note) => {
+    if (!note?.trim()) return;
     setBusy(true);
     try {
       await addApproval(id, { status: noteType, note });
-      setNote("");
       await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed to add note");
@@ -267,38 +159,37 @@ export default function ProductionDetailsPage() {
     setBusy(true);
     try {
       await setProductionJobStatus(id, "client_review");
-      await addApproval(id, { status: "client_sent", note: note.trim() || "Production sent to client for review." });
-      setNote("");
+      await addApproval(id, { status: "client_sent", note: "Production sent to client for review." });
       await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed");
     } finally { setBusy(false); }
   };
 
-  const handleApprove = async () => {
+  const handleApprove = async (note = "Approved.") => {
     setBusy(true);
     try {
-      await addApproval(id, { status: "approved", note: note.trim() || "Approved." });
+      await addApproval(id, { status: "approved", note });
       await setProductionJobStatus(id, "approved");
-      setNote("");
       await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Approval failed");
     } finally { setBusy(false); }
   };
 
-  const handleRequestChanges = async () => {
-    if (!note.trim()) { toast.warning("Add a note describing the changes needed."); return; }
+  const handleRequestChanges = async (note) => {
+    if (!note?.trim()) { toast.warning("Add a note describing the changes needed."); return; }
     setBusy(true);
     try {
       await addApproval(id, { status: "changes_requested", note });
       await setProductionJobStatus(id, "editing");
-      setNote("");
       await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed");
     } finally { setBusy(false); }
   };
+
+  // ── Delete ────────────────────────────────────────────────────────────────
 
   const handleDelete = () => {
     setConfirmState({
@@ -330,7 +221,9 @@ export default function ProductionDetailsPage() {
     } finally { setBusy(false); }
   };
 
-  const openPicker = (slot, type) => {
+  // ── Media picker ──────────────────────────────────────────────────────────
+
+  const openPicker = (slot, type = "video") => {
     setPickerSlot(slot);
     setPickerType(type);
     setPickerOpen(true);
@@ -338,10 +231,8 @@ export default function ProductionDetailsPage() {
 
   const handleMediaPicked = async (media) => {
     if (!item?._id || !media?._id || !pickerSlot) return;
-    const patch = {};
-    if (pickerSlot === "draft") patch.draftMediaId = media._id;
-    if (pickerSlot === "final") patch.finalMediaId = media._id;
-    if (pickerSlot === "poster") patch.posterMediaId = media._id;
+    const fieldMap = { draft: "draftMediaId", final: "finalMediaId", poster: "posterMediaId" };
+    const patch = { [fieldMap[pickerSlot]]: media._id };
     setBusy(true);
     try {
       await updateProductionJob(item._id, patch);
@@ -362,6 +253,8 @@ export default function ProductionDetailsPage() {
       toast.error(e?.response?.data?.message || e?.message || "Failed");
     } finally { setBusy(false); }
   };
+
+  // ── Website / external link ───────────────────────────────────────────────
 
   const handleWebsiteToggle = async () => {
     if (!item?._id) return;
@@ -386,10 +279,12 @@ export default function ProductionDetailsPage() {
     } finally { setBusy(false); }
   };
 
+  // ── Staff ─────────────────────────────────────────────────────────────────
+
   const addAssignee = async (userId) => {
     if (!userId || busy) return;
-    const existing = (item.assignees || []).map((x) => x._id || x);
-    if (existing.includes(userId)) return;
+    const existing = (item.assignees || []).map((x) => String(x._id || x));
+    if (existing.includes(String(userId))) return;
     setBusy(true);
     try {
       await updateProductionJob(item._id, { assignees: [...existing, userId] });
@@ -399,13 +294,15 @@ export default function ProductionDetailsPage() {
 
   const removeAssignee = async (userId) => {
     if (busy) return;
-    const next = (item.assignees || []).map((x) => x._id || x).filter((x) => x !== userId);
+    const next = (item.assignees || []).map((x) => String(x._id || x)).filter((x) => x !== String(userId));
     setBusy(true);
     try {
       await updateProductionJob(item._id, { assignees: next });
       await load();
     } catch { } finally { setBusy(false); }
   };
+
+  // ── Loading / error states ────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -418,12 +315,12 @@ export default function ProductionDetailsPage() {
         </div>
         <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
           <div className="grid gap-5">
-            <Skeleton className="h-80 rounded-[24px]" />
-            <Skeleton className="h-64 rounded-[24px]" />
+            <Skeleton className="h-96 rounded-[24px]" />
+            <Skeleton className="h-48 rounded-[24px]" />
           </div>
           <div className="grid gap-5 content-start">
             <Skeleton className="h-48 rounded-[24px]" />
-            <Skeleton className="h-48 rounded-[24px]" />
+            <Skeleton className="h-40 rounded-[24px]" />
           </div>
         </div>
       </div>
@@ -443,11 +340,11 @@ export default function ProductionDetailsPage() {
   }
 
   const currentStageIdx = stageIndex(item.status);
-  const approvals = Array.isArray(item.approvals) ? item.approvals : [];
-  const assignees = Array.isArray(item.assignees) ? item.assignees : [];
-  const isClientReview = item.status === "client_review";
-  const TypeIcon = item.type === "reel" ? Film : Video;
-  const clientName = item.customerId?.companyName || item.customerId?.contactName || "—";
+  const approvals       = Array.isArray(item.approvals)  ? item.approvals  : [];
+  const assignees       = Array.isArray(item.assignees)  ? item.assignees  : [];
+  const isClientReview  = item.status === "client_review";
+  const TypeIcon        = item.type === "reel" ? Film : Video;
+  const clientName      = item.customerId?.companyName || item.customerId?.contactName || "—";
 
   return (
     <div className="grid gap-5">
@@ -460,7 +357,7 @@ export default function ProductionDetailsPage() {
         onClose={() => setConfirmState(null)}
       />
 
-      {/* Header */}
+      {/* ── Header ── */}
       <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 sm:p-6">
         <button
           type="button"
@@ -494,10 +391,6 @@ export default function ProductionDetailsPage() {
               <Pencil size={15} />
               Edit
             </Button>
-            <Button variant="outline" onClick={handleSendToClient} disabled={busy}>
-              <Send size={15} />
-              Send to client
-            </Button>
             <Button onClick={handlePublish} disabled={busy} style={{ backgroundColor: "#7F8AD1" }}>
               <Globe size={15} />
               Publish
@@ -512,7 +405,7 @@ export default function ProductionDetailsPage() {
         <div className="mt-6">
           <div className="flex items-stretch gap-0.5">
             {PROD_STAGES.map((stage, i) => {
-              const isPast = i < currentStageIdx;
+              const isPast    = i < currentStageIdx;
               const isCurrent = i === currentStageIdx;
               return (
                 <button
@@ -546,7 +439,7 @@ export default function ProductionDetailsPage() {
         </div>
       </div>
 
-      {/* Client review banner */}
+      {/* ── Client review banner ── */}
       {isClientReview && (
         <div className="flex items-center justify-between gap-4 rounded-[20px] border border-orange-200 bg-orange-50 px-5 py-4">
           <div className="flex items-center gap-3">
@@ -559,11 +452,11 @@ export default function ProductionDetailsPage() {
             </div>
           </div>
           <div className="flex shrink-0 gap-2">
-            <Button variant="outline" onClick={handleRequestChanges} disabled={busy}>
+            <Button variant="outline" onClick={() => handleRequestChanges("Changes requested from client review.")} disabled={busy}>
               <AlertTriangle size={14} />
               Request changes
             </Button>
-            <Button onClick={handleApprove} disabled={busy} style={{ backgroundColor: "#059669" }}>
+            <Button onClick={() => handleApprove("Approved.")} disabled={busy} style={{ backgroundColor: "#059669" }}>
               <CheckCircle2 size={14} />
               Approve
             </Button>
@@ -571,102 +464,39 @@ export default function ProductionDetailsPage() {
         </div>
       )}
 
-      {/* Main layout */}
+      {/* ── Main layout ── */}
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
         {/* Left column */}
         <div className="grid gap-5">
-          {/* Communication thread */}
-          <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 sm:p-6">
-            <div className="mb-5 flex items-center gap-2">
-              <MessageSquare size={16} className="text-slate-500" />
-              <h2 className="text-sm font-extrabold text-slate-900">Review &amp; Communication</h2>
-              {approvals.length > 0 && (
-                <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-extrabold text-slate-500">
-                  {approvals.length}
-                </span>
-              )}
-            </div>
-
-            {approvals.length > 0 ? (
-              <div className="mb-5 grid gap-3">
-                {approvals.map((entry, i) => (
-                  <ThreadEntry key={entry._id || i} entry={entry} />
-                ))}
-              </div>
-            ) : (
-              <div className="mb-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
-                <MessageSquare size={20} className="mx-auto mb-2 text-slate-300" />
-                <p className="text-sm font-bold text-slate-400">No activity yet</p>
-                <p className="mt-0.5 text-xs text-slate-400">Add a note or send to client to start the thread.</p>
-              </div>
-            )}
-
-            {/* Compose */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="mb-3 flex gap-1.5">
-                {[
-                  { value: "internal_note", label: "Internal note", Icon: Lock },
-                  { value: "client_note", label: "Client note", Icon: MessageSquare },
-                ].map(({ value, label, Icon: Ic }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setNoteType(value)}
-                    className={[
-                      "flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition",
-                      noteType === value
-                        ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                        : "border-slate-200 bg-white text-slate-600 hover:bg-white",
-                    ].join(" ")}
-                  >
-                    <Ic size={12} />
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              <textarea
-                rows={3}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder={
-                  noteType === "internal_note"
-                    ? "Write an internal note visible only to staff…"
-                    : "Write a note visible to the client…"
-                }
-                className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button variant="outline" onClick={handleAddNote} disabled={busy || !note.trim()}>
-                  Add note
-                </Button>
-                <Button variant="outline" onClick={handleSendToClient} disabled={busy}>
-                  <Send size={14} />
-                  Send to client
-                </Button>
-                <Button variant="outline" onClick={handleRequestChanges} disabled={busy}>
-                  <AlertTriangle size={14} />
-                  Request changes
-                </Button>
-                <Button onClick={handleApprove} disabled={busy} style={{ backgroundColor: "#059669" }}>
-                  <CheckCircle2 size={14} />
-                  Approve
-                </Button>
-              </div>
-            </div>
-          </div>
+          {/* Video review panel — the centrepiece */}
+          <VideoReviewPanel
+            draftMedia={item.draftMediaId}
+            finalMedia={item.finalMediaId}
+            posterMedia={item.posterMediaId}
+            approvals={approvals}
+            busy={busy}
+            onAttachDraft={() => openPicker("draft", "video")}
+            onAttachFinal={() => openPicker("final", "video")}
+            onAttachPoster={() => openPicker("poster", "image")}
+            onClearDraft={() => handleClearMedia("draftMediaId")}
+            onClearFinal={() => handleClearMedia("finalMediaId")}
+            onClearPoster={() => handleClearMedia("posterMediaId")}
+            onApprove={handleApprove}
+            onRequestChanges={handleRequestChanges}
+            onSendToClient={handleSendToClient}
+            onAddNote={handleAddNote}
+          />
 
           {/* Production details */}
           <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 sm:p-6">
             <h2 className="mb-4 text-sm font-extrabold text-slate-900">Production details</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {[
-                { label: "TYPE", value: item.type },
-                { label: "PLATFORM", value: item.platform },
-                { label: "SHOOT DATE", value: item.shootDate ? new Date(item.shootDate).toLocaleDateString() : "—" },
-                { label: "LOCATION", value: item.location },
-                { label: "DUE DATE", value: item.dueDate ? new Date(item.dueDate).toLocaleDateString() : "—" },
+                { label: "TYPE",        value: item.type },
+                { label: "PLATFORM",    value: item.platform },
+                { label: "SHOOT DATE",  value: item.shootDate  ? new Date(item.shootDate).toLocaleDateString()  : "—" },
+                { label: "LOCATION",    value: item.location },
+                { label: "DUE DATE",    value: item.dueDate    ? new Date(item.dueDate).toLocaleDateString()    : "—" },
                 { label: "SOURCE TYPE", value: item.sourceType },
               ].map(({ label, value }) => (
                 <div key={label}>
@@ -677,11 +507,11 @@ export default function ProductionDetailsPage() {
             </div>
 
             {[
-              { label: "CONCEPT", value: item.concept },
-              { label: "SCRIPT", value: item.script },
-              { label: "SHOT LIST", value: item.shotList },
-              { label: "CAPTION", value: item.caption },
-              { label: "NOTES", value: item.notes },
+              { label: "CONCEPT",    value: item.concept },
+              { label: "SCRIPT",     value: item.script },
+              { label: "SHOT LIST",  value: item.shotList },
+              { label: "CAPTION",    value: item.caption },
+              { label: "NOTES",      value: item.notes },
             ].filter((f) => f.value).map(({ label, value }) => (
               <div key={label} className="mt-4">
                 <div className="text-[11px] font-extrabold tracking-[0.2em] text-slate-400">{label}</div>
@@ -691,16 +521,16 @@ export default function ProductionDetailsPage() {
           </div>
         </div>
 
-        {/* Right sidebar */}
+        {/* ── Right sidebar ── */}
         <div className="grid content-start gap-5">
-          {/* Job info */}
+          {/* Production info */}
           <div className="rounded-[24px] border border-black/[0.07] bg-white p-5">
             <h3 className="mb-4 text-[11px] font-extrabold tracking-[0.2em] text-slate-400">PRODUCTION INFO</h3>
             <div className="grid gap-3">
               {[
                 { Icon: Building2,    label: "Client",   value: clientName },
                 { Icon: FolderKanban, label: "Project",  value: item.projectId?.name || "—" },
-                { Icon: CalendarDays, label: "Due date", value: item.dueDate ? new Date(item.dueDate).toLocaleDateString() : "—" },
+                { Icon: CalendarDays, label: "Due date", value: item.dueDate  ? new Date(item.dueDate).toLocaleDateString()  : "—" },
                 { Icon: CalendarDays, label: "Created",  value: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "—" },
               ].map(({ Icon, label, value }) => (
                 <div key={label} className="flex items-start gap-3">
@@ -767,7 +597,7 @@ export default function ProductionDetailsPage() {
               >
                 <option value="">+ Add staff member…</option>
                 {staffUsers
-                  .filter((u) => !assignees.some((a) => (a._id || a) === u._id))
+                  .filter((u) => !assignees.some((a) => String(a._id || a) === u._id))
                   .map((u) => (
                     <option key={u._id} value={u._id}>{u.fullName || u.email}</option>
                   ))}
@@ -823,37 +653,6 @@ export default function ProductionDetailsPage() {
               )}
             </div>
           </div>
-
-          {/* Media slots */}
-          <div className="rounded-[24px] border border-black/[0.07] bg-white p-5">
-            <h3 className="mb-4 text-[11px] font-extrabold tracking-[0.2em] text-slate-400">MEDIA FILES</h3>
-            <div className="grid gap-3">
-              <MediaSlot
-                title="Draft video"
-                media={item.draftMediaId}
-                kind="video"
-                onChoose={() => openPicker("draft", "video")}
-                onClear={() => handleClearMedia("draftMediaId")}
-                disabled={busy}
-              />
-              <MediaSlot
-                title="Final video"
-                media={item.finalMediaId}
-                kind="video"
-                onChoose={() => openPicker("final", "video")}
-                onClear={() => handleClearMedia("finalMediaId")}
-                disabled={busy}
-              />
-              <MediaSlot
-                title="Poster image"
-                media={item.posterMediaId}
-                kind="image"
-                onChoose={() => openPicker("poster", "image")}
-                onClear={() => handleClearMedia("posterMediaId")}
-                disabled={busy}
-              />
-            </div>
-          </div>
         </div>
       </div>
 
@@ -862,8 +661,8 @@ export default function ProductionDetailsPage() {
         onClose={() => setPickerOpen(false)}
         onSelect={handleMediaPicked}
         title={
-          pickerSlot === "draft" ? "Select draft video"
-          : pickerSlot === "final" ? "Select final video"
+          pickerSlot === "draft"  ? "Select draft video"
+          : pickerSlot === "final"  ? "Select final video"
           : "Select poster image"
         }
         subtitle="Choose media from the Media Library."

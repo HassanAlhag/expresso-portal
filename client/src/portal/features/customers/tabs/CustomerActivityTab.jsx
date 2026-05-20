@@ -85,7 +85,7 @@ export default function CustomerActivityTab({ customerId }) {
             <button
               key={job._id}
               type="button"
-              onClick={() => nav(`/portal/jobs/${job._id}`)}
+              onClick={() => nav(`/portal/jobs/${job._id}`, { state: { returnTo: `/portal/customers/${customerId}` } })}
               className="relative group text-left"
             >
               <div className="absolute -left-5 top-2 h-2 w-2 rounded-full border-2 border-indigo-300 bg-white group-hover:border-indigo-500 transition" />

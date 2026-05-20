@@ -49,11 +49,11 @@ export function normalizeJobType(value) {
 export function getWorkflowTypeFromJobType(type) {
   const t = normalizeJobType(type);
 
-  if (["post", "carousel", "story", "design", "case_study"].includes(t)) {
+  if (["post", "carousel", "design", "case_study"].includes(t)) {
     return "design";
   }
 
-  if (["reel", "video"].includes(t)) {
+  if (["reel", "video", "story"].includes(t)) {
     return "video";
   }
 

@@ -23,18 +23,15 @@ const logos = [
 ];
 
 const ScrollingLogos = () => {
+  const settings = useSiteSettings();
+  const items = logos.map((logo) => ({ logo, src: resolveWebsiteImage(settings, `/${logo}`) }));
+
   return (
     <div className="bg-gray-900 py-10">
       <div className="flex overflow-hidden">
-        <TranslateWrapper>
-          <LogoItems />
-        </TranslateWrapper>
-        <TranslateWrapper>
-          <LogoItems />
-        </TranslateWrapper>
-        <TranslateWrapper>
-          <LogoItems />
-        </TranslateWrapper>
+        <TranslateWrapper><LogoItems items={items} /></TranslateWrapper>
+        <TranslateWrapper><LogoItems items={items} /></TranslateWrapper>
+        <TranslateWrapper><LogoItems items={items} /></TranslateWrapper>
       </div>
     </div>
   );
@@ -53,29 +50,18 @@ const TranslateWrapper = ({ children, reverse }) => {
   );
 };
 
-const LogoItem = ({ logo }) => {
-  const settings = useSiteSettings();
-  const src = resolveWebsiteImage(settings, `/${logo}`);
+const LogoItem = ({ src, logo }) => (
+  <div className="w-20 md:w-28 h-20 md:h-28 flex justify-center items-center hover:bg-gray-800 transition-colors rounded">
+    <img src={src} alt={logo} className="max-h-full max-w-full object-contain" loading="lazy" />
+  </div>
+);
 
-  return (
-    <div className="w-20 md:w-28 h-20 md:h-28 flex justify-center items-center hover:bg-gray-800 transition-colors rounded">
-      <img
-        src={src}
-        alt={logo}
-        className="max-h-full max-w-full object-contain"
-      />
-    </div>
-  );
-};
-
-const LogoItems = () => {
-  return (
-    <>
-      {logos.map((logo, index) => (
-        <LogoItem logo={logo} key={index} />
-      ))}
-    </>
-  );
-};
+const LogoItems = ({ items }) => (
+  <>
+    {items.map((item, index) => (
+      <LogoItem key={index} src={item.src} logo={item.logo} />
+    ))}
+  </>
+);
 
 export default ScrollingLogos;
