@@ -7,8 +7,10 @@ const TYPE_COLORS = {
   reel:       "border-violet-200 bg-violet-50 text-violet-700",
   photo:      "border-sky-200 bg-sky-50 text-sky-700",
   design:     "border-indigo-200 bg-indigo-50 text-indigo-700",
+  task:       "border-slate-200 bg-slate-50 text-slate-600",
   post:       "border-slate-200 bg-slate-50 text-slate-600",
   carousel:   "border-slate-200 bg-slate-50 text-slate-600",
+  page:       "border-cyan-200 bg-cyan-50 text-cyan-700",
   case_study: "border-amber-200 bg-amber-50 text-amber-700",
 };
 

@@ -543,7 +543,33 @@ export default function JobDetailsPage() {
                 { Icon: Building2,   label: "Client",    value: customerLabel },
                 { Icon: FolderKanban, label: "Project",   value: projectLabel },
                 { Icon: Briefcase,   label: "Scope",     value: enrollmentLabel },
+                { Icon: CalendarDays, label: "Start date", value: job.startDate ? new Date(job.startDate).toLocaleDateString() : "—" },
                 { Icon: CalendarDays, label: "Due date",  value: job.dueDate ? new Date(job.dueDate).toLocaleDateString() : "—" },
+                { Icon: ListChecks, label: "Duration", value: job.durationDays ? `${job.durationDays} day(s)` : "—" },
+                { Icon: ListChecks, label: "Estimate", value: job.timeEstimate || "—" },
+                { Icon: ListChecks, label: "Effort", value: job.effort || "—" },
+                { Icon: Briefcase, label: "Process owner", value: job.processOwner || "—" },
+                {
+                  Icon: ListChecks,
+                  label: "Dependencies",
+                  value: Array.isArray(job.dependencies) && job.dependencies.length
+                    ? job.dependencies.join(", ")
+                    : "—",
+                },
+                ...[
+                  { Icon: ListChecks, label: "Assignee", value: job.assigneeName },
+                  { Icon: ListChecks, label: "SEO status", value: job.seoBoardStatus },
+                  { Icon: ListChecks, label: "SEO task type", value: job.seoTaskType },
+                  { Icon: ListChecks, label: "Target", value: job.seoTarget },
+                  { Icon: ListChecks, label: "Funnel", value: job.funnelStage },
+                  { Icon: ListChecks, label: "Content phase", value: job.contentPhase },
+                  { Icon: CalendarDays, label: "Quarter", value: job.seoQuarter },
+                  { Icon: Globe, label: "Execution page", value: job.executionPageUrl },
+                  { Icon: Globe, label: "Analytics", value: job.analyticsUrl },
+                  { Icon: ListChecks, label: "Parent goal ID", value: job.parentGoalId },
+                  { Icon: ListChecks, label: "Parent goal", value: job.parentGoalName },
+                  { Icon: Globe, label: "Parent URL", value: job.parentGoalUrl },
+                ].filter((item) => item.value),
                 { Icon: CalendarDays, label: "Created",   value: job.createdAt ? new Date(job.createdAt).toLocaleDateString() : "—" },
               ].map(({ Icon, label, value }) => (
                 <div key={label} className="flex items-start gap-3">

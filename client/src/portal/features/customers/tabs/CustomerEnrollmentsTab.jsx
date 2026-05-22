@@ -159,8 +159,8 @@ export default function CustomerEnrollmentsTab({
                   disabled={busy || convertingEnrollmentId === item._id}
                 >
                   {convertingEnrollmentId === item._id
-                    ? "Converting..."
-                    : "Convert to jobs"}
+                    ? "Generating..."
+                    : "Generate contract jobs"}
                 </Button>
               </div>
             </div>

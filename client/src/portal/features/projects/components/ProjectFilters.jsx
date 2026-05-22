@@ -22,7 +22,7 @@ const PROJECT_SOURCE_OPTIONS = [
   { value: "", label: "All sources" },
   { value: "manual", label: "Manual" },
   { value: "sales", label: "Sales" },
-  { value: "enrollment", label: "Enrollment" },
+  { value: "enrollment", label: "Service follow-up" },
   { value: "internal", label: "Internal" },
 ];
 

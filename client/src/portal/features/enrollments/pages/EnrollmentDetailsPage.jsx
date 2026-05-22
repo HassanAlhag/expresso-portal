@@ -128,7 +128,7 @@ export default function EnrollmentDetailsPage() {
     setConfirmGenerate(false);
     try {
       const res = await generateJobsFromEnrollment(id);
-      const count = res?.jobs?.length || res?.created || 0;
+      const count = res?.count || res?.items?.length || res?.jobs?.length || res?.created || 0;
       toast.success(`${count} job(s) generated from enrollment.`);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Job generation failed.");
@@ -236,7 +236,7 @@ export default function EnrollmentDetailsPage() {
                 <InfoRow icon={Building2} label="CLIENT" value={customerName} />
                 <InfoRow icon={BriefcaseBusiness} label="SERVICE" value={serviceName} />
                 <InfoRow icon={Layers3} label="EXECUTION MODE" value={executionModeLabel(mode)} />
-                {projectName && <InfoRow icon={FolderKanban} label="LINKED PROJECT" value={projectName} />}
+                {projectName && <InfoRow icon={FolderKanban} label="RELATED PROJECT" value={projectName} />}
                 {item.startDate && <InfoRow icon={CalendarDays} label="START DATE" value={formatDate(item.startDate)} />}
                 {item.endDate && <InfoRow icon={CalendarDays} label="END DATE" value={formatDate(item.endDate)} />}
               </div>
@@ -336,7 +336,7 @@ export default function EnrollmentDetailsPage() {
                     className="w-full justify-start"
                     onClick={() => nav(`/portal/projects/${item.projectId._id}`)}
                   >
-                    <FolderKanban size={14} /> View project
+                    <FolderKanban size={14} /> View related project
                   </Button>
                 )}
                 <Button

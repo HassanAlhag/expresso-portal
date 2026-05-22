@@ -6,6 +6,8 @@ import SolutionDetailRenderer from "../../components/SolutionDetailRenderer/Solu
 import SolutionDetailCTA from "../../components/SolutionDetailCTA/SolutionDetailCTA";
 import { BRAND, BRAND_BG, ICON_META } from "../../data/technologyConstants";
 
+const API = process.env.REACT_APP_API_URL || "/api";
+
 export default function ITSolutionDetailsPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ export default function ITSolutionDetailsPage() {
   useEffect(() => {
     setNotFound(false);
     setSolution(null);
-    fetch(`/api/web-content/solutions/${slug}`)
+    fetch(`${API}/web-content/solutions/${slug}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.ok && d.item) setSolution(d.item);

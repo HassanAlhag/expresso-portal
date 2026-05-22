@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   ClipboardList,
   Globe2,
-  Layers,
   Plus,
   SearchCheck,
   Sparkles,
@@ -214,32 +213,7 @@ export default function ProjectScopeTab({
   onCreateJob,
   onGeneratePlanJobs,
 }) {
-  const enrollmentGroups = useMemo(
-    () =>
-      Array.isArray(project?.enrollmentId?.finalScope?.groups)
-        ? project.enrollmentId.finalScope.groups
-        : [],
-    [project?.enrollmentId?.finalScope?.groups]
-  );
-
-  const plan = useMemo(() => {
-    if (!enrollmentGroups.length) return resolvePlan(project);
-    return {
-      key: "enrollment",
-      title: "Contracted Service Scope",
-      subtitle: "This project is linked to an enrollment, so the approved service scope is the delivery source.",
-      Icon: Layers,
-      phases: enrollmentGroups.map((group) => ({
-        title: group.title || "Scope group",
-        outcome: group.description || "Approved contracted scope.",
-        jobs: (group.jobs || []).map((job) => ({
-          title: job.title,
-          type: job.type || "other",
-          dueDays: job.dueDays || group.dueDays || 0,
-        })),
-      })),
-    };
-  }, [enrollmentGroups, project]);
+  const plan = useMemo(() => resolvePlan(project), [project]);
 
   const plannedJobs = useMemo(() => flattenPhaseJobs(plan.phases), [plan]);
   const existingTitles = useMemo(
@@ -271,9 +245,9 @@ export default function ProjectScopeTab({
   if (!plan.phases.length) {
     return (
       <EmptyState
-        icon={Layers}
+        icon={ClipboardList}
         title="No scope plan yet"
-        message="Create jobs manually or link this project to an enrollment."
+        message="Create jobs manually or generate a project plan for this separate work."
         actionLabel={customer?._id ? "Create Job" : undefined}
         onAction={customer?._id ? onCreateJob : undefined}
       />
@@ -292,7 +266,7 @@ export default function ProjectScopeTab({
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-base font-black text-slate-900">{plan.title}</h2>
                 <Badge tone="info">{String(project?.type || "delivery").replaceAll("_", " ")}</Badge>
-                {project?.enrollmentId ? <Badge tone="success">Enrollment linked</Badge> : <Badge tone="neutral">Project plan</Badge>}
+                <Badge tone="neutral">Project plan</Badge>
               </div>
               <p className="mt-1 text-sm text-slate-600">{plan.subtitle}</p>
               <div className="mt-3 flex flex-wrap gap-2">

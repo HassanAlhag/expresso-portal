@@ -52,7 +52,31 @@ function cloneGroups(groups = []) {
               type: job?.type || "task",
               quantity: Number(job?.quantity || 1),
               unit: job?.unit || "items",
+              priority: job?.priority || "",
+              startDays: Number(job?.startDays || 0),
               dueDays: Number(job?.dueDays || 0),
+              durationDays: Number(
+                job?.durationDays ||
+                  Math.max(0, Number(job?.dueDays || 0) - Number(job?.startDays || 0))
+              ),
+              timeEstimate: job?.timeEstimate || "",
+              effort: job?.effort || "",
+              assigneeName: job?.assigneeName || "",
+              processOwner: job?.processOwner || "",
+              dependencies: Array.isArray(job?.dependencies)
+                ? job.dependencies
+                : [],
+              seoBoardStatus: job?.seoBoardStatus || "",
+              seoTaskType: job?.seoTaskType || "",
+              seoTarget: job?.seoTarget || "",
+              funnelStage: job?.funnelStage || "",
+              contentPhase: job?.contentPhase || "",
+              seoQuarter: job?.seoQuarter || "",
+              executionPageUrl: job?.executionPageUrl || "",
+              analyticsUrl: job?.analyticsUrl || "",
+              parentGoalId: job?.parentGoalId || "",
+              parentGoalName: job?.parentGoalName || "",
+              parentGoalUrl: job?.parentGoalUrl || "",
               required: job?.required !== false,
               checklist: Array.isArray(job?.checklist) ? job.checklist : [],
             }))
@@ -146,7 +170,26 @@ export default function EditEnrollmentModal({
                   type: mode === "recurring" ? "post" : "task",
                   quantity: 1,
                   unit: "items",
+                  priority: "",
+                  startDays: 0,
                   dueDays: 0,
+                  durationDays: 0,
+                  timeEstimate: "",
+                  effort: "",
+                  assigneeName: "",
+                  processOwner: "",
+                  dependencies: [],
+                  seoBoardStatus: "",
+                  seoTaskType: "",
+                  seoTarget: "",
+                  funnelStage: "",
+                  contentPhase: "",
+                  seoQuarter: "",
+                  executionPageUrl: "",
+                  analyticsUrl: "",
+                  parentGoalId: "",
+                  parentGoalName: "",
+                  parentGoalUrl: "",
                   required: true,
                   checklist: [],
                 },
@@ -187,7 +230,34 @@ export default function EditEnrollmentModal({
           type: String(job.type || "task").trim(),
           quantity: Math.max(1, Number(job.quantity || 1)),
           unit: String(job.unit || "items").trim(),
+          priority: String(job.priority || "").trim(),
+          startDays: Math.max(0, Number(job.startDays || 0)),
           dueDays: Math.max(0, Number(job.dueDays || 0)),
+          durationDays: Math.max(
+            0,
+            Number(
+              job.durationDays ||
+                Math.max(0, Number(job.dueDays || 0) - Number(job.startDays || 0))
+            )
+          ),
+          timeEstimate: String(job.timeEstimate || "").trim(),
+          effort: String(job.effort || "").trim(),
+          assigneeName: String(job.assigneeName || "").trim(),
+          processOwner: String(job.processOwner || "").trim(),
+          dependencies: Array.isArray(job.dependencies)
+            ? job.dependencies.map((x) => String(x || "").trim()).filter(Boolean)
+            : [],
+          seoBoardStatus: String(job.seoBoardStatus || "").trim(),
+          seoTaskType: String(job.seoTaskType || "").trim(),
+          seoTarget: String(job.seoTarget || "").trim(),
+          funnelStage: String(job.funnelStage || "").trim(),
+          contentPhase: String(job.contentPhase || "").trim(),
+          seoQuarter: String(job.seoQuarter || "").trim(),
+          executionPageUrl: String(job.executionPageUrl || "").trim(),
+          analyticsUrl: String(job.analyticsUrl || "").trim(),
+          parentGoalId: String(job.parentGoalId || "").trim(),
+          parentGoalName: String(job.parentGoalName || "").trim(),
+          parentGoalUrl: String(job.parentGoalUrl || "").trim(),
           required: job.required !== false,
           checklist: Array.isArray(job.checklist) ? job.checklist : [],
         }))
@@ -401,6 +471,194 @@ export default function EditEnrollmentModal({
                                           0,
                                           Number(e.target.value || 0)
                                         ),
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                  <Input
+                                    label="START DAYS"
+                                    type="number"
+                                    value={String(job.startDays ?? 0)}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        startDays: Math.max(
+                                          0,
+                                          Number(e.target.value || 0)
+                                        ),
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                  <Input
+                                    label="DURATION"
+                                    type="number"
+                                    value={String(job.durationDays ?? 0)}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        durationDays: Math.max(
+                                          0,
+                                          Number(e.target.value || 0)
+                                        ),
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                  <Input
+                                    label="PRIORITY"
+                                    value={job.priority || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        priority: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <Input
+                                    label="ASSIGNEE"
+                                    value={job.assigneeName || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        assigneeName: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <Input
+                                    label="PROCESS OWNER"
+                                    value={job.processOwner || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        processOwner: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <Input
+                                    label="SEO STATUS"
+                                    value={job.seoBoardStatus || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        seoBoardStatus: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <Input
+                                    label="SEO TASK TYPE"
+                                    value={job.seoTaskType || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        seoTaskType: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <Input
+                                    label="TARGET"
+                                    value={job.seoTarget || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        seoTarget: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <Input
+                                    label="FUNNEL"
+                                    value={job.funnelStage || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        funnelStage: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <Input
+                                    label="CONTENT PHASE"
+                                    value={job.contentPhase || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        contentPhase: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                  <Input
+                                    label="QUARTER"
+                                    value={job.seoQuarter || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        seoQuarter: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-6">
+                                  <Input
+                                    label="EXECUTION PAGE URL"
+                                    value={job.executionPageUrl || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        executionPageUrl: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-6">
+                                  <Input
+                                    label="ANALYTICS URL"
+                                    value={job.analyticsUrl || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        analyticsUrl: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-6">
+                                  <Input
+                                    label="PARENT GOAL"
+                                    value={job.parentGoalName || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        parentGoalName: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="md:col-span-6">
+                                  <Input
+                                    label="PARENT URL"
+                                    value={job.parentGoalUrl || ""}
+                                    onChange={(e) =>
+                                      updateJob(group.id, job.id, {
+                                        parentGoalUrl: e.target.value,
                                       })
                                     }
                                   />

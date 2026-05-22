@@ -81,6 +81,15 @@ function money(x) {
   } catch { return String(x); }
 }
 
+function executionModeLabel(value) {
+  const labels = {
+    recurring: "Recurring / Monthly",
+    phased_project: "Phased Service Delivery",
+    one_time: "One-time Simple",
+  };
+  return labels[value] || value || "—";
+}
+
 function MetaPill({ children }) {
   return (
     <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-black text-slate-700">
@@ -177,6 +186,14 @@ function ScopeGroupCard({ group, index }) {
                   <CreativeChip type={job.type || "task"} count={job.quantity ?? 1} />
                   {job.unit ? <MetaPill>{job.unit}</MetaPill> : null}
                   <MetaPill>Due in {job.dueDays ?? 0} days</MetaPill>
+                  {job.priority ? <MetaPill>{job.priority}</MetaPill> : null}
+                  {job.seoBoardStatus ? <MetaPill>{job.seoBoardStatus}</MetaPill> : null}
+                  {job.seoTaskType ? <MetaPill>{job.seoTaskType}</MetaPill> : null}
+                  {job.seoTarget ? <MetaPill>Target: {job.seoTarget}</MetaPill> : null}
+                  {job.funnelStage ? <MetaPill>Funnel: {job.funnelStage}</MetaPill> : null}
+                  {job.contentPhase ? <MetaPill>Content: {job.contentPhase}</MetaPill> : null}
+                  {job.seoQuarter ? <MetaPill>{job.seoQuarter}</MetaPill> : null}
+                  {job.parentGoalName ? <MetaPill>Parent: {job.parentGoalName}</MetaPill> : null}
                 </div>
                 {job.description ? (
                   <div className="mt-2 text-sm leading-6 text-slate-600">{job.description}</div>
@@ -362,7 +379,7 @@ export default function ServiceDetailsPage() {
           <div className="flex flex-wrap items-center gap-2">
             <MetaPill>/{item.slug || "—"}</MetaPill>
             <MetaPill>{item.billingCycle || "—"}</MetaPill>
-            <MetaPill>{item.executionMode || "—"}</MetaPill>
+            <MetaPill>{executionModeLabel(item.executionMode)}</MetaPill>
           </div>
 
           <div className="mt-3 text-3xl font-black tracking-tight text-slate-900">
@@ -577,7 +594,9 @@ export default function ServiceDetailsPage() {
               <Building2 size={14} />
               EXECUTION MODE
             </div>
-            <div className="mt-2 text-sm font-black text-slate-900">{item.executionMode || "—"}</div>
+            <div className="mt-2 text-sm font-black text-slate-900">
+              {executionModeLabel(item.executionMode)}
+            </div>
           </div>
           <div className="rounded-[22px] border border-slate-200 bg-slate-50/70 p-4">
             <div className="inline-flex items-center gap-2 text-[11px] font-black tracking-[0.18em] text-slate-500">

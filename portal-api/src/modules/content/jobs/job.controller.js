@@ -270,7 +270,25 @@ export async function createJob(req, res) {
       status = "brief",
       publishStatus = "not_ready",
       platform = "",
+      startDate = null,
       dueDate = null,
+      durationDays = 0,
+      timeEstimate = "",
+      effort = "",
+      assigneeName = "",
+      processOwner = "",
+      dependencies = [],
+      seoBoardStatus = "",
+      seoTaskType = "",
+      seoTarget = "",
+      funnelStage = "",
+      contentPhase = "",
+      seoQuarter = "",
+      executionPageUrl = "",
+      analyticsUrl = "",
+      parentGoalId = "",
+      parentGoalName = "",
+      parentGoalUrl = "",
       shootDate = null,
       caption = "",
       concept = "",
@@ -346,10 +364,6 @@ export async function createJob(req, res) {
 
       resolvedEnrollmentId = enrollment._id;
       resolvedCustomerId = enrollment.customerId;
-
-      if (!resolvedProjectId && enrollment.projectId) {
-        resolvedProjectId = enrollment.projectId;
-      }
     }
 
     if (customerId) {
@@ -396,7 +410,9 @@ export async function createJob(req, res) {
       type: normalizedType,
       workflowType: resolvedWorkflowType,
 
-      priority: isValidJobPriority(priority) ? priority : "normal",
+      priority: isValidJobPriority(priority)
+        ? String(priority).trim().toLowerCase()
+        : "normal",
       status: isValidJobStatus(status) ? normalizeJobStatus(status) : "brief",
       publishStatus: isValidPublishStatus(publishStatus)
         ? String(publishStatus).trim().toLowerCase()
@@ -405,7 +421,27 @@ export async function createJob(req, res) {
       platform: String(platform || "")
         .trim()
         .toLowerCase(),
+      startDate: startDate ? new Date(startDate) : null,
       dueDate: dueDate ? new Date(dueDate) : null,
+      durationDays: Number(durationDays || 0),
+      timeEstimate: String(timeEstimate || "").trim(),
+      effort: String(effort || "").trim(),
+      assigneeName: String(assigneeName || "").trim(),
+      processOwner: String(processOwner || "").trim(),
+      dependencies: Array.isArray(dependencies)
+        ? dependencies.map((x) => String(x || "").trim()).filter(Boolean)
+        : [],
+      seoBoardStatus: String(seoBoardStatus || "").trim(),
+      seoTaskType: String(seoTaskType || "").trim(),
+      seoTarget: String(seoTarget || "").trim(),
+      funnelStage: String(funnelStage || "").trim(),
+      contentPhase: String(contentPhase || "").trim(),
+      seoQuarter: String(seoQuarter || "").trim(),
+      executionPageUrl: String(executionPageUrl || "").trim(),
+      analyticsUrl: String(analyticsUrl || "").trim(),
+      parentGoalId: String(parentGoalId || "").trim(),
+      parentGoalName: String(parentGoalName || "").trim(),
+      parentGoalUrl: String(parentGoalUrl || "").trim(),
       shootDate: shootDate ? new Date(shootDate) : null,
 
       caption: String(caption || "").trim(),
@@ -455,6 +491,18 @@ export async function updateJob(req, res) {
       "concept",
       "script",
       "location",
+      "assigneeName",
+      "seoBoardStatus",
+      "seoTaskType",
+      "seoTarget",
+      "funnelStage",
+      "contentPhase",
+      "seoQuarter",
+      "executionPageUrl",
+      "analyticsUrl",
+      "parentGoalId",
+      "parentGoalName",
+      "parentGoalUrl",
     ];
 
     for (const f of textFields) {
@@ -480,7 +528,7 @@ export async function updateJob(req, res) {
 
     if (typeof body.priority !== "undefined") {
       patch.priority = isValidJobPriority(body.priority)
-        ? body.priority
+        ? String(body.priority).trim().toLowerCase()
         : current.priority;
     }
 
@@ -515,6 +563,32 @@ export async function updateJob(req, res) {
 
     if (typeof body.dueDate !== "undefined") {
       patch.dueDate = body.dueDate ? new Date(body.dueDate) : null;
+    }
+
+    if (typeof body.startDate !== "undefined") {
+      patch.startDate = body.startDate ? new Date(body.startDate) : null;
+    }
+
+    if (typeof body.durationDays !== "undefined") {
+      patch.durationDays = Number(body.durationDays || 0);
+    }
+
+    if (typeof body.timeEstimate !== "undefined") {
+      patch.timeEstimate = String(body.timeEstimate || "").trim();
+    }
+
+    if (typeof body.effort !== "undefined") {
+      patch.effort = String(body.effort || "").trim();
+    }
+
+    if (typeof body.processOwner !== "undefined") {
+      patch.processOwner = String(body.processOwner || "").trim();
+    }
+
+    if (typeof body.dependencies !== "undefined") {
+      patch.dependencies = Array.isArray(body.dependencies)
+        ? body.dependencies.map((x) => String(x || "").trim()).filter(Boolean)
+        : [];
     }
 
     if (typeof body.shootDate !== "undefined") {
@@ -605,10 +679,6 @@ export async function updateJob(req, res) {
         }
 
         patch.enrollmentId = enrollment._id;
-
-        if (!current.projectId && enrollment.projectId) {
-          patch.projectId = enrollment.projectId;
-        }
       }
     }
 

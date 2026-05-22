@@ -10,7 +10,7 @@ import {
   TimerReset,
 } from "lucide-react";
 
-import { listProjects } from "../../projects/api";
+import { listEnrollments } from "../../enrollments/api";
 import { listJobs } from "../../jobs/api";
 import PageHeader from "../../../shared/ui/PageHeader";
 import Card from "../../../shared/ui/Card";
@@ -67,24 +67,29 @@ const SERVICE_CONFIG = {
     tone: "success",
     phases: [
       {
-        key: "audit",
-        label: "Audit",
-        keywords: ["audit", "baseline", "competitor", "keyword"],
+        key: "kw-research",
+        label: "KW Research",
+        keywords: ["kw research", "keyword", "competitor"],
       },
       {
-        key: "onpage",
-        label: "On-page",
-        keywords: ["on-page", "optimization", "technical seo", "metadata", "schema"],
+        key: "goals",
+        label: "Goals",
+        keywords: ["goal", "quarter", "traffic", "authority"],
       },
       {
-        key: "content",
-        label: "Content",
-        keywords: ["content", "brief", "blog", "landing page"],
+        key: "link-building",
+        label: "Link Building",
+        keywords: ["backlink", "link building", "authority"],
+      },
+      {
+        key: "optimize",
+        label: "Optimize",
+        keywords: ["optimize", "optimization", "technical seo", "metadata", "schema"],
       },
       {
         key: "reporting",
         label: "Reporting",
-        keywords: ["report", "monthly", "performance"],
+        keywords: ["report", "analytics", "performance", "score"],
       },
     ],
   },
@@ -106,6 +111,41 @@ function formatDate(value) {
   });
 }
 
+function normalize(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getServiceTemplate(enrollment) {
+  return enrollment?.serviceTemplateId && typeof enrollment.serviceTemplateId === "object"
+    ? enrollment.serviceTemplateId
+    : {};
+}
+
+function getServiceKind(enrollment) {
+  const template = getServiceTemplate(enrollment);
+  const text = [
+    template.name,
+    template.slug,
+    template.summary,
+    template.description,
+  ]
+    .map(normalize)
+    .filter(Boolean)
+    .join(" ");
+
+  if (/\bseo\b|search engine|technical seo|on-page/.test(text)) return "seo";
+  if (/\bweb\b|website|web-dev|web development|landing page|ecommerce|e-commerce/.test(text)) {
+    return "website";
+  }
+
+  return null;
+}
+
+function getServiceName(enrollment) {
+  const template = getServiceTemplate(enrollment);
+  return template.name || "Service enrollment";
+}
+
 function isOverdue(job) {
   if (!job?.dueDate || DONE_STATUSES.has(job.status)) return false;
   const end = new Date(job.dueDate);
@@ -113,15 +153,38 @@ function isOverdue(job) {
   return end < new Date();
 }
 
-function projectIdOf(job) {
-  return String(job?.projectId?._id || job?.projectId || "");
+function enrollmentIdOf(job) {
+  return String(job?.enrollmentId?._id || job?.enrollmentId || "");
+}
+
+function buildPhaseList(enrollment, config) {
+  const groups = Array.isArray(enrollment?.finalScope?.groups)
+    ? enrollment.finalScope.groups
+    : [];
+
+  if (!groups.length) return config.phases;
+
+  return groups.map((group, index) => {
+    const scopedJobs = Array.isArray(group?.jobs) ? group.jobs : [];
+    return {
+      key: group.id || `scope-${index}`,
+      label: group.title || `Scope ${index + 1}`,
+      keywords: [
+        group.title,
+        group.description,
+        ...scopedJobs.map((job) => job?.title),
+      ]
+        .map(normalize)
+        .filter(Boolean),
+    };
+  });
 }
 
 function matchPhase(job, phases) {
-  const text = `${job?.title || ""} ${job?.notes || ""}`.toLowerCase();
+  const text = normalize(`${job?.title || ""} ${job?.notes || ""}`);
   return (
     phases.find((phase) =>
-      phase.keywords.some((keyword) => text.includes(keyword))
+      (phase.keywords || []).some((keyword) => keyword && text.includes(keyword))
     ) || phases[0]
   );
 }
@@ -154,18 +217,24 @@ function ServiceSegment({ value, active, onClick, children }) {
   );
 }
 
-function enrichProject(project, jobs) {
-  const config = SERVICE_CONFIG[project.type] || SERVICE_CONFIG.website;
-  const projectJobs = jobs.filter((job) => projectIdOf(job) === String(project._id));
-  const completedJobs = projectJobs.filter((job) => DONE_STATUSES.has(job.status));
-  const activeJobs = projectJobs.filter((job) => ACTIVE_STATUSES.has(job.status));
-  const overdueJobs = projectJobs.filter(isOverdue);
-  const nextJob = projectJobs
+function enrichEnrollment(enrollment, jobs) {
+  const kind = getServiceKind(enrollment) || "website";
+  const config = SERVICE_CONFIG[kind] || SERVICE_CONFIG.website;
+  const enrollmentJobs = jobs.filter(
+    (job) => enrollmentIdOf(job) === String(enrollment._id)
+  );
+  const completedJobs = enrollmentJobs.filter((job) => DONE_STATUSES.has(job.status));
+  const activeJobs = enrollmentJobs.filter((job) => ACTIVE_STATUSES.has(job.status));
+  const overdueJobs = enrollmentJobs.filter(isOverdue);
+  const nextJob = enrollmentJobs
     .filter((job) => job.dueDate && !DONE_STATUSES.has(job.status))
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))[0];
 
-  const phaseMap = config.phases.map((phase) => {
-    const phaseJobs = projectJobs.filter((job) => matchPhase(job, config.phases).key === phase.key);
+  const phases = buildPhaseList(enrollment, config);
+  const phaseMap = phases.map((phase) => {
+    const phaseJobs = enrollmentJobs.filter(
+      (job) => matchPhase(job, phases).key === phase.key
+    );
     const done = phaseJobs.filter((job) => DONE_STATUSES.has(job.status)).length;
     const active = phaseJobs.filter((job) => ACTIVE_STATUSES.has(job.status)).length;
     return {
@@ -177,12 +246,10 @@ function enrichProject(project, jobs) {
     };
   });
 
-  const progress = projectJobs.length
-    ? pct(completedJobs.length, projectJobs.length)
-    : project.status === "completed"
+  const progress = enrollmentJobs.length
+    ? pct(completedJobs.length, enrollmentJobs.length)
+    : enrollment.status === "completed"
     ? 100
-    : project.status === "active"
-    ? 25
     : 0;
 
   const currentPhase =
@@ -192,9 +259,10 @@ function enrichProject(project, jobs) {
     phaseMap[phaseMap.length - 1];
 
   return {
-    ...project,
+    ...enrollment,
+    serviceKind: kind,
     serviceConfig: config,
-    jobs: projectJobs,
+    jobs: enrollmentJobs,
     completedJobs,
     activeJobs,
     overdueJobs,
@@ -205,9 +273,13 @@ function enrichProject(project, jobs) {
   };
 }
 
-function ProjectDeliveryRow({ project }) {
-  const Icon = project.serviceConfig.Icon;
-  const client = project.customerId?.companyName || project.customerId?.contactName || "Internal";
+function EnrollmentDeliveryRow({ enrollment }) {
+  const Icon = enrollment.serviceConfig.Icon;
+  const client =
+    enrollment.customerId?.companyName ||
+    enrollment.customerId?.contactName ||
+    "Client";
+
   return (
     <tr className="align-top transition hover:bg-slate-50/70">
       <td className="px-5 py-4">
@@ -217,37 +289,39 @@ function ProjectDeliveryRow({ project }) {
           </div>
           <div className="min-w-0">
             <Link
-              to={`/portal/projects/${project._id}`}
+              to={`/portal/enrollments/${enrollment._id}`}
               className="block truncate text-sm font-black text-slate-900 transition hover:text-indigo-600"
             >
-              {project.name}
+              {getServiceName(enrollment)}
             </Link>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
               <span>{client}</span>
-              {project.targetLaunchDate ? (
-                <span>Launch {formatDate(project.targetLaunchDate)}</span>
+              {enrollment.startDate ? (
+                <span>Started {formatDate(enrollment.startDate)}</span>
               ) : null}
             </div>
           </div>
         </div>
       </td>
       <td className="px-5 py-4">
-        <Badge tone={project.serviceConfig.tone}>{project.serviceConfig.label}</Badge>
+        <Badge tone={enrollment.serviceConfig.tone}>
+          {enrollment.serviceConfig.label}
+        </Badge>
         <div className="mt-1 text-xs text-slate-400 capitalize">
-          {String(project.status || "draft").replace("_", " ")}
+          {String(enrollment.status || "active").replace("_", " ")}
         </div>
       </td>
       <td className="px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="min-w-[130px] flex-1">
-            <ProgressBar value={project.progress} />
+            <ProgressBar value={enrollment.progress} />
           </div>
           <span className="w-10 text-right text-xs font-black tabular-nums text-slate-700">
-            {project.progress}%
+            {enrollment.progress}%
           </span>
         </div>
         <div className="mt-2 flex flex-wrap gap-1.5">
-          {project.phaseMap.map((phase) => (
+          {enrollment.phaseMap.map((phase) => (
             <span
               key={phase.key}
               className={[
@@ -266,21 +340,21 @@ function ProjectDeliveryRow({ project }) {
       </td>
       <td className="px-5 py-4">
         <div className="text-sm font-black text-slate-800">
-          {project.currentPhase?.label || "Plan"}
+          {enrollment.currentPhase?.label || "Scope"}
         </div>
         <div className="mt-1 text-xs text-slate-500">
-          {project.completedJobs.length}/{project.jobs.length || 0} jobs complete
+          {enrollment.completedJobs.length}/{enrollment.jobs.length || 0} jobs complete
         </div>
       </td>
       <td className="px-5 py-4">
-        {project.nextJob ? (
+        {enrollment.nextJob ? (
           <Link
-            to={`/portal/jobs/${project.nextJob._id}`}
+            to={`/portal/jobs/${enrollment.nextJob._id}`}
             className="text-sm font-bold text-slate-800 transition hover:text-indigo-600"
           >
-            {project.nextJob.title}
+            {enrollment.nextJob.title}
             <span className="mt-1 block text-xs font-medium text-slate-400">
-              Due {formatDate(project.nextJob.dueDate)}
+              Due {formatDate(enrollment.nextJob.dueDate)}
             </span>
           </Link>
         ) : (
@@ -288,9 +362,9 @@ function ProjectDeliveryRow({ project }) {
         )}
       </td>
       <td className="px-5 py-4 text-right">
-        {project.overdueJobs.length ? (
-          <Badge tone="warning">{project.overdueJobs.length} overdue</Badge>
-        ) : project.progress >= 100 ? (
+        {enrollment.overdueJobs.length ? (
+          <Badge tone="warning">{enrollment.overdueJobs.length} overdue</Badge>
+        ) : enrollment.progress >= 100 ? (
           <Badge tone="success">Delivered</Badge>
         ) : (
           <Badge tone="neutral">On track</Badge>
@@ -303,7 +377,7 @@ function ProjectDeliveryRow({ project }) {
 export default function ServiceDeliveryPage() {
   const toast = useToast();
   const [service, setService] = useState("all");
-  const [projects, setProjects] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -312,14 +386,19 @@ export default function ServiceDeliveryPage() {
     setLoading(true);
     setError("");
     try {
-      const [websiteProjects, seoProjects, websiteJobs, seoJobs] = await Promise.all([
-        listProjects({ type: "website", limit: 100, sort: "-updatedAt" }),
-        listProjects({ type: "seo", limit: 100, sort: "-updatedAt" }),
-        listJobs({ projectType: "website", limit: 100, sort: "dueDate" }),
-        listJobs({ projectType: "seo", limit: 100, sort: "dueDate" }),
-      ]);
-      setProjects([...(websiteProjects?.items || []), ...(seoProjects?.items || [])]);
-      setJobs([...(websiteJobs?.items || []), ...(seoJobs?.items || [])]);
+      const enrollmentsRes = await listEnrollments({
+        limit: 100,
+        sort: "-updatedAt",
+      });
+      const serviceEnrollments = (enrollmentsRes?.items || []).filter(getServiceKind);
+      const jobResponses = await Promise.all(
+        serviceEnrollments.map((enrollment) =>
+          listJobs({ enrollmentId: enrollment._id, limit: 100, sort: "dueDate" })
+        )
+      );
+
+      setEnrollments(serviceEnrollments);
+      setJobs(jobResponses.flatMap((res) => res?.items || []));
     } catch (err) {
       const message =
         err?.response?.data?.message || err?.message || "Failed to load service delivery.";
@@ -335,23 +414,30 @@ export default function ServiceDeliveryPage() {
   }, [load]);
 
   const rows = useMemo(() => {
-    return projects
-      .filter((project) => service === "all" || project.type === service)
-      .map((project) => enrichProject(project, jobs))
+    return enrollments
+      .filter(
+        (enrollment) =>
+          service === "all" || getServiceKind(enrollment) === service
+      )
+      .map((enrollment) => enrichEnrollment(enrollment, jobs))
       .sort((a, b) => {
         if (b.overdueJobs.length !== a.overdueJobs.length) {
           return b.overdueJobs.length - a.overdueJobs.length;
         }
         return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
       });
-  }, [jobs, projects, service]);
+  }, [jobs, enrollments, service]);
 
   const stats = useMemo(() => {
-    const active = rows.filter((project) => !["completed", "archived", "cancelled"].includes(project.status)).length;
-    const delivered = rows.filter((project) => project.progress >= 100 || project.status === "completed").length;
-    const overdue = rows.reduce((sum, project) => sum + project.overdueJobs.length, 0);
+    const active = rows.filter(
+      (enrollment) => !["completed", "archived", "cancelled"].includes(enrollment.status)
+    ).length;
+    const delivered = rows.filter(
+      (enrollment) => enrollment.progress >= 100 || enrollment.status === "completed"
+    ).length;
+    const overdue = rows.reduce((sum, enrollment) => sum + enrollment.overdueJobs.length, 0);
     const avg = rows.length
-      ? Math.round(rows.reduce((sum, project) => sum + project.progress, 0) / rows.length)
+      ? Math.round(rows.reduce((sum, enrollment) => sum + enrollment.progress, 0) / rows.length)
       : 0;
     return { total: rows.length, active, delivered, overdue, avg };
   }, [rows]);
@@ -361,7 +447,7 @@ export default function ServiceDeliveryPage() {
       <PageHeader
         eyebrow="DELIVERY"
         title="Website & SEO Delivery"
-        subtitle="Track service projects, phase progress, open jobs, and launch/reporting readiness."
+        subtitle="Track active service enrollments, contracted scope, open jobs, and launch/reporting readiness."
         breadcrumb={[
           { label: "Portal", to: "/portal" },
           { label: "Delivery" },
@@ -389,7 +475,7 @@ export default function ServiceDeliveryPage() {
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={ClipboardList} label="Service Projects" value={stats.total} color="indigo" />
+        <StatCard icon={ClipboardList} label="Service Enrollments" value={stats.total} color="indigo" />
         <StatCard icon={TimerReset} label="Active" value={stats.active} color="blue" />
         <StatCard icon={CheckCircle2} label="Delivered" value={stats.delivered} color="emerald" />
         <StatCard icon={AlertTriangle} label="Overdue Jobs" value={stats.overdue} color={stats.overdue ? "amber" : "slate"} />
@@ -410,8 +496,8 @@ export default function ServiceDeliveryPage() {
       ) : rows.length === 0 ? (
         <EmptyState
           icon={Globe2}
-          title="No website or SEO delivery projects"
-          message="Create website or SEO projects, then link jobs to track service delivery here."
+          title="No website or SEO service enrollments"
+          message="Enroll a client in a Website or SEO service, then generate jobs from that enrollment's scope."
         />
       ) : (
         <Card className="overflow-hidden">
@@ -427,17 +513,17 @@ export default function ServiceDeliveryPage() {
             <table className="min-w-[1100px] w-full text-left text-sm">
               <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
                 <tr>
-                  <th className="px-5 py-3">Project</th>
+                  <th className="px-5 py-3">Enrollment</th>
                   <th className="px-5 py-3">Service</th>
                   <th className="px-5 py-3">Progress</th>
-                  <th className="px-5 py-3">Current Phase</th>
+                  <th className="px-5 py-3">Current Scope</th>
                   <th className="px-5 py-3">Next Job</th>
                   <th className="px-5 py-3 text-right">Health</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rows.map((project) => (
-                  <ProjectDeliveryRow key={project._id} project={project} />
+                {rows.map((enrollment) => (
+                  <EnrollmentDeliveryRow key={enrollment._id} enrollment={enrollment} />
                 ))}
               </tbody>
             </table>

@@ -11,7 +11,7 @@ export const TYPE_OPTIONS = [
   { value: "service", label: "Service" },
   { value: "package", label: "Package" },
   { value: "retainer", label: "Retainer" },
-  { value: "project", label: "Project" },
+  { value: "project", label: "Phased service" },
 ];
 
 export const SORT_OPTIONS = [
@@ -32,7 +32,7 @@ export const BILLING_OPTIONS = [
 
 export const EXECUTION_MODE_OPTIONS = [
   { value: "recurring", label: "Recurring / Monthly" },
-  { value: "phased_project", label: "Phased Project" },
+  { value: "phased_project", label: "Phased Service Delivery" },
   { value: "one_time", label: "One-time Simple" },
 ];
 

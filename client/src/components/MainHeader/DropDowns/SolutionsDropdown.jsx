@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { FiArrowRight, FiPackage } from "react-icons/fi";
 import { ICON_META, BRAND, BRAND_BG, BRAND_GLOW } from "../../../data/technologyConstants";
 
+const API = process.env.REACT_APP_API_URL || "/api";
 let _cache = null;
 
 function fetchSolutions() {
   if (_cache) return Promise.resolve(_cache);
-  return fetch("/api/web-content/solutions")
+  return fetch(`${API}/web-content/solutions`)
     .then((r) => r.json())
     .then((d) => {
       _cache = d.items || [];

@@ -19,10 +19,12 @@ import { listUsers } from "../../iam/users/api";
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const JOB_TYPES = [
+  { value: "task",       label: "Task",       Icon: FileText },
   { value: "post",       label: "Post",       Icon: ImageIcon },
   { value: "story",      label: "Story",      Icon: LayoutPanelLeft },
   { value: "carousel",   label: "Carousel",   Icon: Grid2x2 },
   { value: "design",     label: "Design",     Icon: Palette },
+  { value: "page",       label: "Page",       Icon: LayoutPanelLeft },
   { value: "photo",      label: "Photo",      Icon: Camera },
   { value: "case_study", label: "Case Study", Icon: FileText },
   { value: "event",      label: "Event",      Icon: Briefcase },
@@ -277,19 +279,18 @@ export default function NewJobModal({
     return () => { dead = true; };
   }, [form.customerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load enrollments on project change
+  // Load service enrollments for the selected client.
   useEffect(() => {
     if (!form.customerId) { setEnrollments([]); return; }
     let dead = false;
     setLoadingEnrollments(true);
     const params = { customerId: form.customerId, limit: 100 };
-    if (form.projectId) params.projectId = form.projectId;
     listEnrollments(params)
       .then((res) => { if (!dead) setEnrollments(Array.isArray(res?.items) ? res.items : []); })
       .catch(() => { if (!dead) setEnrollments([]); })
       .finally(() => { if (!dead) setLoadingEnrollments(false); });
     return () => { dead = true; };
-  }, [form.customerId, form.projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [form.customerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const customerOptions = useMemo(() => [
     { value: "", label: loadingCustomers ? "Loading…" : "Select client" },
@@ -297,12 +298,12 @@ export default function NewJobModal({
   ], [customers, loadingCustomers]);
 
   const projectOptions = useMemo(() => [
-    { value: "", label: loadingProjects ? "Loading…" : "Select project" },
+    { value: "", label: loadingProjects ? "Loading…" : "None / service contract" },
     ...projects.map((p) => ({ value: p._id, label: p.name || p.title || p._id })),
   ], [projects, loadingProjects]);
 
   const enrollmentOptions = useMemo(() => [
-    { value: "", label: loadingEnrollments ? "Loading…" : "None / standalone" },
+    { value: "", label: loadingEnrollments ? "Loading…" : "None / separate project" },
     ...enrollments.map((e) => ({
       value: e._id,
       label: e.serviceTemplateId?.name || e.name || e._id,
@@ -318,8 +319,8 @@ export default function NewJobModal({
     try {
       await createJob({
         customerId:   form.customerId,
-        projectId:    form.projectId    || undefined,
-        enrollmentId: form.enrollmentId || undefined,
+        projectId:    form.enrollmentId ? undefined : form.projectId || undefined,
+        enrollmentId: form.projectId ? undefined : form.enrollmentId || undefined,
         title:        form.title.trim(),
         type:         form.type,
         platform:     form.platform || "",
@@ -343,7 +344,7 @@ export default function NewJobModal({
       open={open}
       onClose={() => onClose?.(false)}
       title="New Job"
-      subtitle="Create a job for posts, design, photography, or any other deliverable."
+      subtitle="Create a job under a service enrollment, or under a separate project."
       width="820px"
       footer={
         <div className="flex items-center justify-between">
@@ -390,18 +391,18 @@ export default function NewJobModal({
               disabled={lockCustomer || loadingCustomers}
             />
             <NativeSelect
-              label="Project"
+              label="Separate project"
               value={form.projectId}
               onChange={(v) => { setField("projectId", v); setField("enrollmentId", ""); }}
               options={projectOptions}
               disabled={!form.customerId || lockProject || loadingProjects}
             />
             <NativeSelect
-              label="Enrollment"
+              label="Service enrollment"
               value={form.enrollmentId}
-              onChange={(v) => setField("enrollmentId", v)}
+              onChange={(v) => { setField("enrollmentId", v); setField("projectId", ""); }}
               options={enrollmentOptions}
-              disabled={!form.customerId || loadingEnrollments}
+              disabled={!form.customerId || !!form.projectId || lockProject || loadingEnrollments}
             />
           </div>
         </div>

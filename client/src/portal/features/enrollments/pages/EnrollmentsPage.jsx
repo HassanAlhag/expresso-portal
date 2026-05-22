@@ -151,8 +151,6 @@ export default function EnrollmentsPage() {
         item?.customerName ||
         "";
 
-      const projectName = item?.projectId?.name || item?.projectName || "";
-
       const serviceName =
         item?.serviceTemplateId?.name || item?.serviceName || "";
 
@@ -166,7 +164,7 @@ export default function EnrollmentsPage() {
 
       const matchesQ =
         !q ||
-        [customerName, projectName, serviceName, currentStatus, mode]
+        [customerName, serviceName, currentStatus, mode]
           .join(" ")
           .toLowerCase()
           .includes(q.toLowerCase());
@@ -227,13 +225,13 @@ export default function EnrollmentsPage() {
         <StatCard icon={ClipboardList}    label="Total"         value={stats.total}     color="indigo"  />
         <StatCard icon={Layers3}          label="Active"        value={stats.active}    color="emerald" />
         <StatCard icon={BriefcaseBusiness} label="Recurring"   value={stats.recurring} color="blue"    />
-        <StatCard icon={FolderKanban}     label="Project-Based" value={stats.phased}    color="violet"  />
+        <StatCard icon={FolderKanban}     label="Phased / One-Time" value={stats.phased}    color="violet"  />
       </div>
 
       <FilterBar
         searchValue={q}
         onSearchChange={(v) => setQ(v)}
-        searchPlaceholder="Client, service, project, mode…"
+        searchPlaceholder="Client, service, mode..."
         filters={[
           { label: "status", value: status, onChange: (v) => setStatus(v), options: [
             { value: "", label: "All status" },
@@ -277,9 +275,6 @@ export default function EnrollmentsPage() {
               item?.customerId?.contactName ||
               "Unknown client";
 
-            const resolvedProject = item?.projectId || null;
-            const projectName = resolvedProject?.name || "No linked project";
-            const projectRouteId = resolvedProject?._id || null;
             const serviceName =
               item?.serviceTemplateId?.name || "Unknown service";
 
@@ -306,9 +301,6 @@ export default function EnrollmentsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <MetaPill>{item.status || "—"}</MetaPill>
                     <MetaPill>{executionModeLabel(mode)}</MetaPill>
-                    {projectRouteId ? (
-                      <MetaPill>Linked project</MetaPill>
-                    ) : null}
                   </div>
 
                   <div className="mt-4 text-lg font-black text-slate-900">
@@ -319,11 +311,6 @@ export default function EnrollmentsPage() {
                     <div className="flex items-center gap-3 text-sm text-slate-700">
                       <Building2 size={16} className="text-slate-400" />
                       {customerName}
-                    </div>
-
-                    <div className="flex items-center gap-3 text-sm text-slate-700">
-                      <FolderKanban size={16} className="text-slate-400" />
-                      {projectName}
                     </div>
 
                     <div className="flex items-center gap-3 text-sm text-slate-700">

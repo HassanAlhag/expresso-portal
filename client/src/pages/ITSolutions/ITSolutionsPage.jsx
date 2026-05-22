@@ -28,9 +28,10 @@ export default function ITSolutionsPage() {
   const settings = useSiteSettings();
   const pageSettings = settings?.itSolutions || {};
   const [solutions, setSolutions] = useState([]);
+  const API = process.env.REACT_APP_API_URL || "/api";
 
   useEffect(() => {
-    fetch("/api/web-content/solutions")
+    fetch(`${API}/web-content/solutions`)
       .then((r) => r.json())
       .then((d) => setSolutions(d.items || []))
       .catch(() => {});

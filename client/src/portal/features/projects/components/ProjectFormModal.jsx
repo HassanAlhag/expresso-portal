@@ -15,7 +15,7 @@ const PROJECT_MODE_OPTIONS = [
 const PROJECT_SOURCE_OPTIONS = [
   { value: "manual", label: "Manual" },
   { value: "sales", label: "Sales" },
-  { value: "enrollment", label: "Enrollment" },
+  { value: "enrollment", label: "Service follow-up" },
   { value: "internal", label: "Internal" },
 ];
 
@@ -194,7 +194,7 @@ export default function ProjectFormModal({
               <div className="mt-1 text-sm text-slate-600">
                 {isEdit
                   ? "Update the project details below."
-                  : "Use projects as the main container for client work, custom work, pre-contract work, or internal initiatives."}
+                  : "Use projects for separate or larger client work. Service contract work stays under enrollments."}
               </div>
             </div>
 

@@ -77,10 +77,12 @@ const TYPE_CLS = {
   reel: "border-violet-200 bg-violet-50 text-violet-700",
   video: "border-blue-200 bg-blue-50 text-blue-700",
   photo: "border-amber-200 bg-amber-50 text-amber-700",
+  task: "border-slate-200 bg-slate-50 text-slate-600",
   post: "border-slate-200 bg-slate-50 text-slate-600",
   story: "border-pink-200 bg-pink-50 text-pink-700",
   carousel: "border-sky-200 bg-sky-50 text-sky-700",
   design: "border-indigo-200 bg-indigo-50 text-indigo-700",
+  page: "border-cyan-200 bg-cyan-50 text-cyan-700",
   case_study: "border-teal-200 bg-teal-50 text-teal-700",
   other: "border-slate-200 bg-slate-50 text-slate-500",
 };

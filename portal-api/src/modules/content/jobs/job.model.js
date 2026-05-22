@@ -92,6 +92,120 @@ const JobSchema = new mongoose.Schema(
       index: true,
     },
 
+    startDate: {
+      type: Date,
+      default: null,
+      index: true,
+    },
+
+    durationDays: {
+      type: Number,
+      default: 0,
+    },
+
+    timeEstimate: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    effort: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
+
+    assigneeName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    processOwner: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
+
+    dependencies: {
+      type: [String],
+      default: [],
+    },
+
+    seoBoardStatus: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
+
+    seoTaskType: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
+
+    seoTarget: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
+
+    funnelStage: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
+
+    contentPhase: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
+
+    seoQuarter: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
+
+    executionPageUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    analyticsUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    parentGoalId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    parentGoalName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    parentGoalUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     shootDate: {
       type: Date,
       default: null,
@@ -258,6 +372,9 @@ JobSchema.index({
   caption: "text",
   concept: "text",
   script: "text",
+  seoTaskType: "text",
+  seoTarget: "text",
+  parentGoalName: "text",
 });
 
 export default mongoose.models.Job || mongoose.model("Job", JobSchema);

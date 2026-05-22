@@ -6,6 +6,7 @@ const BRAND      = "#6366f1";
 const BRAND_BG   = "rgba(99,102,241,0.1)";
 const BRAND_GLOW = "rgba(99,102,241,0.18)";
 
+const API = process.env.REACT_APP_API_URL || "/api";
 let _cache = null;
 
 const Item = ({ title, description, slug }) => (
@@ -39,7 +40,7 @@ export default function OurServicesDropdown() {
 
   useEffect(() => {
     if (_cache) return;
-    fetch("/api/web-content/services")
+    fetch(`${API}/web-content/services`)
       .then((r) => r.json())
       .then((d) => {
         if (d.ok && Array.isArray(d.items)) {

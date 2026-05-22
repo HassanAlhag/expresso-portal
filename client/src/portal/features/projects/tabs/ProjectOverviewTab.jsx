@@ -78,8 +78,11 @@ export default function ProjectOverviewTab({ project, customer }) {
             <InfoItem label="STATUS" value={humanize(project?.status)} />
             <InfoItem label="PRIORITY" value={humanize(project?.priority)} />
             <InfoItem
-              label="ENROLLMENT LINK"
-              value={project?.enrollmentId ? "Linked" : "Not linked"}
+              label="RELATED SERVICE"
+              value={
+                project?.enrollmentId?.serviceTemplateId?.name ||
+                (project?.enrollmentId ? "Related" : "None")
+              }
             />
           </div>
 

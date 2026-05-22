@@ -115,8 +115,10 @@ function ServiceMainPage() {
   const servicesSettings = settings?.services || {};
   const [serviceCards, setServiceCards] = useState(null);
 
+  const API = process.env.REACT_APP_API_URL || "/api";
+
   useEffect(() => {
-    fetch("/api/web-content/services")
+    fetch(`${API}/web-content/services`)
       .then((r) => r.json())
       .then((d) => setServiceCards(d.items || []))
       .catch(() => setServiceCards([]));

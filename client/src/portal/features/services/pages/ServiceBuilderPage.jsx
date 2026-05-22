@@ -178,7 +178,34 @@ export default function ServiceBuilderPage() {
                     type: job.type || "task",
                     quantity: Number(job.quantity || 1),
                     unit: job.unit || "",
+                    priority: job.priority || "",
+                    startDays: Number(job.startDays || 0),
                     dueDays: Number(job.dueDays || 0),
+                    durationDays: Number(
+                      job.durationDays ||
+                        Math.max(0, Number(job.dueDays || 0) - Number(job.startDays || 0))
+                    ),
+                    timeEstimate: job.timeEstimate || "",
+                    effort: job.effort || "",
+                    assigneeName: job.assigneeName || "",
+                    processOwner: job.processOwner || "",
+                    dependencies: Array.isArray(job.dependencies)
+                      ? job.dependencies
+                      : String(job.dependencies || "")
+                          .split(",")
+                          .map((x) => x.trim())
+                          .filter(Boolean),
+                    seoBoardStatus: job.seoBoardStatus || "",
+                    seoTaskType: job.seoTaskType || "",
+                    seoTarget: job.seoTarget || "",
+                    funnelStage: job.funnelStage || "",
+                    contentPhase: job.contentPhase || "",
+                    seoQuarter: job.seoQuarter || "",
+                    executionPageUrl: job.executionPageUrl || "",
+                    analyticsUrl: job.analyticsUrl || "",
+                    parentGoalId: job.parentGoalId || "",
+                    parentGoalName: job.parentGoalName || "",
+                    parentGoalUrl: job.parentGoalUrl || "",
                     required: job.required !== false,
                     checklist: Array.isArray(job.checklist)
                       ? job.checklist.map((c) => ({

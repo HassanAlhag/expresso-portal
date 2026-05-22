@@ -126,7 +126,11 @@ export async function listProjects(req, res) {
         .limit(limitNum)
         .populate("customerId", "companyName contactName primaryEmail")
         .populate("ownerUserId", "fullName email")
-        .populate("enrollmentId", "status serviceTemplateId")
+        .populate({
+          path: "enrollmentId",
+          select: "status serviceTemplateId",
+          populate: { path: "serviceTemplateId", select: "name slug" },
+        })
         .lean(),
     ]);
 
@@ -154,7 +158,11 @@ export async function getProjectById(req, res) {
     const item = await Project.findById(id)
       .populate("customerId", "companyName contactName primaryEmail phone")
       .populate("ownerUserId", "fullName email")
-      .populate("enrollmentId", "status serviceTemplateId pricing finalScope")
+      .populate({
+        path: "enrollmentId",
+        select: "status serviceTemplateId pricing finalScope",
+        populate: { path: "serviceTemplateId", select: "name slug" },
+      })
       .lean();
 
     if (!item) {
@@ -220,15 +228,10 @@ export async function createProject(req, res) {
     let resolvedCustomerId = validId(customerId) ? customerId : null;
     let resolvedEnrollmentId = validId(enrollmentId) ? enrollmentId : null;
 
-    if (
-      cleanMode !== "internal" &&
-      !resolvedCustomerId &&
-      !resolvedEnrollmentId
-    ) {
+    if (cleanMode !== "internal" && !resolvedCustomerId) {
       return res.status(400).json({
         ok: false,
-        message:
-          "customerId or enrollmentId is required unless projectMode is internal",
+        message: "customerId is required unless projectMode is internal",
       });
     }
 
@@ -249,8 +252,6 @@ export async function createProject(req, res) {
           message: "Selected enrollment does not belong to selected customer",
         });
       }
-
-      resolvedCustomerId = enrollment.customerId;
     }
 
     if (cleanMode === "internal") {
@@ -291,7 +292,11 @@ export async function createProject(req, res) {
     const item = await Project.findById(doc._id)
       .populate("customerId", "companyName contactName primaryEmail")
       .populate("ownerUserId", "fullName email")
-      .populate("enrollmentId", "status serviceTemplateId")
+      .populate({
+        path: "enrollmentId",
+        select: "status serviceTemplateId",
+        populate: { path: "serviceTemplateId", select: "name slug" },
+      })
       .lean();
 
     return res.status(201).json({ ok: true, item });
@@ -426,10 +431,14 @@ export async function updateProject(req, res) {
 
         const effectiveCustomerId = patch.customerId || current.customerId;
 
-        if (
-          effectiveCustomerId &&
-          String(enrollment.customerId) !== String(effectiveCustomerId)
-        ) {
+        if (!effectiveCustomerId) {
+          return res.status(400).json({
+            ok: false,
+            message: "Link a client before relating an enrollment",
+          });
+        }
+
+        if (String(enrollment.customerId) !== String(effectiveCustomerId)) {
           return res.status(400).json({
             ok: false,
             message: "Selected enrollment does not belong to selected customer",
@@ -437,10 +446,6 @@ export async function updateProject(req, res) {
         }
 
         patch.enrollmentId = enrollment._id;
-
-        if (!effectiveCustomerId) {
-          patch.customerId = enrollment.customerId;
-        }
       }
     }
 
@@ -453,7 +458,11 @@ export async function updateProject(req, res) {
     const item = await Project.findByIdAndUpdate(id, patch, { new: true })
       .populate("customerId", "companyName contactName primaryEmail")
       .populate("ownerUserId", "fullName email")
-      .populate("enrollmentId", "status serviceTemplateId")
+      .populate({
+        path: "enrollmentId",
+        select: "status serviceTemplateId",
+        populate: { path: "serviceTemplateId", select: "name slug" },
+      })
       .lean();
 
     return res.json({ ok: true, item });

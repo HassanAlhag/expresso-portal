@@ -1,9 +1,11 @@
 export const JOB_TYPES = [
   { value: "",           label: "All types" },
+  { value: "task",       label: "Task" },
   { value: "post",       label: "Post" },
   { value: "story",      label: "Story" },
   { value: "carousel",   label: "Carousel" },
   { value: "design",     label: "Design" },
+  { value: "page",       label: "Page" },
   { value: "photo",      label: "Photo" },
   { value: "case_study", label: "Case study" },
   { value: "event",      label: "Event" },

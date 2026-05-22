@@ -288,7 +288,7 @@ export default function CustomerDetailsPage() {
     setConvertingEnrollmentId(enrollmentId);
     try {
       const res = await generateJobsFromEnrollment(enrollmentId);
-      const count = res?.jobs?.length || res?.created || 0;
+      const count = res?.count || res?.items?.length || res?.jobs?.length || res?.created || 0;
       toast.success(`${count} job(s) generated from enrollment.`);
       await loadEnrollments();
       await loadJobs();

@@ -6,6 +6,7 @@ import WebSteps from "../../components/ServicesComponents/webSteps";
 import BasicFAQ from "../../components/ServicesComponents/faq";
 
 const BRAND = "#7F8AD1";
+const API = process.env.REACT_APP_API_URL || "/api";
 
 // ─── Block renderers ──────────────────────────────────────────────────────────
 
@@ -228,7 +229,7 @@ export default function ServiceDetailPage() {
   useEffect(() => {
     setNotFound(false);
     setService(null);
-    fetch(`/api/web-content/services/${slug}`)
+    fetch(`${API}/web-content/services/${slug}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.ok && d.item) setService(d.item);
