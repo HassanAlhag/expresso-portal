@@ -7,12 +7,7 @@ const api = axios.create({
 
 export async function listWebsiteReels() {
   const res = await api.get("/jobs/public/website", {
-    params: {
-      limit: 50,
-      page: 1,
-      sort: "-publishedAt",
-    },
+    params: { limit: 50, sort: "-publishedAt" },
   });
-
   return res.data;
 }

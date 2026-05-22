@@ -207,7 +207,10 @@ export default function ProductionDetailsPage() {
   };
 
   const handlePublish = async () => {
-    if (!(item?.media?.length > 0)) { toast.warning("Attach at least one version before publishing."); return; }
+    if (!item?.media?.length && !item?.finalMediaId && !item?.externalPostUrl) {
+      toast.warning("Attach a video file or set an external URL before publishing.");
+      return;
+    }
     setBusy(true);
     try {
       await publishProductionJob(id);

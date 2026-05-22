@@ -47,12 +47,6 @@ const PlanBuilderPage = lazy(() =>
   import("./pages/PlanBuilder/planBuilderPage")
 );
 
-const ProductionsPage = lazy(() =>
-  import("./features/productions/pages/ProductionsPage")
-);
-const ProductionDetailsPage = lazy(() =>
-  import("./features/productions/pages/ProductionDetailsPage")
-);
 
 const CareerPage = lazy(() => import("./pages/Career/CareerPage"));
 const ITSolutionsPage = lazy(() =>
@@ -134,12 +128,6 @@ function Content() {
           <Route path="/build-your-plan" element={<PlanBuilderPage />} />
           <Route path="/marketing-solutions" element={<WebMarketing />} />
           <Route path="/greetings" element={<ThankYouPage />} />
-
-          <Route path="/productions" element={<ProductionsPage />} />
-          <Route
-            path="/productions/:slug"
-            element={<ProductionDetailsPage />}
-          />
 
           <Route path="/careers" element={<CareerPage />} />
           <Route path="/it-solutions" element={<ITSolutionsPage />} />

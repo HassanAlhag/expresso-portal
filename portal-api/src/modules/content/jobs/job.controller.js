@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import Job from "./job.model.js";
 import Media from "../media/media.model.js";
-import Production from "../productions/production.model.js";
 import Project from "../../projects/project.model.js";
 import Enrollment from "../../enrollments/enrollment.model.js";
 import {
@@ -183,6 +182,7 @@ export async function listPublicWebsiteJobs(req, res) {
         .populate("customerId", "companyName contactName")
         .populate("posterMediaId", "url fileUrl thumbnailUrl")
         .populate("finalMediaId", "url fileUrl thumbnailUrl")
+        .populate("coverMedia", "url fileUrl thumbnailUrl")
         .sort({ publishedAt: -1 })
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
@@ -812,84 +812,34 @@ export async function publishToWebsite(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
-    const job = await Job.findById(id).populate("media", "status").lean();
+    const job = await Job.findById(id).populate("media", "status url fileUrl").lean();
     if (!job) {
       return res.status(404).json({ ok: false, message: "Not found" });
     }
 
     const body = req.body || {};
 
-    const approvedMediaIds = (job.media || [])
-      .filter((m) => m.status === "published" || m.status === "approved")
-      .map((m) => String(m._id));
-    const allMediaIds = (job.media || []).map((m) => String(m._id)).filter(Boolean);
+    // Prefer approved/published media for the final video, fall back to any attached media
+    const approvedMedia = (job.media || []).filter(
+      (m) => m.status === "published" || m.status === "approved"
+    );
+    const allMedia = job.media || [];
 
-    const title = String(body.title || job.title || "").trim();
-    if (!title) {
-      return res.status(400).json({ ok: false, message: "Title required" });
-    }
+    const finalMediaId =
+      validId(body.finalMediaId) ? body.finalMediaId
+      : validId(job.finalMediaId) ? job.finalMediaId
+      : approvedMedia[0]?._id || allMedia[0]?._id || null;
 
-    const slug = String(body.slug || job.title || "")
-      .trim()
-      .toLowerCase()
-      .replace(/[^\w]+/g, "-")
-      .replace(/(^-|-$)/g, "");
+    const posterMediaId =
+      validId(body.posterMediaId) ? body.posterMediaId
+      : job.posterMediaId || null;
 
-    const excerpt = String(body.excerpt || "").trim();
-    const category = String(body.category || "").trim();
-    const tags = Array.isArray(body.tags) ? body.tags : [];
+    const externalPostUrl = String(body.externalPostUrl || job.externalPostUrl || "").trim();
 
-    const coverMedia = validId(body.coverMedia)
-      ? body.coverMedia
-      : validId(job.coverMedia)
-      ? job.coverMedia
-      : null;
-
-    const gallery = Array.isArray(body.galleryMediaIds)
-      ? body.galleryMediaIds.filter((x) => validId(x))
-      : approvedMediaIds.length
-      ? approvedMediaIds
-      : allMediaIds;
-
-    const uniqueSlug = async (base, excludeId = null) => {
-      const q = excludeId ? { slug: base, _id: { $ne: excludeId } } : { slug: base };
-      const exists = await Production.findOne(q).select("_id").lean();
-      return exists ? `${base}-${Date.now()}` : base;
-    };
-
-    let production = null;
-
-    if (job.productionId) {
-      const safeSlug = await uniqueSlug(slug, job.productionId);
-      production = await Production.findByIdAndUpdate(
-        job.productionId,
-        {
-          title,
-          slug: safeSlug,
-          excerpt,
-          category,
-          tags,
-          coverMedia,
-          gallery,
-          status: "published",
-          publishedAt: new Date(),
-        },
-        { new: true }
-      ).lean();
-    } else {
-      const safeSlug = await uniqueSlug(slug);
-      production = await Production.create({
-        title,
-        slug: safeSlug,
-        excerpt,
-        category,
-        tags,
-        coverMedia,
-        gallery,
-        status: "published",
-        publishedAt: new Date(),
-        description: "",
-        seo: { metaTitle: "", metaDesc: "" },
+    if (!finalMediaId && !externalPostUrl) {
+      return res.status(400).json({
+        ok: false,
+        message: "Attach a video file or set an external URL before publishing.",
       });
     }
 
@@ -897,34 +847,22 @@ export async function publishToWebsite(req, res) {
       id,
       {
         $set: {
-          productionId: production._id,
           status: "published",
           publishStatus: "published",
           websiteVisible: true,
           publishedAt: new Date(),
-          finalMediaId: validId(body.finalMediaId)
-            ? body.finalMediaId
-            : validId(job.finalMediaId)
-            ? job.finalMediaId
-            : approvedMediaIds[0] || allMediaIds[0] || job.finalMediaId || null,
-          posterMediaId: validId(body.posterMediaId)
-            ? body.posterMediaId
-            : job.posterMediaId || null,
-          externalPostUrl: String(body.externalPostUrl || job.externalPostUrl || "").trim(),
+          finalMediaId: finalMediaId || null,
+          posterMediaId: posterMediaId || null,
+          externalPostUrl,
         },
       },
       { new: true }
-    )
-      .populate("productionId", "title slug status")
-      .lean();
+    ).lean();
 
-    return res.json({ ok: true, job: updatedJob, production });
+    return res.json({ ok: true, job: updatedJob });
   } catch (e) {
     console.error("publishToWebsite:", e);
-    const msg = e?.code === 11000
-      ? "Slug conflict — another production uses that URL. Try again."
-      : e?.message || "Server error";
-    return res.status(500).json({ ok: false, message: msg });
+    return res.status(500).json({ ok: false, message: e?.message || "Server error" });
   }
 }
 
