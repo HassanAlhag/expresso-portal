@@ -8,6 +8,8 @@ import TechnologyCTA from "../../components/TechnologyCTA/TechnologyCTA";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
+const API = process.env.REACT_APP_API_URL || "/api";
+
 const DEFAULT_IT_SOLUTIONS_PAGE_COPY = {
   heroHeading: "Technology Solutions",
   heroSubtitle: "Enterprise IT Procurement, Simplified",
@@ -28,7 +30,6 @@ export default function ITSolutionsPage() {
   const settings = useSiteSettings();
   const pageSettings = settings?.itSolutions || {};
   const [solutions, setSolutions] = useState([]);
-  const API = process.env.REACT_APP_API_URL || "/api";
 
   useEffect(() => {
     fetch(`${API}/web-content/solutions`)

@@ -6,6 +6,8 @@ import WebDevelopmentProcess from "../../components/WebDevolopmentProcess/webDev
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
+const API = process.env.REACT_APP_API_URL || "/api";
+
 const ScrollingLogos = lazy(() => import("../../components/Clients/clients"));
 const StackedCardTestimonials = lazy(() => import("../../components/TestimonialSection/testimonialSection"));
 const ContactUsSection = lazy(() => import("../../components/ContactUsSection/contactSection"));
@@ -114,8 +116,6 @@ function ServiceMainPage() {
   const settings = useSiteSettings();
   const servicesSettings = settings?.services || {};
   const [serviceCards, setServiceCards] = useState(null);
-
-  const API = process.env.REACT_APP_API_URL || "/api";
 
   useEffect(() => {
     fetch(`${API}/web-content/services`)
