@@ -121,3 +121,49 @@ export const updateScorecardTemplate = (id, payload) =>
 
 export const deleteScorecardTemplate = (id) =>
   api.delete(`/hr/scorecard-templates/${id}`).then((res) => res.data);
+
+/* KPI — Indicators */
+export const listKPIIndicators = (params = {}) =>
+  api.get("/hr/kpi/indicators", { params }).then((res) => res.data);
+
+export const createKPIIndicator = (payload) =>
+  api.post("/hr/kpi/indicators", payload).then((res) => res.data);
+
+export const updateKPIIndicator = (id, payload) =>
+  api.patch(`/hr/kpi/indicators/${id}`, payload).then((res) => res.data);
+
+export const deleteKPIIndicator = (id) =>
+  api.delete(`/hr/kpi/indicators/${id}`).then((res) => res.data);
+
+/* KPI — Goals */
+export const listKPIGoals = (params = {}) =>
+  api.get("/hr/kpi/goals", { params }).then((res) => res.data);
+
+export const getKPIGoal = (id) =>
+  api.get(`/hr/kpi/goals/${id}`).then((res) => res.data);
+
+export const createKPIGoal = (payload) =>
+  api.post("/hr/kpi/goals", payload).then((res) => res.data);
+
+export const updateKPIGoal = (id, payload) =>
+  api.patch(`/hr/kpi/goals/${id}`, payload).then((res) => res.data);
+
+export const deleteKPIGoal = (id) =>
+  api.delete(`/hr/kpi/goals/${id}`).then((res) => res.data);
+
+export const syncKPIGoal = (id) =>
+  api.post(`/hr/kpi/goals/${id}/sync`).then((res) => res.data);
+
+/* KPI — Checkins */
+export const listKPICheckins = (params = {}) =>
+  api.get("/hr/kpi/checkins", { params }).then((res) => res.data);
+
+export const createKPICheckin = (payload) =>
+  api.post("/hr/kpi/checkins", payload).then((res) => res.data);
+
+export const deleteKPICheckin = (id) =>
+  api.delete(`/hr/kpi/checkins/${id}`).then((res) => res.data);
+
+/* KPI — Dashboard */
+export const getKPIDashboard = (params = {}) =>
+  api.get("/hr/kpi/dashboard", { params }).then((res) => res.data);

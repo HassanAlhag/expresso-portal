@@ -1,49 +1,30 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  FiArrowRight,
-  FiMonitor,
-  FiCode,
-  FiShoppingCart,
-  FiShare2,
-  FiBarChart2,
-  FiZap,
-  FiSearch,
-  FiVideo,
-} from "react-icons/fi";
+import { FiArrowRight, FiZap } from "react-icons/fi";
 
 const BRAND      = "#6366f1";
 const BRAND_BG   = "rgba(99,102,241,0.1)";
 const BRAND_GLOW = "rgba(99,102,241,0.18)";
 
-const SERVICES = [
-  { Icon: FiMonitor,      title: "Website Development",    desc: "Fast, modern, conversion-ready websites",    to: "/service/web-dev" },
-  { Icon: FiCode,         title: "Web App Development",    desc: "Scalable web applications & portals",        to: "/contact-us" },
-  { Icon: FiShoppingCart, title: "E-commerce Development", desc: "Online stores built to convert",             to: "/contact-us" },
-  { Icon: FiShare2,       title: "Social Media Management",desc: "Strategy, content & community growth",       to: "/service/social-media-marketing" },
-  { Icon: FiBarChart2,    title: "Digital Marketing",      desc: "Multi-channel campaigns with real ROI",      to: "/services" },
-  { Icon: FiZap,          title: "Google Ads",             desc: "High-intent traffic that converts",          to: "/service/google-ads" },
-  { Icon: FiSearch,       title: "SEO",                    desc: "Rank higher and grow organically",           to: "/service/seo-marketing" },
-  { Icon: FiVideo,        title: "Videography",            desc: "Brand films & creative production",          to: "/service/videography" },
-];
+let _cache = null;
 
-const Item = ({ Icon, title, desc, to }) => (
+const Item = ({ title, description, slug }) => (
   <Link
-    to={to}
+    to={slug ? `/service/${slug}` : "/services"}
     className="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-all duration-150 hover:bg-neutral-50"
   >
     <span
       className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-transform duration-150 group-hover:scale-110"
       style={{ backgroundColor: BRAND_BG, color: BRAND }}
     >
-      <Icon size={14} />
+      <FiZap size={14} />
     </span>
     <div className="min-w-0 flex-1">
       <p className="text-[12.5px] font-semibold leading-tight text-neutral-800 group-hover:text-neutral-900">
         {title}
       </p>
-      <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-400">
-        {desc}
+      <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-400 line-clamp-2">
+        {description}
       </p>
     </div>
     <FiArrowRight
@@ -54,6 +35,21 @@ const Item = ({ Icon, title, desc, to }) => (
 );
 
 export default function OurServicesDropdown() {
+  const [services, setServices] = useState(_cache || []);
+
+  useEffect(() => {
+    if (_cache) return;
+    fetch("/api/web-content/services")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok && Array.isArray(d.items)) {
+          _cache = d.items;
+          setServices(d.items);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="w-full overflow-hidden rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
       <div className="grid grid-cols-[210px_1fr]">
@@ -100,11 +96,17 @@ export default function OurServicesDropdown() {
 
         {/* Right white panel */}
         <div className="border-l border-neutral-100 bg-white px-5 py-5">
-          <div className="grid grid-cols-4 gap-x-1 gap-y-0.5">
-            {SERVICES.map((s) => (
-              <Item key={s.title} {...s} />
-            ))}
-          </div>
+          {services.length > 0 ? (
+            <div className="grid grid-cols-4 gap-x-1 gap-y-0.5">
+              {services.map((s) => (
+                <Item key={s._id} title={s.title} description={s.description} slug={s.slug} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center py-10">
+              <p className="text-[12px] text-neutral-400">Loading services…</p>
+            </div>
+          )}
         </div>
 
       </div>

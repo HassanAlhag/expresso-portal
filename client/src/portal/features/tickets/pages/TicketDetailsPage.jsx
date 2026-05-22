@@ -22,11 +22,13 @@ import {
   Shield,
   Send,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import Button from "../../../shared/ui/Button";
 import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import PromptModal from "../../../shared/ui/PromptModal";
+import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import TicketStatusPill from "../components/TicketStatusPill";
 import TicketTypeBadge from "../components/TicketTypeBadge";
 import TicketThread from "../components/TicketThread";
@@ -37,6 +39,7 @@ import {
   updateTicketStatus,
   approveTicket,
   updateTicket,
+  deleteTicket,
 } from "../api";
 import { listUsers } from "../../iam/users/api";
 import {
@@ -268,6 +271,7 @@ export default function TicketDetailsPage() {
   const { id } = useParams();
   const role = useMemo(getRole, []);
   const isAdmin = isAdminRole(role);
+  const isSuperAdmin = role === "super_admin";
   const toast = useToast();
 
   const [ticket, setTicket] = useState(null);
@@ -277,6 +281,7 @@ export default function TicketDetailsPage() {
   const [saving, setSaving] = useState(false);
   const [staffUsers, setStaffUsers] = useState([]);
   const [confirmEscalate, setConfirmEscalate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [prompt, setPrompt] = useState(null);
 
   // editable meta (admin only)
@@ -328,21 +333,8 @@ export default function TicketDetailsPage() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    Promise.all([
-      listUsers({ role: "staff", isActive: true, limit: 100 }),
-      listUsers({ role: "admin", isActive: true, limit: 50 }),
-    ])
-      .then(([s, a]) => {
-        const all = [...(s?.items || []), ...(a?.items || [])];
-        const seen = new Set();
-        setStaffUsers(
-          all.filter((u) => {
-            if (seen.has(u._id)) return false;
-            seen.add(u._id);
-            return true;
-          })
-        );
-      })
+    listUsers({ isInternal: "true", isActive: "true", limit: 100 })
+      .then((r) => setStaffUsers(r?.users || []))
       .catch(() => {});
   }, [isAdmin]);
 
@@ -413,6 +405,17 @@ export default function TicketDetailsPage() {
     } catch (e) {
       toast.error(e?.response?.data?.message || "Comment failed");
     } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setBusy(true);
+    try {
+      await deleteTicket(id);
+      nav("/portal/tickets");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Delete failed");
       setBusy(false);
     }
   };
@@ -569,6 +572,18 @@ export default function TicketDetailsPage() {
                 className={busy || loading ? "animate-spin" : ""}
               />
             </Button>
+
+            {isSuperAdmin && (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                disabled={busy}
+                title="Delete ticket"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-rose-200 bg-white text-rose-400 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
           </div>
 
           {/* Assignee + SLA strip */}
@@ -1164,6 +1179,15 @@ export default function TicketDetailsPage() {
       open={!!prompt}
       {...prompt}
       onClose={() => setPrompt(null)}
+    />
+
+    <ConfirmModal
+      open={confirmDelete}
+      title="Delete ticket"
+      message={`Permanently delete ticket #${ticket?.ticketNumber || id}? All comments and history will be lost. This cannot be undone.`}
+      danger
+      onConfirm={handleDelete}
+      onClose={() => setConfirmDelete(false)}
     />
     </div>
   );

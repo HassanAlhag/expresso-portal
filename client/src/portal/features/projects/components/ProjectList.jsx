@@ -1,20 +1,21 @@
 import React from "react";
 import Button from "../../../shared/ui/Button";
-import Card from "../../../shared/ui/Card";
 import EmptyState from "../../../shared/ui/EmptyState";
 import Skeleton from "../../../shared/ui/Skeleton";
 import Badge from "../../../shared/ui/Badge";
 import {
-  FolderKanban,
   BriefcaseBusiness,
+  CalendarDays,
   FileClock,
+  FolderKanban,
   Settings2,
+  UserRound,
 } from "lucide-react";
 import ProjectStatusPill from "./ProjectStatusPill";
 import ProjectPriorityPill from "./ProjectPriorityPill";
 
 function humanize(value) {
-  return String(value || "—").replaceAll("_", " ");
+  return String(value || "-").replaceAll("_", " ");
 }
 
 function getModeIcon(mode) {
@@ -30,8 +31,28 @@ function getModeTone(mode) {
   return "info";
 }
 
-function MetaBadge({ children, tone = "neutral" }) {
-  return <Badge tone={tone}>{children}</Badge>;
+function formatDate(value) {
+  if (!value) return "-";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "-";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatMoney(currency, amount) {
+  if (amount === null || amount === undefined || amount === "") return "-";
+  return `${currency || "AED"} ${Number(amount).toLocaleString()}`;
+}
+
+function TableSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-black/10 bg-white">
+      <div className="grid gap-2 p-5">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full rounded-xl" />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function ProjectList({
@@ -44,18 +65,7 @@ export default function ProjectList({
   onPrev,
   onNext,
 }) {
-  if (loading) {
-    return (
-      <Card className="p-6">
-        <div className="grid gap-3">
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
-        </div>
-      </Card>
-    );
-  }
+  if (loading) return <TableSkeleton />;
 
   if (error) {
     return (
@@ -79,147 +89,111 @@ export default function ProjectList({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-black/10 bg-white">
-      <div className="divide-y divide-black/10">
-        {items.map((p) => {
-          const isInternal = p.projectMode === "internal";
-          const ModeIcon = getModeIcon(p.projectMode);
+      <div className="overflow-x-auto">
+        <table className="min-w-[1040px] w-full border-collapse text-left">
+          <thead className="bg-slate-50">
+            <tr className="border-b border-black/10 text-[10.5px] font-black uppercase tracking-[0.18em] text-slate-400">
+              <th className="px-5 py-3">Project</th>
+              <th className="px-5 py-3">Client / Mode</th>
+              <th className="px-5 py-3">Status</th>
+              <th className="px-5 py-3">Owner</th>
+              <th className="px-5 py-3">Timeline</th>
+              <th className="px-5 py-3 text-right">Budget</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-black/[0.06]">
+            {items.map((p) => {
+              const isInternal = p.projectMode === "internal";
+              const ModeIcon = getModeIcon(p.projectMode);
+              const clientName = isInternal
+                ? "Internal project"
+                : p.customerId?.companyName || p.customerId?.contactName || "-";
 
-          return (
-            <button
-              key={p._id}
-              className="w-full p-4 text-left transition hover:bg-black/[0.02]"
-              onClick={() => onOpen?.(p)}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="truncate text-sm font-extrabold text-slate-900">
-                      {p.name}
-                    </div>
-
-                    <ProjectStatusPill status={p.status} />
-                    <ProjectPriorityPill priority={p.priority} />
-
-                    <MetaBadge tone="neutral">
-                      {String(p.type || "delivery").toUpperCase()}
-                    </MetaBadge>
-
-                    {p.projectMode ? (
-                      <MetaBadge tone={getModeTone(p.projectMode)}>
-                        <span className="inline-flex items-center gap-1.5">
-                          <ModeIcon size={12} />
-                          {humanize(p.projectMode)}
+              return (
+                <tr
+                  key={p._id}
+                  onClick={() => onOpen?.(p)}
+                  className="cursor-pointer transition hover:bg-slate-50/70"
+                >
+                  <td className="px-5 py-4">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="max-w-[320px] truncate text-sm font-black text-slate-900">
+                          {p.name}
                         </span>
-                      </MetaBadge>
-                    ) : null}
-
-                    {p.source ? (
-                      <MetaBadge tone="neutral">{humanize(p.source)}</MetaBadge>
-                    ) : null}
-                  </div>
-
-                  <div className="mt-1 truncate text-sm text-slate-600">
-                    {isInternal ? (
-                      <>
-                        Internal project
-                        {p.team ? (
-                          <>
-                            {" • "}Team:{" "}
-                            <span className="font-semibold text-slate-900">
-                              {p.team}
-                            </span>
-                          </>
+                        {p.code ? (
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-500">
+                            {p.code}
+                          </span>
                         ) : null}
-                      </>
-                    ) : (
-                      <>
-                        Client:{" "}
-                        <span className="font-semibold text-slate-900">
-                          {p.customerId?.companyName || "—"}
-                        </span>
-                        {" • "}
-                        {p.customerId?.contactName || "—"}
-                      </>
-                    )}
-                  </div>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        <Badge tone="neutral" size="xs">{humanize(p.type)}</Badge>
+                        {p.source ? <Badge tone="neutral" size="xs">{humanize(p.source)}</Badge> : null}
+                      </div>
+                    </div>
+                  </td>
 
-                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
-                    {p.code ? (
-                      <span>
-                        Code: <span className="font-semibold">{p.code}</span>
+                  <td className="px-5 py-4">
+                    <div className="text-sm font-semibold text-slate-800">{clientName}</div>
+                    <Badge tone={getModeTone(p.projectMode)} size="xs" className="mt-1">
+                      <ModeIcon size={11} className="mr-1" />
+                      {humanize(p.projectMode)}
+                    </Badge>
+                  </td>
+
+                  <td className="px-5 py-4">
+                    <div className="flex flex-col items-start gap-1.5">
+                      <ProjectStatusPill status={p.status} />
+                      <ProjectPriorityPill priority={p.priority} />
+                    </div>
+                  </td>
+
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-2 text-sm text-slate-700">
+                      <UserRound size={14} className="text-slate-300" />
+                      <span className="max-w-[170px] truncate">
+                        {p.ownerUserId?.fullName || p.team || "-"}
                       </span>
+                    </div>
+                    {p.team && p.ownerUserId?.fullName ? (
+                      <div className="mt-1 text-xs text-slate-400">{p.team}</div>
                     ) : null}
+                  </td>
 
-                    {p.team ? (
-                      <span>
-                        Team: <span className="font-semibold">{p.team}</span>
+                  <td className="px-5 py-4">
+                    <div className="grid gap-1 text-xs text-slate-500">
+                      <span className="inline-flex items-center gap-1">
+                        <CalendarDays size={12} className="text-slate-300" />
+                        Start: <span className="font-semibold text-slate-700">{formatDate(p.startDate)}</span>
                       </span>
-                    ) : null}
-
-                    {p.ownerUserId?.fullName ? (
                       <span>
-                        Owner:{" "}
-                        <span className="font-semibold">
-                          {p.ownerUserId.fullName}
-                        </span>
+                        Launch: <span className="font-semibold text-slate-700">{formatDate(p.targetLaunchDate || p.endDate)}</span>
                       </span>
-                    ) : null}
+                    </div>
+                  </td>
 
-                    {p.budget ? (
-                      <span>
-                        Budget:{" "}
-                        <span className="font-semibold">
-                          {p.currency || "AED"} {p.budget}
-                        </span>
-                      </span>
-                    ) : null}
-
-                    {p.targetLaunchDate ? (
-                      <span>
-                        Launch:{" "}
-                        <span className="font-semibold">
-                          {new Date(p.targetLaunchDate).toLocaleDateString()}
-                        </span>
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="shrink-0 text-right text-xs text-slate-500">
-                  <div>
-                    {p.createdAt
-                      ? new Date(p.createdAt).toLocaleDateString()
-                      : ""}
-                  </div>
-                </div>
-              </div>
-            </button>
-          );
-        })}
+                  <td className="px-5 py-4 text-right text-sm font-bold text-slate-700">
+                    {formatMoney(p.currency, p.budget)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      <div className="flex items-center justify-between border-t border-black/10 px-4 py-3">
+      <div className="flex items-center justify-between border-t border-black/10 bg-slate-50/60 px-4 py-3">
         <div className="text-xs text-slate-500">
-          Showing page <span className="font-extrabold">{meta.page}</span> of{" "}
-          <span className="font-extrabold">{meta.pages}</span>
+          Page <span className="font-extrabold">{meta.page}</span> of{" "}
+          <span className="font-extrabold">{meta.pages}</span> · {meta.total} total
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onPrev}
-            disabled={meta.page <= 1}
-          >
+          <Button variant="outline" size="sm" onClick={onPrev} disabled={meta.page <= 1}>
             Prev
           </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onNext}
-            disabled={meta.page >= meta.pages}
-          >
+          <Button variant="outline" size="sm" onClick={onNext} disabled={meta.page >= meta.pages}>
             Next
           </Button>
         </div>

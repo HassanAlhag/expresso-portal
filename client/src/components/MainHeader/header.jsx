@@ -5,7 +5,10 @@ import { Link, useNavigate } from "react-router-dom";
 import LINKS from "./links";
 import MobileMenu from "./mobileMenu";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
+import {
+  resolveWebsiteImage,
+  toWebsiteImageUrl,
+} from "../../utils/websiteImages";
 
 const LOGO_FALLBACK = "/white-logo.png";
 
@@ -126,10 +129,10 @@ export const CTAs = () => {
   return (
     <div className="flex items-center gap-2">
       <button
-        onClick={() => navigate("/contact-us")}
+        onClick={() => navigate("/portal/login")}
         className="rounded-xl border border-indigo-300/40 bg-indigo-300/85 px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-indigo-300"
       >
-        Schedule a Demo
+        Client Portal
       </button>
     </div>
   );

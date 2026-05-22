@@ -60,6 +60,8 @@ export async function listUsers(req, res) {
       role = "",
       team = "",
       isActive = "",
+      clientId = "",
+      isInternal = "",
       sort = "-createdAt",
       page = "1",
       limit = "12",
@@ -68,10 +70,18 @@ export async function listUsers(req, res) {
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 12));
 
+    const CLIENT_ROLES = ["client", "staff_client", "client_admin", "procurement_client"];
+
     const filter = {};
     if (role) filter.role = String(role).trim().toLowerCase();
     if (team) filter.team = String(team).trim();
     if (isActive !== "") filter.isActive = String(isActive) === "true";
+    if (clientId && mongoose.Types.ObjectId.isValid(clientId)) {
+      filter.clientId = clientId;
+    }
+    if (isInternal === "true") {
+      filter.role = { $nin: CLIENT_ROLES };
+    }
 
     if (q.trim()) {
       const rx = new RegExp(escapeRegex(q.trim()), "i");
@@ -85,10 +95,13 @@ export async function listUsers(req, res) {
 
     if (req.user?.role === "admin") {
       if (filter.role === "super_admin") {
-        // admins cannot list super_admin users — return empty result immediately
         return res.json({ ok: true, users: [], page: pageNum, pages: 1, total: 0, limit: limitNum });
       }
-      if (!filter.role) filter.role = { $ne: "super_admin" };
+      if (!filter.role) {
+        filter.role = { $ne: "super_admin" };
+      } else if (filter.role.$nin) {
+        filter.role.$nin = [...new Set([...filter.role.$nin, "super_admin"])];
+      }
     }
 
     const sortObj = safeSort(sort);
@@ -102,6 +115,7 @@ export async function listUsers(req, res) {
         .select(
           "fullName email role isActive jobTitle phone team avatarUrl avatarMediaId notes lastLoginAt createdAt updatedAt clientId"
         )
+        .populate("clientId", "companyName")
         .lean(),
     ]);
 
@@ -481,6 +495,45 @@ export async function updateUserPermissions(req, res) {
     return res.json({ ok: true, user });
   } catch (err) {
     console.error("updateUserPermissions error:", err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function deleteUser(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ ok: false, message: "Invalid user id" });
+    }
+
+    const target = await User.findById(id).select("role email clientId").lean();
+    if (!target) {
+      return res.status(404).json({ ok: false, message: "User not found" });
+    }
+
+    if (!canManageRole(req.user?.role, target.role)) {
+      return res.status(403).json({ ok: false, message: "Forbidden — cannot delete this role" });
+    }
+
+    // Prevent self-deletion
+    if (String(req.user._id) === String(id)) {
+      return res.status(400).json({ ok: false, message: "Cannot delete your own account" });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    // If this user was a customer's ownerUserId, unlink it
+    if (target.clientId) {
+      const Customer = (await import("../../customers/customers.model.js")).default;
+      await Customer.updateOne({ ownerUserId: id }, { $unset: { ownerUserId: "" } });
+    }
+
+    await logAudit(req, { action: "user.deleted", targetUserId: id, meta: { email: target.email } });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("deleteUser error:", err);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }

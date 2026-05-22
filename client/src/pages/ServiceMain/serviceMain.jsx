@@ -1,52 +1,15 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { ServiceBanner } from "../../components/ServicesBanner/servicesBanner";
 import ServiceMainHeader from "../../components/ServicesComponents/serviceMainSection";
 import RevealCards from "../../components/OurServiceSection/ourServiceSection";
 import WebDevelopmentProcess from "../../components/WebDevolopmentProcess/webDevelopmentProcess";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
+import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
 const ScrollingLogos = lazy(() => import("../../components/Clients/clients"));
 const StackedCardTestimonials = lazy(() => import("../../components/TestimonialSection/testimonialSection"));
 const ContactUsSection = lazy(() => import("../../components/ContactUsSection/contactSection"));
 const ShiftingContactForm = lazy(() => import("../../components/ContactForm/contactForm"));
-
-// ─── Service cards ────────────────────────────────────────────────────────────
-
-const SERVICE_CARDS = [
-  {
-    title: "Website & App Development",
-    description:
-      "High-performing, conversion-first websites and apps built to look premium and load fast.",
-    imgSrc: "/88.jpg",
-    link: "/service/web-dev",
-    tag: "WEB",
-  },
-  {
-    title: "Social Media Management",
-    description:
-      "Scroll-stopping content systems + campaigns that turn attention into real customers.",
-    imgSrc: "/87.jpg",
-    link: "/service/social-media-marketing",
-    tag: "SOCIAL",
-  },
-  {
-    title: "SEO",
-    description:
-      "Rank higher, get discovered, and attract qualified organic traffic that actually converts.",
-    imgSrc: "/85.jpg",
-    link: "/service/seo-marketing",
-    tag: "SEO",
-  },
-  {
-    title: "Google Ads",
-    description:
-      "Performance-first ads with measurable ROI — high intent traffic, better leads, smarter spend.",
-    imgSrc: "/86.jpg",
-    link: "/service/google-ads",
-    tag: "ADS",
-  },
-];
 
 // ─── Testimonials ─────────────────────────────────────────────────────────────
 
@@ -118,49 +81,87 @@ const PROCESS_CARDS = [
   },
 ];
 
+const DEFAULT_SERVICES_PAGE_COPY = {
+  heroHeading: "Discover Our Exceptional Services",
+  heroSubheading:
+    "We're not your typical digital marketing agency, we're your brand's hype squad, growth engine, and creative powerhouse all rolled into one!",
+  introSubheading: "What we do",
+  introHeading: "Our team builds bold brands",
+  processSubheading: "Our Process",
+  processHeading: "Our Process: Built for Bold Brands",
+  processDescription:
+    "We don't just jump in, we dig deep. Every project starts with a curious mind, a strong coffee, and one big question: \"What will move the needle for your brand?\" We combine strategic thinking with creative energy to turn bold ideas into campaigns that actually work. And yes, we make the process fun, collaborative, and crystal clear — so you enjoy the journey as much as the outcome.",
+  clientsSubheading: "The Dreamers. The Doers. The Disruptors.",
+  clientsHeading:
+    "We don't just serve clients — we champion bold brands, daring ideas, and unstoppable visions.",
+  clientsDescription:
+    "Our clients are risk-takers, rule-breakers, and changemakers. They come to us when they're ready to stop blending in and start standing out. Together, we build campaigns that don't just make noise — they echo. Whether you're launching, scaling, or reinventing — we become your creative ally, your growth partner, your digital hype team. Because when our clients win, we roar. Let's not just work together. Let's create something unforgettable.",
+  testimonialsSubheading: "Testimonials",
+  testimonialsHeading:
+    "We know the best results come from bold ideas. We enjoy what we do and we want you to too.",
+  contactHeading: "Crafting Stories Through Design",
+  contactContent:
+    "Explore a world where creativity meets precision. Each project is a testament to our passion, skill, and commitment to excellence. From concept to completion, we turn ideas into impactful realities, tailored to leave a lasting impression. Dive in and discover our journey of innovation and artistry.",
+};
+
+function pageCopy(settings = {}, key) {
+  return settings[key] || DEFAULT_SERVICES_PAGE_COPY[key];
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function ServiceMainPage() {
   const settings = useSiteSettings();
+  const servicesSettings = settings?.services || {};
+  const [serviceCards, setServiceCards] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/web-content/services")
+      .then((r) => r.json())
+      .then((d) => setServiceCards(d.items || []))
+      .catch(() => setServiceCards([]));
+  }, []);
+
+  const cards = serviceCards
+    ? serviceCards.map((s) => ({
+        title: s.title,
+        description: s.description,
+        imgSrc: s.imageUrl,
+        link: s.slug ? `/service/${s.slug}` : "/services",
+        tag: s.tag,
+      }))
+    : undefined;
+  const heroFallback = "https://demo.themenio.com/genox/images/banner-c2.jpg";
+  const heroImage = servicesSettings.heroImageUrl
+    ? toWebsiteImageUrl(servicesSettings.heroImageUrl)
+    : resolveWebsiteImage(settings, heroFallback);
 
   return (
     <>
       <ServiceBanner
-        heading="Discover Our Exceptional Services"
-        subHeading="We're not your typical digital marketing agency, we're your brand's hype squad, growth engine, and creative powerhouse all rolled into one!"
-        backgroundImage={resolveWebsiteImageSetting(
-          settings,
-          "https://demo.themenio.com/genox/images/banner-c2.jpg",
-          settings?.services?.heroImageUrl
-        )}
+        heading={pageCopy(servicesSettings, "heroHeading")}
+        subHeading={pageCopy(servicesSettings, "heroSubheading")}
+        backgroundImage={heroImage}
         ctaText="View Our Work"
         ctaLink="/contact-us"
         badgeText="NEW!"
         badgeLink="https://www.yourportfolio.com"
       />
       <ServiceMainHeader
-        subheading="What we do"
-        heading="Our team builds bold brands"
+        subheading={pageCopy(servicesSettings, "introSubheading")}
+        heading={pageCopy(servicesSettings, "introHeading")}
       />
-      <RevealCards cards={SERVICE_CARDS} />
+      <RevealCards cards={cards} />
       <ServiceMainHeader
-        subheading="Our Process"
-        heading="Our Process: Built for Bold Brands"
-        desc={
-          <>
-            We don't just jump in, we dig deep. Every project starts with a curious mind, a strong coffee, and one big question: "What will move the needle for your brand?"
-            <br />
-            We combine strategic thinking with creative energy to turn bold ideas into campaigns that actually work. And yes, we make the process fun, collaborative, and crystal clear — so you enjoy the journey as much as the outcome.
-          </>
-        }
+        subheading={pageCopy(servicesSettings, "processSubheading")}
+        heading={pageCopy(servicesSettings, "processHeading")}
+        desc={pageCopy(servicesSettings, "processDescription")}
       />
       <WebDevelopmentProcess cards={PROCESS_CARDS} backgroundColor="white" />
       <ServiceMainHeader
-        subheading="The Dreamers. The Doers. The Disruptors."
-        heading="We don't just serve clients — we champion bold brands, daring ideas, and unstoppable visions."
-        desc="Our clients are risk-takers, rule-breakers, and changemakers. They come to us when they're ready to stop blending in and start standing out. Together, we build campaigns that don't just make noise — they echo.
-              Whether you're launching, scaling, or reinventing — we become your creative ally, your growth partner, your digital hype team. Because when our clients win, we roar.
-              Let's not just work together. Let's create something unforgettable."
+        subheading={pageCopy(servicesSettings, "clientsSubheading")}
+        heading={pageCopy(servicesSettings, "clientsHeading")}
+        desc={pageCopy(servicesSettings, "clientsDescription")}
         bgColor="bg-gray-900"
         headingColor="text-white"
         descColor="text-gray-300"
@@ -169,15 +170,15 @@ function ServiceMainPage() {
         <ScrollingLogos />
       </Suspense>
       <ServiceMainHeader
-        subheading="Testimonials"
-        heading="We know the best results come from bold ideas. We enjoy what we do and we want you to too."
+        subheading={pageCopy(servicesSettings, "testimonialsSubheading")}
+        heading={pageCopy(servicesSettings, "testimonialsHeading")}
         headingColor="text-black"
       />
       <Suspense fallback={null}>
         <StackedCardTestimonials testimonials={SERVICE_TESTIMONIALS} />
         <ContactUsSection
-          heading="Crafting Stories Through Design"
-          content="Explore a world where creativity meets precision. Each project is a testament to our passion, skill, and commitment to excellence. From concept to completion, we turn ideas into impactful realities, tailored to leave a lasting impression. Dive in and discover our journey of innovation and artistry."
+          heading={pageCopy(servicesSettings, "contactHeading")}
+          content={pageCopy(servicesSettings, "contactContent")}
         />
         <ShiftingContactForm />
       </Suspense>

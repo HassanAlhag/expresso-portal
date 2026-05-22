@@ -19,14 +19,13 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
       default: "client",
-      index: true,
     },
 
     isActive: { type: Boolean, default: true, index: true },
 
     jobTitle: { type: String, trim: true, default: "" },
     phone: { type: String, trim: true, default: "" },
-    team: { type: String, trim: true, default: "", index: true },
+    team: { type: String, trim: true, default: "" },
 
     avatarUrl: { type: String, trim: true, default: "" },
     avatarMediaId: {
@@ -57,7 +56,6 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ team: 1 });
 UserSchema.index({ role: 1 });
 

@@ -13,6 +13,7 @@ import {
   Target,
   BarChart2,
   CheckCircle2,
+  RefreshCw,
 } from "lucide-react";
 
 import DetailsShell from "../../../shared/ui/DetailsShell";
@@ -53,6 +54,15 @@ import {
   createScorecardTemplate,
   deleteScorecardTemplate,
   getStaffBenchmark,
+  listKPIGoals,
+  listKPICheckins,
+  createKPICheckin,
+  deleteKPICheckin,
+  syncKPIGoal,
+  listKPIIndicators,
+  createKPIGoal,
+  updateKPIGoal,
+  deleteKPIGoal,
 } from "../api";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -120,6 +130,7 @@ const SEGMENT_TABS = [
   { value: "skills",    label: "Skills" },
   { value: "goals",     label: "Goals" },
   { value: "scorecard", label: "Scorecard" },
+  { value: "kpi",       label: "KPI" },
   { value: "analytics", label: "Analytics" },
 ];
 
@@ -1110,6 +1121,462 @@ function ScorecardTab({ staff, staffId, onUpdated }) {
   );
 }
 
+// ── KPI Tab ───────────────────────────────────────────────────────────────────
+
+const KPI_STATUS_TONE = {
+  active: "info",
+  completed: "success",
+  at_risk: "warning",
+  missed: "error",
+  cancelled: "neutral",
+};
+
+function KpiProgressBar({ pct, status }) {
+  const color =
+    status === "completed" ? "bg-emerald-500" :
+    status === "at_risk"   ? "bg-amber-400" :
+    status === "missed"    ? "bg-rose-500" :
+    "bg-indigo-500";
+  return (
+    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+      <div
+        className={`absolute inset-y-0 left-0 rounded-full transition-all ${color}`}
+        style={{ width: `${Math.min(pct || 0, 100)}%` }}
+      />
+    </div>
+  );
+}
+
+function KpiCheckinRow({ c, unit, onDelete }) {
+  return (
+    <div className="flex items-center gap-3 text-xs py-1">
+      <span className="text-slate-400 tabular-nums">
+        {new Date(c.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+      </span>
+      <span className="font-semibold text-slate-700 tabular-nums">{c.value} {unit}</span>
+      {c.notes && <span className="text-slate-400 truncate max-w-xs">{c.notes}</span>}
+      <button
+        onClick={() => onDelete(c._id)}
+        className="ml-auto p-1 text-slate-300 hover:text-rose-500 transition-colors"
+      >
+        <Trash2 size={11} />
+      </button>
+    </div>
+  );
+}
+
+function KpiGoalCard({ goal, onCheckin, onSync, onEdit, onDelete }) {
+  const [expanded, setExpanded] = useState(false);
+  const [checkins, setCheckins] = useState([]);
+  const [loadingCi, setLoadingCi] = useState(false);
+  const toast = useToast();
+  const ind = goal.indicatorId || {};
+
+  const loadCheckins = useCallback(async () => {
+    setLoadingCi(true);
+    try {
+      const res = await listKPICheckins({ goalId: goal._id, limit: 20 });
+      setCheckins(res?.items || []);
+    } catch {
+      toast.error("Failed to load check-ins.");
+    } finally {
+      setLoadingCi(false);
+    }
+  }, [goal._id, toast]);
+
+  useEffect(() => {
+    if (expanded) loadCheckins();
+  }, [expanded, loadCheckins]);
+
+  const handleDeleteCheckin = async (id) => {
+    try {
+      await deleteKPICheckin(id);
+      setCheckins((prev) => prev.filter((c) => c._id !== id));
+    } catch {
+      toast.error("Failed to remove check-in.");
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+      <div className="px-4 py-3 grid gap-2">
+        <div className="flex items-start gap-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-medium text-slate-800 text-sm">{ind.name || "—"}</span>
+              <Badge tone={KPI_STATUS_TONE[goal.status] || "neutral"} className="text-xs">
+                {goal.status?.replace("_", " ")}
+              </Badge>
+              <span className="text-xs text-slate-400">{goal.period}</span>
+            </div>
+            {ind.category && (
+              <span className="text-xs text-slate-400 capitalize">{ind.category}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            {ind.autoSource && ind.autoSource !== "none" && (
+              <button
+                onClick={() => onSync(goal)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                title="Auto-sync"
+              >
+                <RefreshCw size={12} />
+              </button>
+            )}
+            <button
+              onClick={() => onCheckin(goal)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+              title="Log check-in"
+            >
+              <Plus size={12} />
+            </button>
+            <button
+              onClick={() => onEdit(goal)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            >
+              <Pencil size={12} />
+            </button>
+            <button
+              onClick={() => onDelete(goal)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+            >
+              <Trash2 size={12} />
+            </button>
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {expanded ? <ChevronRight size={12} className="rotate-90" /> : <ChevronRight size={12} />}
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <KpiProgressBar pct={goal.progressPct} status={goal.status} />
+          </div>
+          <span className="text-xs font-semibold text-slate-600 tabular-nums w-10 text-right">
+            {Math.round(goal.progressPct || 0)}%
+          </span>
+          <span className="text-xs text-slate-400 tabular-nums whitespace-nowrap">
+            {goal.currentValue ?? "—"} / {goal.targetValue} {ind.unit || ""}
+          </span>
+        </div>
+      </div>
+      {expanded && (
+        <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-2">
+          {loadingCi ? (
+            <Skeleton className="h-8 rounded-lg" />
+          ) : checkins.length === 0 ? (
+            <p className="text-xs text-slate-400 py-1">No check-ins yet.</p>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {checkins.map((c) => (
+                <KpiCheckinRow key={c._id} c={c} unit={ind.unit || ""} onDelete={handleDeleteCheckin} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StaffKpiCheckinModal({ open, goal, busy, onClose, onSubmit }) {
+  const [form, setForm] = useState({ value: "", notes: "", date: new Date().toISOString().slice(0, 10) });
+  useEffect(() => {
+    if (open) setForm({ value: "", notes: "", date: new Date().toISOString().slice(0, 10) });
+  }, [open]);
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const ind = goal?.indicatorId || {};
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({ goalId: goal._id, value: Number(form.value), notes: form.notes, date: form.date });
+  };
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Log KPI Check-in"
+      width="460px"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button form="staff-ci-form" type="submit" loading={busy}>Log</Button>
+        </div>
+      }
+    >
+      <form id="staff-ci-form" onSubmit={handleSubmit} className="grid gap-4">
+        {ind.name && (
+          <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+            {ind.name} {ind.unit ? `(${ind.unit})` : ""} — Target: {goal?.targetValue}
+          </div>
+        )}
+        <Input label="Value *" type="number" value={form.value} onChange={(e) => set("value", e.target.value)} required step="any" />
+        <Input label="Date" type="date" value={form.date} onChange={(e) => set("date", e.target.value)} />
+        <div className="grid gap-1.5">
+          <label className="text-sm font-medium text-slate-700">Notes</label>
+          <textarea
+            value={form.notes}
+            onChange={(e) => set("notes", e.target.value)}
+            rows={2}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          />
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+const KPI_GOAL_EMPTY = { indicatorId: "", periodType: "monthly", targetValue: "", notes: "" };
+
+function StaffKpiGoalModal({ open, initial, indicators, staffId, busy, onClose, onSubmit }) {
+  const [form, setForm] = useState({ ...KPI_GOAL_EMPTY, period: new Date().toISOString().slice(0, 7) });
+  useEffect(() => {
+    if (initial) {
+      setForm({
+        ...KPI_GOAL_EMPTY,
+        indicatorId: initial.indicatorId?._id || initial.indicatorId || "",
+        period: initial.period || new Date().toISOString().slice(0, 7),
+        periodType: initial.periodType || "monthly",
+        targetValue: initial.targetValue ?? "",
+        notes: initial.notes || "",
+      });
+    } else {
+      setForm({ ...KPI_GOAL_EMPTY, period: new Date().toISOString().slice(0, 7) });
+    }
+  }, [initial, open]);
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({ ...form, targetValue: Number(form.targetValue), scope: "individual", staffId });
+  };
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={initial ? "Edit KPI Goal" : "Assign KPI Goal"}
+      width="560px"
+      footer={
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
+          <Button form="staff-kpi-form" type="submit" loading={busy}>{initial ? "Save" : "Assign"}</Button>
+        </div>
+      }
+    >
+      <form id="staff-kpi-form" onSubmit={handleSubmit} className="grid gap-4">
+        <div className="grid gap-1.5">
+          <label className="text-sm font-medium text-slate-700">Indicator *</label>
+          <select
+            value={form.indicatorId}
+            onChange={(e) => set("indicatorId", e.target.value)}
+            required
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          >
+            <option value="">Select indicator…</option>
+            {indicators.map((ind) => (
+              <option key={ind._id} value={ind._id}>{ind.name} ({ind.unit})</option>
+            ))}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="Period"
+            value={form.period}
+            onChange={(e) => set("period", e.target.value)}
+            placeholder="2026-05"
+            required
+          />
+          <Input
+            label="Target Value *"
+            type="number"
+            value={form.targetValue}
+            onChange={(e) => set("targetValue", e.target.value)}
+            required
+            min={0}
+            step="any"
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <label className="text-sm font-medium text-slate-700">Notes</label>
+          <textarea
+            value={form.notes}
+            onChange={(e) => set("notes", e.target.value)}
+            rows={2}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          />
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function KPITab({ staffId }) {
+  const toast = useToast();
+  const [goals, setGoals] = useState([]);
+  const [indicators, setIndicators] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [period, setPeriod] = useState(() => new Date().toISOString().slice(0, 7));
+  const [goalFormOpen, setGoalFormOpen] = useState(false);
+  const [editGoal, setEditGoal] = useState(null);
+  const [deleteGoal, setDeleteGoal] = useState(null);
+  const [checkinGoal, setCheckinGoal] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [goalsRes, indsRes] = await Promise.all([
+        listKPIGoals({ staffId, period, limit: 50 }),
+        listKPIIndicators({ limit: 200 }),
+      ]);
+      setGoals(goalsRes?.items || []);
+      setIndicators(indsRes?.items || []);
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed to load KPI goals.");
+    } finally {
+      setLoading(false);
+    }
+  }, [staffId, period, toast]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleCreate = async (payload) => {
+    setBusy(true);
+    try {
+      await createKPIGoal(payload);
+      setGoalFormOpen(false);
+      await load();
+      toast.success("KPI goal assigned.");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed.");
+    } finally { setBusy(false); }
+  };
+
+  const handleUpdate = async (payload) => {
+    setBusy(true);
+    try {
+      await updateKPIGoal(editGoal._id, payload);
+      setEditGoal(null);
+      await load();
+      toast.success("Goal updated.");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed.");
+    } finally { setBusy(false); }
+  };
+
+  const handleDelete = async () => {
+    setBusy(true);
+    try {
+      await deleteKPIGoal(deleteGoal._id);
+      setDeleteGoal(null);
+      await load();
+      toast.success("Goal deleted.");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed.");
+    } finally { setBusy(false); }
+  };
+
+  const handleCheckin = async (payload) => {
+    setBusy(true);
+    try {
+      await createKPICheckin(payload);
+      setCheckinGoal(null);
+      await load();
+      toast.success("Check-in logged.");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed.");
+    } finally { setBusy(false); }
+  };
+
+  const handleSync = async (goal) => {
+    try {
+      await syncKPIGoal(goal._id);
+      await load();
+      toast.success("Synced.");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Sync failed.");
+    }
+  };
+
+  return (
+    <div className="grid gap-4">
+      <div className="flex items-center gap-3 flex-wrap">
+        <input
+          type="month"
+          value={period}
+          onChange={(e) => setPeriod(e.target.value)}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+        />
+        <Button variant="outline" onClick={load} disabled={loading} className="ml-auto">
+          <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+        </Button>
+        <Button onClick={() => setGoalFormOpen(true)}>
+          <Plus size={13} />
+          Assign Goal
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="grid gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+      ) : goals.length === 0 ? (
+        <EmptyState
+          icon={Target}
+          title="No KPI goals for this period"
+          message="Assign KPI goals to track this staff member's performance."
+          actionLabel="Assign Goal"
+          onAction={() => setGoalFormOpen(true)}
+        />
+      ) : (
+        <div className="grid gap-3">
+          {goals.map((g) => (
+            <KpiGoalCard
+              key={g._id}
+              goal={g}
+              onCheckin={setCheckinGoal}
+              onSync={handleSync}
+              onEdit={setEditGoal}
+              onDelete={setDeleteGoal}
+            />
+          ))}
+        </div>
+      )}
+
+      <StaffKpiGoalModal
+        open={goalFormOpen || !!editGoal}
+        initial={editGoal}
+        indicators={indicators}
+        staffId={staffId}
+        busy={busy}
+        onClose={() => { setGoalFormOpen(false); setEditGoal(null); }}
+        onSubmit={editGoal ? handleUpdate : handleCreate}
+      />
+
+      <StaffKpiCheckinModal
+        open={!!checkinGoal}
+        goal={checkinGoal}
+        busy={busy}
+        onClose={() => setCheckinGoal(null)}
+        onSubmit={handleCheckin}
+      />
+
+      <ConfirmModal
+        open={!!deleteGoal}
+        title="Delete Goal?"
+        message={`Delete KPI goal for "${deleteGoal?.indicatorId?.name || "—"}"?`}
+        confirmLabel="Delete"
+        variant="danger"
+        busy={busy}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteGoal(null)}
+      />
+    </div>
+  );
+}
+
 // ── Analytics Tab ─────────────────────────────────────────────────────────────
 
 function BenchmarkBar({ label, myValue, avgValue, unit = "" }) {
@@ -1358,6 +1825,8 @@ export default function StaffDetailsPage() {
     tabContent = <GoalsTab staff={staff} staffId={id} onUpdated={setStaff} />;
   } else if (tab === "scorecard") {
     tabContent = <ScorecardTab staff={staff} staffId={id} onUpdated={setStaff} />;
+  } else if (tab === "kpi") {
+    tabContent = <KPITab staffId={id} />;
   } else if (tab === "analytics") {
     tabContent = <AnalyticsTab staff={staff} staffId={id} />;
   }

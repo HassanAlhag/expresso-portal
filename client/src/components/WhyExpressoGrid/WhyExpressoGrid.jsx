@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import HomeSection from "../HomeSection/HomeSection";
-import { WHY_US } from "../../data/technologySolutionsData";
+import { WHY_US } from "../../data/technologyConstants";
 
 function WhyCard({ Icon, title, desc, index }) {
   return (

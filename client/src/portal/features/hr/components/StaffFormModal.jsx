@@ -245,7 +245,7 @@ export default function StaffFormModal({
             value={form.linkedUserId}
             onChange={set("linkedUserId")}
             loadOptions={({ q, limit }) =>
-              listUsers({ q, limit }).then((r) => ({ items: r.items || [] }))
+              listUsers({ q, limit }).then((r) => ({ items: r.users || r.items || [] }))
             }
             renderValue={(u) => (
               <span className="font-extrabold text-slate-900">{u.fullName}</span>

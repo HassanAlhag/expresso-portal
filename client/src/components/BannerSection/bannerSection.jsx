@@ -8,7 +8,7 @@ import {
 } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImage } from "../../utils/websiteImages";
+import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
 const COLORS_TOP = ["#13FFAA", "#1E67C6", "#CE84CF", "#DD335C"];
 
@@ -19,9 +19,12 @@ const AuroraHero = ({
   backgroundImageUrl = "/81.webp",
   ctaText = "Start Now",
   ctaLink = "/contact-us",
+  useImageOverrides = true,
 }) => {
   const settings = useSiteSettings();
-  const resolvedBackgroundImageUrl = resolveWebsiteImage(settings, backgroundImageUrl);
+  const resolvedBackgroundImageUrl = useImageOverrides
+    ? resolveWebsiteImage(settings, backgroundImageUrl)
+    : toWebsiteImageUrl(backgroundImageUrl);
   const color = useMotionValue(COLORS_TOP[0]);
 
   useEffect(() => {

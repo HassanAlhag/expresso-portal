@@ -11,6 +11,7 @@ import {
   setUserStatus,
   adminResetPassword,
   updateUserPermissions,
+  deleteUser,
 } from "./user.controller.js";
 
 const router = express.Router();
@@ -78,6 +79,13 @@ router.patch(
   requireAuth,
   requirePermission("iam.users.write"),
   updateUserPermissions
+);
+
+router.delete(
+  "/:id",
+  requireAuth,
+  requirePermission("iam.users.delete"),
+  deleteUser
 );
 
 export default router;

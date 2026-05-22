@@ -10,6 +10,7 @@ import {
   Images,
   Clapperboard,
   BarChart3,
+  BarChart2,
   Activity,
   User,
   BriefcaseBusiness,
@@ -32,6 +33,7 @@ import {
   CalendarDays,
   Grid3x3,
   Palette,
+  MessageCircle,
 } from "lucide-react";
 
 export const BRAND = "#6F7FD9";
@@ -52,6 +54,7 @@ export const ROUTES = {
   PROJECTS: "/portal/projects",
 
   PRODUCTIONS: "/portal/productions",
+  SERVICE_DELIVERY: "/portal/service-delivery",
   JOBS: "/portal/jobs",
   MEDIA: "/portal/media-library",
   FILES: "/portal/files",
@@ -73,6 +76,8 @@ export const ROUTES = {
   WEBSITE_PORTFOLIO: "/portal/website/portfolio",
   HOMEPAGE_SLIDES: "/portal/website/slides",
   WEBSITE_SETTINGS: "/portal/website/settings",
+  DIGITAL_SERVICES: "/portal/website/digital-services",
+  TECH_SOLUTIONS: "/portal/website/solutions",
 
   PROFILE: "/portal/profile",
   SETTINGS: "/portal/settings",
@@ -98,6 +103,12 @@ export const ROUTES = {
   HR_MONTHLY_EXPENSES: "/portal/hr/monthly-expenses",
   HR_LEAVES: "/portal/hr/leaves",
   HR_SKILLS: "/portal/hr/skills",
+  HR_KPI: "/portal/hr/kpi",
+  HR_KPI_INDICATORS: "/portal/hr/kpi/indicators",
+  HR_KPI_GOALS: "/portal/hr/kpi/goals",
+  CONTENT_CALENDAR: "/portal/content-calendar",
+  MESSAGES: "/portal/messages",
+  BRAND_KIT: "/portal/brand-kit",
 };
 
 const ACCENTS = {
@@ -148,12 +159,30 @@ const ITEMS = {
     permission: "productions.read",
   },
 
+  serviceDelivery: {
+    to: ROUTES.SERVICE_DELIVERY,
+    label: "Website & SEO",
+    hint: "Service delivery tracking",
+    Icon: Globe,
+    accent: ACCENTS.sky,
+    permission: "projects.read",
+  },
+
   jobs: {
     to: ROUTES.JOBS,
     label: "Jobs",
     hint: "Individual delivery tasks",
     Icon: Briefcase,
     accent: ACCENTS.amber,
+    permission: "jobs.read",
+  },
+
+  contentCalendar: {
+    to: ROUTES.CONTENT_CALENDAR,
+    label: "Content Calendar",
+    hint: "Social posts, approvals & stats",
+    Icon: CalendarDays,
+    accent: ACCENTS.rose,
     permission: "jobs.read",
   },
 
@@ -368,6 +397,24 @@ const ITEMS = {
     permission: "website.read",
   },
 
+  digitalServices: {
+    to: ROUTES.DIGITAL_SERVICES,
+    label: "Digital Services",
+    hint: "Service cards on the services page",
+    Icon: Globe,
+    accent: ACCENTS.sky,
+    permission: "website.write",
+  },
+
+  techSolutions: {
+    to: ROUTES.TECH_SOLUTIONS,
+    label: "Tech Solutions",
+    hint: "IT solution cards & content",
+    Icon: Layers,
+    accent: ACCENTS.violet,
+    permission: "website.write",
+  },
+
   procurement: {
     to: ROUTES.PROCUREMENT,
     label: "Procurement",
@@ -479,6 +526,54 @@ const ITEMS = {
     accent: ACCENTS.mint,
     permission: "hr.scorecards.read",
   },
+
+  hrKpi: {
+    to: ROUTES.HR_KPI,
+    label: "KPI Dashboard",
+    hint: "Performance overview",
+    Icon: BarChart2,
+    accent: ACCENTS.brand,
+    end: true,
+    permission: "hr.kpi.read",
+  },
+
+  hrKpiIndicators: {
+    to: ROUTES.HR_KPI_INDICATORS,
+    label: "KPI Indicators",
+    hint: "Define metrics to track",
+    Icon: Activity,
+    accent: ACCENTS.violet,
+    permission: "hr.kpi.read",
+  },
+
+  hrKpiGoals: {
+    to: ROUTES.HR_KPI_GOALS,
+    label: "KPI Goals",
+    hint: "Assign & track targets",
+    Icon: Target,
+    accent: ACCENTS.mint,
+    permission: "hr.kpi.read",
+  },
+
+  messages: {
+    to: ROUTES.MESSAGES,
+    label: "Messages",
+    hint: "In-portal chat with your agency",
+    Icon: MessageCircle,
+    accent: ACCENTS.mint,
+    permission: "messaging.read",
+    external: true,
+  },
+
+  brandKit: {
+    to: ROUTES.BRAND_KIT,
+    label: "Brand Kit",
+    hint: "Logos, colors, and fonts",
+    Icon: Palette,
+    accent: ACCENTS.violet,
+    permission: "brand_kit.read",
+    external: true,
+  },
 };
 
 const ADMIN_SECTIONS = [
@@ -506,12 +601,17 @@ const ADMIN_SECTIONS = [
   {
     title: "Delivery",
     Icon: Clapperboard,
-    items: [ITEMS.productions, ITEMS.jobs],
+    items: [ITEMS.productions, ITEMS.serviceDelivery, ITEMS.jobs, ITEMS.contentCalendar],
   },
   {
     title: "Assets",
     Icon: Images,
-    items: [ITEMS.media, ITEMS.files],
+    items: [ITEMS.media, ITEMS.files, ITEMS.brandKit],
+  },
+  {
+    title: "Messaging",
+    Icon: MessageCircle,
+    items: [ITEMS.messages],
   },
   {
     title: "Commercial",
@@ -528,6 +628,9 @@ const ADMIN_SECTIONS = [
       ITEMS.hrMonthlyExpenses,
       ITEMS.hrLeaves,
       ITEMS.hrSkills,
+      ITEMS.hrKpi,
+      ITEMS.hrKpiIndicators,
+      ITEMS.hrKpiGoals,
     ],
   },
   {
@@ -555,7 +658,7 @@ const ADMIN_SECTIONS = [
   {
     title: "Website",
     Icon: Globe,
-    items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.portfolio, ITEMS.websiteSettings],
+    items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.portfolio, ITEMS.websiteSettings, ITEMS.digitalServices, ITEMS.techSolutions],
   },
   {
     title: "System",
@@ -568,7 +671,7 @@ const ADMIN_SECTIONS = [
 // regardless of which permissions have been granted on their role.
 const INTERNAL_PERMISSIONS = new Set([
   "crm.read",
-  "hr.staff.read", "hr.expenses.read", "hr.leaves.read", "hr.scorecards.read",
+  "hr.staff.read", "hr.expenses.read", "hr.leaves.read", "hr.scorecards.read", "hr.kpi.read",
   "iam.users.read", "iam.roles.read", "iam.teams.read", "iam.invites.send",
   "activity.read",
   "website.read",
@@ -670,6 +773,14 @@ export function getPageMeta(pathname) {
       label: "Production",
       subtitle: "Jobs, reviews, publishing, and showcase",
       Icon: Clapperboard,
+    };
+  }
+
+  if (starts(ROUTES.SERVICE_DELIVERY)) {
+    return {
+      label: "Website & SEO",
+      subtitle: "Service delivery progress, phases, and open jobs",
+      Icon: Globe,
     };
   }
 
@@ -950,6 +1061,38 @@ export function getPageMeta(pathname) {
       label: "CRM Dashboard",
       subtitle: "Pipeline, leads, deals, and activity",
       Icon: LayoutDashboard,
+    };
+  }
+
+  if (starts(ROUTES.MESSAGES)) {
+    return {
+      label: "Messages",
+      subtitle: "In-portal messaging with your agency",
+      Icon: MessageCircle,
+    };
+  }
+
+  if (starts(ROUTES.BRAND_KIT)) {
+    return {
+      label: "Brand Kit",
+      subtitle: "Logos, colors, fonts and brand guidelines",
+      Icon: Palette,
+    };
+  }
+
+  if (starts(ROUTES.CONTENT_CALENDAR)) {
+    return {
+      label: "Content Calendar",
+      subtitle: "Social posts, approvals and performance",
+      Icon: CalendarDays,
+    };
+  }
+
+  if (starts(ROUTES.HR_KPI)) {
+    return {
+      label: "KPI",
+      subtitle: "Performance indicators, goals and check-ins",
+      Icon: BarChart2,
     };
   }
 

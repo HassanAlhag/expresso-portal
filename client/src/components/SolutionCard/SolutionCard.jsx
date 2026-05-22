@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiArrowRight, FiPackage } from "react-icons/fi";
-import { BRAND, BRAND_BG, ICON_META } from "../../data/technologySolutionsData";
+import { BRAND, BRAND_BG, ICON_META } from "../../data/technologyConstants";
 
 export default function SolutionCard({
   icon,

@@ -1,11 +1,13 @@
 import { api } from "../../../shared/api/client";
 
-// GET /api/users?q&role&isActive&sort&page&limit
+// GET /api/users?q&role&isActive&clientId&sort&page&limit
 export async function listUsers({
   q = "",
   role = "",
   team = "",
   isActive = "",
+  clientId = "",
+  isInternal = "",
   sort = "-createdAt",
   page = 1,
   limit = 12,
@@ -14,6 +16,8 @@ export async function listUsers({
   if (q) params.q = q;
   if (role) params.role = role;
   if (team) params.team = team;
+  if (clientId) params.clientId = clientId;
+  if (isInternal) params.isInternal = isInternal;
   if (isActive !== "" && typeof isActive !== "undefined") {
     params.isActive = isActive;
   }
@@ -85,5 +89,11 @@ export async function saveUserNotes(id, note) {
 // PATCH /api/users/:id/permissions
 export async function updateUserPermissions(id, { extraPermissions, revokedPermissions }) {
   const { data } = await api.patch(`/users/${id}/permissions`, { extraPermissions, revokedPermissions });
+  return data;
+}
+
+// DELETE /api/users/:id
+export async function deleteUser(id) {
+  const { data } = await api.delete(`/users/${id}`);
   return data;
 }

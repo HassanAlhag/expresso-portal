@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FiCheckCircle } from "react-icons/fi";
 import HomeSection from "../HomeSection/HomeSection";
-import { BRAND, BRAND_BG } from "../../data/technologySolutionsData";
+import { BRAND, BRAND_BG } from "../../data/technologyConstants";
 
 export default function SolutionFeatureGrid({
   eyebrow,

@@ -8,7 +8,6 @@ const TeamSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      index: true,
     },
 
     label: {
@@ -39,8 +38,6 @@ const TeamSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-TeamSchema.index({ key: 1 }, { unique: true });
 
 const Team = mongoose.models.Team || mongoose.model("Team", TeamSchema);
 export default Team;

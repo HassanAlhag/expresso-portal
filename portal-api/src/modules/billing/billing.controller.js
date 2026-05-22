@@ -9,16 +9,12 @@ function escapeRegex(s) {
 function safeSort(sort) {
   const raw = String(sort || "-createdAt");
   const allowed = new Set([
-    "createdAt",
-    "-createdAt",
-    "updatedAt",
-    "-updatedAt",
-    "dueDate",
-    "-dueDate",
-    "total",
-    "-total",
-    "status",
-    "-status",
+    "createdAt", "-createdAt",
+    "updatedAt", "-updatedAt",
+    "dueDate", "-dueDate",
+    "total", "-total",
+    "status", "-status",
+    "balance", "-balance",
   ]);
   if (!allowed.has(raw)) return { createdAt: -1 };
   const key = raw.startsWith("-") ? raw.slice(1) : raw;
@@ -30,6 +26,20 @@ function canSeeAll(req) {
   return canSeeAllTenantRecords(req);
 }
 
+async function nextInvoiceNumber() {
+  const year = new Date().getFullYear();
+  const prefix = `INV-${year}-`;
+  const last = await Invoice.findOne({ number: { $regex: `^${escapeRegex(prefix)}` } })
+    .sort({ number: -1 })
+    .lean();
+  if (!last?.number) return `${prefix}0001`;
+  const seq = parseInt(last.number.slice(prefix.length), 10);
+  return `${prefix}${String(isNaN(seq) ? 1 : seq + 1).padStart(4, "0")}`;
+}
+
+const VALID_STATUSES = ["draft", "sent", "paid", "overdue", "void"];
+const VALID_METHODS = ["bank_transfer", "cash", "card", "cheque", "online", "other"];
+
 // GET /api/billing/invoices
 export async function listInvoices(req, res) {
   try {
@@ -37,6 +47,8 @@ export async function listInvoices(req, res) {
       q = "",
       status = "",
       customerId = "",
+      projectId = "",
+      enrollmentId = "",
       page = "1",
       limit = "12",
       sort = "-createdAt",
@@ -47,20 +59,17 @@ export async function listInvoices(req, res) {
 
     const filter = {};
 
-    // CLIENT role: only invoices for their customerId (stored in req.user.clientId)
     if (!canSeeAll(req)) {
       if (!req.user?.clientId)
-        return res.json({
-          ok: true,
-          items: [],
-          page: 1,
-          pages: 1,
-          total: 0,
-          limit: limitNum,
-        });
+        return res.json({ ok: true, items: [], page: 1, pages: 1, total: 0, limit: limitNum });
       filter.customerId = req.user.clientId;
-    } else if (customerId && mongoose.Types.ObjectId.isValid(customerId)) {
-      filter.customerId = customerId;
+    } else {
+      if (customerId && mongoose.Types.ObjectId.isValid(customerId))
+        filter.customerId = customerId;
+      if (projectId && mongoose.Types.ObjectId.isValid(projectId))
+        filter.projectId = projectId;
+      if (enrollmentId && mongoose.Types.ObjectId.isValid(enrollmentId))
+        filter.enrollmentId = enrollmentId;
     }
 
     if (status) filter.status = status;
@@ -79,6 +88,8 @@ export async function listInvoices(req, res) {
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
         .populate("customerId", "companyName contactName primaryEmail")
+        .populate("projectId", "name title")
+        .populate("enrollmentId", "name title")
         .lean(),
     ]);
 
@@ -104,15 +115,14 @@ export async function getInvoice(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
 
     const item = await Invoice.findById(id)
-      .populate(
-        "customerId",
-        "companyName contactName primaryEmail phone country industry"
-      )
+      .populate("customerId", "companyName contactName primaryEmail phone country industry")
+      .populate("projectId", "name title _id")
+      .populate("enrollmentId", "name title _id")
+      .populate("payments.recordedBy", "name email")
       .lean();
 
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
 
-    // client guard
     if (!canSeeAll(req)) {
       const cid = String(req.user?.clientId || "");
       if (!cid || String(item.customerId?._id || item.customerId) !== cid)
@@ -138,15 +148,19 @@ export async function createInvoice(req, res) {
       dueDate = null,
       notes = "",
       tax = 0,
+      taxRate = 0,
+      discount = 0,
       items = [],
       status = "draft",
       number,
+      projectId,
+      enrollmentId,
     } = req.body || {};
 
     if (!mongoose.Types.ObjectId.isValid(customerId))
-      return res
-        .status(400)
-        .json({ ok: false, message: "Valid customerId required" });
+      return res.status(400).json({ ok: false, message: "Valid customerId required" });
+
+    const autoNumber = number?.trim() || (await nextInvoiceNumber());
 
     const doc = await Invoice.create({
       customerId,
@@ -154,19 +168,23 @@ export async function createInvoice(req, res) {
       dueDate: dueDate ? new Date(dueDate) : null,
       notes: String(notes || "").trim(),
       tax: Number(tax || 0),
+      taxRate: Number(taxRate || 0),
+      discount: Number(discount || 0),
       items: Array.isArray(items) ? items : [],
-      status: ["draft", "sent", "paid", "overdue", "void"].includes(status)
-        ? status
-        : "draft",
-      number: String(number || "").trim() || undefined,
+      status: VALID_STATUSES.includes(status) ? status : "draft",
+      number: autoNumber,
       issuedAt: status === "sent" ? new Date() : null,
       paidAt: status === "paid" ? new Date() : null,
+      projectId: projectId && mongoose.Types.ObjectId.isValid(projectId) ? projectId : null,
+      enrollmentId: enrollmentId && mongoose.Types.ObjectId.isValid(enrollmentId) ? enrollmentId : null,
       createdBy: req.user?.id || null,
       updatedBy: req.user?.id || null,
     });
 
     const item = await Invoice.findById(doc._id)
       .populate("customerId", "companyName contactName primaryEmail")
+      .populate("projectId", "name title _id")
+      .populate("enrollmentId", "name title _id")
       .lean();
 
     return res.status(201).json({ ok: true, item });
@@ -190,53 +208,47 @@ export async function updateInvoice(req, res) {
     const patch = { updatedBy: req.user?.id || null };
 
     const editable = [
-      "currency",
-      "dueDate",
-      "notes",
-      "tax",
-      "items",
-      "status",
-      "number",
-      "uploads",
+      "currency", "dueDate", "notes", "tax", "taxRate", "discount",
+      "items", "status", "number", "uploads", "projectId", "enrollmentId",
     ];
     for (const k of editable) {
       if (typeof body[k] !== "undefined") patch[k] = body[k];
     }
 
-    if (typeof patch.dueDate !== "undefined") {
+    if (typeof patch.dueDate !== "undefined")
       patch.dueDate = patch.dueDate ? new Date(patch.dueDate) : null;
-    }
     if (typeof patch.tax !== "undefined") patch.tax = Number(patch.tax || 0);
+    if (typeof patch.taxRate !== "undefined") patch.taxRate = Number(patch.taxRate || 0);
+    if (typeof patch.discount !== "undefined") patch.discount = Number(patch.discount || 0);
     if (typeof patch.currency !== "undefined")
       patch.currency = String(patch.currency || "AED").trim();
     if (typeof patch.notes !== "undefined")
       patch.notes = String(patch.notes || "").trim();
     if (typeof patch.number !== "undefined")
       patch.number = String(patch.number || "").trim() || undefined;
+    if (typeof patch.projectId !== "undefined")
+      patch.projectId = patch.projectId && mongoose.Types.ObjectId.isValid(patch.projectId) ? patch.projectId : null;
+    if (typeof patch.enrollmentId !== "undefined")
+      patch.enrollmentId = patch.enrollmentId && mongoose.Types.ObjectId.isValid(patch.enrollmentId) ? patch.enrollmentId : null;
 
-    // handle status timestamps
     if (typeof patch.status !== "undefined") {
       const s = String(patch.status || "draft");
       if (s === "sent") patch.issuedAt = new Date();
       if (s === "paid") patch.paidAt = new Date();
-      if (s === "draft") {
-        patch.issuedAt = null;
-        patch.paidAt = null;
-      }
-      patch.status = ["draft", "sent", "paid", "overdue", "void"].includes(s)
-        ? s
-        : "draft";
+      if (s === "draft") { patch.issuedAt = null; patch.paidAt = null; }
+      patch.status = VALID_STATUSES.includes(s) ? s : "draft";
     }
 
-    let doc = await Invoice.findById(id);
+    const doc = await Invoice.findById(id);
     if (!doc) return res.status(404).json({ ok: false, message: "Not found" });
 
-    // apply patch and save (pre-save recalculates totals)
     Object.assign(doc, patch);
     await doc.save();
 
     const item = await Invoice.findById(id)
       .populate("customerId", "companyName contactName primaryEmail")
+      .populate("projectId", "name title _id")
+      .populate("enrollmentId", "name title _id")
       .lean();
 
     return res.json({ ok: true, item });
@@ -294,6 +306,106 @@ export async function voidInvoice(req, res) {
     return res.json({ ok: true, item });
   } catch (e) {
     console.error("voidInvoice:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+// POST /api/billing/invoices/:id/payments
+export async function recordPayment(req, res) {
+  try {
+    if (!canSeeAll(req))
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    const { amount, method = "bank_transfer", note = "", paidAt } = req.body || {};
+    const amt = Number(amount || 0);
+    if (amt <= 0)
+      return res.status(400).json({ ok: false, message: "Amount must be positive" });
+
+    const doc = await Invoice.findById(id);
+    if (!doc) return res.status(404).json({ ok: false, message: "Not found" });
+    if (doc.status === "void")
+      return res.status(400).json({ ok: false, message: "Cannot add payment to voided invoice" });
+
+    doc.payments.push({
+      amount: amt,
+      method: VALID_METHODS.includes(method) ? method : "bank_transfer",
+      note: String(note || "").trim(),
+      paidAt: paidAt ? new Date(paidAt) : new Date(),
+      recordedBy: req.user?.id || null,
+    });
+    doc.updatedBy = req.user?.id || null;
+    await doc.save(); // pre-save computes amountPaid and balance
+
+    // auto-promote to paid when fully settled
+    if (doc.balance <= 0 && !["paid", "void"].includes(doc.status)) {
+      doc.status = "paid";
+      doc.paidAt = new Date();
+      await doc.save();
+    }
+
+    const item = await Invoice.findById(id)
+      .populate("customerId", "companyName contactName primaryEmail")
+      .populate("payments.recordedBy", "name email")
+      .lean();
+
+    return res.json({ ok: true, item });
+  } catch (e) {
+    console.error("recordPayment:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+// DELETE /api/billing/invoices/:id/payments/:payId
+export async function deletePayment(req, res) {
+  try {
+    if (!canSeeAll(req))
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+
+    const { id, payId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(payId))
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    const doc = await Invoice.findById(id);
+    if (!doc) return res.status(404).json({ ok: false, message: "Not found" });
+
+    const before = doc.payments.length;
+    doc.payments = doc.payments.filter((p) => String(p._id) !== payId);
+    if (doc.payments.length === before)
+      return res.status(404).json({ ok: false, message: "Payment not found" });
+
+    doc.updatedBy = req.user?.id || null;
+    await doc.save();
+
+    const item = await Invoice.findById(id)
+      .populate("customerId", "companyName contactName primaryEmail")
+      .populate("payments.recordedBy", "name email")
+      .lean();
+
+    return res.json({ ok: true, item });
+  } catch (e) {
+    console.error("deletePayment:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+// POST /api/billing/invoices/mark-overdue
+export async function markOverdueInvoices(req, res) {
+  try {
+    if (!canSeeAll(req))
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+
+    const result = await Invoice.updateMany(
+      { status: "sent", dueDate: { $lt: new Date(), $ne: null } },
+      { $set: { status: "overdue" } }
+    );
+
+    return res.json({ ok: true, updated: result.modifiedCount });
+  } catch (e) {
+    console.error("markOverdueInvoices:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }

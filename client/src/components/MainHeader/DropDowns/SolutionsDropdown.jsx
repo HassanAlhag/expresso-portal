@@ -1,14 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiArrowRight, FiPackage } from "react-icons/fi";
-import {
-  STATIC_SOLUTIONS,
-  ICON_META,
-  BRAND,
-  BRAND_BG,
-} from "../../../data/technologySolutionsData";
+import { ICON_META, BRAND, BRAND_BG, BRAND_GLOW } from "../../../data/technologyConstants";
 
-const BRAND_GLOW = "rgba(124,58,237,0.18)";
+let _cache = null;
+
+function fetchSolutions() {
+  if (_cache) return Promise.resolve(_cache);
+  return fetch("/api/web-content/solutions")
+    .then((r) => r.json())
+    .then((d) => {
+      _cache = d.items || [];
+      return _cache;
+    })
+    .catch(() => []);
+}
 
 const Item = ({ Icon, title, desc, to }) => (
   <Link
@@ -40,6 +46,12 @@ const Item = ({ Icon, title, desc, to }) => (
 );
 
 export default function SolutionsDropdown() {
+  const [solutions, setSolutions] = useState(_cache || []);
+
+  useEffect(() => {
+    fetchSolutions().then(setSolutions);
+  }, []);
+
   return (
     <div className="w-full overflow-hidden rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
       <div className="grid grid-cols-[210px_1fr]">
@@ -88,17 +100,17 @@ export default function SolutionsDropdown() {
 
         <div className="border-l border-neutral-100 bg-white px-5 py-5">
           <div className="grid grid-cols-4 gap-x-1 gap-y-0.5">
-            {STATIC_SOLUTIONS.map((solution) => {
+            {solutions.map((solution) => {
               const meta = ICON_META[solution.icon];
               const Icon = meta?.Icon || FiPackage;
 
               return (
                 <Item
-                  key={solution.title}
+                  key={solution._id || solution.slug}
                   Icon={Icon}
                   title={solution.title}
                   desc={solution.subtitle}
-                  to={solution.to}
+                  to={`/it-solutions/${solution.slug}`}
                 />
               );
             })}

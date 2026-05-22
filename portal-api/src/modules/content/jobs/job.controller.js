@@ -37,11 +37,14 @@ export async function listJobs(req, res) {
       assigneeId = "",
       status = "",
       type = "",
+      projectType = "",
       workflowType = "",
       notWorkflowType = "",
       publishStatus = "",
       platform = "",
       websiteVisible = "",
+      dueDateFrom = "",
+      dueDateTo = "",
       page = "1",
       limit = "12",
       sort = "-createdAt",
@@ -81,6 +84,21 @@ export async function listJobs(req, res) {
 
     if (websiteVisible === "true") filter.websiteVisible = true;
     if (websiteVisible === "false") filter.websiteVisible = false;
+
+    if (dueDateFrom || dueDateTo) {
+      filter.dueDate = {};
+      if (dueDateFrom) filter.dueDate.$gte = new Date(dueDateFrom);
+      if (dueDateTo)   filter.dueDate.$lte = new Date(dueDateTo);
+    }
+
+    if (projectType && !validId(projectId)) {
+      const projectFilter = {
+        type: String(projectType).trim().toLowerCase(),
+      };
+      if (validId(customerId)) projectFilter.customerId = customerId;
+      const projectIds = await Project.find(projectFilter).select("_id").lean();
+      filter.projectId = { $in: projectIds.map((project) => project._id) };
+    }
 
     const rx = safeRx(q);
     if (rx) {
@@ -470,7 +488,16 @@ export async function updateJob(req, res) {
       const nextStatus = normalizeJobStatus(body.status);
       patch.status = isValidJobStatus(nextStatus) ? nextStatus : current.status;
 
-      if (patch.status === "published") patch.publishedAt = new Date();
+      if (patch.status === "published") {
+        patch.publishedAt = new Date();
+        patch.publishStatus = "published";
+        patch.websiteVisible = true;
+      } else if (current.status === "published") {
+        patch.publishStatus = ["approved", "scheduled"].includes(patch.status)
+          ? "ready"
+          : "not_ready";
+        patch.websiteVisible = false;
+      }
       if (patch.status === "delivered") patch.deliveredAt = new Date();
     }
 
@@ -795,6 +822,7 @@ export async function publishToWebsite(req, res) {
     const approvedMediaIds = (job.media || [])
       .filter((m) => m.status === "published" || m.status === "approved")
       .map((m) => String(m._id));
+    const allMediaIds = (job.media || []).map((m) => String(m._id)).filter(Boolean);
 
     const title = String(body.title || job.title || "").trim();
     if (!title) {
@@ -819,7 +847,9 @@ export async function publishToWebsite(req, res) {
 
     const gallery = Array.isArray(body.galleryMediaIds)
       ? body.galleryMediaIds.filter((x) => validId(x))
-      : approvedMediaIds;
+      : approvedMediaIds.length
+      ? approvedMediaIds
+      : allMediaIds;
 
     const uniqueSlug = async (base, excludeId = null) => {
       const q = excludeId ? { slug: base, _id: { $ne: excludeId } } : { slug: base };
@@ -869,7 +899,18 @@ export async function publishToWebsite(req, res) {
         $set: {
           productionId: production._id,
           status: "published",
+          publishStatus: "published",
+          websiteVisible: true,
           publishedAt: new Date(),
+          finalMediaId: validId(body.finalMediaId)
+            ? body.finalMediaId
+            : validId(job.finalMediaId)
+            ? job.finalMediaId
+            : approvedMediaIds[0] || allMediaIds[0] || job.finalMediaId || null,
+          posterMediaId: validId(body.posterMediaId)
+            ? body.posterMediaId
+            : job.posterMediaId || null,
+          externalPostUrl: String(body.externalPostUrl || job.externalPostUrl || "").trim(),
         },
       },
       { new: true }
@@ -926,5 +967,26 @@ export async function generateJobsForEnrollment(req, res) {
   } catch (e) {
     console.error("generateJobsForEnrollment:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function updatePostMetrics(req, res) {
+  try {
+    const { id } = req.params;
+    if (!validId(id)) return res.status(400).json({ ok: false, message: "Invalid id" });
+    const allowed = ["likes", "comments", "shares", "saves", "reach", "impressions", "engagementRate"];
+    const metrics = { lastUpdated: new Date() };
+    for (const k of allowed) {
+      if (req.body[k] !== undefined) metrics[k] = Number(req.body[k]) || 0;
+    }
+    const updates = {};
+    for (const [k, v] of Object.entries(metrics)) {
+      updates[`postMetrics.${k}`] = v;
+    }
+    const job = await Job.findByIdAndUpdate(id, { $set: updates }, { new: true });
+    if (!job) return res.status(404).json({ ok: false, message: "Not found" });
+    return res.json({ ok: true, item: job });
+  } catch (e) {
+    return res.status(500).json({ ok: false, message: e.message });
   }
 }

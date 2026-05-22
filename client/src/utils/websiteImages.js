@@ -52,7 +52,7 @@ export function getWebsiteImageOverrides(settings = {}) {
   return rows.reduce((acc, item) => {
     const key = normalizeImagePath(item?.key || item?.defaultUrl);
     const url = item?.url || item?.imageUrl || "";
-    if (key && url) acc[key] = url;
+    if (key && url && REGISTRY_KEYS.has(key)) acc[key] = url;
     return acc;
   }, {});
 }

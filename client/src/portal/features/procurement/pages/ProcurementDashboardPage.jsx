@@ -11,8 +11,8 @@ import {
   RefreshCw,
   ShoppingCart,
   Clock,
-  CheckCircle2,
   Inbox,
+  AlertTriangle,
 } from "lucide-react";
 
 const BRAND = "#6F7FD9";
@@ -120,12 +120,15 @@ export default function ProcurementDashboardPage() {
   useEffect(() => { load(); }, []);
 
   const byStatus  = stats?.byStatus  || {};
-  const recent    = stats?.recent    || [];
+  const byPriority = stats?.byPriority || {};
+  const recent    = stats?.recentRequests || stats?.recent || [];
+  const totals    = stats?.totals || {};
 
-  const totalRequests = Object.values(byStatus).reduce((s, n) => s + (n || 0), 0);
-  const pending       = (byStatus.new || 0) + (byStatus.assessing || 0) + (byStatus.quoted || 0);
-  const inProgress    = (byStatus.approved || 0) + (byStatus.ordered || 0);
-  const delivered     = byStatus.delivered || 0;
+  const totalRequests = stats?.total ?? Object.values(byStatus).reduce((s, n) => s + (n || 0), 0);
+  const pending       = totals.pending ?? ((byStatus.new || 0) + (byStatus.assessing || 0) + (byStatus.quoted || 0));
+  const inProgress    = totals.inProgress ?? ((byStatus.approved || 0) + (byStatus.ordered || 0));
+  const delivered     = totals.delivered ?? (byStatus.delivered || 0);
+  const urgentHigh    = (totals.urgent ?? (byPriority.urgent || 0)) + (totals.high ?? (byPriority.high || 0));
 
   return (
     <div className="grid gap-6">
@@ -164,7 +167,7 @@ export default function ProcurementDashboardPage() {
           <StatCard label="TOTAL REQUESTS" value={totalRequests} hint="all time" Icon={ShoppingCart} />
           <StatCard label="NEW / PENDING" value={pending} hint="new, assessing, quoted" Icon={Inbox} accent="rgba(251,191,36,0.12)" />
           <StatCard label="IN PROGRESS" value={inProgress} hint="approved + ordered" Icon={Clock} accent="rgba(99,102,241,0.10)" />
-          <StatCard label="DELIVERED" value={delivered} hint="completed requests" Icon={CheckCircle2} accent="rgba(16,185,129,0.10)" />
+          <StatCard label="URGENT / HIGH" value={urgentHigh} hint={`${delivered} delivered`} Icon={AlertTriangle} accent="rgba(244,63,94,0.10)" />
         </div>
       )}
 

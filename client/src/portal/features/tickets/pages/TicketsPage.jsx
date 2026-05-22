@@ -60,68 +60,80 @@ function TicketRow({ ticket, onClick }) {
   const assignee = ticket.assignedTo?.fullName || ticket.assignedToId?.fullName;
   const client = ticket.customerId?.companyName || ticket.clientId?.companyName;
   return (
-    <button
+    <tr
       onClick={onClick}
-      className="group w-full text-left px-4 py-3.5 hover:bg-black/[0.02] transition border-b border-slate-100 last:border-0"
+      className="cursor-pointer transition hover:bg-slate-50/70"
     >
-      <div className="flex items-start gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
+      <td className="px-5 py-4">
+        <div className="min-w-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             {ticket.ref && (
               <span className="font-mono text-xs font-bold text-slate-400">{ticket.ref}</span>
             )}
             <TicketTypeBadge type={ticket.type} showIcon={false} />
-            <span className="text-sm font-bold text-slate-900 truncate">{ticket.title}</span>
+            <span className="max-w-[360px] truncate text-sm font-bold text-slate-900">{ticket.title}</span>
           </div>
-
-          {(client || ticket.description) && (
-            <p className="mt-0.5 text-xs text-slate-500 line-clamp-1">
-              {client ? <span className="font-semibold text-slate-600">{client} · </span> : null}
-              {ticket.description}
-            </p>
+          {ticket.description && (
+            <p className="mt-1 max-w-[520px] truncate text-xs text-slate-500">{ticket.description}</p>
           )}
-
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <TicketStatusPill status={ticket.status} />
-            {ticket.priority && (
-              <span className={["inline-flex rounded-full border px-2 py-0.5 text-xs font-bold", PRIORITY_COLOR[ticket.priority]].join(" ")}>
-                {ticket.priority.toUpperCase()}
-              </span>
-            )}
-            {ticket.category && (
-              <span className="text-xs text-slate-400">{ticket.category.replaceAll("_", " ")}</span>
-            )}
-            {due && (
-              <span className={["inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold", due.cls].join(" ")}>
-                <Clock size={10} />
-                {due.text}
-              </span>
-            )}
-            {assignee && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
-                {assignee}
-              </span>
-            )}
-            {Array.isArray(ticket.tags) && ticket.tags.slice(0, 2).map((tag) => (
-              <span key={tag} className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-500">
-                {tag}
-              </span>
-            ))}
-          </div>
+          {Array.isArray(ticket.tags) && ticket.tags.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {ticket.tags.slice(0, 3).map((tag) => (
+                <span key={tag} className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
+      </td>
 
-        <div className="flex-shrink-0 text-right">
-          <div className="text-xs text-slate-400">
-            {ticket.lastActivityAt ? fmtDate(ticket.lastActivityAt) : ""}
-          </div>
+      <td className="px-5 py-4">
+        <div className="max-w-[210px] truncate text-sm font-semibold text-slate-700">{client || "-"}</div>
+        {ticket.category && (
+          <div className="mt-1 text-xs capitalize text-slate-400">{ticket.category.replaceAll("_", " ")}</div>
+        )}
+      </td>
+
+      <td className="px-5 py-4">
+        <div className="flex flex-col items-start gap-1.5">
+          <TicketStatusPill status={ticket.status} />
           {ticket.approvalStatus === "pending" && (
-            <span className="mt-1 inline-block rounded-full bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-700">
+            <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700">
               Pending approval
             </span>
           )}
         </div>
-      </div>
-    </button>
+      </td>
+
+      <td className="px-5 py-4">
+        {ticket.priority ? (
+          <span className={["inline-flex rounded-full border px-2 py-0.5 text-xs font-bold", PRIORITY_COLOR[ticket.priority]].join(" ")}>
+            {ticket.priority.toUpperCase()}
+          </span>
+        ) : (
+          <span className="text-xs text-slate-400">-</span>
+        )}
+      </td>
+
+      <td className="px-5 py-4">
+        {due ? (
+          <span className={["inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold", due.cls].join(" ")}>
+            <Clock size={10} />
+            {due.text}
+          </span>
+        ) : (
+          <span className="text-xs text-slate-400">No due date</span>
+        )}
+      </td>
+
+      <td className="px-5 py-4">
+        <div className="max-w-[170px] truncate text-sm font-semibold text-slate-700">{assignee || "Unassigned"}</div>
+        <div className="mt-1 text-xs text-slate-400">
+          {ticket.lastActivityAt ? fmtDate(ticket.lastActivityAt) : "No activity"}
+        </div>
+      </td>
+    </tr>
   );
 }
 
@@ -349,10 +361,26 @@ export default function TicketsPage() {
       ) : view === "board" ? (
         <KanbanBoard tickets={items} onCardClick={(id) => nav(`/portal/tickets/${id}`)} />
       ) : (
-        <div className="overflow-hidden rounded-[28px] border border-black/[0.07] bg-white shadow-sm">
-          {items.map((t) => (
-            <TicketRow key={t._id} ticket={t} onClick={() => nav(`/portal/tickets/${t._id}`)} />
-          ))}
+        <div className="overflow-hidden rounded-2xl border border-black/[0.07] bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-[1080px] w-full border-collapse text-left">
+              <thead className="bg-slate-50">
+                <tr className="border-b border-black/[0.07] text-[10.5px] font-black uppercase tracking-[0.18em] text-slate-400">
+                  <th className="px-5 py-3">Ticket</th>
+                  <th className="px-5 py-3">Client / Category</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Priority</th>
+                  <th className="px-5 py-3">Due</th>
+                  <th className="px-5 py-3">Owner / Activity</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/[0.05]">
+                {items.map((t) => (
+                  <TicketRow key={t._id} ticket={t} onClick={() => nav(`/portal/tickets/${t._id}`)} />
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {/* Pagination */}
           <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">

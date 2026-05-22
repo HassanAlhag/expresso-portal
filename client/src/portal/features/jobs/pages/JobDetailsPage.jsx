@@ -122,18 +122,10 @@ export default function JobDetailsPage() {
   useEffect(() => {
     setStaffLoading(true);
     setStaffError("");
-    Promise.all([
-      listUsers({ role: "staff", isActive: true, limit: 100 }),
-      listUsers({ role: "admin", isActive: true, limit: 50 }),
-    ]).then(([s, a]) => {
-      const all = [...(s?.items || []), ...(a?.items || [])];
-      const seen = new Set();
-      setStaffUsers(all.filter((u) => { if (seen.has(u._id)) return false; seen.add(u._id); return true; }));
-    }).catch((e) => {
-      setStaffError(e?.response?.data?.message || e?.message || "Could not load staff");
-    }).finally(() => {
-      setStaffLoading(false);
-    });
+    listUsers({ isInternal: "true", isActive: "true", limit: 100 })
+      .then((r) => setStaffUsers(r?.users || r?.items || []))
+      .catch((e) => setStaffError(e?.response?.data?.message || e?.message || "Could not load staff"))
+      .finally(() => setStaffLoading(false));
   }, []);
 
   const customerLabel = useMemo(() => {

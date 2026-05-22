@@ -341,6 +341,98 @@ export async function deleteCustomer(req, res) {
   }
 }
 
+const CLIENT_ROLES = new Set(["client", "staff_client", "procurement_client", "client_admin"]);
+
+/**
+ * GET /api/customers/:id/users
+ * Returns all portal users linked to this customer.
+ */
+export async function listCustomerUsers(req, res) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    const users = await User.find({ clientId: id })
+      .select("fullName email role isActive lastLoginAt createdAt")
+      .sort({ createdAt: 1 })
+      .lean();
+
+    return res.json({ ok: true, users });
+  } catch (e) {
+    return res.status(500).json({ ok: false, message: e?.message || "Server error" });
+  }
+}
+
+/**
+ * POST /api/customers/:id/users
+ * body: { email, fullName?, tempPassword, role? }
+ * Creates a new portal user linked to this customer.
+ * Role must be one of the client roles; defaults to "client".
+ */
+export async function createCustomerUser(req, res) {
+  try {
+    const { id } = req.params;
+    const { email, fullName, tempPassword, role = "client" } = req.body || {};
+
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    if (!CLIENT_ROLES.has(role))
+      return res.status(400).json({ ok: false, message: `Role must be one of: ${[...CLIENT_ROLES].join(", ")}` });
+
+    const customer = await Customer.findById(id);
+    if (!customer)
+      return res.status(404).json({ ok: false, message: "Customer not found" });
+
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    if (!cleanEmail)
+      return res.status(400).json({ ok: false, message: "email is required" });
+
+    const password = String(tempPassword || "");
+    if (password.length < 8)
+      return res.status(400).json({ ok: false, message: "tempPassword must be at least 8 characters" });
+
+    const exists = await User.findOne({ email: cleanEmail }).lean();
+    if (exists)
+      return res.status(409).json({ ok: false, message: "Email already in use" });
+
+    const passwordHash = await User.hashPassword(password);
+
+    const user = await User.create({
+      fullName: String(fullName || "").trim() || customer.contactName || customer.companyName,
+      email: cleanEmail,
+      role,
+      isActive: true,
+      clientId: customer._id,
+      passwordHash,
+      passwordChangedAt: new Date(),
+    });
+
+    // Set ownerUserId on the customer if this is the first user
+    if (!customer.ownerUserId) {
+      customer.ownerUserId = user._id;
+      await customer.save();
+    }
+
+    return res.status(201).json({
+      ok: true,
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        clientId: user.clientId,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (e) {
+    console.error("createCustomerUser:", e);
+    return res.status(500).json({ ok: false, message: e?.message || "Server error" });
+  }
+}
+
 /**
  * POST /api/customers/:id/create-login
  * body: { email, fullName?, tempPassword }

@@ -157,12 +157,26 @@ const siteSettingsSchema = new mongoose.Schema(
     },
 
     services: {
+      heroHeading: { type: String, default: "" },
+      heroSubheading: { type: String, default: "" },
       heroImageUrl: { type: String, default: "" },
       heroImageMediaId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Media",
         default: null,
       },
+      introSubheading: { type: String, default: "" },
+      introHeading: { type: String, default: "" },
+      processSubheading: { type: String, default: "" },
+      processHeading: { type: String, default: "" },
+      processDescription: { type: String, default: "" },
+      clientsSubheading: { type: String, default: "" },
+      clientsHeading: { type: String, default: "" },
+      clientsDescription: { type: String, default: "" },
+      testimonialsSubheading: { type: String, default: "" },
+      testimonialsHeading: { type: String, default: "" },
+      contactHeading: { type: String, default: "" },
+      contactContent: { type: String, default: "" },
       sectionBgUrl: { type: String, default: "" },
       sectionBgMediaId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -241,12 +255,19 @@ const siteSettingsSchema = new mongoose.Schema(
     },
 
     itSolutions: {
+      heroHeading: { type: String, default: "" },
+      heroSubtitle: { type: String, default: "" },
+      heroDescription: { type: String, default: "" },
       heroImageUrl: { type: String, default: "" },
       heroImageMediaId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Media",
         default: null,
       },
+      offerEyebrow: { type: String, default: "" },
+      offerTitle: { type: String, default: "" },
+      offerHighlight: { type: String, default: "" },
+      offerSubtitle: { type: String, default: "" },
 
       softwareLicensingHeroImageUrl: { type: String, default: "" },
       softwareLicensingHeroImageMediaId: {

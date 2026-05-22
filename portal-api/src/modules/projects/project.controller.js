@@ -470,25 +470,13 @@ export async function archiveProject(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
-    const item = await Project.findByIdAndUpdate(
-      id,
-      {
-        status: "archived",
-        archivedAt: new Date(),
-        updatedBy: req.user?.id || null,
-      },
-      { new: true }
-    )
-      .populate("customerId", "companyName contactName primaryEmail")
-      .populate("ownerUserId", "fullName email")
-      .populate("enrollmentId", "status serviceTemplateId")
-      .lean();
+    const item = await Project.findByIdAndDelete(id).lean();
 
     if (!item) {
       return res.status(404).json({ ok: false, message: "Not found" });
     }
 
-    return res.json({ ok: true, item });
+    return res.json({ ok: true });
   } catch (e) {
     console.error("archiveProject:", e);
     return res.status(500).json({ ok: false, message: "Server error" });

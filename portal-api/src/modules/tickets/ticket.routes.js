@@ -5,6 +5,7 @@ import {
   listTickets,
   getTicket,
   updateTicket,
+  deleteTicket,
   addComment,
   updateStatus,
   approveTicket,
@@ -24,5 +25,6 @@ router.patch("/:id", requireAuth, requirePermission("tickets.write"), updateTick
 router.post("/:id/comments", requireAuth, requirePermission("tickets.write"), addComment);
 router.patch("/:id/status", requireAuth, requirePermission("tickets.write"), updateStatus);
 router.patch("/:id/approve", requireAuth, requirePermission("tickets.write"), approveTicket);
+router.delete("/:id", requireAuth, requirePermission("tickets.delete"), deleteTicket);
 
 export default router;

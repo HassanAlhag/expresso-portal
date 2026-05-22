@@ -72,7 +72,7 @@ const CustomerSchema = new mongoose.Schema(
 
 CustomerSchema.index({ companyName: 1 });
 CustomerSchema.index({ contactName: 1 });
-CustomerSchema.index({ slug: 1 }, { unique: true });
+// slug uniqueness enforced via unique:true in field definition
 CustomerSchema.index({ isActive: 1 });
 
 const Customer =

@@ -1,43 +1,66 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AuroraHero from "../../components/BannerSection/bannerSection";
 import HomeSection from "../../components/HomeSection/HomeSection";
 import SolutionCard from "../../components/SolutionCard/SolutionCard";
 import WhyExpressoGrid from "../../components/WhyExpressoGrid/WhyExpressoGrid";
 import ProcurementProcess from "../../components/ProcurementProcess/ProcurementProcess";
 import TechnologyCTA from "../../components/TechnologyCTA/TechnologyCTA";
-import { STATIC_SOLUTIONS } from "../../data/technologySolutionsData";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
+import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
+
+const DEFAULT_IT_SOLUTIONS_PAGE_COPY = {
+  heroHeading: "Technology Solutions",
+  heroSubtitle: "Enterprise IT Procurement, Simplified",
+  heroDescription:
+    "From ERP and CRM to IoT, cloud infrastructure, and data center hardware — we source, procure, and deploy the right technology for your business.",
+  offerEyebrow: "What We Offer",
+  offerTitle: "Our solution",
+  offerHighlight: "categories",
+  offerSubtitle:
+    "We cover every layer of enterprise technology — software, hardware, infrastructure, and consulting.",
+};
+
+function pageCopy(settings = {}, key) {
+  return settings[key] || DEFAULT_IT_SOLUTIONS_PAGE_COPY[key];
+}
 
 export default function ITSolutionsPage() {
   const settings = useSiteSettings();
-  const heroImageUrl = resolveWebsiteImageSetting(
-    settings,
-    "/81.webp",
-    settings?.itSolutions?.heroImageUrl
-  );
+  const pageSettings = settings?.itSolutions || {};
+  const [solutions, setSolutions] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/web-content/solutions")
+      .then((r) => r.json())
+      .then((d) => setSolutions(d.items || []))
+      .catch(() => {});
+  }, []);
+
+  const heroImageUrl = pageSettings.heroImageUrl
+    ? toWebsiteImageUrl(pageSettings.heroImageUrl)
+    : resolveWebsiteImage(settings, "/81.webp");
 
   return (
     <>
       <AuroraHero
         key={heroImageUrl}
-        heading="Technology Solutions"
-        subtitle="Enterprise IT Procurement, Simplified"
-        description="From ERP and CRM to IoT, cloud infrastructure, and data center hardware — we source, procure, and deploy the right technology for your business."
+        heading={pageCopy(pageSettings, "heroHeading")}
+        subtitle={pageCopy(pageSettings, "heroSubtitle")}
+        description={pageCopy(pageSettings, "heroDescription")}
         backgroundImageUrl={heroImageUrl}
       />
 
       <HomeSection
-        eyebrow="What We Offer"
-        title="12 solution"
-        highlight="categories"
-        subtitle="We cover every layer of enterprise technology — software, hardware, infrastructure, and consulting."
+        eyebrow={pageCopy(pageSettings, "offerEyebrow")}
+        title={pageSettings.offerTitle || `${solutions.length || "Our"} solution`}
+        highlight={pageCopy(pageSettings, "offerHighlight")}
+        subtitle={pageCopy(pageSettings, "offerSubtitle")}
         align="center"
       >
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {STATIC_SOLUTIONS.map((item, index) => (
+          {solutions.map((item, index) => (
             <SolutionCard
-              key={item._id || item.title}
+              key={item._id || item.slug}
               {...item}
               index={index}
             />

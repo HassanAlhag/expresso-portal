@@ -1,15 +1,17 @@
 import React from "react";
 
 export default function Select({
+  label,
   value,
   onChange,
   options = [],
   placeholder,
   className = "",
   error,
+  children,
   ...props
 }) {
-  return (
+  const control = (
     <select
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
@@ -25,11 +27,21 @@ export default function Select({
     >
       {placeholder ? <option value="">{placeholder}</option> : null}
 
-      {options.map((option) => (
-        <option key={option.value ?? option.label} value={option.value}>
-          {option.label}
-        </option>
-      ))}
+      {children ||
+        options.map((option) => (
+          <option key={option.value ?? option.label} value={option.value}>
+            {option.label}
+          </option>
+        ))}
     </select>
+  );
+
+  if (!label) return control;
+
+  return (
+    <label className="grid gap-1.5">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      {control}
+    </label>
   );
 }

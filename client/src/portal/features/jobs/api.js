@@ -56,3 +56,8 @@ export async function generateJobsFromEnrollment(enrollmentId) {
   );
   return data;
 }
+
+export async function updatePostMetrics(id, payload) {
+  const { data } = await api.patch(`/jobs/${id}/post-metrics`, payload);
+  return data;
+}

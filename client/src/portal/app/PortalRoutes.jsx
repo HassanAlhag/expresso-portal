@@ -47,6 +47,9 @@ const JobsPage = lazy(() => import("../features/jobs/pages/JobsPage"));
 const JobDetailsPage = lazy(() =>
   import("../features/jobs/pages/JobDetailsPage")
 );
+const ServiceDeliveryPage = lazy(() =>
+  import("../features/delivery/pages/ServiceDeliveryPage")
+);
 
 // Commercial
 const ServicesPage = lazy(() =>
@@ -97,6 +100,12 @@ const HomepageSlidersPage = lazy(() =>
 );
 const WebsiteSettingsPage = lazy(() =>
   import("../features/website/pages/WebsiteSettingsPage")
+);
+const DigitalServicesPage = lazy(() =>
+  import("../features/website/pages/DigitalServicesPage")
+);
+const TechSolutionsPage = lazy(() =>
+  import("../features/website/pages/TechSolutionsPage")
 );
 
 // Personal
@@ -185,6 +194,24 @@ const LeaveRequestsPage = lazy(() =>
 const SkillMatrixPage = lazy(() =>
   import("../features/hr/pages/SkillMatrixPage")
 );
+const KPIDashboardPage = lazy(() =>
+  import("../features/hr/pages/KPIDashboardPage")
+);
+const KPIIndicatorsPage = lazy(() =>
+  import("../features/hr/pages/KPIIndicatorsPage")
+);
+const KPIGoalsPage = lazy(() =>
+  import("../features/hr/pages/KPIGoalsPage")
+);
+const ContentCalendarPage = lazy(() =>
+  import("../features/social/pages/ContentCalendarPage")
+);
+const MessagesPage = lazy(() =>
+  import("../features/messaging/pages/MessagesPage")
+);
+const BrandKitPage = lazy(() =>
+  import("../features/brand-kit/pages/BrandKitPage")
+);
 
 function LegacyPortfolioDetailsRedirect() {
   const { id } = useParams();
@@ -225,6 +252,14 @@ export default function PortalRoutes() {
                       hint: "Jobs, reviews, publishing",
                       keywords:
                         "production jobs reels posts reviews showcase published",
+                    },
+                    {
+                      id: "go-service-delivery",
+                      label: "Go to Website & SEO Delivery",
+                      to: "/portal/service-delivery",
+                      hint: "Delivery",
+                      keywords:
+                        "website seo service delivery progress launch reporting",
                     },
                     {
                       id: "go-media",
@@ -383,6 +418,7 @@ export default function PortalRoutes() {
           {/* Delivery */}
           <Route path="jobs" element={<JobsPage />} />
           <Route path="jobs/:id" element={<JobDetailsPage />} />
+          <Route path="service-delivery" element={<ServiceDeliveryPage />} />
           <Route path="productions" element={<ProductionsPage />} />
           <Route path="productions/:id" element={<ProductionDetailsPage />} />
           <Route path="media-library" element={<MediaLibraryPage />} />
@@ -442,6 +478,12 @@ export default function PortalRoutes() {
           <Route path="hr/monthly-expenses" element={<MonthlyExpensesPage />} />
           <Route path="hr/leaves" element={<LeaveRequestsPage />} />
           <Route path="hr/skills" element={<SkillMatrixPage />} />
+          <Route path="hr/kpi" element={<KPIDashboardPage />} />
+          <Route path="hr/kpi/indicators" element={<KPIIndicatorsPage />} />
+          <Route path="hr/kpi/goals" element={<KPIGoalsPage />} />
+          <Route path="content-calendar" element={<ContentCalendarPage />} />
+          <Route path="messages" element={<MessagesPage />} />
+          <Route path="brand-kit" element={<BrandKitPage />} />
 
           {/* Reporting */}
           <Route path="reports" element={<ReportsPage />} />
@@ -460,6 +502,8 @@ export default function PortalRoutes() {
           <Route path="website/portfolio/:id" element={<PortfolioDetailsPage />} />
           <Route path="website/slides" element={<HomepageSlidersPage />} />
           <Route path="website/settings" element={<WebsiteSettingsPage />} />
+          <Route path="website/digital-services" element={<DigitalServicesPage />} />
+          <Route path="website/solutions" element={<TechSolutionsPage />} />
 
           {/* Personal */}
           <Route path="profile" element={<ProfilePage />} />

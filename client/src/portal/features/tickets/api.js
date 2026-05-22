@@ -39,3 +39,8 @@ export async function approveTicket(id, decision, note) {
   const { data } = await api.patch(`/tickets/${id}/approve`, { decision, note });
   return data;
 }
+
+export async function deleteTicket(id) {
+  const { data } = await api.delete(`/tickets/${id}`);
+  return data;
+}

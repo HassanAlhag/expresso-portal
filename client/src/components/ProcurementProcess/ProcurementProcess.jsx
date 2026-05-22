@@ -5,7 +5,7 @@ import {
   BRAND,
   BRAND_BG,
   PROCESS_STEPS,
-} from "../../data/technologySolutionsData";
+} from "../../data/technologyConstants";
 
 export default function ProcurementProcess() {
   return (

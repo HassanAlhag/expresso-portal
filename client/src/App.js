@@ -27,17 +27,8 @@ const PrtofolioSingleViewPage = lazy(() =>
 const ContactPage = lazy(() => import("./pages/Contact/contactPage"));
 const ServiceMainPage = lazy(() => import("./pages/ServiceMain/serviceMain"));
 
-const SeoMarketingPage = lazy(() => import("./pages/Services/seo-marketing"));
-const VideographyPage = lazy(() => import("./pages/Services/videography"));
-const ContentCreationPage = lazy(() =>
-  import("./pages/Services/content-creation")
-);
-const SocialMediaMarketingPage = lazy(() =>
-  import("./pages/Services/social-media-marketing")
-);
-const GoogleAdsPage = lazy(() => import("./pages/Services/google-ads"));
-const WebsiteDevelopmentPage = lazy(() =>
-  import("./pages/Services/webiste-dev")
+const ServiceDetailPage = lazy(() =>
+  import("./pages/Services/ServiceDetailPage")
 );
 
 const WebPricingPage = lazy(() => import("./pages/Pricing/webPricingPage"));
@@ -127,18 +118,7 @@ function Content() {
           <Route path="/contact-us" element={<ContactPage />} />
           <Route path="/services" element={<ServiceMainPage />} />
 
-          <Route path="/service/seo-marketing" element={<SeoMarketingPage />} />
-          <Route path="/service/videography" element={<VideographyPage />} />
-          <Route
-            path="/service/content-creation"
-            element={<ContentCreationPage />}
-          />
-          <Route
-            path="/service/social-media-marketing"
-            element={<SocialMediaMarketingPage />}
-          />
-          <Route path="/service/google-ads" element={<GoogleAdsPage />} />
-          <Route path="/service/web-dev" element={<WebsiteDevelopmentPage />} />
+          <Route path="/service/:slug" element={<ServiceDetailPage />} />
 
           <Route path="/pricing/web-dev" element={<WebPricingPage />} />
           <Route path="/pricing/seo" element={<SeoPricingPage />} />

@@ -21,6 +21,7 @@ import portfolioRoutes from "./modules/portfolio/portfolio.routes.js";
 import mediaRoutes from "./modules/content/media/media.routes.js";
 import productionRoutes from "./modules/content/productions/production.routes.js";
 import jobsRoutes from "./modules/content/jobs/job.routes.js";
+import socialMetricsRoutes from "./modules/content/social-metrics/socialMetrics.routes.js";
 import billingRoutes from "./modules/billing/billing.routes.js";
 import filesRoutes from "./modules/files/files.routes.js";
 import auditRoutes from "./modules/iam/audit/audit.routes.js";
@@ -49,8 +50,12 @@ import expenseRoutes from "./modules/hr/expenses/expense.routes.js";
 import staffRoutes from "./modules/hr/staff/staff.routes.js";
 import leaveRoutes from "./modules/hr/leaves/leave.routes.js";
 import scorecardTemplateRoutes from "./modules/hr/scorecard-templates/template.routes.js";
+import kpiRoutes from "./modules/hr/kpi/kpi.routes.js";
 
+import messagingRoutes from "./modules/messaging/message.routes.js";
+import brandKitRoutes from "./modules/brand-kit/brandAsset.routes.js";
 import permissionsRoutes from "./modules/iam/permissions/permissions.routes.js";
+import webContentRoutes from "./modules/web-content/webContent.routes.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const uploadsDir = resolve(__dirname, "../uploads");
@@ -103,6 +108,9 @@ export function createApp() {
   app.use("/api/portfolio", portfolioRoutes);
   app.use("/api/productions", productionRoutes);
   app.use("/api/jobs", jobsRoutes);
+  app.use("/api/social-metrics", socialMetricsRoutes);
+  app.use("/api/messaging", messagingRoutes);
+  app.use("/api/brand-kit", brandKitRoutes);
   app.use("/api/teams", teamsRoutes);
 
   app.use("/api/billing", billingRoutes);
@@ -120,7 +128,9 @@ export function createApp() {
   app.use("/api/hr/staff", staffRoutes);
   app.use("/api/hr/leaves", leaveRoutes);
   app.use("/api/hr/scorecard-templates", scorecardTemplateRoutes);
+  app.use("/api/hr/kpi", kpiRoutes);
 
+  app.use("/api/web-content", webContentRoutes);
   app.use("/api/public", publicRoutes);
   app.use("/api/careers", careerRoutes);
   app.use("/api/homepage/slides", slideRoutes);

@@ -21,6 +21,7 @@ import UserModal from "../components/UserModal";
 import { listUsers } from "../api";
 import { listRoles } from "../../roles/api";
 import { listTeams } from "../../teams/api";
+import { listCustomers } from "../../../customers/api";
 
 const STATUS = [
   { value: "", label: "All status" },
@@ -53,8 +54,11 @@ export default function UsersListPage() {
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
 
+  const [clientId, setClientId] = useState("");
+
   const [roleOptions, setRoleOptions] = useState([{ value: "", label: "All roles" }]);
   const [teamOptions, setTeamOptions] = useState([{ value: "", label: "All teams" }]);
+  const [companyOptions, setCompanyOptions] = useState([{ value: "", label: "All companies" }]);
   const [createOpen, setCreateOpen] = useState(false);
 
   const loadRolesForFilter = async () => {
@@ -77,10 +81,20 @@ export default function UsersListPage() {
     }
   };
 
+  const loadCompaniesForFilter = async () => {
+    try {
+      const res = await listCustomers({ limit: 100, sort: "companyName" });
+      const items = (res?.items || []).map((c) => ({ value: c._id, label: c.companyName }));
+      setCompanyOptions([{ value: "", label: "All companies" }, ...items]);
+    } catch {
+      setCompanyOptions([{ value: "", label: "All companies" }]);
+    }
+  };
+
   const load = async () => {
     setLoading(true);
     try {
-      const res = await listUsers({ q, role, team, isActive, sort, page, limit });
+      const res = await listUsers({ q, role, team, isActive, clientId, sort, page, limit });
       setRows(res?.users || []);
       setTotal(res?.total || 0);
       setPages(res?.pages || 1);
@@ -92,15 +106,16 @@ export default function UsersListPage() {
   useEffect(() => {
     loadRolesForFilter();
     loadTeamsForFilter();
+    loadCompaniesForFilter();
   }, []);
 
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, role, team, isActive, sort, page]);
+  }, [q, role, team, isActive, clientId, sort, page]);
 
   const resetFilters = () => {
-    setQ(""); setRole(""); setTeam(""); setIsActive(""); setSort("-createdAt"); setPage(1);
+    setQ(""); setRole(""); setTeam(""); setIsActive(""); setClientId(""); setSort("-createdAt"); setPage(1);
   };
 
   const activeCount = useMemo(() => rows.filter((x) => x.isActive).length, [rows]);
@@ -146,10 +161,11 @@ export default function UsersListPage() {
           onSearchChange={(v) => { setQ(v); setPage(1); }}
           searchPlaceholder="Name, email, team, title…"
           filters={[
-            { label: "role",   value: role,     onChange: (v) => { setRole(v);     setPage(1); }, options: roleOptions },
-            { label: "team",   value: team,     onChange: (v) => { setTeam(v);     setPage(1); }, options: teamOptions },
-            { label: "status", value: isActive, onChange: (v) => { setIsActive(v); setPage(1); }, options: STATUS      },
-            { label: "sort",   value: sort,     onChange: (v) => { setSort(v);                 }, options: SORT        },
+            { label: "company", value: clientId, onChange: (v) => { setClientId(v); setPage(1); }, options: companyOptions },
+            { label: "role",    value: role,     onChange: (v) => { setRole(v);     setPage(1); }, options: roleOptions   },
+            { label: "team",    value: team,     onChange: (v) => { setTeam(v);     setPage(1); }, options: teamOptions   },
+            { label: "status",  value: isActive, onChange: (v) => { setIsActive(v); setPage(1); }, options: STATUS        },
+            { label: "sort",    value: sort,     onChange: (v) => { setSort(v);                 }, options: SORT          },
           ]}
           onClear={resetFilters}
         />

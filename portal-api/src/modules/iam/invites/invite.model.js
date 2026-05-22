@@ -42,7 +42,6 @@ const InviteSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
 
     expiresAt: {
@@ -71,7 +70,6 @@ const InviteSchema = new mongoose.Schema(
 );
 
 InviteSchema.index({ email: 1, status: 1 });
-InviteSchema.index({ token: 1 }, { unique: true });
 
 const Invite = mongoose.models.Invite || mongoose.model("Invite", InviteSchema);
 export default Invite;

@@ -18,6 +18,10 @@ import {
   CircleDot,
   BarChart3,
   ArrowUpRight,
+  ShoppingCart,
+  ReceiptText,
+  CalendarDays,
+  Inbox,
 } from "lucide-react";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -146,6 +150,16 @@ const BILLING_STATUS_ICONS = {
   void:    XCircle,
 };
 
+const PROCUREMENT_STATUS_COLORS = {
+  new: "#94a3b8",
+  assessing: "#f59e0b",
+  quoted: "#3b82f6",
+  approved: "#8b5cf6",
+  ordered: "#6366f1",
+  delivered: "#10b981",
+  cancelled: "#f43f5e",
+};
+
 // ── page ─────────────────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
@@ -156,20 +170,32 @@ export default function ReportsPage() {
   const [tickets, setTickets]     = useState(null);
   const [billing, setBilling]     = useState(null);
   const [customers, setCustomers] = useState(null);
+  const [procurement, setProcurement] = useState(null);
+  const [staff, setStaff] = useState(null);
+  const [expenses, setExpenses] = useState(null);
+  const [leaves, setLeaves] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [pRes, tRes, bRes, cRes] = await Promise.allSettled([
+      const [pRes, tRes, bRes, cRes, prRes, staffRes, expenseRes, leaveRes] = await Promise.allSettled([
         api.get("/projects/stats"),
         api.get("/tickets/stats"),
         api.get("/billing/stats"),
         api.get("/customers?limit=1&page=1"),
+        api.get("/procurement/requests/stats"),
+        api.get("/hr/staff/stats"),
+        api.get("/hr/expenses/stats"),
+        api.get("/hr/leaves/stats"),
       ]);
       if (pRes.status === "fulfilled") setProjects(pRes.value.data);
       if (tRes.status === "fulfilled") setTickets(tRes.value.data);
       if (bRes.status === "fulfilled") setBilling(bRes.value.data);
       if (cRes.status === "fulfilled") setCustomers(cRes.value.data);
+      if (prRes.status === "fulfilled") setProcurement(prRes.value.data);
+      if (staffRes.status === "fulfilled") setStaff(staffRes.value.data);
+      if (expenseRes.status === "fulfilled") setExpenses(expenseRes.value.data);
+      if (leaveRes.status === "fulfilled") setLeaves(leaveRes.value.data);
     } catch {
       toast.error("Failed to load report data.");
     } finally {
@@ -188,6 +214,19 @@ export default function ReportsPage() {
     : null;
   const totalRevenue   = billing?.totalRevenue ?? null;
   const totalPaid      = billing?.totalPaid ?? null;
+  const procurementPending = procurement
+    ? procurement.totals?.pending ??
+      (procurement.byStatus?.new || 0) +
+        (procurement.byStatus?.assessing || 0) +
+        (procurement.byStatus?.quoted || 0)
+    : null;
+  const procurementUrgentHigh = procurement
+    ? (procurement.totals?.urgent ?? (procurement.byPriority?.urgent || 0)) +
+      (procurement.totals?.high ?? (procurement.byPriority?.high || 0))
+    : null;
+  const activeStaff = staff?.totals?.active ?? null;
+  const pendingExpenses = expenses?.totals?.pending ?? null;
+  const submittedLeaves = leaves?.totals?.submitted ?? null;
 
   // total for pct calculations
   const ticketTotal = tickets
@@ -195,6 +234,8 @@ export default function ReportsPage() {
     : 0;
   const projectTotal = projects?.total || 0;
   const billingTotal = billing?.totalInvoices || 0;
+  const procurementTotal = procurement?.total ||
+    Object.values(procurement?.byStatus || {}).reduce((s, v) => s + v, 0);
 
   return (
     <div className="grid gap-6">
@@ -244,6 +285,38 @@ export default function ReportsPage() {
           value={fmt(totalClients)}
           sub="active accounts"
           accent="rgba(245,158,11,0.12)"
+          loading={loading}
+        />
+        <KpiTile
+          icon={ShoppingCart}
+          label="Procurement Queue"
+          value={fmt(procurementPending)}
+          sub={`${fmt(procurementUrgentHigh)} urgent / high`}
+          accent="rgba(59,130,246,0.11)"
+          loading={loading}
+        />
+        <KpiTile
+          icon={ReceiptText}
+          label="Expense Approvals"
+          value={fmt(pendingExpenses)}
+          sub={`${fmtCurrency(expenses?.currentMonth?.registeredTotal || 0)} registered this month`}
+          accent="rgba(139,92,246,0.11)"
+          loading={loading}
+        />
+        <KpiTile
+          icon={CalendarDays}
+          label="Leave Requests"
+          value={fmt(submittedLeaves)}
+          sub={`${leaves?.totals?.upcoming ?? "—"} upcoming`}
+          accent="rgba(59,130,246,0.11)"
+          loading={loading}
+        />
+        <KpiTile
+          icon={Inbox}
+          label="Active Staff"
+          value={fmt(activeStaff)}
+          sub="current team capacity"
+          accent="rgba(16,185,129,0.12)"
           loading={loading}
         />
       </div>
@@ -385,6 +458,101 @@ export default function ReportsPage() {
                   />
                 );
               })
+            )}
+          </CardBody>
+        </Card>
+      </div>
+
+      {/* ── Procurement + HR operations ─────────────────────────────────────── */}
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader
+            title="Procurement Pipeline"
+            subtitle="Request movement from intake to delivery"
+            right={
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/8 bg-slate-50">
+                <ShoppingCart size={14} className="text-slate-500" />
+              </div>
+            }
+          />
+          <CardBody>
+            {loading ? (
+              <div className="grid gap-2">
+                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-xl" />)}
+              </div>
+            ) : !procurement ? (
+              <p className="text-sm text-slate-400">No data available.</p>
+            ) : (
+              ["new","assessing","quoted","approved","ordered","delivered","cancelled"].map((status) => (
+                <BreakdownRow
+                  key={status}
+                  label={status}
+                  count={procurement.byStatus?.[status] ?? 0}
+                  total={procurementTotal}
+                  color={PROCUREMENT_STATUS_COLORS[status]}
+                />
+              ))
+            )}
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="People & Approval Load"
+            subtitle="HR workload and team capacity signals"
+            right={
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/8 bg-slate-50">
+                <Users size={14} className="text-slate-500" />
+              </div>
+            }
+          />
+          <CardBody>
+            {loading ? (
+              <div className="grid gap-3">
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-2xl" />)}
+              </div>
+            ) : !staff && !expenses && !leaves ? (
+              <p className="text-sm text-slate-400">No data available.</p>
+            ) : (
+              <div className="grid gap-3">
+                {[
+                  {
+                    label: "Active staff",
+                    value: activeStaff ?? "—",
+                    hint: `${staff?.totals?.total ?? "—"} total records`,
+                    tone: "bg-emerald-50 border-emerald-100 text-emerald-700",
+                  },
+                  {
+                    label: "Expense approvals",
+                    value: pendingExpenses ?? "—",
+                    hint: `${expenses?.totals?.approved ?? "—"} approved waiting registration`,
+                    tone: "bg-amber-50 border-amber-100 text-amber-700",
+                  },
+                  {
+                    label: "Registered expenses",
+                    value: fmtCurrency(expenses?.currentMonth?.registeredTotal || 0),
+                    hint: `${expenses?.currentMonth?.registeredCount ?? "—"} this month`,
+                    tone: "bg-violet-50 border-violet-100 text-violet-700",
+                  },
+                  {
+                    label: "Leave queue",
+                    value: submittedLeaves ?? "—",
+                    hint: `${leaves?.totals?.upcoming ?? "—"} upcoming approved leaves`,
+                    tone: "bg-sky-50 border-sky-100 text-sky-700",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className={`flex items-center justify-between gap-4 rounded-2xl border px-4 py-3.5 ${item.tone}`}
+                  >
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold">{item.label}</div>
+                      <div className="mt-0.5 text-xs opacity-75">{item.hint}</div>
+                    </div>
+                    <div className="shrink-0 text-base font-black">{item.value}</div>
+                  </div>
+                ))}
+              </div>
             )}
           </CardBody>
         </Card>

@@ -45,7 +45,7 @@ const PRIORITY_CLS = {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function workflowFromType(t) {
-  if (["reel", "video"].includes(t)) return "video";
+  if (["reel", "video", "story"].includes(t)) return "video";
   if (t === "photo") return "photo";
   return "design";
 }
@@ -574,7 +574,7 @@ export default function ProductionJobFormModal({
               />
               <div>
                 <div className="text-sm font-bold text-slate-800">Show on website</div>
-                <div className="text-xs text-slate-400">Publish to the public portfolio</div>
+                <div className="text-xs text-slate-400">Visible after the item is published live</div>
               </div>
             </label>
             <label

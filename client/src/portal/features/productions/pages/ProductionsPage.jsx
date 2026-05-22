@@ -199,9 +199,9 @@ function PipelineCard({ item, onOpen, onEdit, onMove, onDelete, busy }) {
       </div>
 
       {/* Website badge */}
-      {item.websiteVisible && (
+      {item.status === "published" && item.websiteVisible && (
         <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
-          <Globe size={8} /> On website
+          <Globe size={8} /> Live on website
         </div>
       )}
 
@@ -436,7 +436,11 @@ function ProductionsListTable({ items, onOpen, onEdit, onRefresh }) {
                       disabled={isBusy}
                       onClick={() => run(item._id, () =>
                         item.status === "published"
-                          ? setProductionJobStatus(item._id, "approved")
+                          ? updateProductionJob(item._id, {
+                              status: "approved",
+                              publishStatus: "ready",
+                              websiteVisible: false,
+                            })
                           : publishProductionJob(item._id)
                       )}
                       className={[
@@ -447,22 +451,28 @@ function ProductionsListTable({ items, onOpen, onEdit, onRefresh }) {
                       ].join(" ")}
                     >
                       <ExternalLink size={10} />
-                      {item.status === "published" ? "Unpublish" : "Publish"}
+                      {item.status === "published" && item.websiteVisible ? "Unpublish" : "Publish live"}
                     </button>
 
                     <button
                       type="button"
                       disabled={isBusy}
-                      onClick={() => run(item._id, () => updateProductionJob(item._id, { websiteVisible: !item.websiteVisible }))}
+                      onClick={() => run(item._id, () =>
+                        item.websiteVisible
+                          ? updateProductionJob(item._id, { websiteVisible: false })
+                          : item.status === "published"
+                          ? updateProductionJob(item._id, { websiteVisible: true, publishStatus: "published" })
+                          : publishProductionJob(item._id)
+                      )}
                       className={[
                         "flex h-8 items-center gap-1 rounded-xl border px-2 text-[11px] font-bold transition",
-                        item.websiteVisible
+                        item.status === "published" && item.websiteVisible
                           ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                           : "border-slate-200 bg-slate-50 text-slate-500",
                       ].join(" ")}
                     >
                       <Globe size={10} />
-                      {item.websiteVisible ? "Visible" : "Hidden"}
+                      {item.status === "published" && item.websiteVisible ? "Live" : "Not live"}
                     </button>
 
                     <button

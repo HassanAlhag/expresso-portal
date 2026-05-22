@@ -21,9 +21,10 @@ const PROJECT_SOURCE_OPTIONS = [
 
 const PROJECT_TYPE_OPTIONS = [
   { value: "delivery", label: "Delivery" },
+  { value: "website", label: "Website" },
+  { value: "seo", label: "SEO" },
   { value: "campaign", label: "Campaign" },
   { value: "branding", label: "Branding" },
-  { value: "website", label: "Website" },
   { value: "support", label: "Support" },
   { value: "other", label: "Other" },
 ];
@@ -398,4 +399,3 @@ export default function ProjectFormModal({
     </div>
   );
 }
-

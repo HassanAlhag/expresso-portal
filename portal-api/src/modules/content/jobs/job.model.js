@@ -222,6 +222,17 @@ const JobSchema = new mongoose.Schema(
       default: [],
     },
 
+    postMetrics: {
+      likes:          { type: Number, default: 0 },
+      comments:       { type: Number, default: 0 },
+      shares:         { type: Number, default: 0 },
+      saves:          { type: Number, default: 0 },
+      reach:          { type: Number, default: 0 },
+      impressions:    { type: Number, default: 0 },
+      engagementRate: { type: Number, default: 0 },
+      lastUpdated:    { type: Date,   default: null },
+    },
+
     publishedAt: { type: Date, default: null },
     deliveredAt: { type: Date, default: null },
 

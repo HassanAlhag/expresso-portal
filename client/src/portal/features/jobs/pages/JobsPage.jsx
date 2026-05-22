@@ -261,7 +261,6 @@ function JobEditModal({ open, job, onClose, onSaved }) {
         title: form.title.trim(),
         status: form.status,
         priority: form.priority,
-        type: form.type,
         platform: form.platform || "",
         dueDate: form.dueDate || null,
         assignees: form.assignees.map((a) => a._id || a),

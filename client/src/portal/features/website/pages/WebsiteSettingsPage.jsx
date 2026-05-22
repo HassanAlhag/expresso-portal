@@ -28,7 +28,6 @@ import MediaPickerModal from "../../media-library/components/MediaPickerModal";
 import { getSiteSettings, updateSiteSettings } from "../api";
 import { updateSiteSettingsCache } from "../../../../hooks/useSiteSettings";
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
-import { IT_SOLUTION_IMAGE_FIELDS } from "../../../../data/technologySolutionsData";
 import {
   OTHER_WEBSITE_IMAGE_REGISTRY,
   WEBSITE_PAGE_IMAGE_REGISTRY,
@@ -213,7 +212,7 @@ const TABS = [
     key: "services",
     label: "Services",
     Icon: Briefcase,
-    hint: "Services page images",
+    hint: "Parent /services page hero and copy",
     type: "images",
     fields: [
       {
@@ -222,11 +221,85 @@ const TABS = [
         label: "Page Hero Image",
         hint: "Banner at the top of the Services page",
       },
+    ],
+    textFields: [
       {
-        key: "sectionBgUrl",
-        mediaKey: "sectionBgMediaId",
-        label: "Section Background",
-        hint: "Background texture used in service cards",
+        key: "heroHeading",
+        label: "Hero Heading",
+        placeholder: "Discover Our Exceptional Services",
+        hint: "Main heading on /services",
+      },
+      {
+        key: "heroSubheading",
+        label: "Hero Subheading",
+        placeholder: "We're not your typical digital marketing agency...",
+        hint: "Short paragraph under the /services hero heading",
+        multiline: true,
+      },
+      {
+        key: "introSubheading",
+        label: "Cards Section Label",
+        placeholder: "What we do",
+      },
+      {
+        key: "introHeading",
+        label: "Cards Section Heading",
+        placeholder: "Our team builds bold brands",
+      },
+      {
+        key: "processSubheading",
+        label: "Process Section Label",
+        placeholder: "Our Process",
+      },
+      {
+        key: "processHeading",
+        label: "Process Section Heading",
+        placeholder: "Our Process: Built for Bold Brands",
+      },
+      {
+        key: "processDescription",
+        label: "Process Section Description",
+        placeholder: "We don't just jump in, we dig deep...",
+        multiline: true,
+      },
+      {
+        key: "clientsSubheading",
+        label: "Clients Section Label",
+        placeholder: "The Dreamers. The Doers. The Disruptors.",
+      },
+      {
+        key: "clientsHeading",
+        label: "Clients Section Heading",
+        placeholder: "We don't just serve clients...",
+        multiline: true,
+      },
+      {
+        key: "clientsDescription",
+        label: "Clients Section Description",
+        placeholder: "Our clients are risk-takers...",
+        multiline: true,
+      },
+      {
+        key: "testimonialsSubheading",
+        label: "Testimonials Label",
+        placeholder: "Testimonials",
+      },
+      {
+        key: "testimonialsHeading",
+        label: "Testimonials Heading",
+        placeholder: "We know the best results come from bold ideas.",
+        multiline: true,
+      },
+      {
+        key: "contactHeading",
+        label: "Contact CTA Heading",
+        placeholder: "Crafting Stories Through Design",
+      },
+      {
+        key: "contactContent",
+        label: "Contact CTA Content",
+        placeholder: "Explore a world where creativity meets precision...",
+        multiline: true,
       },
     ],
   },
@@ -299,7 +372,7 @@ const TABS = [
     key: "itSolutions",
     label: "IT Solutions",
     Icon: Briefcase,
-    hint: "Main IT Solutions page and inner solution page images",
+    hint: "Parent /it-solutions page hero and copy",
     type: "images",
     fields: [
       {
@@ -308,7 +381,45 @@ const TABS = [
         label: "Main IT Solutions Page Hero",
         hint: "Used on /it-solutions",
       },
-      ...IT_SOLUTION_IMAGE_FIELDS,
+    ],
+    textFields: [
+      {
+        key: "heroHeading",
+        label: "Hero Label",
+        placeholder: "Technology Solutions",
+      },
+      {
+        key: "heroSubtitle",
+        label: "Hero Title",
+        placeholder: "Enterprise IT Procurement, Simplified",
+      },
+      {
+        key: "heroDescription",
+        label: "Hero Description",
+        placeholder: "From ERP and CRM to IoT, cloud infrastructure...",
+        multiline: true,
+      },
+      {
+        key: "offerEyebrow",
+        label: "Solutions Section Label",
+        placeholder: "What We Offer",
+      },
+      {
+        key: "offerTitle",
+        label: "Solutions Section Title",
+        placeholder: "Our solution",
+      },
+      {
+        key: "offerHighlight",
+        label: "Solutions Section Highlight",
+        placeholder: "categories",
+      },
+      {
+        key: "offerSubtitle",
+        label: "Solutions Section Description",
+        placeholder: "We cover every layer of enterprise technology...",
+        multiline: true,
+      },
     ],
   },
 
@@ -554,13 +665,23 @@ function ImagesSection({ tab, sectionData, onSave }) {
                 <p className="mt-0.5 text-[11px] text-slate-400">{f.hint}</p>
               )}
             </div>
-            <input
-              type="text"
-              value={local[f.key] || ""}
-              onChange={(e) => set(f.key, e.target.value)}
-              placeholder={f.placeholder}
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-            />
+            {f.multiline ? (
+              <textarea
+                rows={4}
+                value={local[f.key] || ""}
+                onChange={(e) => set(f.key, e.target.value)}
+                placeholder={f.placeholder}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              />
+            ) : (
+              <input
+                type="text"
+                value={local[f.key] || ""}
+                onChange={(e) => set(f.key, e.target.value)}
+                placeholder={f.placeholder}
+                className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+              />
+            )}
           </div>
         ))}
       </div>
@@ -602,6 +723,7 @@ function searchMatches(parts = [], query) {
 }
 
 const OTHER_WEBSITE_IMAGES_KEY = "__otherWebsiteImages";
+const WEBSITE_IMAGE_KEYS = new Set(WEBSITE_IMAGE_REGISTRY.map((item) => item.key));
 
 function getWebsiteItemsMap(sectionData = {}) {
   const src = Array.isArray(sectionData?.images) ? sectionData.images : [];
@@ -652,18 +774,11 @@ const WEBSITE_SECTION_ICONS = {
   home: Globe,
   aboutUs: Info,
   servicesMain: Briefcase,
-  websiteDevelopment: Layers,
-  socialMediaMarketing: Sparkles,
-  seoMarketing: Search,
-  googleAds: Briefcase,
-  videography: GalleryVerticalEnd,
-  contentCreation: Sparkles,
   portfolio: GalleryVerticalEnd,
   portfolioDetail: Layers,
   contact: Phone,
   careers: UserRound,
   itSolutions: Briefcase,
-  itSolutionDetails: Briefcase,
   planBuilder: Layers,
   webPricing: Briefcase,
   seoPricing: Search,
@@ -683,6 +798,17 @@ function getWebsiteSectionIcon(key) {
   return WEBSITE_SECTION_ICONS[key] || ImageIcon;
 }
 
+function getParentPageSettingsTab(selectedKey) {
+  const sectionKey =
+    selectedKey === "servicesMain"
+      ? "services"
+      : selectedKey === "itSolutions"
+        ? "itSolutions"
+        : null;
+
+  return sectionKey ? TABS.find((tab) => tab.key === sectionKey) : null;
+}
+
 const WEBSITE_MENU_GROUPS = [
   {
     label: "Core",
@@ -695,20 +821,8 @@ const WEBSITE_MENU_GROUPS = [
       "careers",
       "contact",
       "itSolutions",
-      "itSolutionDetails",
       "planBuilder",
       "marketingSolutions",
-    ],
-  },
-  {
-    label: "Services",
-    keys: [
-      "websiteDevelopment",
-      "socialMediaMarketing",
-      "seoMarketing",
-      "googleAds",
-      "videography",
-      "contentCreation",
     ],
   },
   {
@@ -1002,7 +1116,7 @@ function WebsiteImagesSection({ sectionData, selectedKey, headerIcon: HeaderIcon
     try {
       await onSave("websiteImages", {
         images: Object.values(items)
-          .filter((item) => item?.key && item?.url)
+          .filter((item) => item?.key && item?.url && WEBSITE_IMAGE_KEYS.has(item.key))
           .map(({ key, url, mediaId }) => ({ key, url, mediaId: mediaId || null })),
       });
       setDirty(false);
@@ -1669,6 +1783,12 @@ export default function WebsiteSettingsPage() {
     !activeWebsiteBrandingTab
       ? getWebsiteImageTarget(activeWebsiteImagePage)
       : null;
+  const parentPageSettingsTab = !activeWebsiteBrandingTab
+    ? getParentPageSettingsTab(activeWebsiteImagePage)
+    : null;
+  const parentPageSettingsData = parentPageSettingsTab
+    ? (settings || {})[parentPageSettingsTab.key] || {}
+    : {};
   const websiteImageItems = websiteImageTarget
     ? getWebsiteItemsMap((settings || {}).websiteImages || {})
     : {};
@@ -1826,13 +1946,40 @@ export default function WebsiteSettingsPage() {
               onSave={handleSave}
             />
           ) : currentTab.type === "websiteImages" ? (
-            <WebsiteImagesSection
-              key={currentTab.key}
-              sectionData={currentData}
-              selectedKey={activeWebsiteImagePage}
-              headerIcon={HeaderIcon}
-              onSave={handleSave}
-            />
+            <>
+              {parentPageSettingsTab && (
+                <div className="mb-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                  <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-base font-black text-slate-900">
+                          Parent Page Content
+                        </h3>
+                        <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-700">
+                          {parentPageSettingsTab.key === "services" ? "/services" : "/it-solutions"}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Manage the main page hero image and text here. Detail pages are managed from Digital Services or Technology Solutions.
+                      </p>
+                    </div>
+                  </div>
+                  <ImagesSection
+                    key={parentPageSettingsTab.key}
+                    tab={parentPageSettingsTab}
+                    sectionData={parentPageSettingsData}
+                    onSave={handleSave}
+                  />
+                </div>
+              )}
+              <WebsiteImagesSection
+                key={currentTab.key}
+                sectionData={currentData}
+                selectedKey={activeWebsiteImagePage}
+                headerIcon={HeaderIcon}
+                onSave={handleSave}
+              />
+            </>
           ) : (
             <ImagesSection
               key={currentTab.key}

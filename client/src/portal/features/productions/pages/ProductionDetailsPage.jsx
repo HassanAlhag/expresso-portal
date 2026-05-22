@@ -7,11 +7,12 @@ import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
 import ProductionJobFormModal from "../components/ProductionJobFormModal";
-import VideoReviewPanel from "../components/VideoReviewPanel";
+import CreativeReviewPanel from "../../jobs/components/CreativeReviewPanel";
 
 import { addApproval } from "../../jobs/api";
 import { listUsers } from "../../iam/users/api";
 import {
+  attachProductionMedia,
   deleteProductionJob,
   getProductionJob,
   publishProductionJob,
@@ -121,14 +122,9 @@ export default function ProductionDetailsPage() {
   useEffect(() => { setExternalUrlDraft(item?.externalPostUrl || ""); }, [item]);
 
   useEffect(() => {
-    Promise.all([
-      listUsers({ role: "staff", isActive: true, limit: 100 }),
-      listUsers({ role: "admin", isActive: true, limit: 50 }),
-    ]).then(([s, a]) => {
-      const all = [...(s?.items || []), ...(a?.items || [])];
-      const seen = new Set();
-      setStaffUsers(all.filter((u) => { if (seen.has(u._id)) return false; seen.add(u._id); return true; }));
-    }).catch(() => {});
+    listUsers({ isInternal: "true", isActive: "true", limit: 100 })
+      .then((r) => setStaffUsers(r?.users || r?.items || []))
+      .catch(() => {});
   }, []);
 
   const moveToStage = async (status) => {
@@ -211,7 +207,7 @@ export default function ProductionDetailsPage() {
   };
 
   const handlePublish = async () => {
-    if (!item?.finalMediaId) { toast.warning("Attach the final video before publishing."); return; }
+    if (!(item?.media?.length > 0)) { toast.warning("Attach at least one version before publishing."); return; }
     setBusy(true);
     try {
       await publishProductionJob(id);
@@ -231,26 +227,17 @@ export default function ProductionDetailsPage() {
 
   const handleMediaPicked = async (media) => {
     if (!item?._id || !media?._id || !pickerSlot) return;
-    const fieldMap = { draft: "draftMediaId", final: "finalMediaId", poster: "posterMediaId" };
-    const patch = { [fieldMap[pickerSlot]]: media._id };
     setBusy(true);
     try {
-      await updateProductionJob(item._id, patch);
+      if (pickerSlot === "poster") {
+        await updateProductionJob(item._id, { posterMediaId: media._id });
+      } else {
+        await attachProductionMedia(item._id, [media._id]);
+      }
       setPickerOpen(false);
       await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed to attach media");
-    } finally { setBusy(false); }
-  };
-
-  const handleClearMedia = async (field) => {
-    if (!item?._id) return;
-    setBusy(true);
-    try {
-      await updateProductionJob(item._id, { [field]: null });
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed");
     } finally { setBusy(false); }
   };
 
@@ -261,8 +248,15 @@ export default function ProductionDetailsPage() {
     setBusy(true);
     try {
       const next = !item.websiteVisible;
-      const res = await updateProductionJob(item._id, { websiteVisible: next });
-      setItem(res?.item || { ...item, websiteVisible: next });
+      if (next && item.status !== "published") {
+        await publishProductionJob(item._id);
+      } else {
+        await updateProductionJob(item._id, {
+          websiteVisible: next,
+          publishStatus: next ? "published" : "ready",
+        });
+      }
+      await load();
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed");
     } finally { setBusy(false); }
@@ -379,7 +373,7 @@ export default function ProductionDetailsPage() {
               <Badge tone={statusTone(item.status)}>{String(item.status || "").replaceAll("_", " ").toUpperCase()}</Badge>
               <Badge tone="slate">{String(item.type || "").toUpperCase()}</Badge>
               {item.priority && <Badge tone="amber">{String(item.priority).toUpperCase()}</Badge>}
-              {item.websiteVisible && <Badge tone="emerald">ON WEBSITE</Badge>}
+              {item.status === "published" && item.websiteVisible && <Badge tone="emerald">LIVE ON WEBSITE</Badge>}
             </div>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
@@ -468,19 +462,12 @@ export default function ProductionDetailsPage() {
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
         {/* Left column */}
         <div className="grid gap-5">
-          {/* Video review panel — the centrepiece */}
-          <VideoReviewPanel
-            draftMedia={item.draftMediaId}
-            finalMedia={item.finalMediaId}
-            posterMedia={item.posterMediaId}
+          {/* Creative review panel — versions list */}
+          <CreativeReviewPanel
+            media={Array.isArray(item.media) ? item.media : []}
             approvals={approvals}
             busy={busy}
-            onAttachDraft={() => openPicker("draft", "video")}
-            onAttachFinal={() => openPicker("final", "video")}
-            onAttachPoster={() => openPicker("poster", "image")}
-            onClearDraft={() => handleClearMedia("draftMediaId")}
-            onClearFinal={() => handleClearMedia("finalMediaId")}
-            onClearPoster={() => handleClearMedia("posterMediaId")}
+            onAttach={() => openPicker("version", "video")}
             onApprove={handleApprove}
             onRequestChanges={handleRequestChanges}
             onSendToClient={handleSendToClient}
@@ -605,6 +592,42 @@ export default function ProductionDetailsPage() {
             )}
           </div>
 
+          {/* Poster image */}
+          <div className="rounded-[24px] border border-black/[0.07] bg-white p-5">
+            <h3 className="mb-4 text-[11px] font-extrabold tracking-[0.2em] text-slate-400">POSTER IMAGE</h3>
+            {item.posterMediaId ? (
+              <div className="relative overflow-hidden rounded-2xl border border-black/10">
+                <img
+                  src={item.posterMediaId?.url || item.posterMediaId?.fileUrl || ""}
+                  alt="Poster"
+                  className="w-full object-cover max-h-40"
+                />
+                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-black/50 px-3 py-2">
+                  <span className="text-xs font-bold text-white truncate">
+                    {item.posterMediaId?.title || "Poster"}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => openPicker("poster", "image")}
+                    className="shrink-0 rounded-lg bg-white/20 px-2 py-1 text-[11px] font-bold text-white hover:bg-white/30 disabled:opacity-60"
+                  >
+                    Replace
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => openPicker("poster", "image")}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 py-6 text-xs font-bold text-slate-400 transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60"
+              >
+                + Attach poster image
+              </button>
+            )}
+          </div>
+
           {/* Website visibility */}
           <div className="rounded-[24px] border border-black/[0.07] bg-white p-5">
             <h3 className="mb-4 text-[11px] font-extrabold tracking-[0.2em] text-slate-400">WEBSITE</h3>
@@ -624,7 +647,7 @@ export default function ProductionDetailsPage() {
                     : "bg-slate-200 text-slate-600 hover:bg-slate-300",
                 ].join(" ")}
               >
-                {item.websiteVisible ? "Visible" : "Hidden"}
+                {item.status === "published" && item.websiteVisible ? "Live" : "Not live"}
               </button>
             </div>
             <div className="mt-3">
@@ -660,12 +683,8 @@ export default function ProductionDetailsPage() {
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onSelect={handleMediaPicked}
-        title={
-          pickerSlot === "draft"  ? "Select draft video"
-          : pickerSlot === "final"  ? "Select final video"
-          : "Select poster image"
-        }
-        subtitle="Choose media from the Media Library."
+        title={pickerSlot === "poster" ? "Select poster image" : "Attach version"}
+        subtitle={pickerSlot === "poster" ? "Choose a thumbnail image." : "Select a video to add as a new version."}
         onlyType={pickerType}
         multiple={false}
         allowUpload

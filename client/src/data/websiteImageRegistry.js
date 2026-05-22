@@ -45,7 +45,39 @@ function page(key, label, route, file, components = []) {
   };
 }
 
-const IT_SOLUTION_HERO_IMAGES = [
+const DYNAMIC_DETAIL_IMAGE_PATHS = [
+  "/web8.jpg",
+  "/web6.png",
+  "/web1.png",
+  "/web2.png",
+  "/web3.png",
+  "/web4.png",
+  "/web5.png",
+  "/web7.png",
+  "/web-plan.jpg",
+  "/image2.png",
+  "/image3.jpg",
+  "/sm1.jpg",
+  "/sm2.jpg",
+  "/sm3.jpg",
+  "/sm4.jpg",
+  "/sm5.jpg",
+  "/sm6.jpg",
+  "/sm7.jpg",
+  "/seo1.jpg",
+  "/seo2.jpg",
+  "/seo3.jpg",
+  "/seo4.jpg",
+  "/seo5.jpg",
+  "/seo6.jpg",
+  "/seo7.jpg",
+  "/72.jpg",
+  "/73.jpg",
+  "/74.jpg",
+  "/76.jpeg",
+  "/77.jpg",
+  "/84.jpg",
+  "https://demo.casethemes.net/saira/wp-content/uploads/2023/09/u-bg6.jpg",
   "/it-solutions/software-licensing.webp",
   "/it-solutions/erp-solution.webp",
   "/it-solutions/crm-solution.webp",
@@ -59,6 +91,10 @@ const IT_SOLUTION_HERO_IMAGES = [
   "/it-solutions/networking-hardware.webp",
   "/it-solutions/data-center-hardware.webp",
 ];
+
+const DYNAMIC_DETAIL_IMAGE_KEYS = new Set(
+  DYNAMIC_DETAIL_IMAGE_PATHS.map((path) => normalizeImagePath(path))
+);
 
 const PORTFOLIO_CARD_IMAGES = [
   "/pat-thumb.jpg",
@@ -288,157 +324,6 @@ export const WEBSITE_PAGE_IMAGE_REGISTRY = [
     ),
   ]),
 
-  page(
-    "websiteDevelopment",
-    "Website Development",
-    "/service/web-dev",
-    "client/src/pages/Services/webiste-dev.jsx",
-    [
-      component(
-        "serviceBanner",
-        "ServiceBanner",
-        "client/src/components/ServicesBanner/servicesBanner.jsx",
-        ["/web8.jpg"]
-      ),
-      component(
-        "editorialSection",
-        "Editorial Section",
-        "client/src/pages/Services/webiste-dev.jsx",
-        ["/web6.png"]
-      ),
-      component(
-        "processTimeline",
-        "Process Timeline",
-        "client/src/pages/Services/webiste-dev.jsx",
-        ["/web2.png", "/web5.png", "/web1.png", "/web3.png", "/web4.png", "/web7.png"]
-      ),
-    ]
-  ),
-
-  page(
-    "socialMediaMarketing",
-    "Social Media Marketing",
-    "/service/social-media-marketing",
-    "client/src/pages/Services/social-media-marketing.jsx",
-    [
-      component(
-        "serviceBanner",
-        "ServiceBanner",
-        "client/src/components/ServicesBanner/servicesBanner.jsx",
-        ["/sm7.jpg"]
-      ),
-      component(
-        "webDevelopmentSolutions",
-        "WebDevelopmentSolutions",
-        "client/src/components/ServicesComponents/webSolution.jsx",
-        ["/sm2.jpg", SERVICES_SECTION_BG]
-      ),
-      component(
-        "webSteps",
-        "WebSteps",
-        "client/src/components/ServicesComponents/webSteps.jsx",
-        ["/sm1.jpg", "/sm3.jpg", "/sm4.jpg", "/sm5.jpg", "/sm6.jpg"]
-      ),
-    ]
-  ),
-
-  page("seoMarketing", "SEO Marketing", "/service/seo-marketing", "client/src/pages/Services/seo-marketing.jsx", [
-    component(
-      "serviceBanner",
-      "ServiceBanner",
-      "client/src/components/ServicesBanner/servicesBanner.jsx",
-      ["/seo7.jpg"]
-    ),
-    component(
-      "webDevelopmentSolutions",
-      "WebDevelopmentSolutions",
-      "client/src/components/ServicesComponents/webSolution.jsx",
-      ["/seo4.jpg", SERVICES_SECTION_BG]
-    ),
-    component("webSteps", "WebSteps", "client/src/components/ServicesComponents/webSteps.jsx", [
-      "/seo1.jpg",
-      "/seo2.jpg",
-      "/seo3.jpg",
-      "/seo5.jpg",
-      "/seo6.jpg",
-    ]),
-  ]),
-
-  page("googleAds", "Google Ads", "/service/google-ads", "client/src/pages/Services/google-ads.jsx", [
-    component(
-      "serviceBanner",
-      "ServiceBanner",
-      "client/src/components/ServicesBanner/servicesBanner.jsx",
-      ["/84.jpg"]
-    ),
-    component(
-      "webDevelopmentSolutions",
-      "WebDevelopmentSolutions",
-      "client/src/components/ServicesComponents/webSolution.jsx",
-      ["/72.jpg", SERVICES_SECTION_BG]
-    ),
-    component("webSteps", "WebSteps", "client/src/components/ServicesComponents/webSteps.jsx", [
-      "/73.jpg",
-      "/74.jpg",
-      "/83.jpeg",
-      "/76.jpeg",
-      "/77.jpg",
-      "/86.jpg",
-    ]),
-  ]),
-
-  page("videography", "Videography", "/service/videography", "client/src/pages/Services/videography.jsx", [
-    component(
-      "serviceBanner",
-      "ServiceBanner",
-      "client/src/components/ServicesBanner/servicesBanner.jsx",
-      ["/web-banner.jpg"]
-    ),
-    component(
-      "webDevelopmentSolutions",
-      "WebDevelopmentSolutions",
-      "client/src/components/ServicesComponents/webSolution.jsx",
-      ["/image3.jpg", SERVICES_SECTION_BG]
-    ),
-    component("webSteps", "WebSteps", "client/src/components/ServicesComponents/webSteps.jsx", [
-      "/web-plan.jpg",
-      "/web-banner.jpg",
-      "/image2.png",
-      "/web-plan.jpg",
-      "/web-banner.jpg",
-      "/image2.png",
-    ]),
-  ]),
-
-  page(
-    "contentCreation",
-    "Content Creation",
-    "/service/content-creation",
-    "client/src/pages/Services/content-creation.jsx",
-    [
-      component(
-        "serviceBanner",
-        "ServiceBanner",
-        "client/src/components/ServicesBanner/servicesBanner.jsx",
-        ["/web-banner.jpg"]
-      ),
-      component(
-        "webDevelopmentSolutions",
-        "WebDevelopmentSolutions",
-        "client/src/components/ServicesComponents/webSolution.jsx",
-        ["/image3.jpg", SERVICES_SECTION_BG]
-      ),
-      component("webSteps", "WebSteps", "client/src/components/ServicesComponents/webSteps.jsx", [
-        "/web-plan.jpg",
-        "/web-banner.jpg",
-        "/image2.png",
-        "/web-plan.jpg",
-        "/web-banner.jpg",
-        "/image2.png",
-      ]),
-    ]
-  ),
-
   page("portfolio", "Portfolio", "/our-portfolio", "client/src/pages/Portfolio/portfolio.jsx", [
     component(
       "serviceBanner",
@@ -513,21 +398,6 @@ export const WEBSITE_PAGE_IMAGE_REGISTRY = [
       ["/81.webp"]
     ),
   ]),
-
-  page(
-    "itSolutionDetails",
-    "IT Solution Details",
-    "/it-solutions/:slug",
-    "client/src/pages/ITSolutions/ITSolutionDetailsPage.jsx",
-    [
-      component(
-        "auroraHero",
-        "AuroraHero",
-        "client/src/components/BannerSection/bannerSection.jsx",
-        IT_SOLUTION_HERO_IMAGES
-      ),
-    ]
-  ),
 
   page("planBuilder", "Plan Builder", "/build-your-plan", "client/src/pages/PlanBuilder/planBuilderPage.jsx", [
     component(
@@ -876,7 +746,7 @@ const pageImageEntries = WEBSITE_PAGE_IMAGE_REGISTRY.flatMap((pageItem) =>
 const pageImageKeys = new Set(pageImageEntries.map((item) => item.key));
 
 export const OTHER_WEBSITE_IMAGE_REGISTRY = uniquePaths(LEGACY_WEBSITE_IMAGES)
-  .filter((path) => !pageImageKeys.has(path))
+  .filter((path) => !pageImageKeys.has(path) && !DYNAMIC_DETAIL_IMAGE_KEYS.has(path))
   .map((path) => ({
     key: path,
     group: "Other Website Images",

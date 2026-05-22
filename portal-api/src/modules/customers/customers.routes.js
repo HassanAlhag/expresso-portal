@@ -8,6 +8,8 @@ import {
   updateCustomer,
   deleteCustomer,
   createCustomerLogin,
+  listCustomerUsers,
+  createCustomerUser,
 } from "./customers.controller.js";
 
 const router = express.Router();
@@ -47,6 +49,20 @@ router.post(
   requireAuth,
   requirePermission("customers.write"),
   createCustomerLogin
+);
+
+router.get(
+  "/:id/users",
+  requireAuth,
+  requirePermission("customers.read"),
+  listCustomerUsers
+);
+
+router.post(
+  "/:id/users",
+  requireAuth,
+  requirePermission("customers.write"),
+  createCustomerUser
 );
 
 export default router;

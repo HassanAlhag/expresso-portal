@@ -1,5 +1,9 @@
 import express from "express";
 import { requireAuth, requirePermission } from "../../middleware/auth.js";
+import {
+  canSeeAllTenantRecords,
+  getUserClientId,
+} from "../../utils/accessControl.js";
 import Project from "./project.model.js";
 
 import {
@@ -17,18 +21,43 @@ router.get(
   "/stats",
   requireAuth,
   requirePermission("projects.read"),
-  async (_req, res) => {
+  async (req, res) => {
+    const tenantFilter = {};
+
+    if (!canSeeAllTenantRecords(req)) {
+      const clientId = getUserClientId(req);
+      if (!clientId) {
+        return res.json({
+          ok: true,
+          total: 0,
+          byStatus: {},
+          byType: {},
+          byPriority: {},
+        });
+      }
+      tenantFilter.customerId = clientId;
+    }
+
     const [byStatus, byType, byPriority, total] = await Promise.all([
-      Project.aggregate([{ $group: { _id: "$status",   count: { $sum: 1 } } }]),
-      Project.aggregate([{ $group: { _id: "$type",     count: { $sum: 1 } } }]),
-      Project.aggregate([{ $group: { _id: "$priority", count: { $sum: 1 } } }]),
-      Project.countDocuments(),
+      Project.aggregate([
+        { $match: tenantFilter },
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+      ]),
+      Project.aggregate([
+        { $match: tenantFilter },
+        { $group: { _id: "$type", count: { $sum: 1 } } },
+      ]),
+      Project.aggregate([
+        { $match: tenantFilter },
+        { $group: { _id: "$priority", count: { $sum: 1 } } },
+      ]),
+      Project.countDocuments(tenantFilter),
     ]);
     return res.json({
       ok: true,
       total,
-      byStatus:   Object.fromEntries(byStatus.map((x) => [x._id, x.count])),
-      byType:     Object.fromEntries(byType.map((x) => [x._id, x.count])),
+      byStatus: Object.fromEntries(byStatus.map((x) => [x._id, x.count])),
+      byType: Object.fromEntries(byType.map((x) => [x._id, x.count])),
       byPriority: Object.fromEntries(byPriority.map((x) => [x._id, x.count])),
     });
   }

@@ -8,7 +8,6 @@ const RoleSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      index: true,
     },
 
     label: {
@@ -38,8 +37,6 @@ const RoleSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-RoleSchema.index({ key: 1 }, { unique: true });
 
 const Role = mongoose.models.Role || mongoose.model("Role", RoleSchema);
 export default Role;

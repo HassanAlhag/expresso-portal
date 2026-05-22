@@ -84,13 +84,24 @@ export async function getDashboardStats(req, res) {
 
     const byStatus = Object.fromEntries(statuses.map((s, i) => [s, statusCounts[i]]));
     const byPriority = Object.fromEntries(priorities.map((p, i) => [p, priorityCounts[i]]));
+    const totals = {
+      pending: (byStatus.new || 0) + (byStatus.assessing || 0) + (byStatus.quoted || 0),
+      inProgress: (byStatus.approved || 0) + (byStatus.ordered || 0),
+      delivered: byStatus.delivered || 0,
+      cancelled: byStatus.cancelled || 0,
+      urgent: byPriority.urgent || 0,
+      high: byPriority.high || 0,
+    };
+    const sanitizedRecent = recentRequests.map((item) => sanitizeForExternal(req, item));
 
     return res.json({
       ok: true,
       total,
       byStatus,
       byPriority,
-      recentRequests: recentRequests.map((item) => sanitizeForExternal(req, item)),
+      totals,
+      recentRequests: sanitizedRecent,
+      recent: sanitizedRecent,
     });
   } catch (e) {
     console.error("getDashboardStats:", e);

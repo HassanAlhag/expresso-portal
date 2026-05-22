@@ -29,3 +29,15 @@ export async function getCustomerById(id) {
   const { data } = await api.get(`/customers/${id}`);
   return data; // { ok, item }
 }
+
+// GET /api/customers/:id/users
+export async function listCustomerUsers(id) {
+  const { data } = await api.get(`/customers/${id}/users`);
+  return data;
+}
+
+// POST /api/customers/:id/users
+export async function createCustomerUser(id, payload) {
+  const { data } = await api.post(`/customers/${id}/users`, payload);
+  return data;
+}

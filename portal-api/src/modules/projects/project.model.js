@@ -13,7 +13,6 @@ const ProjectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Enrollment",
       default: null,
-      index: true,
     },
 
     name: {
@@ -45,7 +44,7 @@ const ProjectSchema = new mongoose.Schema(
     type: {
       type: String,
       trim: true,
-      default: "delivery", // delivery | campaign | branding | website | support | other
+      default: "delivery", // delivery | website | seo | campaign | branding | support | other
       index: true,
     },
 
@@ -67,14 +66,12 @@ const ProjectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
-      index: true,
     },
 
     team: {
       type: String,
       trim: true,
       default: "",
-      index: true,
     },
 
     startDate: { type: Date, default: null },

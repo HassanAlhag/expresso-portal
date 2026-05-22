@@ -20,15 +20,23 @@ import {
   Zap,
   FileText,
   Files,
+  AlertTriangle,
+  ReceiptText,
+  CalendarDays,
+  MessageCircle,
+  BarChart2,
 } from "lucide-react";
 
 import Skeleton from "../../../shared/ui/Skeleton";
 import { listJobs } from "../../jobs/api";
-import { listTickets } from "../../tickets/api";
+import { getTicketStats, listTickets } from "../../tickets/api";
 import { listCustomers } from "../../customers/api";
 import { listProjects } from "../../projects/api";
 import { listDeals } from "../../crm/api";
-import { listRfqs } from "../../procurement/api";
+import { getProcurementStats, listRfqs } from "../../procurement/api";
+import { getBillingStats } from "../../billing/api";
+import { getExpenseStats, getLeaveStats } from "../../hr/api";
+import { listEnrollments } from "../../enrollments/api";
 
 /* ─── helpers ──────────────────────────────────────────────────────── */
 
@@ -53,6 +61,10 @@ function fmtMoney(n, currency = "AED") {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
   return String(n);
+}
+
+function fmtAed(n) {
+  return `AED ${fmtMoney(Number(n || 0))}`;
 }
 
 function getPortalRole() {
@@ -377,6 +389,58 @@ function ListRow({ title, sub, status, meta, onClick }) {
   );
 }
 
+function ControlMetric({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  tone = "slate",
+  onClick,
+}) {
+  const tones = {
+    slate: "bg-slate-50 text-slate-600",
+    rose: "bg-rose-50 text-rose-600",
+    amber: "bg-amber-50 text-amber-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+    blue: "bg-blue-50 text-blue-600",
+    violet: "bg-violet-50 text-violet-600",
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex min-h-[116px] flex-col items-start justify-between gap-3 px-5 py-4 text-left transition hover:bg-slate-50 active:scale-[0.99]"
+    >
+      <div className="flex w-full items-start justify-between gap-3">
+        <div
+          className={[
+            "grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl",
+            tones[tone] || tones.slate,
+          ].join(" ")}
+        >
+          <Icon size={16} strokeWidth={2} />
+        </div>
+        <ArrowRight
+          size={13}
+          className="mt-1 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500"
+        />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[23px] font-black leading-none tracking-tight text-slate-900">
+          {value}
+        </div>
+        <div className="mt-1.5 text-[12px] font-bold text-slate-600">
+          {label}
+        </div>
+        <div className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
+          {sub}
+        </div>
+      </div>
+    </button>
+  );
+}
+
 function EmptyRows({ icon: Icon, message }) {
   return (
     <div className="flex flex-col items-center justify-center px-5 py-10 text-center">
@@ -389,129 +453,203 @@ function EmptyRows({ icon: Icon, message }) {
 /* ─── client dashboard ──────────────────────────────────────────────── */
 
 function ClientDashboard({ nav }) {
+  const me = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem("portal_user") || "{}"); }
+    catch { return {}; }
+  }, []);
+
   const [loading, setLoading] = useState(true);
-  const [tickets, setTickets] = useState([]);
+  const [tickets, setTickets]     = useState([]);
+  const [projects, setProjects]   = useState([]);
+  const [enrollment, setEnrollment] = useState(null);
+  const [monthJobs, setMonthJobs] = useState([]);
 
   useEffect(() => {
+    const clientId = me?.clientId;
     (async () => {
       setLoading(true);
       try {
-        const t = await listTickets({ limit: 50, page: 1 });
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const lastDay  = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+        const [t, p, e, j] = await Promise.all([
+          listTickets({ limit: 50, page: 1 }),
+          clientId ? listProjects({ customerId: clientId, status: "active", limit: 10 }) : Promise.resolve({ items: [] }),
+          clientId ? listEnrollments({ customerId: clientId, status: "active", limit: 1 }) : Promise.resolve({ items: [] }),
+          clientId ? listJobs({ customerId: clientId, dueDateFrom: firstDay, dueDateTo: lastDay, limit: 200 }) : Promise.resolve({ items: [] }),
+        ]);
         setTickets(t?.items || []);
+        setProjects(p?.items || []);
+        setEnrollment((e?.items || [])[0] || null);
+        setMonthJobs(j?.items || []);
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [me]);
 
   const openTickets = useMemo(
-    () =>
-      tickets.filter(
-        (x) =>
-          !["closed", "resolved", "done"].includes(
-            (x.status || "").toLowerCase()
-          )
-      ),
+    () => tickets.filter((x) => !["closed", "resolved", "done"].includes((x.status || "").toLowerCase())),
     [tickets]
   );
-  const resolvedTickets = useMemo(
-    () =>
-      tickets.filter((x) =>
-        ["closed", "resolved", "done"].includes((x.status || "").toLowerCase())
-      ),
-    [tickets]
+  // Deliverables tracker (#18)
+  const deliverableTarget = useMemo(() => {
+    if (!enrollment?.finalScope?.groups) return 0;
+    return enrollment.finalScope.groups.reduce(
+      (sum, g) => sum + (g.jobs || []).reduce((s2, j) => s2 + (j.quantity || 1), 0),
+      0
+    );
+  }, [enrollment]);
+  const deliverablesDone = useMemo(
+    () => monthJobs.filter((j) => j.publishStatus === "published" || j.status === "delivered").length,
+    [monthJobs]
+  );
+  const postsAwaitingApproval = useMemo(
+    () => monthJobs.filter((j) => j.status === "client_review").length,
+    [monthJobs]
   );
 
   return (
     <div className="grid gap-5">
+      {/* Hero banner */}
       <div className="relative overflow-hidden rounded-2xl bg-slate-900 px-7 py-6 text-white shadow-[0_8px_32px_rgba(15,23,42,0.16)]">
-        <div
-          className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full blur-3xl"
-          style={{ backgroundColor: "#6f7fd9", opacity: 0.22 }}
-        />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-px"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(111,127,217,0.5) 50%, transparent)",
-          }}
-        />
-        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[12px] font-medium tracking-wide text-white/45">
-              {fmtDate()}
-            </p>
-            <h1 className="mt-1 text-2xl font-black tracking-tight">
-              {greeting()}
-            </h1>
-            <p className="mt-1 text-[13px] text-white/55">
-              {loading
-                ? "Loading workspace…"
-                : `${openTickets.length} open ticket${
-                    openTickets.length !== 1 ? "s" : ""
-                  } · ${resolvedTickets.length} resolved`}
-            </p>
+        <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full blur-3xl" style={{ backgroundColor: "#6f7fd9", opacity: 0.22 }} />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(111,127,217,0.5) 50%, transparent)" }} />
+        <div className="relative z-10">
+          <p className="text-[12px] font-medium tracking-wide text-white/45">{fmtDate()}</p>
+          <h1 className="mt-1 text-2xl font-black tracking-tight">{greeting()}</h1>
+          <p className="mt-1 text-[13px] text-white/55">
+            {loading ? "Loading workspace…" : `${openTickets.length} open ticket${openTickets.length !== 1 ? "s" : ""} · ${postsAwaitingApproval} post${postsAwaitingApproval !== 1 ? "s" : ""} pending approval`}
+          </p>
+
+          {/* #21 Quick Action Buttons */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" onClick={() => nav("/portal/content-calendar")}
+              className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/[0.14]">
+              <CalendarDays size={14} /> View Calendar
+            </button>
+            {postsAwaitingApproval > 0 && (
+              <button type="button" onClick={() => nav("/portal/content-calendar")}
+                className="flex items-center gap-2 rounded-xl border border-orange-400/40 bg-orange-500/20 px-4 py-2 text-[13px] font-semibold text-orange-200 transition hover:bg-orange-500/30">
+                <CheckCircle2 size={14} /> Approve Posts
+                <span className="ml-0.5 rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-black text-white">{postsAwaitingApproval}</span>
+              </button>
+            )}
+            <button type="button" onClick={() => nav("/portal/files")}
+              className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/[0.14]">
+              <UploadCloud size={14} /> Upload Asset
+            </button>
+            <button type="button" onClick={() => nav("/portal/messages")}
+              className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/[0.14]">
+              <MessageCircle size={14} /> Message Agency
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => nav("/portal/tickets")}
-            className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-white/[0.12]"
-          >
-            New ticket
-          </button>
         </div>
       </div>
 
+      {/* KPI tiles */}
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-3">
           {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-sm"
-            >
+            <div key={i} className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-sm">
               <Skeleton className="h-20 w-full" />
             </div>
           ))}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-3">
-          <KpiTile
-            icon={Ticket}
-            label="Open Tickets"
-            value={openTickets.length}
-            sub="Awaiting response"
-            accent="rose"
-            onClick={() => nav("/portal/tickets")}
-          />
-          <KpiTile
-            icon={CheckCircle2}
-            label="Resolved"
-            value={resolvedTickets.length}
-            sub="Closed & resolved"
-            accent="green"
-            onClick={() => nav("/portal/tickets")}
-          />
-          <KpiTile
-            icon={ClipboardList}
-            label="Total Tickets"
-            value={tickets.length}
-            sub="All time"
-            accent="brand"
-            onClick={() => nav("/portal/tickets")}
-          />
+          <KpiTile icon={Ticket} label="Open Tickets" value={openTickets.length} sub="Awaiting response" accent="rose" onClick={() => nav("/portal/tickets")} />
+          <KpiTile icon={FolderKanban} label="Active Projects" value={projects.length} sub="In progress" accent="brand" onClick={() => nav("/portal/projects")} />
+          <KpiTile icon={BarChart2} label="Posts Pending" value={postsAwaitingApproval} sub="Need your approval" accent="amber" onClick={() => nav("/portal/content-calendar")} />
+        </div>
+      )}
+
+      {/* #17 Enrollment + #18 Deliverables */}
+      {!loading && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Enrollment widget */}
+          <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <ReceiptText size={15} className="text-indigo-500" />
+              <p className="text-[13px] font-bold text-slate-800">Active Package</p>
+            </div>
+            {enrollment ? (
+              <div>
+                <p className="text-[15px] font-black text-slate-900 truncate">
+                  {enrollment.serviceTemplateName || enrollment.serviceTemplateId?.name || "Service Plan"}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-500">
+                  {enrollment.pricing?.billingCycle && (
+                    <span>🔄 {enrollment.pricing.billingCycle}</span>
+                  )}
+                  {enrollment.pricing?.price && (
+                    <span>💳 {fmtAed(enrollment.pricing.price)}</span>
+                  )}
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-600 capitalize">{enrollment.status || "active"}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[12px] text-slate-400">No active package found.</p>
+            )}
+          </div>
+
+          {/* Deliverables tracker */}
+          <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Clapperboard size={15} className="text-indigo-500" />
+              <p className="text-[13px] font-bold text-slate-800">Deliverables — This Month</p>
+            </div>
+            <div className="flex items-end justify-between mb-2">
+              <span className="text-[28px] font-black text-slate-900">{deliverablesDone}</span>
+              <span className="text-[13px] text-slate-400">of {deliverableTarget || monthJobs.length || "—"} posts</span>
+            </div>
+            {(deliverableTarget > 0 || monthJobs.length > 0) && (() => {
+              const total = deliverableTarget || monthJobs.length;
+              const pct = total > 0 ? Math.min(100, Math.round((deliverablesDone / total) * 100)) : 0;
+              return (
+                <div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-full rounded-full bg-[#6F7FD9] transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="mt-1 text-[11px] text-slate-400">{pct}% delivered</p>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       )}
 
       <div className="grid gap-4 lg:grid-cols-[1.5fr,0.5fr]">
-        <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
-          <SectionHeader
-            icon={Ticket}
-            title="Your tickets"
-            badge={!loading ? openTickets.length : undefined}
-            action="View all"
-            onAction={() => nav("/portal/tickets")}
-          />
-          <div className="divide-y divide-slate-50/80">
+        {/* #16 Active Projects + Tickets combined panel */}
+        <div className="grid gap-4">
+          {/* Active Projects */}
+          {!loading && projects.length > 0 && (
+            <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
+              <SectionHeader icon={FolderKanban} title="Active Projects" badge={projects.length} action="View all" onAction={() => nav("/portal/projects")} />
+              <div className="divide-y divide-slate-50/80">
+                {projects.slice(0, 4).map((p) => (
+                  <ListRow
+                    key={p._id}
+                    title={p.name || p.title || "Project"}
+                    sub={p.phase || p.status || "—"}
+                    status={p.status || "active"}
+                    onClick={() => nav(`/portal/projects/${p._id}`)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tickets */}
+          <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
+            <SectionHeader
+              icon={Ticket}
+              title="Your tickets"
+              badge={!loading ? openTickets.length : undefined}
+              action="View all"
+              onAction={() => nav("/portal/tickets")}
+            />
+            <div className="divide-y divide-slate-50/80">
             {loading ? (
               <div className="grid gap-3 px-5 py-4">
                 <Skeleton className="h-11 w-full" />
@@ -534,11 +672,28 @@ function ClientDashboard({ nav }) {
                 ))
             )}
           </div>
+          </div>
         </div>
 
         <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
           <SectionHeader icon={Zap} title="Quick access" />
           <div className="p-2 grid gap-0.5">
+            <Shortcut
+              icon={CalendarDays}
+              label="Content Calendar"
+              sub="Social posts & approvals"
+              bg="rgba(111,127,217,0.09)"
+              to="/portal/content-calendar"
+              nav={nav}
+            />
+            <Shortcut
+              icon={MessageCircle}
+              label="Messages"
+              sub="Chat with your agency"
+              bg="rgba(16,185,129,0.09)"
+              to="/portal/messages"
+              nav={nav}
+            />
             <Shortcut
               icon={Ticket}
               label="Tickets"
@@ -718,6 +873,11 @@ export default function DashboardPage() {
   const [clientTotal, setClientTotal] = useState(0);
   const [projectTotal, setProjectTotal] = useState(0);
   const [deals, setDeals] = useState([]);
+  const [ticketStats, setTicketStats] = useState(null);
+  const [billingStats, setBillingStats] = useState(null);
+  const [procurementStats, setProcurementStats] = useState(null);
+  const [expenseStats, setExpenseStats] = useState(null);
+  const [leaveStats, setLeaveStats] = useState(null);
 
   useEffect(() => {
     // Skip admin data fetch for non-admin roles — they have their own dashboards.
@@ -728,19 +888,54 @@ export default function DashboardPage() {
     (async () => {
       setLoading(true);
       try {
-        const [j, t, c, p, d] = await Promise.all([
+        const [
+          jobsRes,
+          ticketsRes,
+          ticketStatsRes,
+          customersRes,
+          projectsRes,
+          dealsRes,
+          billingRes,
+          procurementRes,
+          expenseRes,
+          leaveRes,
+        ] = await Promise.allSettled([
           listJobs({ limit: 100, page: 1 }),
           listTickets({ limit: 50, page: 1 }),
+          getTicketStats(),
           listCustomers({ limit: 6, page: 1, sort: "-createdAt" }),
           listProjects({ limit: 1, page: 1 }),
           listDeals({ limit: 100, page: 1 }),
+          getBillingStats(),
+          getProcurementStats(),
+          getExpenseStats(),
+          getLeaveStats(),
         ]);
+
+        const j = jobsRes.status === "fulfilled" ? jobsRes.value : null;
+        const t = ticketsRes.status === "fulfilled" ? ticketsRes.value : null;
+        const ts =
+          ticketStatsRes.status === "fulfilled" ? ticketStatsRes.value : null;
+        const c = customersRes.status === "fulfilled" ? customersRes.value : null;
+        const p = projectsRes.status === "fulfilled" ? projectsRes.value : null;
+        const d = dealsRes.status === "fulfilled" ? dealsRes.value : null;
+        const b = billingRes.status === "fulfilled" ? billingRes.value : null;
+        const pr =
+          procurementRes.status === "fulfilled" ? procurementRes.value : null;
+        const e = expenseRes.status === "fulfilled" ? expenseRes.value : null;
+        const l = leaveRes.status === "fulfilled" ? leaveRes.value : null;
+
         setJobs(j?.items || []);
         setTickets(t?.items || []);
+        setTicketStats(ts);
         setClients(c?.items || []);
         setClientTotal(c?.total ?? 0);
         setProjectTotal(p?.total ?? 0);
         setDeals(Array.isArray(d?.items) ? d.items : []);
+        setBillingStats(b);
+        setProcurementStats(pr);
+        setExpenseStats(e);
+        setLeaveStats(l);
       } finally {
         setLoading(false);
       }
@@ -780,6 +975,113 @@ export default function DashboardPage() {
   const pipelineValue = useMemo(
     () => openDeals.reduce((sum, d) => sum + Number(d.value || 0), 0),
     [openDeals]
+  );
+  const overdueTickets = ticketStats?.overdue ?? null;
+  const billingOutstanding = Number(billingStats?.totalOutstanding || 0);
+  const billingOverdue = Number(billingStats?.totalOverdue || 0);
+  const procurementPending =
+    procurementStats?.totals?.pending ??
+    (procurementStats
+      ? (procurementStats.byStatus?.new || 0) +
+        (procurementStats.byStatus?.assessing || 0) +
+        (procurementStats.byStatus?.quoted || 0)
+      : null);
+  const procurementUrgentHigh = procurementStats
+    ? (procurementStats.totals?.urgent ??
+        (procurementStats.byPriority?.urgent || 0)) +
+      (procurementStats.totals?.high ?? (procurementStats.byPriority?.high || 0))
+    : null;
+  const pendingExpenses = expenseStats?.totals?.pending ?? null;
+  const submittedLeaves = leaveStats?.totals?.submitted ?? null;
+  const controlItems = useMemo(
+    () =>
+      [
+        billingStats
+          ? {
+              key: "cash",
+              icon: Wallet,
+              label: "Cash collection",
+              value: fmtAed(billingOutstanding),
+              sub: `${fmtAed(billingOverdue)} overdue balance`,
+              tone: billingOverdue > 0 ? "rose" : "emerald",
+              signal: billingOverdue,
+              to: "/portal/billing",
+            }
+          : null,
+        ticketStats
+          ? {
+              key: "sla",
+              icon: AlertTriangle,
+              label: "Support SLA",
+              value: overdueTickets ?? 0,
+              sub: `${openTickets.length} active support ticket${
+                openTickets.length !== 1 ? "s" : ""
+              }`,
+              tone: overdueTickets > 0 ? "rose" : "blue",
+              signal: overdueTickets ?? 0,
+              to: "/portal/tickets",
+            }
+          : null,
+        {
+          key: "approvals",
+          icon: ClipboardList,
+          label: "Creative approvals",
+          value: approvals.length,
+          sub: "jobs waiting for review",
+          tone: approvals.length > 0 ? "amber" : "emerald",
+          signal: approvals.length,
+          to: "/portal/productions",
+        },
+        procurementStats
+          ? {
+              key: "procurement",
+              icon: ShoppingCart,
+              label: "Procurement pressure",
+              value: procurementUrgentHigh ?? 0,
+              sub: `${procurementPending ?? 0} pending requests`,
+              tone: procurementUrgentHigh > 0 ? "amber" : "blue",
+              signal: procurementUrgentHigh ?? 0,
+              to: "/portal/procurement",
+            }
+          : null,
+        expenseStats || leaveStats
+          ? {
+              key: "hr",
+              icon: ReceiptText,
+              label: "HR approvals",
+              value: (pendingExpenses ?? 0) + (submittedLeaves ?? 0),
+              sub: `${pendingExpenses ?? 0} expenses · ${
+                submittedLeaves ?? 0
+              } leaves`,
+              tone:
+                (pendingExpenses ?? 0) + (submittedLeaves ?? 0) > 0
+                  ? "violet"
+                  : "emerald",
+              signal: (pendingExpenses ?? 0) + (submittedLeaves ?? 0),
+              to: "/portal/hr",
+            }
+          : null,
+      ].filter(Boolean),
+    [
+      approvals.length,
+      billingOutstanding,
+      billingOverdue,
+      billingStats,
+      expenseStats,
+      leaveStats,
+      openTickets.length,
+      overdueTickets,
+      pendingExpenses,
+      procurementPending,
+      procurementStats,
+      procurementUrgentHigh,
+      submittedLeaves,
+      ticketStats,
+    ]
+  );
+  const controlSignalCount = controlItems.reduce(
+    (sum, item) => sum + (Number(item.signal || 0) > 0 ? 1 : 0),
+    0
   );
 
   if (isExternalClient) return <ClientDashboard nav={nav} />;
@@ -915,7 +1217,46 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── 3. Approvals + Tickets lists ── */}
+      {/* ── 3. Management control ── */}
+      <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
+        <SectionHeader
+          icon={AlertTriangle}
+          title="Management control"
+          badge={!loading ? `${controlSignalCount} signal${controlSignalCount !== 1 ? "s" : ""}` : undefined}
+          action="Open reports"
+          onAction={() => nav("/portal/reports")}
+        />
+        {loading ? (
+          <div className="grid gap-0 divide-y divide-slate-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-5">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="px-5 py-4">
+                <Skeleton className="h-20 w-full rounded-xl" />
+              </div>
+            ))}
+          </div>
+        ) : controlItems.length === 0 ? (
+          <EmptyRows
+            icon={CheckCircle2}
+            message="No management signals available for this role."
+          />
+        ) : (
+          <div className="grid gap-0 divide-y divide-slate-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-5">
+            {controlItems.map((item) => (
+              <ControlMetric
+                key={item.key}
+                icon={item.icon}
+                label={item.label}
+                value={item.value}
+                sub={item.sub}
+                tone={item.tone}
+                onClick={() => nav(item.to)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── 4. Approvals + Tickets lists ── */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Approvals */}
         <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
@@ -991,7 +1332,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── 4. CRM Deals + Recent Clients ── */}
+      {/* ── 5. CRM Deals + Recent Clients ── */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* CRM Deals list */}
         <div className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-sm">
@@ -1072,7 +1413,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── 5. Pipeline bar + Shortcuts ── */}
+      {/* ── 6. Pipeline bar + Shortcuts ── */}
       <div className="grid gap-4 lg:grid-cols-[1.3fr,0.7fr]">
         {/* Two mini pipeline bars stacked */}
         <div className="grid gap-4">

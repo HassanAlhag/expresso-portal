@@ -46,6 +46,14 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    domain: "social",
+    label: "Social Media",
+    permissions: [
+      { key: "social.metrics.read",  label: "View",   description: "View social media performance metrics" },
+      { key: "social.metrics.write", label: "Edit",   description: "Create and update social media metrics" },
+    ],
+  },
+  {
     domain: "media",
     label: "Media Library",
     permissions: [
@@ -165,6 +173,14 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    domain: "hr.kpi",
+    label: "HR — KPI",
+    permissions: [
+      { key: "hr.kpi.read",  label: "View", description: "View KPI indicators, goals, check-ins, and dashboard" },
+      { key: "hr.kpi.write", label: "Edit", description: "Create and manage KPI indicators, goals, and check-ins" },
+    ],
+  },
+  {
     domain: "reports",
     label: "Reports",
     permissions: [
@@ -191,6 +207,22 @@ export const PERMISSION_CATALOG = [
       { key: "iam.teams.read",   label: "View Teams",   description: "View team and department definitions" },
       { key: "iam.teams.write",  label: "Manage Teams", description: "Create and edit teams and departments" },
       { key: "iam.invites.send", label: "Send Invites", description: "Invite new users to the portal" },
+    ],
+  },
+  {
+    domain: "messaging",
+    label: "Messaging",
+    permissions: [
+      { key: "messaging.read",  label: "View",  description: "View and receive messages" },
+      { key: "messaging.write", label: "Send",  description: "Send messages to the agency or clients" },
+    ],
+  },
+  {
+    domain: "brand_kit",
+    label: "Brand Kit",
+    permissions: [
+      { key: "brand_kit.read",   label: "View",   description: "View brand assets, colors, and fonts" },
+      { key: "brand_kit.write",  label: "Edit",   description: "Upload and manage brand assets" },
     ],
   },
   {
@@ -235,6 +267,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "tickets.read", "tickets.write",
     "crm.read", "crm.write",
     "procurement.read",
+    "social.metrics.read", "social.metrics.write",
+    "messaging.read", "messaging.write",
+    "brand_kit.read", "brand_kit.write",
     "reports.read",
     "activity.read",
     "iam.users.read", "iam.teams.read",
@@ -283,6 +318,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "billing.read",
     "tickets.read", "tickets.write",
     "crm.read",
+    "social.metrics.read", "social.metrics.write",
+    "messaging.read", "messaging.write",
+    "brand_kit.read", "brand_kit.write",
     "reports.read",
     "activity.read",
   ],
@@ -304,6 +342,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "hr.expenses.read", "hr.expenses.write",
     "hr.leaves.read",   "hr.leaves.write",
     "hr.scorecards.read",
+    "hr.kpi.read",
+    "social.metrics.read",
     "reports.read",
     "activity.read",
     "iam.users.read",
@@ -317,6 +357,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "hr.expenses.read", "hr.expenses.write", "hr.expenses.approve",
     "hr.leaves.read", "hr.leaves.write", "hr.leaves.approve",
     "hr.scorecards.read", "hr.scorecards.write",
+    "hr.kpi.read", "hr.kpi.write",
     "reports.read",
     "activity.read",
     "iam.users.read", "iam.teams.read",
@@ -327,6 +368,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "files.read",  "files.write",
     "billing.read",
     "tickets.read", "tickets.write",
+    "messaging.read", "messaging.write",
+    "brand_kit.read",
     "reports.read",
   ],
 
@@ -335,6 +378,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "files.read", "files.write",
     "billing.read",
     "tickets.read", "tickets.write",
+    "messaging.read", "messaging.write",
     "reports.read",
   ],
 
@@ -345,6 +389,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "files.read", "files.write",
     "billing.read",
     "tickets.read", "tickets.write",
+    "messaging.read", "messaging.write",
+    "brand_kit.read", "brand_kit.write",
     "reports.read",
   ],
 
@@ -353,6 +399,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "files.read", "files.write",
     "billing.read",
     "tickets.read", "tickets.write",
+    "messaging.read", "messaging.write",
+    "brand_kit.read",
   ],
 
   vendor: [

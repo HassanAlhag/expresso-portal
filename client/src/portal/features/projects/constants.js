@@ -23,17 +23,23 @@ export const PROJECT_CREATE_STATUS_OPTIONS = [
 
 export const PROJECT_TYPE_OPTIONS = [
   { value: "", label: "All" },
-  { value: "contract", label: "Contract" },
-  { value: "addon", label: "Add-on" },
-  { value: "retainer", label: "Retainer" },
-  { value: "one_time", label: "One-time" },
+  { value: "delivery", label: "Delivery" },
+  { value: "website", label: "Website" },
+  { value: "seo", label: "SEO" },
+  { value: "campaign", label: "Campaign" },
+  { value: "branding", label: "Branding" },
+  { value: "support", label: "Support" },
+  { value: "other", label: "Other" },
 ];
 
 export const PROJECT_CREATE_TYPE_OPTIONS = [
-  { value: "contract", label: "Contract" },
-  { value: "addon", label: "Add-on" },
-  { value: "retainer", label: "Retainer" },
-  { value: "one_time", label: "One-time" },
+  { value: "delivery", label: "Delivery" },
+  { value: "website", label: "Website" },
+  { value: "seo", label: "SEO" },
+  { value: "campaign", label: "Campaign" },
+  { value: "branding", label: "Branding" },
+  { value: "support", label: "Support" },
+  { value: "other", label: "Other" },
 ];
 
 export const PROJECT_PRIORITY_OPTIONS = [

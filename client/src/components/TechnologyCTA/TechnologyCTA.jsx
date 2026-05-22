@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowRight } from "react-icons/fi";
-import { BRAND, BRAND_GLOW } from "../../data/technologySolutionsData";
+import { BRAND, BRAND_GLOW } from "../../data/technologyConstants";
 
 export default function TechnologyCTA() {
   const navigate = useNavigate();

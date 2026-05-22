@@ -1,6 +1,6 @@
 // src/portal/features/customers/pages/CustomerDetailsPage.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 
 import Card from "../../../shared/ui/Card";
 import Button from "../../../shared/ui/Button";
@@ -55,6 +55,7 @@ import CustomerProjectsTab from "../tabs/CustomerProjectsTab";
 import CustomerJobsTab from "../tabs/CustomerJobsTab";
 import CustomerProductionsTab from "../tabs/CustomerProductionsTab";
 import CustomerLoginsTab from "../tabs/CustomerLoginsTab";
+import CustomerUsersTab from "../tabs/CustomerUsersTab";
 import CustomerActivityTab from "../tabs/CustomerActivityTab";
 import CustomerProcurementTab from "../tabs/CustomerProcurementTab";
 
@@ -80,6 +81,7 @@ export default function CustomerDetailsPage() {
   const nav = useNavigate();
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const toast = useToast();
 
   const [tab, setTab] = useState(searchParams.get("tab") || "overview");
@@ -336,7 +338,7 @@ export default function CustomerDetailsPage() {
     if (tab === "enrollments") loadEnrollments();
     if (tab === "projects") loadProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, customer?._id]);
+  }, [tab, customer?._id, location.key]);
 
   const title = useMemo(() => customer?.companyName || "Client", [customer]);
 
@@ -570,11 +572,19 @@ export default function CustomerDetailsPage() {
               )}
 
               <CustomerTabButton
+                active={tab === "users"}
+                onClick={() => setActiveTab("users")}
+                Icon={UserPlus}
+              >
+                Users
+              </CustomerTabButton>
+
+              <CustomerTabButton
                 active={tab === "logins"}
                 onClick={() => setActiveTab("logins")}
                 Icon={UserPlus}
               >
-                Logins
+                Login (Legacy)
               </CustomerTabButton>
 
               <CustomerTabButton
@@ -700,6 +710,10 @@ export default function CustomerDetailsPage() {
 
       {tab === "procurement" && showProcurementTab ? (
         <CustomerProcurementTab customer={customer} />
+      ) : null}
+
+      {tab === "users" ? (
+        <CustomerUsersTab customer={customer} />
       ) : null}
 
       {tab === "logins" ? (

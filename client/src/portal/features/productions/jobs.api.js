@@ -34,3 +34,8 @@ export async function publishProductionJob(id) {
   const { data } = await api.post(`/jobs/${id}/publish`);
   return data;
 }
+
+export async function attachProductionMedia(id, mediaIds) {
+  const { data } = await api.post(`/jobs/${id}/attach-media`, { mediaIds });
+  return data;
+}

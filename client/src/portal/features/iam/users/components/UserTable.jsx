@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../../../shared/ui/Button";
 import Badge from "../../../../shared/ui/Badge";
@@ -11,8 +11,10 @@ import {
   ToggleRight,
   Briefcase,
   Users,
+  Building2,
+  Trash2,
 } from "lucide-react";
-import { setUserStatus } from "../api";
+import { setUserStatus, deleteUser } from "../api";
 
 function roleLabel(role) {
   const r = String(role || "").replaceAll("_", " ");
@@ -28,6 +30,8 @@ function roleTone(role) {
 
 export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
   const nav = useNavigate();
+  const [deletingId, setDeletingId] = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
 
   const toggleActive = async (u) => {
     if (!u?._id) return;
@@ -37,6 +41,17 @@ export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
       await onChanged?.();
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleDelete = async (u) => {
+    setDeletingId(u._id);
+    try {
+      await deleteUser(u._id);
+      await onChanged?.();
+    } finally {
+      setDeletingId(null);
+      setConfirmId(null);
     }
   };
 
@@ -60,6 +75,9 @@ export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
               </th>
               <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">
                 ROLE
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">
+                COMPANY
               </th>
               <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">
                 TEAM / TITLE
@@ -115,6 +133,17 @@ export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
 
                 <td className="px-4 py-3">
                   <Badge tone={roleTone(u.role)}>{roleLabel(u.role)}</Badge>
+                </td>
+
+                <td className="px-4 py-3">
+                  {u.clientId ? (
+                    <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                      <Building2 size={12} className="text-slate-400" />
+                      <span className="truncate max-w-[140px]">{u.clientId.companyName || "—"}</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-300">—</span>
+                  )}
                 </td>
 
                 <td className="px-4 py-3">
@@ -189,6 +218,35 @@ export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
                         <ToggleLeft size={18} />
                       )}
                     </button>
+
+                    {confirmId === u._id ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          disabled={deletingId === u._id}
+                          onClick={() => handleDelete(u)}
+                          className="rounded-lg bg-rose-500 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-rose-600 disabled:opacity-50"
+                        >
+                          {deletingId === u._id ? "…" : "Confirm"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmId(null)}
+                          className="rounded-lg px-2 py-1 text-[11px] text-slate-500 hover:bg-slate-100"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmId(u._id)}
+                        className="grid h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white text-slate-300 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500"
+                        title="Delete user"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -197,7 +255,7 @@ export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
             {rows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-4 py-10 text-center text-sm text-slate-600"
                 >
                   No users found.

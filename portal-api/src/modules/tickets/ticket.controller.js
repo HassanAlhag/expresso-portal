@@ -145,6 +145,7 @@ export async function listTickets(req, res) {
           "clientId customerId projectId assigneeId dueDate estimatedHours estimatedCost " +
           "approvalStatus vendor budgetAmount firstResponseAt resolvedAt lastActivityAt createdAt updatedAt"
         )
+        .populate("assigneeId", "fullName email avatarUrl")
         .lean(),
     ]);
 
@@ -234,7 +235,9 @@ export async function getTicket(req, res) {
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
 
-    const ticket = await Ticket.findById(id).lean();
+    const ticket = await Ticket.findById(id)
+      .populate("assigneeId", "fullName email avatarUrl")
+      .lean();
     if (!ticket) return res.status(404).json({ ok: false, message: "Not found" });
 
     if (!canAccessTicket(req, ticket))
@@ -302,6 +305,7 @@ export async function updateTicket(req, res) {
     }
 
     await ticket.save();
+    await ticket.populate("assigneeId", "fullName email avatarUrl");
     return res.json({ ok: true, item: ticket.toObject() });
   } catch (e) {
     console.error("updateTicket:", e);
@@ -421,6 +425,23 @@ export async function approveTicket(req, res) {
     return res.json({ ok: true, item: ticket.toObject() });
   } catch (e) {
     console.error("approveTicket:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+// DELETE /api/tickets/:id  (super_admin only via tickets.delete permission)
+export async function deleteTicket(req, res) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    const ticket = await Ticket.findByIdAndDelete(id);
+    if (!ticket) return res.status(404).json({ ok: false, message: "Not found" });
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("deleteTicket:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }

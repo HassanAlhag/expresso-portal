@@ -1,37 +1,38 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiPackage } from "react-icons/fi";
 import AuroraHero from "../../components/BannerSection/bannerSection";
 import SolutionDetailRenderer from "../../components/SolutionDetailRenderer/SolutionDetailRenderer";
 import SolutionDetailCTA from "../../components/SolutionDetailCTA/SolutionDetailCTA";
-import {
-  BRAND,
-  BRAND_BG,
-  ICON_META,
-  STATIC_SOLUTIONS,
-} from "../../data/technologySolutionsData";
-import { TECHNOLOGY_SOLUTION_DETAILS } from "../../data/technologySolutionDetailsData";
-import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
+import { BRAND, BRAND_BG, ICON_META } from "../../data/technologyConstants";
 
 export default function ITSolutionDetailsPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const settings = useSiteSettings();
+  const [solution, setSolution] = useState(null);
+  const [notFound, setNotFound] = useState(false);
 
-  const baseSolution = STATIC_SOLUTIONS.find((item) => item.slug === slug);
-  const detail = TECHNOLOGY_SOLUTION_DETAILS[slug];
-  const solution = detail && baseSolution ? { ...baseSolution, ...detail } : detail;
+  useEffect(() => {
+    setNotFound(false);
+    setSolution(null);
+    fetch(`/api/web-content/solutions/${slug}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok && d.item) setSolution(d.item);
+        else setNotFound(true);
+      })
+      .catch(() => setNotFound(true));
+  }, [slug]);
 
-  if (!solution) {
+  if (notFound) {
     return (
       <>
         <AuroraHero
           heading="Technology Solution"
           subtitle="Solution Not Found"
           description="The technology solution you are looking for could not be found."
+          useImageOverrides={false}
         />
-
         <section className="py-20">
           <div className="mx-auto w-[min(900px,92vw)] text-center">
             <button
@@ -46,18 +47,20 @@ export default function ITSolutionDetailsPage() {
     );
   }
 
-  const meta = ICON_META[solution.icon] || {
-    Icon: FiPackage,
-    color: BRAND,
-    bg: BRAND_BG,
-  };
+  if (!solution) {
+    return (
+      <AuroraHero
+        heading="Technology Solution"
+        subtitle="Loading…"
+        description=""
+        useImageOverrides={false}
+      />
+    );
+  }
 
-  const heroSettingKey = solution.heroSettingKey;
-  const heroImageUrl = resolveWebsiteImageSetting(
-    settings,
-    solution.heroImageUrl || "/81.webp",
-    heroSettingKey ? settings?.itSolutions?.[heroSettingKey] : ""
-  );
+  const meta = ICON_META[solution.icon] || { Icon: FiPackage, color: BRAND, bg: BRAND_BG };
+
+  const heroImageUrl = solution.heroImageUrl || "/81.webp";
 
   return (
     <>
@@ -67,10 +70,11 @@ export default function ITSolutionDetailsPage() {
         subtitle={solution.subtitle}
         description={solution.description}
         backgroundImageUrl={heroImageUrl}
+        useImageOverrides={false}
       />
 
       <SolutionDetailRenderer
-        blocks={solution.blocks}
+        blocks={solution.blocks || []}
         accentColor={meta.color}
         accentBg={meta.bg}
       />

@@ -47,7 +47,6 @@ const ContactSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
       default: null,
-      index: true,
     },
 
     leadId: {

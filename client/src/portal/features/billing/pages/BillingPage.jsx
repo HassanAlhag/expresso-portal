@@ -1,5 +1,4 @@
-// src/portal/features/billing/pages/BillingPage.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import PageHeader from "../../../shared/ui/PageHeader";
@@ -20,15 +19,31 @@ import {
   CheckCircle2,
   Ban,
   Search,
+  TrendingUp,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 
 import {
   listInvoices,
+  getBillingStats,
   createInvoice,
   markInvoicePaid,
   voidInvoice,
+  markOverdueInvoices,
 } from "../api";
 import { listCustomers } from "../../customers/api";
+import { listProjects } from "../../projects/api";
+import { listEnrollments } from "../../enrollments/api";
+
+function fmtMoney(amount, currency = "AED") {
+  if (!amount && amount !== 0) return "—";
+  return new Intl.NumberFormat("en-AE", {
+    style: "currency",
+    currency: currency || "AED",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
 
 function StatusPill({ status }) {
   const s = String(status || "draft");
@@ -51,8 +66,7 @@ function StatusPill({ status }) {
   );
 }
 
-/** Customer picker: improved alignment + nicer header */
-function CustomerSelect({ value, onChange }) {
+function SearchSelect({ label, value, onChange, loadItems, displayLabel, displaySub }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
@@ -61,8 +75,8 @@ function CustomerSelect({ value, onChange }) {
   const load = async (query) => {
     setLoading(true);
     try {
-      const res = await listCustomers({ q: query, limit: 20 });
-      setItems(res?.items || res?.customers || []);
+      const res = await loadItems(query);
+      setItems(Array.isArray(res) ? res : (res?.items || []));
     } finally {
       setLoading(false);
     }
@@ -85,9 +99,8 @@ function CustomerSelect({ value, onChange }) {
     <div className="relative">
       <label className="grid gap-2">
         <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-          CLIENT
+          {label}
         </span>
-
         <button
           type="button"
           onClick={() => setOpen((s) => !s)}
@@ -96,24 +109,22 @@ function CustomerSelect({ value, onChange }) {
           {value ? (
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="truncate font-black text-slate-900">
-                  {value.companyName || value.name || "Client"}
-                </div>
-                <div className="truncate text-xs text-slate-500">
-                  {value.contactName || value.primaryEmail || ""}
-                </div>
+                <div className="truncate font-black text-slate-900">{displayLabel(value)}</div>
+                {displaySub && (
+                  <div className="truncate text-xs text-slate-500">{displaySub(value)}</div>
+                )}
               </div>
               <CheckCircle2 size={18} className="text-emerald-600" />
             </div>
           ) : (
-            <span className="text-slate-500">Search and select…</span>
+            <span className="text-slate-400">Search and select…</span>
           )}
         </button>
       </label>
 
-      {open ? (
+      {open && (
         <div className="absolute z-[9999] mt-2 w-full overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.16)]">
-          <div className="p-3 border-b border-black/10 bg-white">
+          <div className="border-b border-black/10 bg-white p-3">
             <div className="flex items-center gap-2">
               <span className="grid h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white">
                 <Search size={16} className="text-slate-700" />
@@ -121,80 +132,90 @@ function CustomerSelect({ value, onChange }) {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search company name…"
+                placeholder="Search…"
                 className="h-10 w-full rounded-2xl border border-black/10 px-3 text-sm outline-none focus:ring-4 focus:ring-black/5"
               />
             </div>
           </div>
-
-          <div className="max-h-[280px] overflow-y-auto">
+          <div className="max-h-[240px] overflow-y-auto">
             {loading ? (
               <div className="p-4 text-sm text-slate-500">Loading…</div>
             ) : items.length === 0 ? (
-              <div className="p-4 text-sm text-slate-500">
-                No customers found.
-              </div>
+              <div className="p-4 text-sm text-slate-500">Nothing found.</div>
             ) : (
               items.map((c) => (
                 <button
                   key={c._id}
                   type="button"
-                  onClick={() => {
-                    onChange(c);
-                    setOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-black/[0.03] border-b border-black/5"
+                  onClick={() => { onChange(c); setOpen(false); setQ(""); }}
+                  className="w-full border-b border-black/5 px-4 py-3 text-left hover:bg-black/[0.03]"
                 >
-                  <div className="text-sm font-black text-slate-900">
-                    {c.companyName || c.name}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {c.contactName || c.primaryEmail || ""}
-                  </div>
+                  <div className="text-sm font-black text-slate-900">{displayLabel(c)}</div>
+                  {displaySub && (
+                    <div className="text-xs text-slate-500">{displaySub(c)}</div>
+                  )}
                 </button>
               ))
             )}
           </div>
-
-          <div className="p-2 bg-slate-50 flex justify-end">
+          {value && (
+            <div className="border-t border-black/10 bg-slate-50 p-2 text-right">
+              <button
+                type="button"
+                onClick={() => { onChange(null); setOpen(false); }}
+                className="rounded-xl border border-black/10 bg-white px-3 py-1 text-xs font-black text-rose-600 hover:bg-rose-50"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+          <div className="border-t border-black/10 bg-slate-50 p-2 flex justify-end">
             <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
               Close
             </Button>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
 
 function CreateInvoiceModal({ open, onClose, onSubmit, busy }) {
   const [customer, setCustomer] = useState(null);
+  const [project, setProject] = useState(null);
+  const [enrollment, setEnrollment] = useState(null);
   const [currency, setCurrency] = useState("AED");
   const [dueDate, setDueDate] = useState("");
-  const [tax, setTax] = useState("0");
+  const [taxRate, setTaxRate] = useState("0");
+  const [discount, setDiscount] = useState("0");
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState([{ title: "", qty: 1, unitPrice: 0 }]);
 
   useEffect(() => {
     if (!open) return;
     setCustomer(null);
+    setProject(null);
+    setEnrollment(null);
     setCurrency("AED");
     setDueDate("");
-    setTax("0");
+    setTaxRate("0");
+    setDiscount("0");
     setNotes("");
     setItems([{ title: "", qty: 1, unitPrice: 0 }]);
   }, [open]);
 
   if (!open) return null;
 
-  const canSubmit =
-    Boolean(customer?._id) && items.some((i) => (i.title || "").trim());
+  const canSubmit = Boolean(customer?._id) && items.some((i) => (i.title || "").trim());
 
   const subtotal = items.reduce(
     (sum, it) => sum + Number(it.qty || 0) * Number(it.unitPrice || 0),
     0
   );
-  const total = subtotal + Number(tax || 0);
+  const discountAmt = Math.max(0, Number(discount || 0));
+  const taxable = Math.max(0, subtotal - discountAmt);
+  const taxAmt = taxable * (Number(taxRate || 0) / 100);
+  const total = taxable + taxAmt;
 
   const updateItem = (idx, patch) => {
     const next = [...items];
@@ -202,27 +223,24 @@ function CreateInvoiceModal({ open, onClose, onSubmit, busy }) {
     setItems(next);
   };
 
-  const addItem = () =>
-    setItems((s) => [...s, { title: "", qty: 1, unitPrice: 0 }]);
+  const addItem = () => setItems((s) => [...s, { title: "", qty: 1, unitPrice: 0 }]);
   const removeItem = (idx) => setItems((s) => s.filter((_, i) => i !== idx));
 
   return (
     <div
-      className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onMouseDown={() => onClose?.(false)}
     >
       <div
-        className="w-[min(980px,96vw)] overflow-hidden rounded-[28px] border border-black/[0.07] bg-white shadow-2xl"
+        className="w-[min(1020px,96vw)] max-h-[92vh] overflow-y-auto rounded-[28px] border border-black/[0.07] bg-white shadow-2xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-black/10 bg-white">
+        <div className="sticky top-0 z-10 border-b border-black/10 bg-white p-6">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-2xl font-black text-slate-900">
-                New Invoice
-              </div>
+              <div className="text-2xl font-black text-slate-900">New Invoice</div>
               <div className="mt-1 text-sm text-slate-600">
-                Create draft invoice. Mark as sent/paid later.
+                Invoice number is auto-generated. Mark as sent/paid after creation.
               </div>
             </div>
             <button
@@ -235,14 +253,19 @@ function CreateInvoiceModal({ open, onClose, onSubmit, busy }) {
           </div>
         </div>
 
-        <div className="p-6 grid gap-4 bg-white">
+        <div className="grid gap-4 p-6">
+          {/* Client + currency + due date */}
           <div className="grid gap-3 sm:grid-cols-3">
-            <CustomerSelect value={customer} onChange={setCustomer} />
-
+            <SearchSelect
+              label="CLIENT *"
+              value={customer}
+              onChange={setCustomer}
+              loadItems={(q) => listCustomers({ q, limit: 20 }).then((r) => r?.items || r?.customers || [])}
+              displayLabel={(c) => c.companyName || c.name || "Client"}
+              displaySub={(c) => c.contactName || c.primaryEmail || ""}
+            />
             <label className="grid gap-2">
-              <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-                CURRENCY
-              </span>
+              <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">CURRENCY</span>
               <input
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
@@ -250,11 +273,8 @@ function CreateInvoiceModal({ open, onClose, onSubmit, busy }) {
                 placeholder="AED"
               />
             </label>
-
             <label className="grid gap-2">
-              <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-                DUE DATE
-              </span>
+              <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">DUE DATE</span>
               <input
                 type="date"
                 value={dueDate}
@@ -264,13 +284,32 @@ function CreateInvoiceModal({ open, onClose, onSubmit, busy }) {
             </label>
           </div>
 
+          {/* Optional links */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <SearchSelect
+              label="LINK TO PROJECT (optional)"
+              value={project}
+              onChange={setProject}
+              loadItems={(q) => listProjects({ q, limit: 20 }).then((r) => r?.items || r?.projects || [])}
+              displayLabel={(p) => p.name || p.title || "Project"}
+              displaySub={null}
+            />
+            <SearchSelect
+              label="LINK TO ENROLLMENT (optional)"
+              value={enrollment}
+              onChange={setEnrollment}
+              loadItems={(q) => listEnrollments({ q, limit: 20 }).then((r) => r?.items || r?.enrollments || [])}
+              displayLabel={(e) => e.name || e.title || "Enrollment"}
+              displaySub={null}
+            />
+          </div>
+
+          {/* Line items */}
           <div className="rounded-[28px] border border-black/[0.07] bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="text-sm font-black text-slate-900">Items</div>
-                <div className="text-xs text-slate-500">
-                  What are you billing for?
-                </div>
+                <div className="text-xs text-slate-500">What are you billing for?</div>
               </div>
               <Button onClick={addItem}>
                 <Plus size={16} />
@@ -282,75 +321,83 @@ function CreateInvoiceModal({ open, onClose, onSubmit, busy }) {
               {items.map((it, idx) => (
                 <div
                   key={idx}
-                  className="grid gap-2 sm:grid-cols-12 rounded-2xl border border-black/10 bg-white p-3"
+                  className="grid gap-2 rounded-2xl border border-black/10 bg-white p-3 sm:grid-cols-12"
                 >
                   <div className="sm:col-span-6">
                     <input
                       value={it.title}
-                      onChange={(e) =>
-                        updateItem(idx, { title: e.target.value })
-                      }
-                      placeholder="Item title (e.g. March Social Media Package)"
+                      onChange={(e) => updateItem(idx, { title: e.target.value })}
+                      placeholder="Item title…"
                       className="h-10 w-full rounded-2xl border border-black/10 px-3 text-sm outline-none focus:ring-4 focus:ring-black/5"
                     />
                   </div>
-
                   <div className="sm:col-span-2">
                     <input
+                      type="number"
                       value={String(it.qty)}
-                      onChange={(e) =>
-                        updateItem(idx, { qty: Number(e.target.value || 0) })
-                      }
+                      onChange={(e) => updateItem(idx, { qty: Number(e.target.value || 0) })}
                       placeholder="Qty"
                       className="h-10 w-full rounded-2xl border border-black/10 px-3 text-sm outline-none focus:ring-4 focus:ring-black/5"
                     />
                   </div>
-
                   <div className="sm:col-span-3">
                     <input
+                      type="number"
                       value={String(it.unitPrice)}
-                      onChange={(e) =>
-                        updateItem(idx, {
-                          unitPrice: Number(e.target.value || 0),
-                        })
-                      }
+                      onChange={(e) => updateItem(idx, { unitPrice: Number(e.target.value || 0) })}
                       placeholder="Unit price"
                       className="h-10 w-full rounded-2xl border border-black/10 px-3 text-sm outline-none focus:ring-4 focus:ring-black/5"
                     />
                   </div>
-
                   <div className="sm:col-span-1 flex justify-end">
-                    <Button
-                      variant="outline"
-                      onClick={() => removeItem(idx)}
-                      disabled={items.length <= 1}
-                    >
-                      Remove
+                    <Button variant="outline" onClick={() => removeItem(idx)} disabled={items.length <= 1}>
+                      ✕
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
 
+            {/* Totals + discount + tax rate */}
             <div className="mt-4 grid gap-3 sm:grid-cols-3 items-end">
               <label className="grid gap-2">
                 <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-                  TAX
+                  DISCOUNT ({currency})
                 </span>
                 <input
-                  value={tax}
-                  onChange={(e) => setTax(e.target.value)}
+                  type="number"
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
                   className="h-11 rounded-2xl border border-black/10 bg-white px-4 text-sm shadow-sm outline-none transition focus:ring-4 focus:ring-black/5"
                   placeholder="0"
                 />
               </label>
-
-              <div className="sm:col-span-2 text-right">
+              <label className="grid gap-2">
+                <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
+                  TAX RATE (%)
+                </span>
+                <input
+                  type="number"
+                  value={taxRate}
+                  onChange={(e) => setTaxRate(e.target.value)}
+                  className="h-11 rounded-2xl border border-black/10 bg-white px-4 text-sm shadow-sm outline-none transition focus:ring-4 focus:ring-black/5"
+                  placeholder="0"
+                />
+              </label>
+              <div className="text-right">
                 <div className="text-xs text-slate-500">
-                  Subtotal:{" "}
-                  <b className="text-slate-900">{subtotal.toFixed(2)}</b>{" "}
-                  {currency}
+                  Subtotal: <b className="text-slate-900">{subtotal.toFixed(2)}</b> {currency}
                 </div>
+                {discountAmt > 0 && (
+                  <div className="text-xs text-slate-500">
+                    Discount: <b className="text-rose-600">-{discountAmt.toFixed(2)}</b> {currency}
+                  </div>
+                )}
+                {taxAmt > 0 && (
+                  <div className="text-xs text-slate-500">
+                    Tax ({taxRate}%): <b className="text-slate-900">{taxAmt.toFixed(2)}</b> {currency}
+                  </div>
+                )}
                 <div className="text-sm font-black text-slate-900">
                   Total: {total.toFixed(2)} {currency}
                 </div>
@@ -358,9 +405,7 @@ function CreateInvoiceModal({ open, onClose, onSubmit, busy }) {
             </div>
 
             <label className="mt-4 grid gap-2">
-              <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-                NOTES
-              </span>
+              <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">NOTES</span>
               <textarea
                 rows={3}
                 value={notes}
@@ -372,21 +417,20 @@ function CreateInvoiceModal({ open, onClose, onSubmit, busy }) {
           </div>
         </div>
 
-        <div className="p-6 border-t border-black/10 bg-white flex items-center justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={() => onClose?.(false)}
-            disabled={busy}
-          >
+        <div className="sticky bottom-0 border-t border-black/10 bg-white p-6 flex items-center justify-end gap-2">
+          <Button variant="outline" onClick={() => onClose?.(false)} disabled={busy}>
             Cancel
           </Button>
           <Button
             onClick={() =>
               onSubmit?.({
                 customerId: customer?._id,
+                projectId: project?._id || null,
+                enrollmentId: enrollment?._id || null,
                 currency,
                 dueDate: dueDate || null,
-                tax: Number(tax || 0),
+                taxRate: Number(taxRate || 0),
+                discount: Number(discount || 0),
                 notes,
                 items,
                 status: "draft",
@@ -414,13 +458,27 @@ export default function BillingPage() {
 
   const [items, setItems] = useState([]);
   const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0 });
+  const [stats, setStats] = useState(null);
 
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const [createOpen, setCreateOpen] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
+
+  const loadStats = async () => {
+    setStatsLoading(true);
+    try {
+      const res = await getBillingStats();
+      setStats(res);
+    } catch {
+      // non-fatal
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -428,32 +486,18 @@ export default function BillingPage() {
     try {
       const res = await listInvoices({ q, status, sort, page, limit });
       setItems(res?.items || []);
-      setMeta({
-        page: res?.page || page,
-        pages: res?.pages || 1,
-        total: res?.total ?? 0,
-      });
+      setMeta({ page: res?.page || page, pages: res?.pages || 1, total: res?.total ?? 0 });
     } catch (e) {
-      setError(
-        e?.response?.data?.message || e?.message || "Failed to load invoices"
-      );
+      setError(e?.response?.data?.message || e?.message || "Failed to load invoices");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, status, sort, page]);
+  const refresh = () => { load(); loadStats(); };
 
-  const stats = useMemo(() => {
-    const total = meta.total || 0;
-    const paid = items.filter((x) => x.status === "paid").length;
-    const overdue = items.filter((x) => x.status === "overdue").length;
-    const drafts = items.filter((x) => x.status === "draft").length;
-    return { total, paid, overdue, drafts };
-  }, [items, meta.total]);
+  useEffect(() => { loadStats(); }, []);
+  useEffect(() => { load(); }, [q, status, sort, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onCreate = async (payload) => {
     setBusy(true);
@@ -461,7 +505,7 @@ export default function BillingPage() {
       const res = await createInvoice(payload);
       setCreateOpen(false);
       setPage(1);
-      await load();
+      refresh();
       const id = res?.item?._id;
       if (id) nav(`/portal/billing/${id}`);
     } catch (e) {
@@ -483,7 +527,7 @@ export default function BillingPage() {
         setConfirmState(null);
         try {
           await markInvoicePaid(inv._id);
-          await load();
+          refresh();
         } catch (e) {
           toast.error(e?.response?.data?.message || e?.message || "Failed");
         } finally {
@@ -505,7 +549,7 @@ export default function BillingPage() {
         setConfirmState(null);
         try {
           await voidInvoice(inv._id);
-          await load();
+          refresh();
         } catch (e) {
           toast.error(e?.response?.data?.message || e?.message || "Failed");
         } finally {
@@ -513,6 +557,19 @@ export default function BillingPage() {
         }
       },
     });
+  };
+
+  const onMarkOverdue = async () => {
+    setBusy(true);
+    try {
+      const res = await markOverdueInvoices();
+      toast.success(`Marked ${res?.updated ?? 0} invoice(s) as overdue.`);
+      refresh();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -524,7 +581,11 @@ export default function BillingPage() {
         breadcrumb={[{ label: "Portal", to: "/portal" }, { label: "Billing" }]}
         right={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={load} disabled={loading || busy}>
+            <Button variant="outline" onClick={onMarkOverdue} disabled={loading || busy} title="Mark all past-due sent invoices as overdue">
+              <Clock size={16} />
+              Mark overdue
+            </Button>
+            <Button variant="outline" onClick={refresh} disabled={loading || busy}>
               <RefreshCw size={16} />
               Refresh
             </Button>
@@ -536,33 +597,64 @@ export default function BillingPage() {
         }
       />
 
+      {/* Stats from API */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={CreditCard}   label="Total Invoices" value={stats.total}   color="indigo"  />
-        <StatCard icon={Receipt}      label="Drafts"         value={stats.drafts}  color="amber"   />
-        <StatCard icon={CheckCircle2} label="Paid"           value={stats.paid}    color="emerald" />
-        <StatCard icon={Ban}          label="Overdue"        value={stats.overdue} color="rose"    />
+        <StatCard
+          icon={TrendingUp}
+          label="Total Revenue"
+          value={statsLoading ? "—" : fmtMoney(stats?.totalRevenue)}
+          color="indigo"
+        />
+        <StatCard
+          icon={CheckCircle2}
+          label="Collected"
+          value={statsLoading ? "—" : fmtMoney(stats?.totalPaid)}
+          color="emerald"
+        />
+        <StatCard
+          icon={CreditCard}
+          label="Outstanding"
+          value={statsLoading ? "—" : fmtMoney(stats?.totalOutstanding)}
+          color="amber"
+        />
+        <StatCard
+          icon={AlertTriangle}
+          label="Overdue"
+          value={statsLoading ? "—" : fmtMoney(stats?.totalOverdue)}
+          color="rose"
+        />
       </div>
 
       <FilterBar
         searchValue={q}
         onSearchChange={(v) => { setQ(v); setPage(1); }}
-        searchPlaceholder="Invoice number, client, currency…"
+        searchPlaceholder="Invoice number, notes, currency…"
         filters={[
-          { label: "status", value: status, onChange: (v) => { setStatus(v); setPage(1); }, options: [
-            { value: "", label: "All status" },
-            { value: "draft", label: "Draft" },
-            { value: "sent", label: "Sent" },
-            { value: "paid", label: "Paid" },
-            { value: "overdue", label: "Overdue" },
-            { value: "void", label: "Void" },
-          ]},
-          { label: "sort", value: sort, onChange: (v) => { setSort(v); setPage(1); }, options: [
-            { value: "-createdAt", label: "Newest" },
-            { value: "-dueDate", label: "Due date (latest)" },
-            { value: "dueDate", label: "Due date (soonest)" },
-            { value: "-total", label: "Total (high)" },
-            { value: "total", label: "Total (low)" },
-          ]},
+          {
+            label: "status",
+            value: status,
+            onChange: (v) => { setStatus(v); setPage(1); },
+            options: [
+              { value: "", label: "All status" },
+              { value: "draft", label: "Draft" },
+              { value: "sent", label: "Sent" },
+              { value: "paid", label: "Paid" },
+              { value: "overdue", label: "Overdue" },
+              { value: "void", label: "Void" },
+            ],
+          },
+          {
+            label: "sort",
+            value: sort,
+            onChange: (v) => { setSort(v); setPage(1); },
+            options: [
+              { value: "-createdAt", label: "Newest" },
+              { value: "-dueDate", label: "Due date (latest)" },
+              { value: "dueDate", label: "Due date (soonest)" },
+              { value: "-total", label: "Total (high)" },
+              { value: "total", label: "Total (low)" },
+            ],
+          },
         ]}
         onClear={() => { setQ(""); setStatus(""); setSort("-createdAt"); setPage(1); }}
       />
@@ -593,30 +685,39 @@ export default function BillingPage() {
             {items.map((inv) => (
               <div
                 key={inv._id}
-                className="p-4 flex items-start justify-between gap-3 bg-white"
+                className="flex items-start justify-between gap-3 bg-white p-4"
               >
                 <button
                   className="min-w-0 text-left"
                   onClick={() => nav(`/portal/billing/${inv._id}`)}
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="text-sm font-black text-slate-900 truncate">
+                    <div className="truncate text-sm font-black text-slate-900">
                       {inv.number || "Invoice"}
                     </div>
                     <StatusPill status={inv.status} />
                     {inv.customerId?.companyName ? (
-                      <span className="text-xs text-slate-500 truncate">
+                      <span className="truncate text-xs text-slate-500">
                         • {inv.customerId.companyName}
+                      </span>
+                    ) : null}
+                    {inv.projectId?.name || inv.projectId?.title ? (
+                      <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs text-indigo-700">
+                        {inv.projectId.name || inv.projectId.title}
                       </span>
                     ) : null}
                   </div>
 
-                  <div className="mt-1 text-sm text-slate-600 line-clamp-2">
+                  <div className="mt-1 text-sm text-slate-600">
                     Total:{" "}
                     <b className="text-slate-900">
-                      {Number(inv.total || 0).toFixed(2)}
-                    </b>{" "}
-                    {inv.currency || "AED"}
+                      {fmtMoney(inv.total, inv.currency)}
+                    </b>
+                    {inv.balance > 0 && inv.status !== "void" ? (
+                      <span className="ml-2 text-xs text-rose-600 font-black">
+                        Balance: {fmtMoney(inv.balance, inv.currency)}
+                      </span>
+                    ) : null}
                     {inv.dueDate ? (
                       <span className="ml-3 text-xs text-slate-500">
                         Due: {new Date(inv.dueDate).toLocaleDateString()}
@@ -626,40 +727,26 @@ export default function BillingPage() {
 
                   <div className="mt-2 text-xs text-slate-500">
                     Updated:{" "}
-                    {inv.updatedAt
-                      ? new Date(inv.updatedAt).toLocaleString()
-                      : "—"}
+                    {inv.updatedAt ? new Date(inv.updatedAt).toLocaleString() : "—"}
                   </div>
                 </button>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex shrink-0 items-center gap-2">
                   {inv.status !== "paid" && inv.status !== "void" ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => onMarkPaid(inv)}
-                      disabled={busy}
-                    >
+                    <Button variant="outline" onClick={() => onMarkPaid(inv)} disabled={busy}>
                       <CheckCircle2 size={16} />
                       Mark paid
                     </Button>
                   ) : null}
 
                   {inv.status !== "void" ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => onVoid(inv)}
-                      disabled={busy}
-                    >
+                    <Button variant="outline" onClick={() => onVoid(inv)} disabled={busy}>
                       <Ban size={16} />
                       Void
                     </Button>
                   ) : null}
 
-                  <Button
-                    variant="outline"
-                    onClick={() => nav(`/portal/billing/${inv._id}`)}
-                    disabled={busy}
-                  >
+                  <Button variant="outline" onClick={() => nav(`/portal/billing/${inv._id}`)} disabled={busy}>
                     <Receipt size={16} />
                     Open
                   </Button>
@@ -668,10 +755,11 @@ export default function BillingPage() {
             ))}
           </div>
 
-          <div className="flex items-center justify-between border-t border-black/10 px-4 py-3 bg-white">
+          <div className="flex items-center justify-between border-t border-black/10 bg-white px-4 py-3">
             <div className="text-xs text-slate-500">
-              Showing page <span className="font-black">{meta.page}</span> of{" "}
-              <span className="font-black">{meta.pages}</span>
+              Page <span className="font-black">{meta.page}</span> of{" "}
+              <span className="font-black">{meta.pages}</span> •{" "}
+              <span className="font-black">{meta.total}</span> total
             </div>
             <div className="flex items-center gap-2">
               <Button

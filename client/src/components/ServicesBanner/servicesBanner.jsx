@@ -3,7 +3,7 @@ import { FiArrowUpRight } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
-import { resolveWebsiteImage } from "../../utils/websiteImages";
+import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 import {
   SiAdobe,
   SiReact,
@@ -37,16 +37,19 @@ export const ServiceBanner = ({
   badgeText,
   badgeText2,
   badgeLink,
+  useImageOverrides = true,
 }) => {
   const settings = useSiteSettings();
-  const resolvedBackgroundImage = resolveWebsiteImage(settings, backgroundImage);
+  const resolvedBackgroundImage = useImageOverrides
+    ? resolveWebsiteImage(settings, backgroundImage)
+    : toWebsiteImageUrl(backgroundImage);
 
   return (
     <section className="overflow-hidden bg-black">
       <div
         className="relative pb-20 pt-12 md:pt-24"
         style={{
-          backgroundImage: `url(${resolvedBackgroundImage})`,
+          backgroundImage: resolvedBackgroundImage ? `url(${resolvedBackgroundImage})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -79,38 +82,48 @@ const Copy = ({
   badgeText2
 }) => {
   const navigate = useNavigate();
+  const hasBadge = Boolean(badgeText || badgeText2);
+  const hasCta = Boolean(ctaText && ctaLink);
 
   return (
     <>
-      <div className="mb-1.5 rounded-full bg-zinc-600">
-        <button
-          className="flex origin-top-left items-center rounded-full border border-zinc-900 bg-white p-0.5 text-sm transition-transform hover:-rotate-2"
-        >
-          <span className="rounded-full bg-[#FF6154] px-2 py-0.5 font-medium text-white">
-            {badgeText}
-          </span>
-          <span className="ml-1.5 mr-1 inline-block">
-            {badgeText2}
-          </span>
-          <FiArrowUpRight className="mr-2 inline-block" />
-        </button>
-      </div>
+      {hasBadge && (
+        <div className="mb-1.5 rounded-full bg-zinc-600">
+          <button
+            className="flex origin-top-left items-center rounded-full border border-zinc-900 bg-white p-0.5 text-sm transition-transform hover:-rotate-2"
+          >
+            {badgeText && (
+              <span className="rounded-full bg-[#FF6154] px-2 py-0.5 font-medium text-white">
+                {badgeText}
+              </span>
+            )}
+            {badgeText2 && (
+              <span className="ml-1.5 mr-1 inline-block">
+                {badgeText2}
+              </span>
+            )}
+            <FiArrowUpRight className="mr-2 inline-block" />
+          </button>
+        </div>
+      )}
       <h1 className="max-w-4xl text-center text-2xl font-black leading-[1.15] sm:text-4xl md:text-6xl md:leading-[1.15] text-white">
         {heading}
       </h1>
       <p className="mx-auto my-4 max-w-3xl text-center text-white text-base leading-relaxed md:my-6 md:text-xl md:leading-relaxed">
         {subHeading}
       </p>
-      <button
-        className="group relative px-4 py-2 font-medium text-slate-100 transition-colors duration-[400ms] hover:text-indigo-300"
-        onClick={() => navigate(ctaLink)}
-      >
-        <span>{ctaText}</span>
-        <span className="absolute left-0 top-0 h-[2px] w-0 bg-indigo-300 transition-all duration-100 group-hover:w-full" />
-        <span className="absolute right-0 top-0 h-0 w-[2px] bg-indigo-300 transition-all delay-100 duration-100 group-hover:h-full" />
-        <span className="absolute bottom-0 right-0 h-[2px] w-0 bg-indigo-300 transition-all delay-200 duration-100 group-hover:w-full" />
-        <span className="absolute bottom-0 left-0 h-0 w-[2px] bg-indigo-300 transition-all delay-300 duration-100 group-hover:h-full" />
-      </button>
+      {hasCta && (
+        <button
+          className="group relative px-4 py-2 font-medium text-slate-100 transition-colors duration-[400ms] hover:text-indigo-300"
+          onClick={() => navigate(ctaLink)}
+        >
+          <span>{ctaText}</span>
+          <span className="absolute left-0 top-0 h-[2px] w-0 bg-indigo-300 transition-all duration-100 group-hover:w-full" />
+          <span className="absolute right-0 top-0 h-0 w-[2px] bg-indigo-300 transition-all delay-100 duration-100 group-hover:h-full" />
+          <span className="absolute bottom-0 right-0 h-[2px] w-0 bg-indigo-300 transition-all delay-200 duration-100 group-hover:w-full" />
+          <span className="absolute bottom-0 left-0 h-0 w-[2px] bg-indigo-300 transition-all delay-300 duration-100 group-hover:h-full" />
+        </button>
+      )}
     </>
   );
 };

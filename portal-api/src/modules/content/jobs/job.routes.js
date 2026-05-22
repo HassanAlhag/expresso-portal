@@ -11,6 +11,7 @@ import {
   publishToWebsite,
   updateJob,
   generateJobsForEnrollment,
+  updatePostMetrics,
 } from "./job.controller.js";
 
 const router = Router();
@@ -52,6 +53,12 @@ router.post(
   "/:id/publish",
   requirePermission("jobs.write"),
   publishToWebsite
+);
+
+router.patch(
+  "/:id/post-metrics",
+  requirePermission("jobs.write"),
+  updatePostMetrics
 );
 
 export default router;

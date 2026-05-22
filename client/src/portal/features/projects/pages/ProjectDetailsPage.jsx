@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import Card from "../../../shared/ui/Card";
 import { useToast } from "../../../shared/ui/Toast";
 import Skeleton from "../../../shared/ui/Skeleton";
-import EmptyState from "../../../shared/ui/EmptyState";
 
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import { getProject, listProjects, archiveProject, updateProject } from "../api";
@@ -16,12 +15,18 @@ import NewJobModal from "../../jobs/components/NewJobModal";
 import ProjectHeader from "../components/ProjectHeader";
 import ProjectFormModal from "../components/ProjectFormModal";
 import ProjectOverviewTab from "../tabs/ProjectOverviewTab";
+import ProjectScopeTab from "../tabs/ProjectScopeTab";
 import ProjectJobsTab from "../tabs/ProjectJobsTab";
 import ProjectFilesTab from "../tabs/ProjectFilesTab";
 import ProjectBillingTab from "../tabs/ProjectBillingTab";
 import ProjectActivityTab from "../tabs/ProjectActivityTab";
 
-import { Layers3 } from "lucide-react";
+function addDays(value, days) {
+  const base = value ? new Date(value) : new Date();
+  if (Number.isNaN(base.getTime())) return null;
+  base.setDate(base.getDate() + Number(days || 0));
+  return base.toISOString().slice(0, 10);
+}
 
 export default function ProjectDetailsPage() {
   const nav = useNavigate();
@@ -42,6 +47,7 @@ export default function ProjectDetailsPage() {
   const [jobQ, setJobQ] = useState("");
   const [newJobOpen, setNewJobOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [planGenerating, setPlanGenerating] = useState(false);
 
   const loadProject = async () => {
     setLoading(true);
@@ -130,7 +136,7 @@ export default function ProjectDetailsPage() {
 
   useEffect(() => {
     if (!project?._id) return;
-    if (tab === PROJECT_TABS.JOBS) loadJobs();
+    if (tab === PROJECT_TABS.JOBS || tab === PROJECT_TABS.SCOPE) loadJobs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, project?._id]);
 
@@ -162,6 +168,42 @@ export default function ProjectDetailsPage() {
       customerId: customer?._id,
       projectId: project?._id,
     });
+  };
+
+  const handleGeneratePlanJobs = async (planJobs = []) => {
+    if (!canCreateJob) {
+      toast.warning("Link a client before generating delivery jobs.");
+      return;
+    }
+    if (!planJobs.length) {
+      toast.info("All planned jobs already exist.");
+      return;
+    }
+
+    setPlanGenerating(true);
+    setBusy(true);
+    try {
+      for (const job of planJobs) {
+        await createJob({
+          customerId: customer._id,
+          projectId: project._id,
+          title: job.title,
+          type: job.type || "other",
+          status: "brief",
+          priority: project.priority === "urgent" ? "high" : "normal",
+          dueDate: addDays(project.startDate || project.createdAt, job.dueDays),
+          notes: job.notes || "",
+        });
+      }
+      toast.success(`${planJobs.length} delivery job${planJobs.length === 1 ? "" : "s"} generated.`);
+      await loadJobs();
+      setTab(PROJECT_TABS.JOBS);
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Failed to generate jobs.");
+    } finally {
+      setPlanGenerating(false);
+      setBusy(false);
+    }
   };
 
   if (loading) {
@@ -233,19 +275,23 @@ export default function ProjectDetailsPage() {
         ) : null}
 
         {tab === PROJECT_TABS.SCOPE ? (
-          <Card className="p-0 overflow-hidden">
-            <EmptyState
-              icon={Layers3}
-              title="Project scope is not fully structured yet"
-              message={
-                project?.projectMode === "contracted"
-                  ? "This contracted project can later connect to enrollment scope or a dedicated project scope module."
-                  : "This project is being used as a flexible work container. Next step is to build a dedicated project scope module, separate from enrollments."
+          <ProjectScopeTab
+            project={project}
+            customer={customer}
+            jobs={jobs}
+            loading={jobsLoading}
+            error={jobsError}
+            busy={busy}
+            generating={planGenerating}
+            onCreateJob={() => {
+              if (!canCreateJob) {
+                toast.warning("This project does not have a linked client yet. Link a client before creating jobs.");
+                return;
               }
-              actionLabel={canCreateJob ? "Create Job" : undefined}
-              onAction={canCreateJob ? () => setNewJobOpen(true) : undefined}
-            />
-          </Card>
+              setNewJobOpen(true);
+            }}
+            onGeneratePlanJobs={handleGeneratePlanJobs}
+          />
         ) : null}
 
         {tab === PROJECT_TABS.JOBS ? (
