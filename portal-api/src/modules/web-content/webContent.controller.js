@@ -143,10 +143,56 @@ export async function reorderServices(req, res) {
 
 // ─── Solutions ────────────────────────────────────────────────────────────────
 
+const SOLUTION_KINDS = ["technology", "digital"];
+const CUSTOM_PAGES = ["", "cas"]; // bespoke website pages that exist in code
+
+// ?kind=technology (default) | digital | all
+// Legacy documents without a kind are technology solutions.
+function kindFilter(kind) {
+  const k = String(kind || "technology").toLowerCase();
+  if (k === "all") return {};
+  if (k === "digital") return { kind: "digital" };
+  return { kind: { $ne: "digital" } };
+}
+
+function cleanSafeHref(v) {
+  const s = String(v || "").trim();
+  // internal paths or https links only
+  if (!s) return "";
+  if (s.startsWith("/") && !s.startsWith("//")) return s;
+  if (/^https:\/\//i.test(s)) return s;
+  return "";
+}
+
+function classificationFields(body, { partial }) {
+  const out = {};
+  const has = (k) => typeof body[k] !== "undefined";
+  if (!partial || has("kind")) {
+    const k = String(body.kind || "technology").toLowerCase();
+    if (!SOLUTION_KINDS.includes(k)) return { error: "kind must be technology or digital" };
+    out.kind = k;
+  }
+  if (!partial || has("ownership")) {
+    const own = String(body.ownership || (out.kind === "digital" ? "expresso" : "partner")).toLowerCase();
+    if (!["expresso", "partner"].includes(own)) return { error: "ownership must be expresso or partner" };
+    out.ownership = own;
+  }
+  for (const k of ["tagline", "badge", "ctaLabel", "demoCtaLabel"]) {
+    if (!partial || has(k)) out[k] = String(body[k] || "").trim();
+  }
+  if (!partial || has("demoCtaHref")) out.demoCtaHref = cleanSafeHref(body.demoCtaHref);
+  if (!partial || has("customPage")) {
+    const cp = String(body.customPage || "").trim().toLowerCase();
+    if (!CUSTOM_PAGES.includes(cp)) return { error: `customPage must be one of: ${CUSTOM_PAGES.filter(Boolean).join(", ")}` };
+    out.customPage = cp;
+  }
+  return { value: out };
+}
+
 export async function listSolutions(req, res) {
   try {
-    const { includeInactive } = req.query;
-    const filter = {};
+    const { includeInactive, kind } = req.query;
+    const filter = kindFilter(kind);
     if (!includeInactive) filter.isActive = true;
     const items = await Solution.find(filter).sort({ order: 1, createdAt: 1 }).lean();
     return res.json({ ok: true, items });
@@ -174,7 +220,10 @@ export async function createSolution(req, res) {
     if (!String(title || "").trim()) return res.status(400).json({ ok: false, message: "title is required" });
     const normalizedSlug = slugify(slug || title);
     if (!normalizedSlug) return res.status(400).json({ ok: false, message: "slug is required" });
+    const cls = classificationFields(req.body || {}, { partial: false });
+    if (cls.error) return res.status(400).json({ ok: false, message: cls.error });
     const item = await Solution.create({
+      ...cls.value,
       title: String(title).trim(),
       subtitle: String(subtitle || "").trim(),
       description: String(description || "").trim(),
@@ -216,6 +265,9 @@ export async function updateSolution(req, res) {
     if (typeof body.blocks !== "undefined") patch.blocks = Array.isArray(body.blocks) ? body.blocks : [];
     if (typeof body.order !== "undefined") patch.order = Number(body.order) || 0;
     if (typeof body.isActive !== "undefined") patch.isActive = Boolean(body.isActive);
+    const cls = classificationFields(body, { partial: true });
+    if (cls.error) return res.status(400).json({ ok: false, message: cls.error });
+    Object.assign(patch, cls.value);
     const item = await Solution.findByIdAndUpdate(id, patch, { new: true }).lean();
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
     return res.json({ ok: true, item });
