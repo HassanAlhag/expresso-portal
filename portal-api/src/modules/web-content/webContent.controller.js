@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 import DigitalService from "./digitalService.model.js";
 import Solution from "./solution.model.js";
+import {
+  TECHNOLOGY_GROUPS,
+  TECHNOLOGY_GROUP_IDS,
+  defaultTechnologyGroup,
+  withTechnologyGroup,
+} from "./technologyGroups.js";
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
@@ -149,7 +155,7 @@ export async function listSolutions(req, res) {
     const filter = {};
     if (!includeInactive) filter.isActive = true;
     const items = await Solution.find(filter).sort({ order: 1, createdAt: 1 }).lean();
-    return res.json({ ok: true, items });
+    return res.json({ ok: true, items: items.map(withTechnologyGroup), groups: TECHNOLOGY_GROUPS });
   } catch (e) {
     console.error("listSolutions:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
@@ -161,7 +167,7 @@ export async function getSolutionBySlug(req, res) {
     const { slug } = req.params;
     const item = await Solution.findOne({ slug: String(slug).trim() }).lean();
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
-    return res.json({ ok: true, item });
+    return res.json({ ok: true, item: withTechnologyGroup(item) });
   } catch (e) {
     console.error("getSolutionBySlug:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
@@ -170,15 +176,19 @@ export async function getSolutionBySlug(req, res) {
 
 export async function createSolution(req, res) {
   try {
-    const { title, subtitle, description, slug, icon, heroImageUrl, heroImageMediaId, blocks, order, isActive } = req.body || {};
+    const { title, subtitle, description, slug, group, icon, heroImageUrl, heroImageMediaId, blocks, order, isActive } = req.body || {};
     if (!String(title || "").trim()) return res.status(400).json({ ok: false, message: "title is required" });
     const normalizedSlug = slugify(slug || title);
     if (!normalizedSlug) return res.status(400).json({ ok: false, message: "slug is required" });
+    if (group !== undefined && group !== "" && !TECHNOLOGY_GROUP_IDS.includes(group)) {
+      return res.status(400).json({ ok: false, message: "Invalid technology group" });
+    }
     const item = await Solution.create({
       title: String(title).trim(),
       subtitle: String(subtitle || "").trim(),
       description: String(description || "").trim(),
       slug: normalizedSlug,
+      group: group || defaultTechnologyGroup(normalizedSlug),
       icon: String(icon || "software").trim(),
       heroImageUrl: String(heroImageUrl || "").trim(),
       heroImageMediaId: validId(heroImageMediaId) ? heroImageMediaId : null,
@@ -188,7 +198,7 @@ export async function createSolution(req, res) {
       createdBy: req.user?.id || null,
       updatedBy: req.user?.id || null,
     });
-    return res.status(201).json({ ok: true, item });
+    return res.status(201).json({ ok: true, item: withTechnologyGroup(item) });
   } catch (e) {
     if (e.code === 11000) return res.status(409).json({ ok: false, message: "Slug already in use" });
     console.error("createSolution:", e);
@@ -202,6 +212,12 @@ export async function updateSolution(req, res) {
     if (!validId(id)) return res.status(400).json({ ok: false, message: "Invalid id" });
     const body = req.body || {};
     const patch = { updatedBy: req.user?.id || null };
+    if (typeof body.group !== "undefined") {
+      if (!TECHNOLOGY_GROUP_IDS.includes(body.group)) {
+        return res.status(400).json({ ok: false, message: "Invalid technology group" });
+      }
+      patch.group = body.group;
+    }
     if (typeof body.title !== "undefined") patch.title = String(body.title || "").trim();
     if (typeof body.subtitle !== "undefined") patch.subtitle = String(body.subtitle || "").trim();
     if (typeof body.description !== "undefined") patch.description = String(body.description || "").trim();
@@ -218,7 +234,7 @@ export async function updateSolution(req, res) {
     if (typeof body.isActive !== "undefined") patch.isActive = Boolean(body.isActive);
     const item = await Solution.findByIdAndUpdate(id, patch, { new: true }).lean();
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
-    return res.json({ ok: true, item });
+    return res.json({ ok: true, item: withTechnologyGroup(item) });
   } catch (e) {
     if (e.code === 11000) return res.status(409).json({ ok: false, message: "Slug already in use" });
     console.error("updateSolution:", e);

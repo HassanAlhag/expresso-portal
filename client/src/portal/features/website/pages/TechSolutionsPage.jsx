@@ -621,6 +621,7 @@ const EMPTY_SOLUTION = {
   subtitle: "",
   description: "",
   slug: "",
+  group: "",
   icon: "software",
   heroImageUrl: "",
   heroImageMediaId: null,
@@ -634,7 +635,7 @@ function toSlug(s) {
     .replace(/^-+|-+$/g, "");
 }
 
-function SolutionFormModal({ open, onClose, initial, onSave }) {
+function SolutionFormModal({ open, onClose, initial, onSave, groups }) {
   const toast = useToast();
   const [form, setForm] = useState(EMPTY_SOLUTION);
   const [saving, setSaving] = useState(false);
@@ -658,6 +659,7 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
   const handleSave = async () => {
     if (!form.title.trim()) { toast.error("Title is required"); return; }
     if (!form.slug.trim()) { toast.error("Slug is required"); return; }
+    if (!groups.some((group) => group.id === form.group)) { toast.error("Choose a technology group"); return; }
     setSaving(true);
     try {
       await onSave(form);
@@ -709,6 +711,15 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
               onChange={(e) => set("subtitle", e.target.value)}
               placeholder="Streamline operations end-to-end"
             />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label htmlFor="solution-technology-group" className="mb-1 block text-xs font-bold text-slate-700">Technology group *</label>
+            <select id="solution-technology-group" value={form.group} onChange={(e) => set("group", e.target.value)} className={inputClass} required>
+              <option value="">Choose a group</option>
+              {groups.map((group) => <option key={group.id} value={group.id}>{group.label}</option>)}
+            </select>
+            <p className="mt-1 text-[11px] text-slate-400">Used on Technology Solutions and in the website navigation.</p>
           </div>
 
           <div className="sm:col-span-2">
@@ -1227,6 +1238,7 @@ function BlocksEditor({ solution, solutionId, blocks: initialBlocks, onSaved }) 
 export default function TechSolutionsPage() {
   const toast = useToast();
   const [items, setItems] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -1240,6 +1252,7 @@ export default function TechSolutionsPage() {
     try {
       const res = await listSolutions({ includeInactive: true });
       setItems(res.items || []);
+      setGroups(res.groups || []);
     } catch {
       toast.error("Failed to load solutions.");
     } finally {
@@ -1309,7 +1322,7 @@ export default function TechSolutionsPage() {
         <div>
           <h1 className="text-xl font-black text-slate-900">Technology Solutions</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Manage solution cards and their detail content. Drag to reorder.
+            Manage solution groups, cards and detail content. Edit a solution to choose its group. Drag to reorder within groups.
           </p>
         </div>
         <button
@@ -1376,6 +1389,7 @@ export default function TechSolutionsPage() {
                           {item.isActive ? "Active" : "Inactive"}
                         </span>
                       </div>
+                      <p className="mt-0.5 text-xs font-semibold text-slate-500">{groups.find((group) => group.id === item.group)?.label || "Choose a technology group"}</p>
                       {item.subtitle && <p className="mt-0.5 truncate text-xs text-slate-400">{item.subtitle}</p>}
                       <p className="mt-0.5 font-mono text-[11px] text-slate-400">/{item.slug}</p>
                     </div>
@@ -1454,6 +1468,7 @@ export default function TechSolutionsPage() {
         open={formOpen}
         onClose={() => setFormOpen(false)}
         initial={editing}
+        groups={groups}
         onSave={editing ? handleUpdate : handleCreate}
       />
 

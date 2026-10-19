@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { TECHNOLOGY_GROUP_IDS } from "./technologyGroups.js";
 
 const SolutionSchema = new mongoose.Schema(
   {
@@ -6,6 +7,7 @@ const SolutionSchema = new mongoose.Schema(
     subtitle: { type: String, trim: true, default: "" },
     description: { type: String, trim: true, default: "" },
     slug: { type: String, trim: true, required: true, unique: true, index: true },
+    group: { type: String, enum: ["", ...TECHNOLOGY_GROUP_IDS], default: "" },
     icon: { type: String, trim: true, default: "software" },
     heroImageUrl: { type: String, trim: true, default: "" },
     heroImageMediaId: { type: mongoose.Schema.Types.ObjectId, ref: "Media", default: null },
