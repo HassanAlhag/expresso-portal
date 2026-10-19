@@ -150,7 +150,12 @@ test("system status is super-admin only and reveals no secret values", async () 
   assert.equal(denied.status, 403);
   const ok = await call("GET", "/api/admin/system-status", { user: superAdmin });
   assert.equal(ok.status, 200);
-  const text = JSON.stringify(ok.body);
-  assert.doesNotMatch(text, /test-secret|mongodb:\/\//);
-  assert.equal(typeof ok.body.email.smtpConfigured, "boolean");
+  // Only booleans plus environment names — no hosts, names, keys or URLs.
+  const { environment, dbEnvironment, databaseConnected, configured } = ok.body;
+  assert.deepEqual(Object.keys(ok.body).sort(), ["configured", "databaseConnected", "dbEnvironment", "environment", "ok"]);
+  assert.equal(typeof environment, "string");
+  assert.equal(typeof dbEnvironment, "string");
+  assert.equal(typeof databaseConnected, "boolean");
+  for (const [k, v] of Object.entries(configured)) assert.equal(typeof v, "boolean", k);
+  assert.doesNotMatch(JSON.stringify(ok.body), /test-secret|mongodb|amazonaws|smtp\.|@/);
 });
