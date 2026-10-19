@@ -20,7 +20,7 @@ Deliverability: the sending domain should have SPF and DKIM records for the prov
 
 1. **Is production configured?** Sign in as super admin and open
    `GET /api/admin/system-status` (browser: `<api>/api/admin/system-status` with your session, or via the portal later).
-   It reports `email.smtpConfigured` and the host — never the password.
+   It reports `configured.smtp` (true/false) — no host, username or password.
 2. **Do the credentials work?** On your Mac with the same SMTP values in a staging env:
    `node src/scripts/sendTestEmail.js you@yourdomain.com` — connects, authenticates, sends one plain email. Touches no user.
 3. **End-to-end on staging:** invite a test address you own (plus-addressing works:
