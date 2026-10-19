@@ -114,7 +114,7 @@ export async function getAccount(req, res) {
       item.customerId
         ? ProcurementRequest.find({ customerId: item.customerId._id || item.customerId })
             .populate("categoryId", "name")
-            .populate("assignedTo", "firstName lastName email")
+            .populate("assignedTo", "fullName email")
             .sort({ createdAt: -1 })
             .limit(20)
             .lean()

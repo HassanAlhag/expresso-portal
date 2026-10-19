@@ -26,13 +26,13 @@ const STATUS_TIMELINE_MAP = {
 const POPULATE_LIST = [
   { path: "customerId", select: "companyName contactName" },
   { path: "categoryId", select: "name" },
-  { path: "assignedTo", select: "firstName lastName email" },
+  { path: "assignedTo", select: "fullName email" },
   { path: "vendorId", select: "name" },
 ];
 
 const POPULATE_DETAIL = [
   ...POPULATE_LIST,
-  { path: "createdBy", select: "firstName lastName" },
+  { path: "createdBy", select: "fullName" },
 ];
 
 function buildTenantFilter(req, filter = {}) {
