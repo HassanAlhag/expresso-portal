@@ -28,7 +28,7 @@ export const registerExpense = (id, registeredMonth) =>
     .then((res) => res.data);
 
 export const markExpensePaid = (id) =>
-  api.post(`/hr/expenses/${id}/mark-paid`).then((res) => res.data);
+  api.post(`/hr/expenses/${id}/paid`).then((res) => res.data);
 
 export const getExpenseStats = () =>
   api.get("/hr/expenses/stats").then((res) => res.data);
