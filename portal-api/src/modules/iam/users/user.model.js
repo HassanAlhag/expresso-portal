@@ -42,6 +42,16 @@ const UserSchema = new mongoose.Schema(
     /** Per-user permission revocations that override the role's permission set. */
     revokedPermissions: { type: [String], default: [] },
 
+    /** Which notifications the user wants (honoured as notifications ship). */
+    notificationPreferences: {
+      emailDigest: { type: Boolean, default: true },
+      projectUpdates: { type: Boolean, default: true },
+      ticketReplies: { type: Boolean, default: true },
+      billingAlerts: { type: Boolean, default: true },
+      securityAlerts: { type: Boolean, default: true },
+      teamActivity: { type: Boolean, default: false },
+    },
+
     passwordHash: { type: String, required: true, select: false },
 
     lastLoginAt: { type: Date, default: null },

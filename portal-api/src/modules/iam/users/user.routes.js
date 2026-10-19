@@ -20,7 +20,7 @@ const router = express.Router();
 
 router.get("/me", requireAuth, async (req, res) => {
   const user = await User.findById(req.user.id)
-    .select("fullName email role isActive lastLoginAt createdAt clientId avatarUrl avatarMediaId team jobTitle phone")
+    .select("fullName email role isActive lastLoginAt createdAt clientId avatarUrl avatarMediaId team jobTitle phone notificationPreferences")
     .lean();
   if (!user) return res.status(404).json({ ok: false, message: "User not found" });
   return res.json({ ok: true, user });
@@ -36,8 +36,18 @@ router.patch("/me", requireAuth, async (req, res) => {
 });
 
 router.patch("/me/notifications", requireAuth, async (req, res) => {
-  await User.findByIdAndUpdate(req.user.id, { notificationPreferences: req.body.preferences });
-  return res.json({ ok: true });
+  // Only known boolean keys are stored (the field previously did not exist in
+  // the schema, so every save was silently discarded; audit B5).
+  const KEYS = ["emailDigest", "projectUpdates", "ticketReplies", "billingAlerts", "securityAlerts", "teamActivity"];
+  const input = req.body?.preferences || {};
+  const set = {};
+  for (const k of KEYS) {
+    if (typeof input[k] === "boolean") set[`notificationPreferences.${k}`] = input[k];
+  }
+  const user = await User.findByIdAndUpdate(req.user.id, { $set: set }, { new: true })
+    .select("notificationPreferences")
+    .lean();
+  return res.json({ ok: true, preferences: user?.notificationPreferences || {} });
 });
 
 // ── Admin routes ──────────────────────────────────────────────────────────────

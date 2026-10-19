@@ -180,17 +180,33 @@ export default function SettingsPage() {
   });
   const [notifBusy, setNotifBusy] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get("/users/me")
+      .then(({ data }) => {
+        if (!cancelled && data?.user?.notificationPreferences) {
+          setNotifs((n) => ({ ...n, ...data.user.notificationPreferences }));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const setNotif = (key) => (val) => setNotifs((n) => ({ ...n, [key]: val }));
 
   const handleSaveNotifs = async () => {
     setNotifBusy(true);
     try {
-      await api.patch("/users/me/notifications", { preferences: notifs });
-    } catch {
-      // endpoint may not exist yet — treat as UI-only
+      const { data } = await api.patch("/users/me/notifications", { preferences: notifs });
+      if (data?.preferences) setNotifs((n) => ({ ...n, ...data.preferences }));
+      toast.success("Notification preferences saved.");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Could not save notification preferences.");
     } finally {
       setNotifBusy(false);
-      toast.success("Notification preferences saved.");
     }
   };
 
