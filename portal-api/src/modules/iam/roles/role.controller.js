@@ -6,6 +6,38 @@ import {
   DEFAULT_ROLE_PERMISSIONS,
   VALID_PERMISSION_KEYS,
 } from "../../../config/permissions.js";
+import { isSystemInternalRole } from "../../../utils/roleRegistry.js";
+import { logAudit } from "../audit/audit.service.js";
+
+// Roles only a super admin may edit.
+const PROTECTED_ROLE_KEYS = new Set(["super_admin", "admin"]);
+
+function defaultIsInternal(key) {
+  return key === "super_admin" || isSystemInternalRole(key);
+}
+
+function withInternalFlag(role) {
+  if (!role) return role;
+  return {
+    ...role,
+    isInternal:
+      typeof role.isInternal === "boolean"
+        ? role.isInternal
+        : role.isSystem || DEFAULT_ROLE_PERMISSIONS[role.key]
+          ? defaultIsInternal(role.key)
+          : false,
+  };
+}
+
+/**
+ * Permissions in `requested` that the acting user does not hold themselves.
+ * A non-super-admin cannot hand out access they do not have (audit S4).
+ */
+function permissionsBeyondActor(req, requested = []) {
+  if (req.user?.role === "super_admin") return [];
+  const held = new Set(req.user?.permissions || []);
+  return requested.filter((p) => !held.has(p));
+}
 
 const SYSTEM_ROLE_META = {
   super_admin: ["Super Admin", "Full system control"],
@@ -39,6 +71,7 @@ function synthesizeMissingSystemRoles(items, q) {
         description,
         permissions,
         isSystem: true,
+        isInternal: defaultIsInternal(key),
         synthetic: true,
       };
     })
@@ -59,10 +92,10 @@ function normalizeRolePermissions(role) {
     : [];
 
   if (defaults && valid.length === 0) {
-    return { ...role, permissions: defaults };
+    return withInternalFlag({ ...role, permissions: defaults });
   }
 
-  return { ...role, permissions: valid };
+  return withInternalFlag({ ...role, permissions: valid });
 }
 
 function escapeRegex(s) {
@@ -162,6 +195,7 @@ export async function getRole(req, res) {
             description,
             permissions: DEFAULT_ROLE_PERMISSIONS[key],
             isSystem: true,
+            isInternal: defaultIsInternal(key),
             synthetic: true,
           },
         });
@@ -184,7 +218,22 @@ export async function createRole(req, res) {
       return res.status(400).json({ ok: false, message: parsed.message });
     }
 
-    const { key, label, description, permissions } = parsed.value;
+    const { key, label, description, permissions, isInternal } = parsed.value;
+
+    if (DEFAULT_ROLE_PERMISSIONS[key]) {
+      return res
+        .status(409)
+        .json({ ok: false, message: "That key is reserved for a system role" });
+    }
+
+    const beyond = permissionsBeyondActor(req, permissions);
+    if (beyond.length > 0) {
+      return res.status(403).json({
+        ok: false,
+        message: "You cannot grant permissions you do not hold",
+        missing: beyond,
+      });
+    }
 
     const exists = await Role.findOne({ key }).lean();
     if (exists) {
@@ -198,7 +247,13 @@ export async function createRole(req, res) {
       label,
       description,
       permissions,
+      isInternal,
       isSystem: false,
+    });
+
+    await logAudit(req, {
+      action: "role.created",
+      meta: { key, isInternal, permissions },
     });
 
     return res.status(201).json({ ok: true, item });
@@ -229,6 +284,36 @@ export async function updateRole(req, res) {
 
     const patch = { ...parsed.value };
 
+    if (PROTECTED_ROLE_KEYS.has(target.key) && req.user?.role !== "super_admin") {
+      return res
+        .status(403)
+        .json({ ok: false, message: "Only a super admin can edit this role" });
+    }
+
+    if (
+      "isInternal" in patch &&
+      (target.isSystem || DEFAULT_ROLE_PERMISSIONS[target.key]) &&
+      patch.isInternal !== defaultIsInternal(target.key)
+    ) {
+      return res.status(403).json({
+        ok: false,
+        message: "A system role cannot change between internal and external",
+      });
+    }
+
+    if ("permissions" in patch) {
+      const current = new Set(target.permissions || []);
+      const added = patch.permissions.filter((p) => !current.has(p));
+      const beyond = permissionsBeyondActor(req, added);
+      if (beyond.length > 0) {
+        return res.status(403).json({
+          ok: false,
+          message: "You cannot grant permissions you do not hold",
+          missing: beyond,
+        });
+      }
+    }
+
     if ("key" in patch && patch.key !== target.key) {
       if (target.isSystem) {
         return res
@@ -256,7 +341,20 @@ export async function updateRole(req, res) {
       new: true,
     }).lean();
 
-    return res.json({ ok: true, item });
+    const before = new Set(target.permissions || []);
+    const after = new Set(item?.permissions || []);
+    await logAudit(req, {
+      action: "role.updated",
+      meta: {
+        key: target.key,
+        added: [...after].filter((p) => !before.has(p)),
+        removed: [...before].filter((p) => !after.has(p)),
+        isInternal: item?.isInternal,
+        fields: Object.keys(patch),
+      },
+    });
+
+    return res.json({ ok: true, item: withInternalFlag(item) });
   } catch (err) {
     console.error("updateRole error:", err);
     return res.status(500).json({ ok: false, message: "Server error" });
@@ -292,6 +390,7 @@ export async function deleteRole(req, res) {
     }
 
     await Role.findByIdAndDelete(id);
+    await logAudit(req, { action: "role.deleted", meta: { key: role.key } });
 
     return res.json({ ok: true, message: "Role deleted" });
   } catch (err) {

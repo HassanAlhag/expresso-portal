@@ -472,9 +472,21 @@ export async function updateUserPermissions(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid user id" });
     }
 
-    const target = await User.findById(id).select("role").lean();
+    const target = await User.findById(id)
+      .select("role extraPermissions revokedPermissions")
+      .lean();
     if (!target) {
       return res.status(404).json({ ok: false, message: "User not found" });
+    }
+
+    const isSuper = req.user?.role === "super_admin";
+    if (!isSuper && String(id) === String(req.user?.id)) {
+      return res
+        .status(403)
+        .json({ ok: false, message: "You cannot change your own permissions" });
+    }
+    if (!canManageRole(req.user?.role, target.role)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
     }
 
     const clean = (list) =>
@@ -486,11 +498,31 @@ export async function updateUserPermissions(req, res) {
     if ("extraPermissions"   in req.body) patch.extraPermissions   = clean(req.body.extraPermissions);
     if ("revokedPermissions" in req.body) patch.revokedPermissions = clean(req.body.revokedPermissions);
 
+    if (!isSuper && patch.extraPermissions) {
+      const held = new Set(req.user?.permissions || []);
+      const already = new Set(target.extraPermissions || []);
+      const beyond = patch.extraPermissions.filter((p) => !held.has(p) && !already.has(p));
+      if (beyond.length > 0) {
+        return res.status(403).json({
+          ok: false,
+          message: "You cannot grant permissions you do not hold",
+          missing: beyond,
+        });
+      }
+    }
+
     const user = await User.findByIdAndUpdate(id, patch, { new: true })
       .select("fullName email role extraPermissions revokedPermissions")
       .lean();
 
-    await logAudit(req, { action: "user.permissions_updated", targetUserId: id });
+    await logAudit(req, {
+      action: "user.permissions_updated",
+      targetUserId: id,
+      meta: {
+        extraPermissions: patch.extraPermissions,
+        revokedPermissions: patch.revokedPermissions,
+      },
+    });
 
     return res.json({ ok: true, user });
   } catch (err) {
