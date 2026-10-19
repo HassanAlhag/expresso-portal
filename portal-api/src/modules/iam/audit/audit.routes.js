@@ -16,8 +16,9 @@ router.get(
     const { q = "", action = "", actorEmail = "" } = req.query;
 
     const filter = {};
-    if (action) filter.action = { $regex: action, $options: "i" };
-    if (actorEmail) filter.actorEmail = { $regex: actorEmail, $options: "i" };
+    const esc = (v) => String(v).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (action) filter.action = { $regex: esc(action), $options: "i" };
+    if (actorEmail) filter.actorEmail = { $regex: esc(actorEmail), $options: "i" };
     if (q.trim()) {
       const rx = new RegExp(q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       filter.$or = [{ action: rx }, { actorEmail: rx }, { ip: rx }];

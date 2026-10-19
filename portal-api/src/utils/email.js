@@ -18,8 +18,13 @@ function getTransporter() {
 export async function sendMail({ to, subject, html, text }) {
   const t = getTransporter();
   if (!t) {
-    // No SMTP configured (local/dev) — dump the email to the console
-    // instead of sending it, so links (invite/reset) are still usable.
+    if (env.nodeEnv === "production") {
+      // Never write invite/reset links to production logs: anyone with log
+      // access could take over accounts (audit S12).
+      console.error(`[email] SMTP not configured — email NOT sent: "${subject}"`);
+      return;
+    }
+    // Local/dev only: print the email so invite/reset links are usable.
     console.log(`[email] SMTP not configured — not sent: "${subject}" → ${to}`);
     console.log(text || html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
     return;

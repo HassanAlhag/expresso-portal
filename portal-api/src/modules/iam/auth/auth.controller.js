@@ -37,7 +37,6 @@ function buildUserPayload(user, permissions = [], isInternal = false) {
     team:              user.team || "",
     jobTitle:          user.jobTitle || "",
     phone:             user.phone || "",
-    notes:             user.notes || "",
     permissions,
     isInternal,
     extraPermissions:  user.extraPermissions  || [],
