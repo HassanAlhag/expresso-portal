@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Message from "./message.model.js";
+import { isInternalUser, getUserClientId } from "../../utils/accessControl.js";
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
@@ -9,15 +10,14 @@ function userId(req) {
   return req.user?.id || req.user?._id || null;
 }
 
-function isClientUser(req) {
-  return new Set(["client", "staff_client", "procurement_client", "client_admin"]).has(
-    req.user?.role || ""
-  );
-}
-
+// Internal (Expresso team) users may access any client thread; everyone else
+// (clients, vendors, external custom roles) only their own company's thread.
+// Previously only the 4 client role keys were restricted, so vendors could read
+// every client's messages (audit S1).
 function canAccessCustomer(req, customerId) {
-  if (!isClientUser(req)) return true;
-  return Boolean(req.user?.clientId) && String(req.user.clientId) === String(customerId);
+  if (isInternalUser(req)) return true;
+  const own = getUserClientId(req);
+  return Boolean(own) && own === String(customerId);
 }
 
 export async function listMessages(req, res) {
@@ -60,8 +60,7 @@ export async function sendMessage(req, res) {
     if (!body.trim() && attachmentUrls.length === 0) {
       return res.status(400).json({ ok: false, message: "body required" });
     }
-    const clientRoles = new Set(["client", "staff_client", "procurement_client", "client_admin"]);
-    const isFromAgency = !clientRoles.has(req.user?.role || "");
+    const isFromAgency = isInternalUser(req);
     const msg = await Message.create({
       customerId,
       authorId: uid,
@@ -123,13 +122,12 @@ export async function getNotificationCounts(req, res) {
   try {
     const uid = userId(req);
     if (!uid) return res.status(401).json({ ok: false, message: "Unauthorized" });
-    const clientRoles = new Set(["client", "staff_client", "procurement_client", "client_admin"]);
-    const isClient = clientRoles.has(req.user?.role || "");
-
     let unreadMessages = 0;
-    if (isClient && req.user.clientId) {
+    if (!isInternalUser(req)) {
+      const own = getUserClientId(req);
+      if (!own) return res.json({ ok: true, unreadMessages: 0 });
       unreadMessages = await Message.countDocuments({
-        customerId: req.user.clientId,
+        customerId: own,
         readBy: { $ne: uid },
       });
     } else {
