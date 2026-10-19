@@ -7,6 +7,12 @@ export function errorHandler(err, req, res, next) {
     return res.status(400).json({ ok: false, message });
   }
 
+  // Multer limits (file too large, too many files)
+  if (err.name === "MulterError") {
+    const status = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+    return res.status(status).json({ ok: false, message: err.message });
+  }
+
   // Mongoose invalid ObjectId
   if (err.name === "CastError") {
     return res.status(400).json({ ok: false, message: "Invalid identifier" });
