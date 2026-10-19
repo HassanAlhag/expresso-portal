@@ -39,3 +39,11 @@ yarn-error.log*
 # local tooling / review artifacts
 .claude/
 .codex-artifacts/
+
+# example env files are documentation, keep them tracked
+!.env.example
+!**/.env.example
+
+# private document uploads (local development)
+private-uploads/
+portal-api/private-uploads/

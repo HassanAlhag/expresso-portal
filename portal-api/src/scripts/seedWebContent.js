@@ -2,6 +2,7 @@ import "dotenv/config";
 import { connectDB } from "../config/db.js";
 import DigitalService from "../modules/web-content/digitalService.model.js";
 import Solution from "../modules/web-content/solution.model.js";
+import { assertSafeTarget } from "./_guard.js";
 
 // ─── Digital Services ─────────────────────────────────────────────────────────
 
@@ -762,6 +763,7 @@ enrichTechnologySolutionBlocks(SOLUTIONS);
 // ─── Runner ───────────────────────────────────────────────────────────────────
 
 async function run() {
+  assertSafeTarget();
   await connectDB();
   console.log("Connected to DB.");
 

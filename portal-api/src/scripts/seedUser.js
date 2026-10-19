@@ -3,8 +3,10 @@ import "dotenv/config";
 import { connectDB } from "../config/db.js";
 import { env } from "../config/env.js";
 import User from "../modules/iam/users/user.model.js";
+import { assertSafeTarget } from "./_guard.js";
 
 async function run() {
+  assertSafeTarget();
   await connectDB();
 
   const email = (env.superAdminEmail || "").trim().toLowerCase();

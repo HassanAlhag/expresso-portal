@@ -6,6 +6,7 @@ import Staff from "../modules/hr/staff/staff.model.js";
 import KPIIndicator from "../modules/hr/kpi/kpiIndicator.model.js";
 import KPIGoal from "../modules/hr/kpi/kpiGoal.model.js";
 import KPICheckin from "../modules/hr/kpi/kpiCheckin.model.js";
+import { assertSafeTarget } from "./_guard.js";
 
 const PERIOD =
   process.argv.find((arg) => arg.startsWith("--period="))?.split("=")[1] ||
@@ -447,6 +448,7 @@ function individualGoalPlan(staff, index) {
 }
 
 async function run() {
+  assertSafeTarget();
   await connectDB();
   const createdBy = await getSeedUserId();
   const staff = await ensureStaff(createdBy);

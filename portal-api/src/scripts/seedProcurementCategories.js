@@ -7,6 +7,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import { env } from "../config/env.js";
 import ProcurementCategory from "../modules/procurement/category.model.js";
+import { assertSafeTarget } from "./_guard.js";
 
 function slug(s) {
   return String(s)
@@ -221,6 +222,7 @@ const TREE = [
 ];
 
 async function seed() {
+  assertSafeTarget();
   await mongoose.connect(env.mongoUri);
   console.log("Connected to MongoDB");
 

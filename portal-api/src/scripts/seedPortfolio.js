@@ -2,6 +2,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import { connectDB } from "../config/db.js";
 import Portfolio from "../modules/portfolio/portfolio.model.js";
+import { assertSafeTarget } from "./_guard.js";
 
 const ITEMS = [
   {
@@ -212,6 +213,7 @@ const ITEMS = [
 ];
 
 async function run() {
+  assertSafeTarget();
   await connectDB();
 
   for (const item of ITEMS) {

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { connectDB } from "../config/db.js";
 import User from "../modules/iam/users/user.model.js";
+import { assertSafeTarget } from "./_guard.js";
 
 const email = process.argv[2];
 const newPassword = process.argv[3];
@@ -13,6 +14,7 @@ if (!email || !newPassword) {
 }
 
 async function run() {
+  assertSafeTarget();
   await connectDB();
 
   const user = await User.findOne({

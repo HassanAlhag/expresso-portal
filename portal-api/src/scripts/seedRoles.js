@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { connectDB } from "../config/db.js";
 import { DEFAULT_ROLE_PERMISSIONS } from "../config/permissions.js";
 import Role from "../modules/iam/roles/role.model.js";
+import { assertSafeTarget } from "./_guard.js";
 
 const ROLES = [
   {
@@ -106,6 +107,7 @@ const ROLES = [
 ];
 
 async function run() {
+  assertSafeTarget();
   await connectDB();
 
   for (const role of ROLES) {
