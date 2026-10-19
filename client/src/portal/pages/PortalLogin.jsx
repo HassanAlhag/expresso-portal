@@ -1,6 +1,6 @@
 // src/portal/pages/PortalLogin.jsx
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { login, googleLogin } from "../shared/api/auth.api";
@@ -37,6 +37,13 @@ function applySession(res, email) {
 
 export default function PortalLogin() {
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessionExpired = searchParams.get("expired") === "1";
+  // Return to the page the user was on; only internal portal paths allowed.
+  const nextPath = (() => {
+    const n = searchParams.get("next") || "";
+    return n.startsWith("/portal") && !n.startsWith("//") ? n : "/portal";
+  })();
 
   const [email, setEmail] = useState(
     localStorage.getItem("portal_email") || ""
@@ -60,7 +67,7 @@ export default function PortalLogin() {
       if (!res?.ok) throw new Error(res?.message || "Login failed");
 
       applySession(res, email);
-      nav("/portal", { replace: true });
+      nav(nextPath, { replace: true });
     } catch (e2) {
       setError(e2?.response?.data?.message || e2?.message || "Login failed");
     } finally {
@@ -80,7 +87,7 @@ export default function PortalLogin() {
 
       if (res?.ok) {
         applySession(res);
-        nav("/portal", { replace: true });
+        nav(nextPath, { replace: true });
         return;
       }
 
@@ -142,7 +149,9 @@ export default function PortalLogin() {
           />
         </div>
 
-        <AuthError>{error}</AuthError>
+        <AuthError>
+          {error || (sessionExpired ? "Your session has expired. Please sign in again." : "")}
+        </AuthError>
 
         <AuthSubmitButton loading={loading} loadingLabel="Signing in...">
           Sign In →
