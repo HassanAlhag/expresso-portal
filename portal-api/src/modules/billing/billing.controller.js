@@ -268,15 +268,34 @@ export async function markInvoicePaid(req, res) {
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
 
-    const item = await Invoice.findByIdAndUpdate(
-      id,
-      { status: "paid", paidAt: new Date(), updatedBy: req.user?.id || null },
-      { new: true }
-    )
+    // Record the outstanding balance as a payment so amountPaid/balance stay
+    // consistent with the status (previously only the status changed; B6).
+    const doc = await Invoice.findById(id);
+    if (!doc) return res.status(404).json({ ok: false, message: "Not found" });
+    if (doc.status === "void") {
+      return res.status(409).json({ ok: false, message: "A void invoice cannot be marked paid" });
+    }
+
+    const outstanding = Math.max(0, Number(doc.total || 0) - Number(doc.amountPaid || 0));
+    if (outstanding > 0) {
+      const METHODS = ["bank_transfer", "cash", "card", "cheque", "online", "other"];
+      const method = METHODS.includes(req.body?.method) ? req.body.method : "other";
+      doc.payments.push({
+        amount: outstanding,
+        method,
+        note: String(req.body?.note || "Marked as paid").trim(),
+        paidAt: new Date(),
+        recordedBy: req.user?.id || null,
+      });
+    }
+    doc.status = "paid";
+    doc.paidAt = new Date();
+    doc.updatedBy = req.user?.id || null;
+    await doc.save(); // pre-save recomputes amountPaid and balance
+
+    const item = await Invoice.findById(id)
       .populate("customerId", "companyName contactName primaryEmail")
       .lean();
-
-    if (!item) return res.status(404).json({ ok: false, message: "Not found" });
     return res.json({ ok: true, item });
   } catch (e) {
     console.error("markInvoicePaid:", e);
