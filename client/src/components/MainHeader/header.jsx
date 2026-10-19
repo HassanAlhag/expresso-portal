@@ -1,9 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
-import LINKS from "./links";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FiChevronDown } from "react-icons/fi";
 import MobileMenu from "./mobileMenu";
+import MegaPanel from "./MegaPanel";
+import { buildMenus, isMenuActive, useCmsNavData } from "./navData";
+import BrandMark from "../../brand/BrandMark";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import {
   resolveWebsiteImage,
@@ -33,15 +36,25 @@ const Header = () => {
     ? toWebsiteImageUrl(settings.branding.logoWhiteUrl)
     : resolveWebsiteImage(settings, LOGO_FALLBACK);
 
+  const cms = useCmsNavData();
+  const menus = useMemo(() => buildMenus(cms), [cms]);
+  const { pathname } = useLocation();
+  const activeKey = menus.find((m) => isMenuActive(m, pathname))?.key;
+  const navRef = useRef(null);
+
   return (
     <header className="fixed inset-x-0 top-0 z-[1000] pointer-events-none">
-      <nav className="pointer-events-auto mx-auto mt-4 w-[min(1180px,94vw)] overflow-visible rounded-2xl border border-white/10 bg-black/35 px-5 py-3 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-        <div className="flex items-center justify-between gap-4">
+      <nav
+        ref={navRef}
+        aria-label="Main"
+        className="pointer-events-auto mx-auto mt-4 w-[min(1240px,96vw)] overflow-visible rounded-2xl border border-white/10 bg-night/60 px-4 py-2.5 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] xl:px-5"
+      >
+        <div className="flex items-center justify-between gap-3">
           <Logo src={logoSrc} />
 
-          <div className="hidden items-center gap-7 lg:flex">
-            {LINKS.map((l) => (
-              <NavLink key={l.text} {...l} />
+          <div className="hidden items-center gap-0.5 lg:flex xl:gap-1">
+            {menus.map((m) => (
+              <NavLink key={m.key} menu={m} active={m.key === activeKey} navRef={navRef} />
             ))}
           </div>
 
@@ -61,24 +74,44 @@ const Logo = ({ src }) => {
   return (
     <Link
       to="/"
-      className="flex items-center gap-3 rounded-xl px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-300/60"
+      aria-label="Expresso Digital — home"
+      className="flex shrink-0 items-center gap-3 rounded-xl px-1 py-1"
     >
       <img
         src={src}
         alt="Expresso Digital"
-        className="h-11 w-auto object-contain sm:h-12 md:h-14"
+        className="h-11 w-auto object-contain sm:h-12 xl:h-[52px]"
         draggable={false}
       />
     </Link>
   );
 };
 
-const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
+const NavLink = ({ menu, active, navRef }) => {
+  const { text, href, width: flyoutWidth = 900 } = menu;
   const [open, setOpen] = useState(false);
+  const [top, setTop] = useState(106);
   const timer = useRef(null);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
-  const hasFlyout = Boolean(FlyoutContent);
+  const hasFlyout = true;
+
+  // Position under the nav bar as it actually renders (handles browser zoom
+  // and any change in nav height) instead of a hard-coded offset.
+  useEffect(() => {
+    if (!open) return undefined;
+    const place = () => {
+      const bottom = navRef?.current?.getBoundingClientRect().bottom;
+      if (bottom) setTop(Math.round(bottom + 10));
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, { passive: true });
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place);
+    };
+  }, [open, navRef]);
   const triggerId = `${toMenuId(text)}-trigger`;
   const panelId = `${toMenuId(text)}-flyout`;
 
@@ -97,7 +130,7 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
 
   const show = () => {
     clearCloseTimer();
-    if (hasFlyout) setOpen(true);
+    setOpen(true);
   };
   const hide = () => {
     clearCloseTimer();
@@ -178,9 +211,12 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
   // left = 50vw - half the menu width, clamped to 16px so it never bleeds off screen.
   const flyoutStyle = {
     position: "fixed",
-    top: "106px",
+    top: `${top}px`,
     left: `max(16px, calc(50vw - ${flyoutWidth / 2}px))`,
     width: `min(${flyoutWidth}px, calc(100vw - 32px))`,
+    maxHeight: `calc(100vh - ${top + 16}px)`,
+    overflowY: "auto",
+    borderRadius: 22,
     zIndex: 1100,
   };
 
@@ -190,21 +226,30 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
         to={href}
         ref={triggerRef}
         id={triggerId}
-        aria-haspopup={hasFlyout ? "menu" : undefined}
+        aria-haspopup={hasFlyout ? "true" : undefined}
         aria-expanded={hasFlyout ? open : undefined}
         aria-controls={hasFlyout ? panelId : undefined}
         onKeyDown={handleTriggerKeyDown}
         onBlur={handleTriggerBlur}
-        className="relative text-[14px] font-medium text-white/85 transition hover:text-white"
+        aria-current={active ? "page" : undefined}
+        className={`relative flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-2 text-[13.5px] font-medium transition xl:px-3 xl:text-[14px] ${
+          active || open ? "bg-lotus-400/15 text-white" : "text-white/80 hover:text-white"
+        }`}
       >
+        {active ? <BrandMark size={15} tone="lotus-300" /> : null}
         {text}
+        <FiChevronDown
+          size={13}
+          aria-hidden="true"
+          className={`hidden text-white/50 transition-transform xl:inline ${open ? "rotate-180" : ""}`}
+        />
       </Link>
 
       {/* transparent bridge fills the gap between nav bar and flyout panel */}
-      {hasFlyout && open && (
+      {open && (
         <div
           className="fixed left-0 right-0"
-          style={{ top: 72, height: 40, zIndex: 1099 }}
+          style={{ top: top - 24, height: 28, zIndex: 1099 }}
           onMouseEnter={show}
         />
       )}
@@ -228,9 +273,7 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
                 exit={{ opacity: 0, y: 6, scale: 0.99 }}
                 transition={{ duration: 0.15 }}
               >
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-1.5 shadow-[0_20px_60px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-                  <FlyoutContent />
-                </div>
+                <MegaPanel menu={menu} />
               </motion.div>
             )}
           </AnimatePresence>,
@@ -245,8 +288,9 @@ export const CTAs = () => {
   return (
     <div className="flex items-center gap-2">
       <button
+        type="button"
         onClick={() => navigate("/portal/login")}
-        className="rounded-xl border border-indigo-300/40 bg-indigo-300/85 px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-indigo-300"
+        className="whitespace-nowrap rounded-full bg-lotus-400 px-5 py-2.5 text-[14px] font-bold text-night transition hover:bg-lotus-300"
       >
         Client Portal
       </button>

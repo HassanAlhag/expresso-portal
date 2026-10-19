@@ -2,19 +2,37 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { FiMenu, FiX, FiChevronDown } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
-import LINKS from "./links";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { buildMenus, isMenuActive, useCmsNavData } from "./navData";
+import BrandMark from "../../brand/BrandMark";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import {
   resolveWebsiteImage,
   toWebsiteImageUrl,
 } from "../../utils/websiteImages";
 
-const NAV = LINKS.map(({ text, href, mobileLinks = [] }) => ({
-  text,
-  href,
-  sub: mobileLinks,
-}));
+// Same menus as the desktop mega menu, flattened into labelled groups.
+function toMobileSections(menu) {
+  const sections = [];
+  if (menu.featured?.length) {
+    sections.push({
+      label: null,
+      items: menu.featured.map((f) => ({ text: f.title, href: f.to, badge: f.badge })),
+    });
+  }
+  for (const g of menu.groups || []) {
+    if (g.items?.length) {
+      sections.push({ label: g.label, items: g.items.map((i) => ({ text: i.title, href: i.to })) });
+    }
+  }
+  if (menu.action?.primary) {
+    sections.push({
+      label: null,
+      items: [{ text: menu.action.primary.label, href: menu.action.primary.to, emphasis: true }],
+    });
+  }
+  return sections;
+}
 
 const toMenuId = (text) =>
   text
@@ -32,33 +50,26 @@ const getFocusableElements = (root) => {
   ).filter((el) => el.offsetParent !== null);
 };
 
-function NavRow({ item, onClose }) {
-  const [open, setOpen] = useState(false);
-  const hasSub = item.sub && item.sub.length > 0;
-  const toggleId = `${toMenuId(item.text)}-toggle`;
-  const submenuId = `${toMenuId(item.text)}-submenu`;
+function NavRow({ menu, active, onClose }) {
+  const [open, setOpen] = useState(active);
+  const sections = toMobileSections(menu);
+  const hasSub = sections.some((x) => x.items.length);
+  const toggleId = `${toMenuId(menu.text)}-toggle`;
+  const submenuId = `${toMenuId(menu.text)}-submenu`;
 
   return (
-    <div style={{ borderBottom: "1px solid #e5e7eb" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "16px 0",
-        }}
-      >
+    <div className="border-b border-ink-100">
+      <div className="flex items-center justify-between py-3.5">
         <Link
-          to={item.href}
+          to={menu.href}
           onClick={onClose}
-          style={{
-            fontSize: 17,
-            fontWeight: 700,
-            color: "#111827",
-            textDecoration: "none",
-          }}
+          aria-current={active ? "page" : undefined}
+          className={`flex items-center gap-2 text-[17px] font-bold no-underline ${
+            active ? "text-lotus-700" : "text-night"
+          }`}
         >
-          {item.text}
+          {active ? <BrandMark size={18} /> : null}
+          {menu.text}
         </Link>
         {hasSub && (
           <button
@@ -66,85 +77,46 @@ function NavRow({ item, onClose }) {
             id={toggleId}
             aria-expanded={open}
             aria-controls={submenuId}
-            aria-label={`${open ? "Collapse" : "Expand"} ${item.text}`}
+            aria-label={`${open ? "Collapse" : "Expand"} ${menu.text}`}
             onClick={() => setOpen((v) => !v)}
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 999,
-              border: "none",
-              background: "#f3f4f6",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-ink-100"
           >
             <FiChevronDown
-              size={16}
-              color="#6b7280"
-              style={{
-                transition: "transform 0.22s",
-                transform: open ? "rotate(180deg)" : "rotate(0deg)",
-              }}
+              size={18}
+              className={`text-ink-500 transition-transform ${open ? "rotate-180" : ""}`}
             />
           </button>
         )}
       </div>
 
       {hasSub && open && (
-        <div
-          id={submenuId}
-          role="region"
-          aria-labelledby={toggleId}
-          style={{ paddingBottom: 8 }}
-        >
-          {item.sub.map((s) => (
-            <Link
-              key={s.href}
-              to={s.href}
-              onClick={onClose}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "10px 0 10px 8px",
-                fontSize: 14,
-                fontWeight: 500,
-                color: "#4b5563",
-                textDecoration: "none",
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: s.badge ? "#7F8AD1" : "#818cf8",
-                  flexShrink: 0,
-                }}
-              />
-              <span style={{ flex: "1 1 auto" }}>{s.text}</span>
-              {s.badge && (
-                <span
-                  style={{
-                    flexShrink: 0,
-                    fontSize: 9.5,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
-                    color: "#5762b8",
-                    background: "rgba(127,138,209,0.12)",
-                    border: "1px solid rgba(127,138,209,0.25)",
-                    borderRadius: 999,
-                    padding: "2px 7px",
-                    whiteSpace: "nowrap",
-                  }}
+        <div id={submenuId} role="region" aria-labelledby={toggleId} className="pb-3">
+          {sections.map((section, i) => (
+            <div key={section.label || i} className="pb-2">
+              {section.label ? (
+                <div className="px-2 pb-1 pt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500">
+                  {section.label}
+                </div>
+              ) : null}
+              {section.items.map((it) => (
+                <Link
+                  key={it.href + it.text}
+                  to={it.href}
+                  onClick={onClose}
+                  className={`flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-[15px] no-underline ${
+                    it.emphasis ? "font-bold text-lotus-600" : "font-medium text-ink-600"
+                  } hover:bg-lotus-50`}
                 >
-                  {s.badge}
-                </span>
-              )}
-            </Link>
+                  <span className="flex-1">{it.text}</span>
+                  {it.badge ? (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-night px-2 py-0.5 text-[11px] font-bold text-lotus-200">
+                      <BrandMark size={12} tone="white" />
+                      {it.badge}
+                    </span>
+                  ) : null}
+                </Link>
+              ))}
+            </div>
           ))}
         </div>
       )}
@@ -160,6 +132,10 @@ export default function MobileMenu() {
   const drawerRef = useRef(null);
   const navigate = useNavigate();
   const settings = useSiteSettings();
+  const cms = useCmsNavData();
+  const menus = buildMenus(cms);
+  const { pathname } = useLocation();
+  const activeKey = menus.find((m) => isMenuActive(m, pathname))?.key;
 
   const configuredLogo =
     settings?.branding?.logoUrl || settings?.branding?.logoWhiteUrl;
@@ -359,22 +335,15 @@ export default function MobileMenu() {
                       WebkitOverflowScrolling: "touch",
                     }}
                   >
-                    {NAV.map((item) => (
-                      <NavRow key={item.text} item={item} onClose={close} />
+                    {menus.map((m) => (
+                      <NavRow key={m.key} menu={m} active={m.key === activeKey} onClose={close} />
                     ))}
                   </div>
 
                   {/* CTA strip */}
                   <div
-                    style={{
-                      flex: "0 0 auto",
-                      display: "flex",
-                      alignItems: "center",
-                      padding:
-                        "12px 20px calc(12px + env(safe-area-inset-bottom, 0px))",
-                      borderTop: "1px solid #f0f0f0",
-                      background: "#f9fafb",
-                    }}
+                    className="flex flex-col gap-2 border-t border-ink-100 bg-mist px-5 pt-3"
+                    style={{ paddingBottom: "calc(12px + env(safe-area-inset-bottom, 0px))" }}
                   >
                     <button
                       type="button"
@@ -382,20 +351,18 @@ export default function MobileMenu() {
                         navigate("/portal/login");
                         close();
                       }}
-                      style={{
-                        width: "100%",
-                        height: 44,
-                        borderRadius: 12,
-                        border: "none",
-                        background: "#6366f1",
-                        color: "#ffffff",
-                        fontSize: 14,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
+                      className="h-11 w-full rounded-full bg-lotus-400 text-[15px] font-bold text-night"
                     >
                       Client Portal
                     </button>
+                    <Link
+                      to="/vendor-registration"
+                      onClick={close}
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#EDE3D9] bg-sand text-[14px] font-bold text-espresso no-underline"
+                    >
+                      <BrandMark size={18} tone="espresso" />
+                      Register as a vendor
+                    </Link>
                   </div>
                 </motion.div>
               </>
