@@ -14,6 +14,7 @@ import {
   listApplications,
   listAllApplications,
   updateApplicationStatus,
+  getApplicationCvUrl,
 } from "./application.controller.js";
 
 const cvUpload = multer({
@@ -43,6 +44,7 @@ router.delete("/:id", requirePermission("website.write"), deleteCareer);
 
 // Applications
 router.get("/applications",               requirePermission("website.read"), listAllApplications);
+router.get("/applications/:id/cv-url",     requirePermission("website.read"), getApplicationCvUrl);
 router.get("/:id/applications",           requirePermission("website.read"), listApplications);
 router.patch("/applications/:id/status",  requirePermission("website.write"), updateApplicationStatus);
 

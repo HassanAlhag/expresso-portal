@@ -5,7 +5,7 @@ import Button from "../../../shared/ui/Button";
 import Skeleton from "../../../shared/ui/Skeleton";
 import EmptyState from "../../../shared/ui/EmptyState";
 import Badge from "../../../shared/ui/Badge";
-import { listFiles, uploadFiles } from "../../files/api";
+import { listFiles, uploadFiles, withFileLinks } from "../../files/api";
 import {
   FolderOpen,
   RefreshCw,
@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 
 function getFileUrl(item) {
-  return item?.url || "";
+  // `src` is resolved by withFileLinks (signed link for private files).
+  return item?.src ?? item?.url ?? "";
 }
 
 function getTypeFromMime(item) {
@@ -137,7 +138,7 @@ export default function ProjectFilesTab({ project }) {
         sort: "-createdAt",
       });
 
-      setItems(Array.isArray(res?.items) ? res.items : []);
+      setItems(await withFileLinks(Array.isArray(res?.items) ? res.items : []));
     } catch (e) {
       setError(
         e?.response?.data?.message || e?.message || "Failed to load files"

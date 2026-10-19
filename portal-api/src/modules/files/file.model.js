@@ -55,10 +55,18 @@ const FileSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Public URL for legacy uploads only. Private files keep url empty and are
+    // opened through GET /api/files/:id/download-url (signed, short-lived).
     url: {
       type: String,
-      required: true,
+      default: "",
       trim: true,
+    },
+
+    isPrivate: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
 
     mimeType: {

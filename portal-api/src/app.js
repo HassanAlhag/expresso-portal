@@ -57,6 +57,7 @@ import messagingRoutes from "./modules/messaging/message.routes.js";
 import brandKitRoutes from "./modules/brand-kit/brandAsset.routes.js";
 import permissionsRoutes from "./modules/iam/permissions/permissions.routes.js";
 import webContentRoutes from "./modules/web-content/webContent.routes.js";
+import privateFilesRoutes from "./modules/private-files/privateFiles.routes.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const uploadsDir = resolve(__dirname, "../uploads");
@@ -148,6 +149,7 @@ export function createApp() {
 
   app.use("/api/billing", billingRoutes);
   app.use("/api/files", filesRoutes);
+  app.use("/api/private-files", privateFilesRoutes);
   app.use("/api", auditRoutes);
 
   app.use("/api/crm/deals", dealRoutes);

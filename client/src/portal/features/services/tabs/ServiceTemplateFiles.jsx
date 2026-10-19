@@ -6,10 +6,18 @@ import Input from "../../../shared/ui/Input";
 import { UploadCloud, Paperclip, Trash2 } from "lucide-react";
 import { useToast } from "../../../shared/ui/Toast";
 
+function formatSize(bytes) {
+  const n = Number(bytes || 0);
+  if (!n) return "";
+  if (n < 1024 * 1024) return `${Math.max(1, Math.round(n / 1024))} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function ServiceTemplateFiles({
   value,
   onChange,
   onUploadFiles, // optional async(files)
+  onOpenFile, // optional (upload) => void
 }) {
   const toast = useToast();
   const v = value || { uploads: [], mediaRefs: [] };
@@ -87,10 +95,20 @@ export default function ServiceTemplateFiles({
                     className="flex items-center justify-between gap-2 rounded-2xl border border-black/10 px-3 py-2"
                   >
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-extrabold text-slate-900">
-                        {u.name}
-                      </div>
-                      <div className="text-xs text-slate-500">{u.url}</div>
+                      {onOpenFile && u.id ? (
+                        <button
+                          type="button"
+                          onClick={() => onOpenFile(u)}
+                          className="block max-w-full truncate text-left text-sm font-extrabold text-slate-900 hover:text-indigo-600"
+                        >
+                          {u.name}
+                        </button>
+                      ) : (
+                        <div className="truncate text-sm font-extrabold text-slate-900">
+                          {u.name}
+                        </div>
+                      )}
+                      <div className="text-xs text-slate-500">{formatSize(u.size) || "Private file"}</div>
                     </div>
                     <button
                       className="h-9 w-9 rounded-full border border-black/10 hover:bg-black/[0.03]"

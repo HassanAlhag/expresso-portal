@@ -6,7 +6,10 @@ import {
   createServiceTemplate,
   updateServiceTemplate,
   deleteServiceTemplate,
+  uploadServiceTemplateFiles,
+  getServiceTemplateFileUrl,
 } from "./serviceTemplate.controller.js";
+import { upload } from "../files/files.upload.js";
 
 const router = express.Router();
 
@@ -43,6 +46,21 @@ router.delete(
   requireAuth,
   requirePermission("services.delete"),
   deleteServiceTemplate
+);
+
+router.post(
+  "/:id/files",
+  requireAuth,
+  requirePermission("services.write"),
+  upload.array("files", 20),
+  uploadServiceTemplateFiles
+);
+
+router.get(
+  "/:id/files/:fileId/url",
+  requireAuth,
+  requirePermission("services.read"),
+  getServiceTemplateFileUrl
 );
 
 export default router;

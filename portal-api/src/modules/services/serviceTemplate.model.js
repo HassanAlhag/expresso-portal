@@ -166,7 +166,9 @@ const ServiceTemplateSchema = new mongoose.Schema(
     },
 
     files: {
-      uploads: { type: [String], default: [] },
+      // [{ id, name, key, size, mimeType, uploadedAt }] — stored privately;
+      // open via GET /api/service/:id/files/:fileId/url
+      uploads: { type: [mongoose.Schema.Types.Mixed], default: [] },
       mediaRefs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Media" }],
     },
 

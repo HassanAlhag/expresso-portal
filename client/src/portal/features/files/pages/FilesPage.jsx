@@ -36,6 +36,7 @@ import {
   uploadFiles as apiUploadFiles,
   updateFile,
   deleteFile,
+  openFile,
 } from "../api";
 
 const BRAND = "#7F8AD1";
@@ -728,7 +729,7 @@ export default function FilesPage() {
                         </div>
                         <div className="min-w-0">
                           <button
-                            onClick={() => window.open(f.url, "_blank")}
+                            onClick={() => openFile(f).catch(() => toast.error("Could not open file"))}
                             className="block max-w-full truncate text-left text-sm font-black text-slate-900 transition hover:text-indigo-600"
                             title={f.title || f.originalName}
                           >
@@ -842,6 +843,7 @@ export default function FilesPage() {
                       </div>
 
                       <div className="flex items-center justify-end gap-1.5">
+                        {!f.isPrivate && (
                         <button
                           onClick={() => onCopy(f.url)}
                           className="grid h-8 w-8 place-items-center rounded-xl border border-black/[0.07] bg-white text-slate-500 transition hover:bg-black/[0.03] hover:text-slate-900"
@@ -849,8 +851,9 @@ export default function FilesPage() {
                         >
                           <Copy size={14} />
                         </button>
+                        )}
                         <button
-                          onClick={() => window.open(f.url, "_blank")}
+                          onClick={() => openFile(f).catch(() => toast.error("Could not open file"))}
                           className="grid h-8 w-8 place-items-center rounded-xl border border-black/[0.07] bg-white text-slate-500 transition hover:bg-black/[0.03] hover:text-slate-900"
                           title="Open file"
                         >

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import File from "./file.model.js";
-import { uploadToS3 } from "../../utils/s3.js";
+import { deleteFromS3 } from "../../utils/s3.js";
+import { putPrivate, privateDownloadUrl, deletePrivate } from "../../utils/privateStorage.js";
 import { canSeeAllTenantRecords } from "../../utils/accessControl.js";
 
 function escapeRegex(s) {
@@ -37,6 +38,66 @@ function role(req) {
   return String(req.user?.role || "").toLowerCase();
 }
 
+/**
+ * Internal users can read any file. External users only files shared with
+ * clients ("client" visibility) that belong to their own company. A user with
+ * no company never matches (previously an empty clientId matched everything).
+ */
+function canReadFile(req, item) {
+  if (isStaff(req)) return true;
+  const cid = String(req.user?.clientId || "");
+  const itemCid = String(item?.customerId?._id || item?.customerId || "");
+  return item?.visibility === "client" && Boolean(cid) && itemCid === cid;
+}
+
+async function linkFor(item) {
+  if (item.isPrivate) {
+    return privateDownloadUrl(item.filename, { filename: item.originalName });
+  }
+  return item.url || "";
+}
+
+// GET /api/files/:id/download-url  ->  { url } valid for a few minutes
+export async function getFileDownloadUrl(req, res) {
+  try {
+    const { id } = req.params;
+    if (!validId(id)) {
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+    }
+    const item = await File.findById(id).lean();
+    if (!item) return res.status(404).json({ ok: false, message: "Not found" });
+    if (!canReadFile(req, item)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
+    return res.json({ ok: true, url: await linkFor(item) });
+  } catch (e) {
+    console.error("getFileDownloadUrl:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+// GET /api/files/download-urls?ids=a,b,c  ->  { urls: { id: url } }
+// Lets list views (thumbnails, previews) resolve many links in one request.
+export async function getFileDownloadUrls(req, res) {
+  try {
+    const ids = String(req.query.ids || "")
+      .split(",")
+      .map((x) => x.trim())
+      .filter(validId)
+      .slice(0, 100);
+    if (!ids.length) return res.json({ ok: true, urls: {} });
+    const items = await File.find({ _id: { $in: ids } }).lean();
+    const urls = {};
+    for (const item of items) {
+      if (canReadFile(req, item)) urls[String(item._id)] = await linkFor(item);
+    }
+    return res.json({ ok: true, urls });
+  } catch (e) {
+    console.error("getFileDownloadUrls:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
 function isStaff(req) {
   return canSeeAllTenantRecords(req);
 }
@@ -69,8 +130,13 @@ export async function listFiles(req, res) {
     const filter = {};
 
     if (!isStaff(req)) {
+      // External users without a company see nothing (previously they saw
+      // every client-visible file across all companies).
+      if (!req.user?.clientId) {
+        return res.json({ ok: true, items: [], total: 0, page: 1, pages: 1, limit: limitNum });
+      }
       filter.visibility = "client";
-      if (req.user?.clientId) filter.customerId = req.user.clientId;
+      filter.customerId = req.user.clientId;
     } else if (visibility) {
       filter.visibility = visibility;
     }
@@ -143,12 +209,8 @@ export async function getFile(req, res) {
       return res.status(404).json({ ok: false, message: "Not found" });
     }
 
-    if (!isStaff(req)) {
-      const cid = String(req.user?.clientId || "");
-      const itemCid = String(item.customerId?._id || item.customerId || "");
-      if (item.visibility !== "client" || (cid && itemCid !== cid)) {
-        return res.status(403).json({ ok: false, message: "Forbidden" });
-      }
+    if (!canReadFile(req, item)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
     }
 
     return res.json({ ok: true, item });
@@ -192,7 +254,7 @@ export async function uploadFiles(req, res) {
           .filter(Boolean);
 
     const uploaded = await Promise.all(
-      files.map((f) => uploadToS3(f.buffer, "files", f.originalname, f.mimetype))
+      files.map((f) => putPrivate(f.buffer, "files", f.originalname, f.mimetype))
     );
 
     const resolvedCustomerId = internal ? toId(customerId) : toId(req.user.clientId);
@@ -210,7 +272,8 @@ export async function uploadFiles(req, res) {
         approved: internal && (String(approved) === "true" || approved === true),
         originalName: f.originalname,
         filename: uploaded[i].key,
-        url: uploaded[i].url,
+        url: "",
+        isPrivate: true,
         mimeType: f.mimetype,
         size: f.size,
         title: String(title || "").trim() || f.originalname,
@@ -325,6 +388,14 @@ export async function deleteFile(req, res) {
     const item = await File.findByIdAndDelete(id).lean();
     if (!item) {
       return res.status(404).json({ ok: false, message: "Not found" });
+    }
+
+    // Remove the stored object too (previously left behind).
+    try {
+      if (item.isPrivate) await deletePrivate(item.filename);
+      else if (item.filename) await deleteFromS3(item.filename);
+    } catch (err) {
+      console.warn("deleteFile: storage cleanup failed:", err?.message);
     }
 
     return res.json({ ok: true });

@@ -10,6 +10,7 @@ import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import {
   listCareers, createCareer, updateCareer, deleteCareer,
   listAllApplications, updateApplicationStatus,
+  getApplicationCvUrl,
 } from "../api";
 import {
   Plus, RefreshCw, Pencil, Trash2, BriefcaseBusiness,
@@ -138,6 +139,21 @@ function StatusPill({ status }) {
 
 export default function CareersAdminPage() {
   const toast = useToast();
+
+  // CVs are stored privately; fetch a short-lived link when opened.
+  const openCv = async (applicationId) => {
+    const tab = window.open("", "_blank");
+    if (tab) tab.opener = null;
+    try {
+      const res = await getApplicationCvUrl(applicationId);
+      if (!res?.url) throw new Error("No CV");
+      if (tab) tab.location.href = res.url;
+      else window.location.href = res.url;
+    } catch {
+      if (tab) tab.close();
+      toast.error("Could not open CV");
+    }
+  };
   const [activeTab, setActiveTab] = useState("openings");
 
   // Openings state
@@ -413,10 +429,14 @@ export default function CareersAdminPage() {
                           <StatusPill status={app.status} />
                         </td>
                         <td className="px-4 py-4 align-top">
-                          {app.cvUrl ? (
-                            <a href={app.cvUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-black text-indigo-700 transition hover:bg-indigo-100">
+                          {app.hasCv || app.cvUrl ? (
+                            <button
+                              type="button"
+                              onClick={() => openCv(app._id)}
+                              className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-black text-indigo-700 transition hover:bg-indigo-100"
+                            >
                               <ExternalLink size={10} /> View CV
-                            </a>
+                            </button>
                           ) : (
                             <span className="text-xs text-slate-400">No CV</span>
                           )}

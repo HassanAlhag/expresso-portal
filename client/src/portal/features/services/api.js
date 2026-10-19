@@ -39,6 +39,21 @@ export async function uploadServiceTemplateFiles(id, files = []) {
   return data;
 }
 
+// Attachments are private; ask for a short-lived link and open it.
+export async function openServiceTemplateFile(templateId, fileId) {
+  const tab = window.open("", "_blank");
+  if (tab) tab.opener = null;
+  try {
+    const { data } = await api.get(`${BASE}/${templateId}/files/${fileId}/url`);
+    if (!data?.url) throw new Error("File link unavailable");
+    if (tab) tab.location.href = data.url;
+    else window.location.href = data.url;
+  } catch (e) {
+    if (tab) tab.close();
+    throw e;
+  }
+}
+
 export const listServices = listServiceTemplates;
 export const createService = createServiceTemplate;
 export const getService = getServiceTemplate;

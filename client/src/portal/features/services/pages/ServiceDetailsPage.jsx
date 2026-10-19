@@ -24,7 +24,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 
-import { getService, deleteService } from "../api";
+import { getService, deleteService, openServiceTemplateFile } from "../api";
 import ServiceStatusPill from "../components/ServiceStatusPill";
 
 // ── Creative type helpers ─────────────────────────────────────────────────────
@@ -546,13 +546,25 @@ export default function ServiceDetailsPage() {
               <div className="mt-4 overflow-hidden rounded-[18px] border border-slate-200 bg-slate-50/60">
                 <div className="divide-y divide-slate-200">
                   {item.files.uploads.map((u, i) => (
-                    <div key={u.id || u.name || i} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <button
+                      type="button"
+                      key={u.id || u.name || i}
+                      disabled={!u.id}
+                      onClick={() =>
+                        openServiceTemplateFile(item._id, u.id).catch(() =>
+                          toast.error("Could not open file")
+                        )
+                      }
+                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-white"
+                    >
                       <div className="min-w-0">
                         <div className="truncate text-sm font-black text-slate-900">{u.name || "File"}</div>
-                        <div className="truncate text-xs text-slate-500">{u.url || "—"}</div>
+                        <div className="truncate text-xs text-slate-500">
+                          {u.size ? `${Math.max(1, Math.round(u.size / 1024))} KB` : "Private file"}
+                        </div>
                       </div>
                       <ChevronRight size={16} className="shrink-0 text-slate-400" />
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>

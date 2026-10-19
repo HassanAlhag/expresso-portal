@@ -238,14 +238,14 @@ function ApplyModal({ job, onClose }) {
     setError("");
     setBusy(true);
     try {
-      let cvUrl = "";
+      let cvKey = "";
       if (cvFile) {
         setUploading(true);
         const up = await uploadCV(cvFile);
         setUploading(false);
-        cvUrl = up?.cvUrl || "";
+        cvKey = up?.cvKey || "";
       }
-      await applyForCareer(job._id, { ...form, cvUrl });
+      await applyForCareer(job._id, { ...form, cvKey });
       setDone(true);
     } catch (err) {
       setError(

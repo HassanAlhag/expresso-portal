@@ -13,6 +13,7 @@ import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import {
   getServiceTemplate,
   uploadServiceTemplateFiles,
+  openServiceTemplateFile,
   createServiceTemplate,
   updateServiceTemplate,
 } from "../api";
@@ -472,6 +473,14 @@ export default function ServiceBuilderPage() {
           value={doc.files}
           onChange={(files) => updateDoc((prev) => ({ ...prev, files }))}
           onUploadFiles={uploadFiles}
+          onOpenFile={
+            id
+              ? (u) =>
+                  openServiceTemplateFile(id, u.id).catch(() =>
+                    toast.error("Could not open file")
+                  )
+              : undefined
+          }
         />
       ) : null}
 

@@ -7,7 +7,9 @@ const ApplicationSchema = new mongoose.Schema(
     email:       { type: String, required: true, trim: true, lowercase: true },
     phone:       { type: String, trim: true, default: "" },
     coverLetter: { type: String, trim: true, default: "" },
-    cvUrl:       { type: String, trim: true, default: "" },
+    cvUrl:       { type: String, trim: true, default: "" }, // legacy public link
+    cvKey:       { type: String, trim: true, default: "", select: false }, // private storage key
+    hasCv:       { type: Boolean, default: false },
     cvMediaId:   { type: mongoose.Schema.Types.ObjectId, ref: "Media", default: null },
     status: {
       type: String,

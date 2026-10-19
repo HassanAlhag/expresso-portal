@@ -8,6 +8,8 @@ import {
   uploadFiles,
   updateFile,
   deleteFile,
+  getFileDownloadUrl,
+  getFileDownloadUrls,
 } from "./files.controller.js";
 
 const router = express.Router();
@@ -17,6 +19,20 @@ router.get(
   requireAuth,
   requirePermission("files.read"),
   listFiles
+);
+
+router.get(
+  "/download-urls",
+  requireAuth,
+  requirePermission("files.read"),
+  getFileDownloadUrls
+);
+
+router.get(
+  "/:id/download-url",
+  requireAuth,
+  requirePermission("files.read"),
+  getFileDownloadUrl
 );
 
 router.get(

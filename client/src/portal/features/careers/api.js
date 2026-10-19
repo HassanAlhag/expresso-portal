@@ -21,6 +21,8 @@ export const listAllApplications = (params = {}) =>
   api.get("/careers/applications", { params }).then((r) => r.data);
 export const listApplicationsForJob = (id, params = {}) =>
   api.get(`/careers/${id}/applications`, { params }).then((r) => r.data);
+export const getApplicationCvUrl = (id) =>
+  api.get(`/careers/applications/${id}/cv-url`).then((r) => r.data);
 export const updateApplicationStatus = (id, payload) =>
   api.patch(`/careers/applications/${id}/status`, payload).then((r) => r.data);
 

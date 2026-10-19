@@ -1,16 +1,16 @@
 import mongoose from "mongoose";
 import Application from "./application.model.js";
 import Career from "./career.model.js";
-import { uploadToS3 } from "../../utils/s3.js";
+import { putPrivate, privateDownloadUrl } from "../../utils/privateStorage.js";
 
-// POST /careers/cv-upload  (public) — upload a CV file and get back a URL
+// POST /careers/cv-upload  (public) — store a CV privately; returns an opaque key
 export async function uploadCV(req, res) {
   try {
     if (!req.file) {
       return res.status(400).json({ ok: false, message: "No file uploaded" });
     }
-    const { url: cvUrl } = await uploadToS3(req.file.buffer, "cvs", req.file.originalname, req.file.mimetype);
-    return res.json({ ok: true, cvUrl });
+    const { key } = await putPrivate(req.file.buffer, "cvs", req.file.originalname, req.file.mimetype);
+    return res.json({ ok: true, cvKey: key });
   } catch (e) {
     console.error("uploadCV:", e);
     return res.status(500).json({ ok: false, message: "Upload failed" });
@@ -35,17 +35,23 @@ export async function applyForJob(req, res) {
     if (!fullName || !email)
       return res.status(400).json({ ok: false, message: "fullName and email are required" });
 
+    // Only keys produced by /cv-upload are accepted.
+    const cvKey = /^private\/cvs\/[a-z0-9._-]+$/i.test(String(body.cvKey || "")) ? String(body.cvKey) : "";
+
     const app = await Application.create({
       careerId:    career._id,
       fullName,
       email,
       phone:       String(body.phone || "").trim(),
       coverLetter: String(body.coverLetter || "").trim(),
-      cvUrl:       String(body.cvUrl || "").trim(),
+      cvKey,
+      hasCv:       Boolean(cvKey),
       cvMediaId:   body.cvMediaId && mongoose.Types.ObjectId.isValid(body.cvMediaId) ? body.cvMediaId : null,
     });
 
-    return res.status(201).json({ ok: true, item: app });
+    const item = app.toObject();
+    delete item.cvKey;
+    return res.status(201).json({ ok: true, item });
   } catch (e) {
     console.error("applyForJob:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
@@ -148,6 +154,27 @@ export async function updateApplicationStatus(req, res) {
     return res.json({ ok: true, item });
   } catch (e) {
     console.error("updateApplicationStatus:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+// GET /careers/applications/:id/cv-url  (admin) — short-lived link to the CV
+export async function getApplicationCvUrl(req, res) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+    const app = await Application.findById(id).select("+cvKey cvUrl fullName").lean();
+    if (!app) return res.status(404).json({ ok: false, message: "Not found" });
+    if (app.cvKey) {
+      const safeName = String(app.fullName || "candidate").replace(/[^a-z0-9]+/gi, "-");
+      const ext = (app.cvKey.match(/\.[a-z0-9]+$/i) || [""])[0];
+      const url = await privateDownloadUrl(app.cvKey, { filename: `CV-${safeName}${ext}` });
+      return res.json({ ok: true, url });
+    }
+    return res.json({ ok: true, url: app.cvUrl || "" });
+  } catch (e) {
+    console.error("getApplicationCvUrl:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }

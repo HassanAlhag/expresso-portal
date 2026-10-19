@@ -1,5 +1,7 @@
+import crypto from "crypto";
 import mongoose from "mongoose";
 import ServiceTemplate from "./serviceTemplate.model.js";
+import { putPrivate, privateDownloadUrl } from "../../utils/privateStorage.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -331,6 +333,72 @@ export async function deleteServiceTemplate(req, res) {
     return res.json({ ok: true });
   } catch (e) {
     console.error("deleteServiceTemplate:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+// POST /api/service/:id/files  (multipart "files") — attach documents to a template
+export async function uploadServiceTemplateFiles(req, res) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+    }
+    const files = req.files || [];
+    if (!files.length) {
+      return res.status(400).json({ ok: false, message: "No files uploaded" });
+    }
+    const exists = await ServiceTemplate.exists({ _id: id });
+    if (!exists) return res.status(404).json({ ok: false, message: "Service template not found" });
+
+    const stored = await Promise.all(
+      files.map((f) => putPrivate(f.buffer, "service-templates", f.originalname, f.mimetype))
+    );
+    const entries = files.map((f, i) => ({
+      id: crypto.randomUUID(),
+      name: f.originalname,
+      key: stored[i].key,
+      size: f.size,
+      mimeType: f.mimetype,
+      uploadedAt: new Date(),
+      uploadedBy: req.user?.id || null,
+    }));
+
+    const item = await ServiceTemplate.findByIdAndUpdate(
+      id,
+      { $push: { "files.uploads": { $each: entries } }, updatedBy: req.user?.id || null },
+      { new: true }
+    ).lean();
+
+    return res.status(201).json({ ok: true, item, files: item?.files });
+  } catch (e) {
+    console.error("uploadServiceTemplateFiles:", e);
+    return res.status(500).json({ ok: false, message: "Upload failed" });
+  }
+}
+
+// GET /api/service/:id/files/:fileId/url — short-lived link to an attachment
+export async function getServiceTemplateFileUrl(req, res) {
+  try {
+    const { id, fileId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ ok: false, message: "Invalid id" });
+    }
+    const doc = await ServiceTemplate.findById(id).select("files").lean();
+    const entry = (doc?.files?.uploads || []).find(
+      (u) => u && typeof u === "object" && String(u.id) === String(fileId)
+    );
+    if (!entry) return res.status(404).json({ ok: false, message: "File not found" });
+    // Keys are only ever issued under this prefix; anything else is refused so a
+    // edited document cannot point at another module's private files.
+    if (entry.key && String(entry.key).startsWith("private/service-templates/")) {
+      const url = await privateDownloadUrl(entry.key, { filename: entry.name });
+      return res.json({ ok: true, url });
+    }
+    if (entry.url) return res.json({ ok: true, url: entry.url });
+    return res.status(404).json({ ok: false, message: "File not found" });
+  } catch (e) {
+    console.error("getServiceTemplateFileUrl:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }
