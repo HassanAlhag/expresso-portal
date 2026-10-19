@@ -14,6 +14,7 @@ import { DragCards } from "../../components/DragCardSection/dragCardSection";
 import StackedCardTestimonials from "../../components/TestimonialSection/testimonialSection";
 import { CountUpStats } from "../../components/StatsSection/statsSection";
 import ReelsShowcase from "../../components/ReelsShowcase/ReelsShowcase";
+import CASShowcaseSection from "../../components/CASShowcaseSection/CASShowcaseSection";
 import ServicesSection from "../../components/ServicesSection/ServicesSection";
 import FinalCTASection from "../../components/FinalCTASection/FinalCTASection";
 import { listWebsiteReels } from "../../api/websiteProductions";
@@ -219,6 +220,7 @@ function Home() {
         />
         <ShuffleHero items={marqueeItems} />
         <ReelsShowcase reels={reels} onCtaClick={scrollToLeadForm} />
+        <CASShowcaseSection />
         <StackedCardTestimonials testimonials={HOME_TESTIMONIALS} />
         <DragCards
           title="EXPRESSO"

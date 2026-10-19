@@ -9,7 +9,9 @@ export default function SolutionImageShowcaseBlock({
   title,
   desc,
   imageUrl,
+  imageAlt,
   secondaryImageUrl,
+  secondaryImageAlt,
   points = [],
   accentColor = BRAND,
   accentBg = BRAND_BG,
@@ -22,12 +24,12 @@ export default function SolutionImageShowcaseBlock({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.45 }}
-          className="grid gap-4 sm:grid-cols-[1fr_0.62fr]"
+          className={`grid gap-4 ${secondaryImageUrl ? "sm:grid-cols-[1fr_0.62fr]" : ""}`}
         >
           {imageUrl ? (
             <img
               src={toWebsiteImageUrl(imageUrl)}
-              alt={title || ""}
+              alt={imageAlt ?? title ?? ""}
               className="aspect-[4/3] w-full rounded-2xl object-cover shadow-[0_20px_60px_rgba(0,0,0,0.12)]"
               loading="lazy"
             />
@@ -35,7 +37,7 @@ export default function SolutionImageShowcaseBlock({
           {secondaryImageUrl ? (
             <img
               src={toWebsiteImageUrl(secondaryImageUrl)}
-              alt=""
+              alt={secondaryImageAlt ?? ""}
               className="aspect-[4/5] w-full rounded-2xl object-cover shadow-[0_18px_50px_rgba(0,0,0,0.10)] sm:mt-12"
               loading="lazy"
             />

@@ -58,6 +58,7 @@ const ITSolutionDetailsPage = lazy(() =>
 const VendorRegistrationPage = lazy(() =>
   import("./pages/VendorRegistration/VendorRegistrationPage")
 );
+const CASPage = lazy(() => import("./pages/Products/CASPage"));
 
 function App() {
   return (
@@ -135,6 +136,7 @@ function Content() {
             path="/it-solutions/:slug"
             element={<ITSolutionDetailsPage />}
           />
+          <Route path="/products/cas" element={<CASPage />} />
           <Route
             path="/vendor-registration"
             element={<VendorRegistrationPage />}

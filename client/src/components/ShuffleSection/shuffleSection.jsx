@@ -28,7 +28,7 @@ export default function ShuffleHero({ items: itemsProp }) {
   const looped = useMemo(() => [...items, ...items], [items]);
 
   return (
-    <section className="relative w-full overflow-hidden py-24 md:py-28">
+    <section className="relative w-full overflow-hidden py-20 md:py-24">
       <div className="absolute inset-0 bg-[#05060A]" />
 
       <div
@@ -94,7 +94,7 @@ export default function ShuffleHero({ items: itemsProp }) {
           </div>
         </div>
 
-        <div className="mt-12 overflow-hidden">
+        <div className="mt-10 overflow-hidden md:mt-12">
           <div className="flex w-max animate-[marquee_30s_linear_infinite] gap-6">
             {looped.map((item, index) => (
               <button

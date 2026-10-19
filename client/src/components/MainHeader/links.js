@@ -21,7 +21,7 @@ const LINKS = [
     text: "Digital Services",
     href: "/services",
     FlyoutContent: OurServicesDropdown,
-    flyoutWidth: 940,
+    flyoutWidth: 920,
     mobileLinks: [
       { text: "All Services", href: "/services" },
       { text: "Website Development", href: "/service/web-dev" },
@@ -45,6 +45,11 @@ const LINKS = [
       { text: "IoT Solutions", href: "/it-solutions/iot-solutions" },
       { text: "IT Consultation", href: "/it-solutions/it-consultation" },
       { text: "Web Hosting & Domains", href: "/it-solutions/web-hosting-domains" },
+      {
+        text: "CAS — Clinic Appointment System",
+        href: "/products/cas",
+        badge: "Expresso Product",
+      },
     ],
   },
   {

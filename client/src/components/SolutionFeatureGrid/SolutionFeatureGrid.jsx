@@ -4,6 +4,15 @@ import { FiCheckCircle } from "react-icons/fi";
 import HomeSection from "../HomeSection/HomeSection";
 import { BRAND, BRAND_BG } from "../../data/technologyConstants";
 
+// Tailwind's JIT compiler needs the full class name present as a static
+// string somewhere in source, so the column count maps through this lookup
+// rather than interpolating `lg:grid-cols-${columns}` directly.
+const LG_COLUMNS_CLASS = {
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+  4: "lg:grid-cols-4",
+};
+
 export default function SolutionFeatureGrid({
   eyebrow,
   title,
@@ -12,7 +21,10 @@ export default function SolutionFeatureGrid({
   items = [],
   accentColor = BRAND,
   accentBg = BRAND_BG,
+  columns = 3,
 }) {
+  const lgColumnsClass = LG_COLUMNS_CLASS[columns] || LG_COLUMNS_CLASS[3];
+
   return (
     <HomeSection
       eyebrow={eyebrow}
@@ -21,7 +33,7 @@ export default function SolutionFeatureGrid({
       subtitle={subtitle}
       align="center"
     >
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={`grid gap-5 sm:grid-cols-2 ${lgColumnsClass}`}>
         {items.map((item, index) => (
           <motion.div
             key={item.title}

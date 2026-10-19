@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiPackage } from "react-icons/fi";
+import { FiArrowRight, FiPackage, FiBox } from "react-icons/fi";
 import { ICON_META, BRAND, BRAND_BG, BRAND_GLOW } from "../../../data/technologyConstants";
+import { CAS_PRODUCT } from "../../../data/casProduct";
 
 const API = process.env.REACT_APP_API_URL || "/api";
 let _cache = null;
@@ -100,7 +101,7 @@ export default function SolutionsDropdown() {
         </div>
 
         <div className="border-l border-neutral-100 bg-white px-5 py-5">
-          <div className="grid grid-cols-4 gap-x-1 gap-y-0.5">
+          <div className="grid grid-cols-2 gap-x-1 gap-y-0.5 lg:grid-cols-3 lg:gap-x-2 lg:gap-y-1 xl:grid-cols-4">
             {solutions.map((solution) => {
               const meta = ICON_META[solution.icon];
               const Icon = meta?.Icon || FiPackage;
@@ -115,6 +116,37 @@ export default function SolutionsDropdown() {
                 />
               );
             })}
+          </div>
+
+          {/* Expresso-built products — kept visually distinct from the
+              procurement/vendor solutions above. */}
+          <div className="mt-3 border-t border-neutral-100 pt-3">
+            <p className="mb-1.5 px-3 text-[9.5px] font-bold uppercase tracking-[0.16em] text-neutral-400">
+              Expresso Products
+            </p>
+
+            <Link
+              to={CAS_PRODUCT.to}
+              className="group flex items-start gap-3 rounded-xl border border-[rgba(127,138,209,0.25)] bg-[rgba(127,138,209,0.06)] px-3 py-2.5 transition-all duration-150 hover:bg-[rgba(127,138,209,0.12)]"
+            >
+              <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[rgba(127,138,209,0.16)] text-[#5762b8] transition-transform duration-150 group-hover:scale-110">
+                <FiBox size={14} />
+              </span>
+
+              <div className="min-w-0 flex-1">
+                <p className="text-[12.5px] font-semibold leading-tight text-neutral-800 group-hover:text-neutral-900">
+                  {CAS_PRODUCT.name} — {CAS_PRODUCT.fullName}
+                </p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-400">
+                  Designed &amp; developed by Expresso Digital
+                </p>
+              </div>
+
+              <FiArrowRight
+                size={11}
+                className="mt-1 flex-shrink-0 text-[#5762b8] opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100"
+              />
+            </Link>
           </div>
         </div>
       </div>

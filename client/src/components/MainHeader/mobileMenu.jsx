@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { FiMenu, FiX, FiChevronDown } from "react-icons/fi";
@@ -16,9 +16,27 @@ const NAV = LINKS.map(({ text, href, mobileLinks = [] }) => ({
   sub: mobileLinks,
 }));
 
+const toMenuId = (text) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const getFocusableElements = (root) => {
+  if (!root) return [];
+
+  return Array.from(
+    root.querySelectorAll(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter((el) => el.offsetParent !== null);
+};
+
 function NavRow({ item, onClose }) {
   const [open, setOpen] = useState(false);
   const hasSub = item.sub && item.sub.length > 0;
+  const toggleId = `${toMenuId(item.text)}-toggle`;
+  const submenuId = `${toMenuId(item.text)}-submenu`;
 
   return (
     <div style={{ borderBottom: "1px solid #e5e7eb" }}>
@@ -45,6 +63,9 @@ function NavRow({ item, onClose }) {
         {hasSub && (
           <button
             type="button"
+            id={toggleId}
+            aria-expanded={open}
+            aria-controls={submenuId}
             aria-label={`${open ? "Collapse" : "Expand"} ${item.text}`}
             onClick={() => setOpen((v) => !v)}
             style={{
@@ -72,7 +93,12 @@ function NavRow({ item, onClose }) {
       </div>
 
       {hasSub && open && (
-        <div style={{ paddingBottom: 8 }}>
+        <div
+          id={submenuId}
+          role="region"
+          aria-labelledby={toggleId}
+          style={{ paddingBottom: 8 }}
+        >
           {item.sub.map((s) => (
             <Link
               key={s.href}
@@ -94,11 +120,30 @@ function NavRow({ item, onClose }) {
                   width: 6,
                   height: 6,
                   borderRadius: 999,
-                  background: "#818cf8",
+                  background: s.badge ? "#7F8AD1" : "#818cf8",
                   flexShrink: 0,
                 }}
               />
-              {s.text}
+              <span style={{ flex: "1 1 auto" }}>{s.text}</span>
+              {s.badge && (
+                <span
+                  style={{
+                    flexShrink: 0,
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                    color: "#5762b8",
+                    background: "rgba(127,138,209,0.12)",
+                    border: "1px solid rgba(127,138,209,0.25)",
+                    borderRadius: 999,
+                    padding: "2px 7px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {s.badge}
+                </span>
+              )}
             </Link>
           ))}
         </div>
@@ -110,6 +155,9 @@ function NavRow({ item, onClose }) {
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);
   const [drawerHeight, setDrawerHeight] = useState(null);
+  const menuButtonRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const drawerRef = useRef(null);
   const navigate = useNavigate();
   const settings = useSiteSettings();
 
@@ -119,7 +167,12 @@ export default function MobileMenu() {
     ? toWebsiteImageUrl(configuredLogo)
     : resolveWebsiteImage(settings, "/logo.png");
 
-  const close = () => setOpen(false);
+  const close = () => {
+    setOpen(false);
+    window.requestAnimationFrame(() => {
+      menuButtonRef.current?.focus();
+    });
+  };
 
   useEffect(() => {
     if (!open || typeof window === "undefined") return undefined;
@@ -133,10 +186,49 @@ export default function MobileMenu() {
     window.visualViewport?.addEventListener("scroll", updateDrawerHeight);
     window.addEventListener("resize", updateDrawerHeight);
 
+    window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus();
+    });
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusable = getFocusableElements(drawerRef.current);
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey) {
+        if (
+          document.activeElement === first ||
+          document.activeElement === closeButtonRef.current
+        ) {
+          event.preventDefault();
+          last.focus();
+        }
+        return;
+      }
+
+      if (document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
     return () => {
       window.visualViewport?.removeEventListener("resize", updateDrawerHeight);
       window.visualViewport?.removeEventListener("scroll", updateDrawerHeight);
       window.removeEventListener("resize", updateDrawerHeight);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);
 
@@ -145,6 +237,7 @@ export default function MobileMenu() {
       {/* Hamburger */}
       <button
         type="button"
+        ref={menuButtonRef}
         onClick={() => setOpen(true)}
         style={{
           display: "flex",
@@ -187,6 +280,10 @@ export default function MobileMenu() {
                 {/* Drawer */}
                 <motion.div
                   key="drawer"
+                  ref={drawerRef}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Main navigation"
                   initial={{ x: "100%" }}
                   animate={{ x: 0 }}
                   exit={{ x: "100%" }}
@@ -233,6 +330,7 @@ export default function MobileMenu() {
                     />
                     <button
                       type="button"
+                      ref={closeButtonRef}
                       onClick={close}
                       style={{
                         width: 36,

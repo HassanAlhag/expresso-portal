@@ -73,14 +73,14 @@ function ParallaxSection({
     <section
       className="bg-white"
       style={{
-        paddingTop: 40,
-        paddingBottom: isLast ? 18 : 40, // ✅ less space after last section
+        paddingTop: 28,
+        paddingBottom: isLast ? 18 : 28,
       }}
     >
       <div ref={ref} className="relative">
-        <div className="relative h-[78vh] md:h-[88vh]">
+        <div className="relative h-[72vh] md:h-[76vh] lg:h-[80vh]">
           <motion.div
-            className="absolute inset-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden rounded"
+            className="absolute inset-0 overflow-hidden rounded"
             style={{
               backgroundImage: `url(${resolvedImgUrl})`,
               backgroundSize: "cover",
@@ -103,9 +103,9 @@ function ParallaxSection({
           </motion.div>
         </div>
 
-        <div className="relative z-20" style={{ marginTop: -180 }}>
+        <div className="relative z-20" style={{ marginTop: -156 }}>
           <div className="mx-auto w-[min(1100px,92vw)] px-4">
-            <div className="relative overflow-hidden rounded-[28px] border border-black/10 bg-white/70 p-7 backdrop-blur-2xl shadow-[0_35px_120px_rgba(0,0,0,0.18)] md:p-10">
+            <div className="relative overflow-hidden rounded-[28px] border border-black/10 bg-white/70 p-6 backdrop-blur-2xl shadow-[0_35px_120px_rgba(0,0,0,0.18)] md:p-8">
               <div className="pointer-events-none absolute -top-24 left-0 h-72 w-72 rounded-full bg-white/80 blur-3xl" />
               <div className="pointer-events-none absolute -bottom-28 right-0 h-72 w-72 rounded-full bg-white/60 blur-3xl" />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/60 via-white/30 to-white/10" />
@@ -133,10 +133,10 @@ function GlassContent({
   const navigate = useNavigate();
 
   return (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
       {/* LEFT */}
-      <div className="col-span-1 md:col-span-4">
-        <h3 className="text-2xl font-bold text-neutral-900 md:text-3xl">
+      <div className="col-span-1 lg:col-span-4">
+        <h3 className="text-2xl font-bold text-neutral-900 md:text-[2rem]">
           {heading}
         </h3>
 
@@ -163,7 +163,7 @@ function GlassContent({
       </div>
 
       {/* RIGHT */}
-      <div className="col-span-1 md:col-span-8">
+      <div className="col-span-1 lg:col-span-8">
         {description1 && (
           <p className="mb-4 text-base text-neutral-700 md:text-lg">
             {description1}

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,6 +11,21 @@ import {
 } from "../../utils/websiteImages";
 
 const LOGO_FALLBACK = "/white-logo.png";
+
+const toMenuId = (text) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const focusFirstFocusable = (root) => {
+  if (!root) return;
+
+  const focusable = root.querySelector(
+    'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  if (focusable) focusable.focus();
+};
 
 const Header = () => {
   const settings = useSiteSettings();
@@ -61,14 +76,102 @@ const Logo = ({ src }) => {
 const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
   const [open, setOpen] = useState(false);
   const timer = useRef(null);
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
   const hasFlyout = Boolean(FlyoutContent);
+  const triggerId = `${toMenuId(text)}-trigger`;
+  const panelId = `${toMenuId(text)}-flyout`;
+
+  useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+
+  const clearCloseTimer = () => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+  };
 
   const show = () => {
-    clearTimeout(timer.current);
+    clearCloseTimer();
     if (hasFlyout) setOpen(true);
   };
   const hide = () => {
+    clearCloseTimer();
     timer.current = setTimeout(() => setOpen(false), 220);
+  };
+
+  const closeMenu = (restoreFocus = false) => {
+    clearCloseTimer();
+    setOpen(false);
+
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => {
+        triggerRef.current?.focus();
+      });
+    }
+  };
+
+  const openMenuFromKeyboard = (focusFirst = false) => {
+    clearCloseTimer();
+    if (!hasFlyout) return;
+
+    setOpen(true);
+    if (focusFirst) {
+      window.requestAnimationFrame(() => {
+        focusFirstFocusable(panelRef.current);
+      });
+    }
+  };
+
+  const handleTriggerKeyDown = (event) => {
+    if (!hasFlyout) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openMenuFromKeyboard(false);
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      openMenuFromKeyboard(true);
+    }
+
+    if (event.key === "Escape" && open) {
+      event.preventDefault();
+      closeMenu(true);
+    }
+  };
+
+  const handleTriggerBlur = (event) => {
+    if (!hasFlyout) return;
+
+    const next = event.relatedTarget;
+    if (next && panelRef.current?.contains(next)) return;
+
+    hide();
+  };
+
+  const handlePanelBlur = (event) => {
+    const next = event.relatedTarget;
+    if (
+      next &&
+      (panelRef.current?.contains(next) || triggerRef.current?.contains(next))
+    ) {
+      return;
+    }
+
+    hide();
+  };
+
+  const handlePanelKeyDown = (event) => {
+    if (event.key === "Escape" && open) {
+      event.preventDefault();
+      closeMenu(true);
+    }
   };
 
   // Center the panel on the viewport without any CSS transform.
@@ -85,6 +188,13 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
     <div className="relative" onMouseEnter={show} onMouseLeave={hide}>
       <Link
         to={href}
+        ref={triggerRef}
+        id={triggerId}
+        aria-haspopup={hasFlyout ? "menu" : undefined}
+        aria-expanded={hasFlyout ? open : undefined}
+        aria-controls={hasFlyout ? panelId : undefined}
+        onKeyDown={handleTriggerKeyDown}
+        onBlur={handleTriggerBlur}
         className="relative text-[14px] font-medium text-white/85 transition hover:text-white"
       >
         {text}
@@ -104,8 +214,14 @@ const NavLink = ({ text, href, FlyoutContent, flyoutWidth = 800 }) => {
           <AnimatePresence>
             {open && (
               <motion.div
+                ref={panelRef}
+                id={panelId}
+                aria-labelledby={triggerId}
+                onFocus={clearCloseTimer}
                 onMouseEnter={show}
                 onMouseLeave={hide}
+                onBlur={handlePanelBlur}
+                onKeyDown={handlePanelKeyDown}
                 style={flyoutStyle}
                 initial={{ opacity: 0, y: 6, scale: 0.99 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}

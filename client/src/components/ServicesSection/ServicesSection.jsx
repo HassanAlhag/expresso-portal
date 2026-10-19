@@ -76,23 +76,29 @@ export default function ServicesSection({
       highlight={highlight}
       subtitle={subtitle}
       align="center"
+      className={[
+        "scroll-mt-[112px] md:scroll-mt-[128px]",
+        "border-y border-neutral-200/70 bg-neutral-50/70",
+        "!py-10 md:!py-12 lg:!py-14",
+        "lg:flex lg:items-center lg:justify-center lg:min-h-[calc(100svh-106px)]",
+      ].join(" ")}
     >
-      <div className="grid gap-4 lg:grid-cols-12">
-        <div className="grid gap-4 lg:col-span-7">
+      <div className="grid gap-3 lg:grid-cols-12">
+        <div className="grid gap-3 lg:col-span-7">
           <ServiceCard {...cards[0]} />
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             <ServiceCard {...cards[1]} />
             <ServiceCard {...cards[2]} />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-[1.15fr,0.85fr]">
+          <div className="grid gap-3 md:grid-cols-[1.15fr,0.85fr]">
             <ServiceCard {...cards[3]} />
             <ServiceCard {...cards[4]} />
           </div>
         </div>
 
-        <div className="grid gap-4 lg:col-span-5">
+        <div className="grid gap-3 lg:col-span-5">
           <ServiceCard {...cards[5]} />
           <CTAServiceCard
             onPrimaryClick={onPrimaryClick}
@@ -126,12 +132,18 @@ function ServiceCard({
   return (
     <div
       className={[
-        "group relative overflow-hidden rounded-[28px] border p-5 md:p-6",
+        "group relative overflow-hidden rounded-[28px] border p-4 md:p-5",
         "flex flex-col justify-between transition duration-300",
         "hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.10)]",
-        size === "hero" ? "min-h-[190px] md:min-h-[200px]" : "",
-        size === "tall" ? "min-h-[380px] md:min-h-[410px]" : "",
-        size === "normal" ? "min-h-[175px] md:min-h-[185px]" : "",
+        size === "hero"
+          ? "min-h-[170px] sm:min-h-[176px] lg:min-h-[182px]"
+          : "",
+        size === "tall"
+          ? "min-h-[270px] sm:min-h-[290px] lg:min-h-[320px] xl:min-h-[340px]"
+          : "",
+        size === "normal"
+          ? "min-h-[148px] sm:min-h-[156px] lg:min-h-[164px]"
+          : "",
         isImage
           ? "border-black/10 text-white shadow-[0_18px_50px_rgba(0,0,0,0.18)]"
           : "border-neutral-200 bg-white shadow-[0_14px_38px_rgba(0,0,0,0.06)]",
@@ -188,7 +200,7 @@ function ServiceCard({
       <div className="relative z-10 flex h-full flex-col">
         <div
           className={[
-            "flex h-11 w-11 items-center justify-center rounded-2xl border",
+            "flex h-10 w-10 items-center justify-center rounded-2xl border",
             isImage || isBrand
               ? "border-white/20 bg-white/10 text-white"
               : isBrandSoft
@@ -202,7 +214,7 @@ function ServiceCard({
         <div className="mt-4">
           <h3
             className={[
-              "text-xl font-black tracking-tight",
+              "text-[1.04rem] font-black tracking-tight sm:text-[1.1rem] lg:text-xl",
               isImage || isBrand ? "text-white" : "text-neutral-950",
             ].join(" ")}
           >
@@ -211,7 +223,7 @@ function ServiceCard({
 
           <p
             className={[
-              "mt-2.5 max-w-xl text-sm leading-6",
+              "mt-2.5 max-w-none text-sm leading-6",
               isImage || isBrand ? "text-white/[0.82]" : "text-neutral-600",
             ].join(" ")}
           >
@@ -245,7 +257,7 @@ function CTAServiceCard({ onPrimaryClick, title, description, primaryLabel, seco
   const logo = resolveWebsiteImage(settings, "/logo.png");
 
   return (
-    <div className="relative flex min-h-[175px] md:min-h-[185px] flex-col justify-between overflow-hidden rounded-[28px] border border-black/10 bg-neutral-950 p-5 md:p-6 text-white shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+    <div className="relative flex min-h-[158px] sm:min-h-[166px] lg:min-h-[172px] flex-col justify-between overflow-hidden rounded-[28px] border border-black/10 bg-neutral-950 p-4 md:p-5 text-white shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
       <div
         className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl"
         style={{ backgroundColor: BRAND, opacity: 0.3 }}
@@ -266,16 +278,16 @@ function CTAServiceCard({ onPrimaryClick, title, description, primaryLabel, seco
           NEXT STEP
         </div>
 
-        <h3 className="mt-3 text-[26px] font-black leading-tight tracking-tight">
+        <h3 className="mt-3 text-[1.35rem] font-black leading-tight tracking-tight sm:text-[1.45rem]">
           {title}
         </h3>
 
-        <p className="mt-2.5 max-w-md text-sm leading-6 text-white/75">
+        <p className="mt-2 max-w-none text-sm leading-6 text-white/75">
           {description}
         </p>
       </div>
 
-      <div className="relative z-10 mt-5 flex flex-col gap-2.5">
+      <div className="relative z-10 mt-4 flex flex-col gap-2">
         <button
           type="button"
           onClick={onPrimaryClick}

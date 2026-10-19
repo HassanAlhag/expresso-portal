@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiZap } from "react-icons/fi";
+import {
+  FiArrowRight,
+  FiCode,
+  FiPenTool,
+  FiSearch,
+  FiShare2,
+  FiTarget,
+  FiUsers,
+  FiVideo,
+} from "react-icons/fi";
 
 const BRAND      = "#6366f1";
 const BRAND_BG   = "rgba(99,102,241,0.1)";
@@ -9,22 +18,45 @@ const BRAND_GLOW = "rgba(99,102,241,0.18)";
 const API = process.env.REACT_APP_API_URL || "/api";
 let _cache = null;
 
-const Item = ({ title, description, slug }) => (
+const SERVICE_ICONS = {
+  "web-dev": FiCode,
+  "seo-marketing": FiSearch,
+  "google-ads": FiTarget,
+  "social-media-marketing": FiShare2,
+  videography: FiVideo,
+  "content-creation": FiPenTool,
+};
+
+const SERVICE_TITLE_ICONS = {
+  "website & app development": FiCode,
+  seo: FiSearch,
+  "google ads": FiTarget,
+  "social media management": FiUsers,
+  videography: FiVideo,
+  "content creation": FiPenTool,
+};
+
+const getServiceIcon = (service = {}) =>
+  SERVICE_ICONS[service.slug] ||
+  SERVICE_TITLE_ICONS[String(service.title || "").toLowerCase()] ||
+  FiUsers;
+
+const Item = ({ title, description, slug, Icon }) => (
   <Link
     to={slug ? `/service/${slug}` : "/services"}
-    className="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-all duration-150 hover:bg-neutral-50"
+    className="group flex h-full min-h-[76px] items-start gap-3 rounded-2xl px-3 py-3 transition-all duration-150 hover:bg-neutral-50"
   >
     <span
       className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-transform duration-150 group-hover:scale-110"
       style={{ backgroundColor: BRAND_BG, color: BRAND }}
     >
-      <FiZap size={14} />
+      <Icon size={14} />
     </span>
     <div className="min-w-0 flex-1">
-      <p className="text-[12.5px] font-semibold leading-tight text-neutral-800 group-hover:text-neutral-900">
+      <p className="text-[12px] font-semibold leading-snug text-neutral-800 group-hover:text-neutral-900">
         {title}
       </p>
-      <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-400 line-clamp-2">
+      <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-neutral-400">
         {description}
       </p>
     </div>
@@ -98,10 +130,20 @@ export default function OurServicesDropdown() {
         {/* Right white panel */}
         <div className="border-l border-neutral-100 bg-white px-5 py-5">
           {services.length > 0 ? (
-            <div className="grid grid-cols-4 gap-x-1 gap-y-0.5">
-              {services.map((s) => (
-                <Item key={s._id} title={s.title} description={s.description} slug={s.slug} />
-              ))}
+            <div className="grid grid-cols-2 gap-x-2 gap-y-2 xl:grid-cols-3 xl:gap-x-3 xl:gap-y-3">
+              {services.map((s) => {
+                const Icon = getServiceIcon(s);
+
+                return (
+                  <Item
+                    key={s._id}
+                    title={s.title}
+                    description={s.description}
+                    slug={s.slug}
+                    Icon={Icon}
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="flex h-full items-center justify-center py-10">
