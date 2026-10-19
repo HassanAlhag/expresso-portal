@@ -3,6 +3,9 @@ import Expense, {
   EXPENSE_CATEGORIES,
   EXPENSE_STATUSES,
 } from "./expense.model.js";
+import { hasPermission, isOwner, withOwnerScope } from "../../../utils/ownership.js";
+
+const APPROVE = "hr.expenses.approve";
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
@@ -101,8 +104,10 @@ export async function listExpenses(req, res) {
     }
 
     const [total, items] = await Promise.all([
-      Expense.countDocuments(filter),
-      Expense.find(filter)
+      Expense.countDocuments(
+        hasPermission(req, APPROVE) ? filter : withOwnerScope(req, filter)
+      ),
+      Expense.find(hasPermission(req, APPROVE) ? filter : withOwnerScope(req, filter))
         .populate("staffUserId", "fullName email role")
         .populate("approvedBy", "fullName email")
         .populate("registeredBy", "fullName email")
@@ -140,7 +145,7 @@ export async function getExpense(req, res) {
       .populate("registeredBy", "fullName email")
       .lean();
 
-    if (!item) {
+    if (!item || (!hasPermission(req, APPROVE) && !isOwner(req, item))) {
       return res.status(404).json({ ok: false, message: "Expense not found" });
     }
 
@@ -174,8 +179,14 @@ export async function createExpense(req, res) {
 
     const item = await Expense.create({
       title,
-      staffName: String(body.staffName || "").trim(),
-      staffUserId: validId(body.staffUserId) ? body.staffUserId : null,
+      staffName: hasPermission(req, APPROVE)
+        ? String(body.staffName || "").trim()
+        : String(body.staffName || req.user?.fullName || "").trim(),
+      staffUserId: !hasPermission(req, APPROVE)
+        ? req.user?.id || null
+        : validId(body.staffUserId)
+          ? body.staffUserId
+          : null,
       department: String(body.department || "").trim(),
       category: sanitizeCategory(body.category),
       amount,
@@ -211,7 +222,7 @@ export async function updateExpense(req, res) {
 
     const current = await Expense.findById(id).lean();
 
-    if (!current) {
+    if (!current || (!hasPermission(req, APPROVE) && !isOwner(req, current))) {
       return res.status(404).json({ ok: false, message: "Expense not found" });
     }
 
@@ -332,6 +343,16 @@ export async function approveExpense(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
+    const existing = await Expense.findById(id).select("staffUserId createdBy").lean();
+    if (!existing) {
+      return res.status(404).json({ ok: false, message: "Expense not found" });
+    }
+    if (req.user?.role !== "super_admin" && isOwner(req, existing)) {
+      return res
+        .status(403)
+        .json({ ok: false, message: "You cannot approve your own expense claim" });
+    }
+
     const item = await Expense.findByIdAndUpdate(
       id,
       {
@@ -362,6 +383,16 @@ export async function rejectExpense(req, res) {
 
     if (!validId(id)) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
+    }
+
+    const existing = await Expense.findById(id).select("staffUserId createdBy").lean();
+    if (!existing) {
+      return res.status(404).json({ ok: false, message: "Expense not found" });
+    }
+    if (req.user?.role !== "super_admin" && isOwner(req, existing)) {
+      return res
+        .status(403)
+        .json({ ok: false, message: "You cannot reject your own expense claim" });
     }
 
     const item = await Expense.findByIdAndUpdate(
@@ -396,7 +427,7 @@ export async function registerExpense(req, res) {
 
     const current = await Expense.findById(id).lean();
 
-    if (!current) {
+    if (!current || (!hasPermission(req, APPROVE) && !isOwner(req, current))) {
       return res.status(404).json({ ok: false, message: "Expense not found" });
     }
 
@@ -461,6 +492,8 @@ export async function markExpensePaid(req, res) {
 export async function getExpenseStats(req, res) {
   try {
     const month = toMonth(req.query.month);
+    const scope = (f = {}) =>
+      hasPermission(req, APPROVE) ? f : withOwnerScope(req, f);
 
     const [
       total,
@@ -472,19 +505,19 @@ export async function getExpenseStats(req, res) {
       monthRegisteredAgg,
       monthApprovedAgg,
     ] = await Promise.all([
-      Expense.countDocuments(),
-      Expense.countDocuments({ status: "submitted" }),
-      Expense.countDocuments({ status: "approved" }),
-      Expense.countDocuments({ status: "registered" }),
-      Expense.countDocuments({ status: "rejected" }),
-      Expense.countDocuments({ status: "paid" }),
+      Expense.countDocuments(scope()),
+      Expense.countDocuments(scope({ status: "submitted" })),
+      Expense.countDocuments(scope({ status: "approved" })),
+      Expense.countDocuments(scope({ status: "registered" })),
+      Expense.countDocuments(scope({ status: "rejected" })),
+      Expense.countDocuments(scope({ status: "paid" })),
 
       Expense.aggregate([
         {
-          $match: {
+          $match: scope({
             registeredMonth: month,
             status: { $in: ["registered", "paid"] },
-          },
+          }),
         },
         {
           $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } },
@@ -492,7 +525,7 @@ export async function getExpenseStats(req, res) {
       ]),
 
       Expense.aggregate([
-        { $match: { claimMonth: month, status: "approved" } },
+        { $match: scope({ claimMonth: month, status: "approved" }) },
         {
           $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } },
         },

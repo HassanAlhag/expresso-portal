@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import Leave, { LEAVE_STATUSES, LEAVE_TYPES } from "./leave.model.js";
+import { hasPermission, isOwner, withOwnerScope } from "../../../utils/ownership.js";
+
+const APPROVE = "hr.leaves.approve";
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
@@ -91,9 +94,11 @@ export async function listLeaves(req, res) {
       ];
     }
 
+    const scoped = hasPermission(req, APPROVE) ? filter : withOwnerScope(req, filter);
+
     const [total, items] = await Promise.all([
-      Leave.countDocuments(filter),
-      Leave.find(filter)
+      Leave.countDocuments(scoped),
+      Leave.find(scoped)
         .populate("staffUserId", "fullName email role")
         .populate("approvedBy", "fullName email")
         .sort(safeSort(sort))
@@ -129,7 +134,7 @@ export async function getLeave(req, res) {
       .populate("approvedBy", "fullName email")
       .lean();
 
-    if (!item) {
+    if (!item || (!hasPermission(req, APPROVE) && !isOwner(req, item))) {
       return res
         .status(404)
         .json({ ok: false, message: "Leave request not found" });
@@ -145,7 +150,10 @@ export async function getLeave(req, res) {
 export async function createLeave(req, res) {
   try {
     const body = req.body || {};
-    const staffName = String(body.staffName || "").trim();
+    const selfService = !hasPermission(req, APPROVE);
+    const staffName = selfService
+      ? String(body.staffName || req.user?.fullName || "").trim()
+      : String(body.staffName || "").trim();
 
     if (!staffName) {
       return res
@@ -165,7 +173,11 @@ export async function createLeave(req, res) {
 
     const item = await Leave.create({
       staffName,
-      staffUserId: validId(body.staffUserId) ? body.staffUserId : null,
+      staffUserId: selfService
+        ? req.user?.id || null
+        : validId(body.staffUserId)
+          ? body.staffUserId
+          : null,
       department: String(body.department || "").trim(),
       leaveType: safeType(body.leaveType),
       startDate,
@@ -194,8 +206,9 @@ export async function updateLeave(req, res) {
     }
 
     const current = await Leave.findById(id).lean();
+    const selfService = !hasPermission(req, APPROVE);
 
-    if (!current) {
+    if (!current || (selfService && !isOwner(req, current))) {
       return res
         .status(404)
         .json({ ok: false, message: "Leave request not found" });
@@ -217,7 +230,7 @@ export async function updateLeave(req, res) {
       patch.staffName = String(body.staffName || "").trim();
     }
 
-    if (typeof body.staffUserId !== "undefined") {
+    if (typeof body.staffUserId !== "undefined" && !selfService) {
       patch.staffUserId = validId(body.staffUserId) ? body.staffUserId : null;
     }
 
@@ -298,6 +311,18 @@ export async function approveLeave(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
+    const existing = await Leave.findById(id).select("staffUserId createdBy").lean();
+    if (!existing) {
+      return res
+        .status(404)
+        .json({ ok: false, message: "Leave request not found" });
+    }
+    if (req.user?.role !== "super_admin" && isOwner(req, existing)) {
+      return res
+        .status(403)
+        .json({ ok: false, message: "You cannot approve your own leave request" });
+    }
+
     const item = await Leave.findByIdAndUpdate(
       id,
       {
@@ -332,6 +357,18 @@ export async function rejectLeave(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
+    const existing = await Leave.findById(id).select("staffUserId createdBy").lean();
+    if (!existing) {
+      return res
+        .status(404)
+        .json({ ok: false, message: "Leave request not found" });
+    }
+    if (req.user?.role !== "super_admin" && isOwner(req, existing)) {
+      return res
+        .status(403)
+        .json({ ok: false, message: "You cannot reject your own leave request" });
+    }
+
     const item = await Leave.findByIdAndUpdate(
       id,
       {
@@ -363,6 +400,13 @@ export async function cancelLeave(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
+    const existing = await Leave.findById(id).select("staffUserId createdBy").lean();
+    if (!existing || (!hasPermission(req, APPROVE) && !isOwner(req, existing))) {
+      return res
+        .status(404)
+        .json({ ok: false, message: "Leave request not found" });
+    }
+
     const item = await Leave.findByIdAndUpdate(
       id,
       {
@@ -387,17 +431,21 @@ export async function cancelLeave(req, res) {
 
 export async function getLeaveStats(req, res) {
   try {
+    const scope = (f = {}) =>
+      hasPermission(req, APPROVE) ? f : withOwnerScope(req, f);
     const [total, submitted, approved, rejected, cancelled, upcoming] =
       await Promise.all([
-        Leave.countDocuments(),
-        Leave.countDocuments({ status: "submitted" }),
-        Leave.countDocuments({ status: "approved" }),
-        Leave.countDocuments({ status: "rejected" }),
-        Leave.countDocuments({ status: "cancelled" }),
-        Leave.countDocuments({
-          status: "approved",
-          startDate: { $gte: new Date() },
-        }),
+        Leave.countDocuments(scope()),
+        Leave.countDocuments(scope({ status: "submitted" })),
+        Leave.countDocuments(scope({ status: "approved" })),
+        Leave.countDocuments(scope({ status: "rejected" })),
+        Leave.countDocuments(scope({ status: "cancelled" })),
+        Leave.countDocuments(
+          scope({
+            status: "approved",
+            startDate: { $gte: new Date() },
+          })
+        ),
       ]);
 
     return res.json({

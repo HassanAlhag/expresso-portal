@@ -18,8 +18,8 @@ import {
 const router = express.Router();
 
 router.get("/stats",           requireAuth, requirePermission("hr.expenses.read"),    getExpenseStats);
-router.get("/monthly",         requireAuth, requirePermission("hr.expenses.read"),    getMonthlyExpenses);
-router.get("/monthly/:month",  requireAuth, requirePermission("hr.expenses.read"),    getMonthlyExpenseDetails);
+router.get("/monthly",         requireAuth, requirePermission("hr.expenses.approve"), getMonthlyExpenses);
+router.get("/monthly/:month",  requireAuth, requirePermission("hr.expenses.approve"), getMonthlyExpenseDetails);
 router.get("/",                requireAuth, requirePermission("hr.expenses.read"),    listExpenses);
 router.get("/:id",             requireAuth, requirePermission("hr.expenses.read"),    getExpense);
 
