@@ -6,6 +6,16 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
 
+  // Number of reverse proxies in front of the API (Render, nginx, Cloudflare).
+  // Needed so req.ip is the visitor's address, not the proxy's; otherwise all
+  // users share one rate-limit bucket. Defaults to 1 in production, 0 locally.
+  trustProxy:
+    process.env.TRUST_PROXY !== undefined
+      ? Number(process.env.TRUST_PROXY)
+      : (process.env.NODE_ENV || "development") === "production"
+        ? 1
+        : 0,
+
   // Optional — Google Sign-In (Step 4C). Must match the frontend's
   // REACT_APP_GOOGLE_CLIENT_ID exactly. When unset, /api/auth/google
   // responds with a graceful "not configured" error instead of crashing
