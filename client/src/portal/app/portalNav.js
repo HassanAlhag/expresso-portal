@@ -69,6 +69,7 @@ export const ROUTES = {
 
   USERS: "/portal/users",
   INVITES: "/portal/users/invites",
+  ACCESS_REQUESTS: "/portal/users/access-requests",
   ROLES: "/portal/roles",
   TEAMS: "/portal/teams",
 
@@ -295,6 +296,15 @@ const ITEMS = {
     hint: "Invite to portal",
     Icon: MailPlus,
     accent: ACCENTS.brand,
+    permission: "iam.invites.send",
+  },
+
+  accessRequests: {
+    to: ROUTES.ACCESS_REQUESTS,
+    label: "Access Requests",
+    hint: "Review portal access requests",
+    Icon: UserCheck,
+    accent: ACCENTS.amber,
     permission: "iam.invites.send",
   },
 
@@ -641,7 +651,7 @@ const ADMIN_SECTIONS = [
   {
     title: "IAM",
     Icon: Shield,
-    items: [ITEMS.users, ITEMS.roles, ITEMS.teams, ITEMS.invites],
+    items: [ITEMS.users, ITEMS.roles, ITEMS.teams, ITEMS.invites, ITEMS.accessRequests],
   },
   {
     title: "Procurement",
@@ -901,6 +911,14 @@ export function getPageMeta(pathname) {
       label: "Activity",
       subtitle: "Audit trail and system timeline",
       Icon: Activity,
+    };
+  }
+
+  if (starts(ROUTES.ACCESS_REQUESTS)) {
+    return {
+      label: "Access Requests",
+      subtitle: "Review and approve requests for portal access",
+      Icon: UserCheck,
     };
   }
 

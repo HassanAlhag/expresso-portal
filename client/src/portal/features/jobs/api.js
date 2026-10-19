@@ -35,6 +35,16 @@ export async function deleteJob(id) {
   return data;
 }
 
+export async function bulkAssignJobs(payload) {
+  const { data } = await api.patch("/jobs/bulk/assign", payload);
+  return data;
+}
+
+export async function bulkDeleteJobs(ids = []) {
+  const { data } = await api.delete("/jobs/bulk", { data: { ids } });
+  return data;
+}
+
 export async function attachMedia(id, mediaIds) {
   const { data } = await api.post(`/jobs/${id}/attach-media`, { mediaIds });
   return data;

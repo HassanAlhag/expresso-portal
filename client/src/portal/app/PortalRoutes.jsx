@@ -8,6 +8,10 @@ import { CommandBarProvider } from "../shared/ui/CommandBar";
 // Layout + Login
 const PortalLayout = lazy(() => import("../layouts/PortalLayout"));
 const PortalLogin = lazy(() => import("../pages/PortalLogin"));
+const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/ResetPassword"));
+const RequestAccess = lazy(() => import("../pages/RequestAccess"));
+const AcceptInvite = lazy(() => import("../pages/AcceptInvite"));
 
 // Core
 const DashboardPage = lazy(() =>
@@ -29,6 +33,9 @@ const UserDetailsPage = lazy(() =>
 );
 const InvitesPage = lazy(() =>
   import("../features/iam/invites/pages/InvitesPage")
+);
+const AccessRequestsPage = lazy(() =>
+  import("../features/iam/access-requests/pages/AccessRequestsPage")
 );
 const RolesPage = lazy(() => import("../features/iam/roles/pages/RolesPage"));
 const TeamsPage = lazy(() => import("../features/iam/teams/pages/TeamsPage"));
@@ -223,6 +230,10 @@ export default function PortalRoutes() {
     <Suspense fallback={<Loader />}>
       <Routes>
         <Route path="login" element={<PortalLogin />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
+        <Route path="request-access" element={<RequestAccess />} />
+        <Route path="accept-invite" element={<AcceptInvite />} />
 
         <Route
           path="/"
@@ -492,6 +503,7 @@ export default function PortalRoutes() {
           {/* IAM */}
           <Route path="users" element={<UsersListPage />} />
           <Route path="users/invites" element={<InvitesPage />} />
+          <Route path="users/access-requests" element={<AccessRequestsPage />} />
           <Route path="users/:id" element={<UserDetailsPage />} />
           <Route path="roles" element={<RolesPage />} />
           <Route path="teams" element={<TeamsPage />} />

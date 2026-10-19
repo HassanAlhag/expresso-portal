@@ -29,9 +29,17 @@ import {
   Check,
   X,
   ChevronRight,
+  UserPlus,
 } from "lucide-react";
 
-import { createJob, listJobs, updateJob, deleteJob } from "../api";
+import {
+  bulkAssignJobs,
+  bulkDeleteJobs,
+  createJob,
+  listJobs,
+  updateJob,
+  deleteJob,
+} from "../api";
 import { listCustomers } from "../../customers/api";
 import { listProjects } from "../../projects/api";
 import { listEnrollments } from "../../enrollments/api";
@@ -226,7 +234,7 @@ function JobEditModal({ open, job, onClose, onSaved }) {
   useEffect(() => {
     if (!open) return;
     setLoadingUsers(true);
-    listUsers({ limit: 100, isActive: true })
+    listUsers({ isInternal: "true", isActive: "true", limit: 100 })
       .then((res) => setUsers(Array.isArray(res?.items) ? res.items : res?.users || []))
       .catch(() => setUsers([]))
       .finally(() => setLoadingUsers(false));
@@ -441,12 +449,200 @@ function JobEditModal({ open, job, onClose, onSaved }) {
   );
 }
 
+function BulkAssignModal({ open, count, busy, onClose, onSubmit }) {
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [staffQ, setStaffQ] = useState("");
+  const [selected, setSelected] = useState([]);
+  const [mode, setMode] = useState("add");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    setSelected([]);
+    setStaffQ("");
+    setMode("add");
+    setError("");
+    setLoadingUsers(true);
+    listUsers({ isInternal: "true", isActive: "true", limit: 100 })
+      .then((res) => setUsers(Array.isArray(res?.items) ? res.items : res?.users || []))
+      .catch(() => setUsers([]))
+      .finally(() => setLoadingUsers(false));
+  }, [open]);
+
+  const filteredUsers = useMemo(() => {
+    if (!staffQ) return users;
+    const lq = staffQ.toLowerCase();
+    return users.filter(
+      (u) =>
+        (u.fullName || u.name || "").toLowerCase().includes(lq) ||
+        (u.email || "").toLowerCase().includes(lq)
+    );
+  }, [users, staffQ]);
+
+  const isSelected = (user) =>
+    selected.some((item) => String(item._id || item) === String(user._id));
+
+  const toggleUser = (user) => {
+    setSelected((prev) =>
+      isSelected(user)
+        ? prev.filter((item) => String(item._id || item) !== String(user._id))
+        : [...prev, user]
+    );
+  };
+
+  const submit = () => {
+    if (!selected.length) {
+      setError("Select at least one staff member.");
+      return;
+    }
+    onSubmit?.({
+      assignees: selected.map((item) => item._id || item),
+      mode,
+    });
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Bulk assign staff"
+      subtitle={`Assign staff to ${count} selected job${count === 1 ? "" : "s"}.`}
+      width="720px"
+      footer={
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
+          <Button onClick={submit} disabled={busy || !selected.length}>
+            {busy ? "Assigning..." : "Assign staff"}
+          </Button>
+        </div>
+      }
+    >
+      <div className="grid gap-5">
+        {error ? (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            {error}
+          </div>
+        ) : null}
+
+        <div className="grid gap-2">
+          <div className="text-[10.5px] font-black uppercase tracking-[0.22em] text-slate-400">
+            Assignment mode
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[
+              { value: "add", label: "Add to existing staff" },
+              { value: "replace", label: "Replace current staff" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setMode(option.value)}
+                className={[
+                  "rounded-2xl border px-4 py-3 text-left text-sm font-black transition",
+                  mode === option.value
+                    ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
+                ].join(" ")}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selected.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {selected.map((user) => (
+              <button
+                key={user._id || user}
+                type="button"
+                onClick={() => toggleUser(user)}
+                className="flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+              >
+                {user.fullName || user.name || "Staff"}
+                <X size={9} />
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div>
+          <input
+            value={staffQ}
+            onChange={(e) => setStaffQ(e.target.value)}
+            placeholder="Search staff by name or email..."
+            className="mb-2 h-10 w-full rounded-xl border border-black/10 bg-slate-50 px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+          />
+
+          <div className="max-h-72 divide-y divide-black/5 overflow-y-auto rounded-xl border border-black/10">
+            {loadingUsers ? (
+              <div className="p-4 text-center text-xs text-slate-400">
+                Loading staff...
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="p-4 text-center text-xs text-slate-400">
+                No staff found
+              </div>
+            ) : (
+              filteredUsers.map((user) => {
+                const active = isSelected(user);
+                return (
+                  <button
+                    key={user._id}
+                    type="button"
+                    onClick={() => toggleUser(user)}
+                    className={[
+                      "flex w-full items-center gap-3 px-3 py-2.5 text-left transition",
+                      active ? "bg-indigo-50" : "hover:bg-slate-50",
+                    ].join(" ")}
+                  >
+                    <div
+                      className={[
+                        "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-black",
+                        active ? "bg-indigo-500 text-white" : "bg-slate-100 text-slate-600",
+                      ].join(" ")}
+                    >
+                      {(user.fullName || user.name || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold text-slate-800">
+                        {user.fullName || user.name}
+                      </div>
+                      <div className="truncate text-xs text-slate-400">
+                        {user.email || String(user.role || "").replace(/_/g, " ")}
+                      </div>
+                    </div>
+                    {active ? <Check size={14} className="flex-shrink-0 text-indigo-600" /> : null}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 // ── Advanced List Table ────────────────────────────────────────────────────────
 
-function JobsTable({ items, onOpen, onRefresh, onEdit }) {
+function JobsTable({
+  items,
+  onOpen,
+  onRefresh,
+  onEdit,
+  selectedIds = new Set(),
+  onToggleSelected,
+  onToggleAll,
+}) {
   const toast = useToast();
   const [confirmDeleteId, setConfirmDeleteId] = useState("");
   const [busyId, setBusyId] = useState("");
+  const allSelected = items.length > 0 && items.every((item) => selectedIds.has(item._id));
+  const someSelected = items.some((item) => selectedIds.has(item._id));
 
   const handleDelete = async (id) => {
     setBusyId(id);
@@ -464,7 +660,19 @@ function JobsTable({ items, onOpen, onRefresh, onEdit }) {
   return (
     <div className="overflow-hidden rounded-[20px] border border-black/[0.08] bg-white">
       {/* Header row */}
-      <div className="grid grid-cols-[2.2fr_1.4fr_180px_130px_80px_140px] gap-2 border-b border-black/[0.06] bg-slate-50 px-5 py-3 text-[10.5px] font-black uppercase tracking-[0.18em] text-slate-400">
+      <div className="grid grid-cols-[36px_2.2fr_1.4fr_180px_130px_80px_140px] gap-2 border-b border-black/[0.06] bg-slate-50 px-5 py-3 text-[10.5px] font-black uppercase tracking-[0.18em] text-slate-400">
+        <label className="flex items-center justify-center">
+          <input
+            type="checkbox"
+            checked={allSelected}
+            ref={(node) => {
+              if (node) node.indeterminate = someSelected && !allSelected;
+            }}
+            onChange={() => onToggleAll?.()}
+            className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+            aria-label="Select all jobs"
+          />
+        </label>
         <div>Job</div>
         <div>Client / Project</div>
         <div>Pipeline</div>
@@ -490,8 +698,24 @@ function JobsTable({ items, onOpen, onRefresh, onEdit }) {
           return (
             <div
               key={j._id}
-              className="grid grid-cols-[2.2fr_1.4fr_180px_130px_80px_140px] items-center gap-2 px-5 py-4 transition hover:bg-slate-50/60"
+              className={[
+                "grid grid-cols-[36px_2.2fr_1.4fr_180px_130px_80px_140px] items-center gap-2 px-5 py-4 transition hover:bg-slate-50/60",
+                selectedIds.has(j._id) ? "bg-indigo-50/30" : "",
+              ].join(" ")}
             >
+              <label
+                className="flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(j._id)}
+                  onChange={() => onToggleSelected?.(j._id)}
+                  className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+                  aria-label={`Select ${j.title || "job"}`}
+                />
+              </label>
+
               {/* Job info */}
               <button
                 type="button"
@@ -640,6 +864,9 @@ export default function JobsPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editJob, setEditJob] = useState(null);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [selectedJobIds, setSelectedJobIds] = useState([]);
   const [view, setView] = useState("pipeline");
 
   const load = async () => {
@@ -649,6 +876,9 @@ export default function JobsPage() {
       const res = await listJobs({ q, status, type, sort, limit: 100, page: 1, notWorkflowType: "video" });
       const rows = res?.items || [];
       setItems(rows);
+      setSelectedJobIds((prev) =>
+        prev.filter((id) => rows.some((row) => String(row._id) === String(id)))
+      );
       setMeta({ page: res?.page || 1, pages: res?.pages || 1, total: res?.total ?? rows.length });
     } catch (e) {
       setError(e?.response?.data?.message || e?.message || "Failed to load jobs");
@@ -672,6 +902,26 @@ export default function JobsPage() {
     };
   }, [items]);
 
+  const selectedSet = useMemo(() => new Set(selectedJobIds), [selectedJobIds]);
+
+  const toggleSelectedJob = (id) => {
+    setSelectedJobIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAllVisibleJobs = () => {
+    setSelectedJobIds((prev) => {
+      const visibleIds = items.map((item) => item._id);
+      const allVisibleSelected =
+        visibleIds.length > 0 && visibleIds.every((id) => prev.includes(id));
+      if (allVisibleSelected) {
+        return prev.filter((id) => !visibleIds.includes(id));
+      }
+      return Array.from(new Set([...prev, ...visibleIds]));
+    });
+  };
+
   const onCreate = async (payload) => {
     setBusy(true);
     try {
@@ -693,6 +943,44 @@ export default function JobsPage() {
     try { await updateJob(job._id, { status: nextStatus }); await load(); }
     catch (e) { toast.error(e?.response?.data?.message || e?.message || "Move failed"); }
     finally { setBusy(false); }
+  };
+
+  const handleBulkAssign = async ({ assignees, mode }) => {
+    if (!selectedJobIds.length) return;
+    setBusy(true);
+    try {
+      const res = await bulkAssignJobs({
+        ids: selectedJobIds,
+        assignees,
+        mode,
+      });
+      toast.success(
+        `Assigned staff on ${res?.modified ?? selectedJobIds.length} job(s).`
+      );
+      setBulkAssignOpen(false);
+      setSelectedJobIds([]);
+      await load();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Bulk assign failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedJobIds.length) return;
+    setBusy(true);
+    try {
+      const res = await bulkDeleteJobs(selectedJobIds);
+      toast.success(`Deleted ${res?.deleted ?? selectedJobIds.length} job(s).`);
+      setBulkDeleteOpen(false);
+      setSelectedJobIds([]);
+      await load();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e?.message || "Bulk delete failed");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const listProjectsForModal = async ({ customerId = "", q: pq = "" } = {}) => {
@@ -754,6 +1042,43 @@ export default function JobsPage() {
           }
         />
 
+        {selectedJobIds.length > 0 ? (
+          <div className="flex flex-col gap-3 rounded-[20px] border border-indigo-100 bg-indigo-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm font-black text-indigo-800">
+              {selectedJobIds.length} job{selectedJobIds.length === 1 ? "" : "s"} selected
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setBulkAssignOpen(true)}
+                disabled={busy}
+              >
+                <UserPlus size={15} />
+                Assign staff
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setBulkDeleteOpen(true)}
+                disabled={busy}
+              >
+                <Trash2 size={15} />
+                Delete selected
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setSelectedJobIds([])}
+                disabled={busy}
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+        ) : view === "pipeline" && items.length > 0 ? (
+          <div className="rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
+            Bulk assign and bulk delete are available in List view.
+          </div>
+        ) : null}
+
         {/* Content */}
         {loading ? (
           <div className="grid gap-3">
@@ -786,6 +1111,9 @@ export default function JobsPage() {
             onOpen={(j) => nav(`/portal/jobs/${j._id}`)}
             onRefresh={load}
             onEdit={setEditJob}
+            selectedIds={selectedSet}
+            onToggleSelected={toggleSelectedJob}
+            onToggleAll={toggleAllVisibleJobs}
           />
         )}
       </div>
@@ -807,6 +1135,41 @@ export default function JobsPage() {
         onClose={() => setEditJob(null)}
         onSaved={async () => { setEditJob(null); await load(); }}
       />
+
+      <BulkAssignModal
+        open={bulkAssignOpen}
+        count={selectedJobIds.length}
+        busy={busy}
+        onClose={() => setBulkAssignOpen(false)}
+        onSubmit={handleBulkAssign}
+      />
+
+      <Modal
+        open={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        title="Delete selected jobs"
+        subtitle={`This will permanently delete ${selectedJobIds.length} selected job${selectedJobIds.length === 1 ? "" : "s"}.`}
+        width="520px"
+        footer={
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={() => setBulkDeleteOpen(false)}
+              disabled={busy}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleBulkDelete} disabled={busy}>
+              {busy ? "Deleting..." : "Delete jobs"}
+            </Button>
+          </div>
+        }
+      >
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          This action cannot be undone. Generated delivery jobs can be created
+          again from the enrolled service if needed.
+        </div>
+      </Modal>
     </>
   );
 }

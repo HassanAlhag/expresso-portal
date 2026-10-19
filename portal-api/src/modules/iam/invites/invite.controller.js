@@ -4,6 +4,11 @@ import Invite from "./invite.model.js";
 import Role from "../roles/role.model.js";
 import Team from "../teams/team.model.js";
 import User from "../users/user.model.js";
+import AccessRequest from "../access-requests/accessRequest.model.js";
+import Customer from "../../customers/customer.model.js";
+import { logAudit } from "../audit/audit.service.js";
+import { sendMail } from "../../../utils/email.js";
+import { env } from "../../../config/env.js";
 import { DEFAULT_ROLE_PERMISSIONS } from "../../../config/permissions.js";
 
 function escapeRegex(s) {
@@ -30,7 +35,7 @@ function safeSort(sort) {
   return { [key]: dir };
 }
 
-function canManageRole(actorRole, targetRole) {
+export function canManageRole(actorRole, targetRole) {
   const actor = String(actorRole || "").toLowerCase();
   const target = String(targetRole || "").toLowerCase();
 
@@ -39,7 +44,7 @@ function canManageRole(actorRole, targetRole) {
   return false;
 }
 
-async function ensureRoleExists(roleKey) {
+export async function ensureRoleExists(roleKey) {
   const key = String(roleKey || "")
     .trim()
     .toLowerCase();
@@ -48,7 +53,7 @@ async function ensureRoleExists(roleKey) {
   return Boolean(role || DEFAULT_ROLE_PERMISSIONS[key]);
 }
 
-async function ensureTeamExists(teamLabel) {
+export async function ensureTeamExists(teamLabel) {
   const label = String(teamLabel || "").trim();
   if (!label) return true;
   const team = await Team.findOne({ label, isActive: true })
@@ -57,8 +62,22 @@ async function ensureTeamExists(teamLabel) {
   return Boolean(team);
 }
 
-function makeToken() {
-  return crypto.randomBytes(24).toString("hex");
+export async function resolveClientId(clientId) {
+  if (!clientId) return { ok: true, value: null };
+  if (!mongoose.Types.ObjectId.isValid(clientId)) {
+    return { ok: false, message: "Invalid company/client" };
+  }
+  const customer = await Customer.findById(clientId).select("_id").lean();
+  if (!customer) return { ok: false, message: "Company/client not found" };
+  return { ok: true, value: clientId };
+}
+
+function hashToken(rawToken) {
+  return crypto.createHash("sha256").update(rawToken).digest("hex");
+}
+
+function makeRawToken() {
+  return crypto.randomBytes(32).toString("hex");
 }
 
 function computeStatus(invite) {
@@ -70,6 +89,58 @@ function computeStatus(invite) {
   ) {
     return { ...invite, status: "expired" };
   }
+  return invite;
+}
+
+async function sendInviteEmail({ email, fullName, rawToken }) {
+  const acceptUrl = `${env.frontendUrl}/portal/accept-invite?token=${rawToken}`;
+
+  await sendMail({
+    to: email,
+    subject: "You're invited to the Expresso Digital Client Portal",
+    html: `
+      <p>Hi ${fullName || ""},</p>
+      <p>You've been invited to activate your access to the <strong>Expresso Digital Client Portal</strong>.</p>
+      <p>Click the link below to set your password and activate your account:</p>
+      <p><a href="${acceptUrl}">${acceptUrl}</a></p>
+      <p>This link will expire soon and can only be used once. If you weren't expecting this invitation, you can safely ignore this email.</p>
+    `,
+  });
+}
+
+/**
+ * Creates an Invite record and sends the invitation email. Shared by the
+ * direct admin "New invite" flow and the access-request approval flow.
+ */
+export async function issueInvite({
+  email,
+  fullName = "",
+  role,
+  team = "",
+  clientId = null,
+  expiresInDays = 7,
+  invitedBy = null,
+  accessRequestId = null,
+}) {
+  const days = Math.max(1, Math.min(30, Number(expiresInDays) || 7));
+  const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const rawToken = makeRawToken();
+
+  const invite = await Invite.create({
+    email,
+    fullName,
+    role,
+    team,
+    clientId: clientId || null,
+    accessRequestId: accessRequestId || null,
+    status: "pending",
+    tokenHash: hashToken(rawToken),
+    expiresAt,
+    invitedBy: invitedBy || null,
+  });
+
+  await sendInviteEmail({ email, fullName, rawToken });
+
   return invite;
 }
 
@@ -107,6 +178,7 @@ export async function listInvites(req, res) {
       Invite.countDocuments(filter),
       Invite.find(filter)
         .populate("invitedBy", "fullName email")
+        .populate("clientId", "companyName")
         .sort(safeSort(sort))
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
@@ -134,6 +206,7 @@ export async function createInvite(req, res) {
       fullName = "",
       role = "client",
       team = "",
+      clientId = null,
       expiresInDays = 7,
     } = req.body || {};
 
@@ -157,6 +230,11 @@ export async function createInvite(req, res) {
     const teamExists = await ensureTeamExists(cleanTeam);
     if (!teamExists) {
       return res.status(400).json({ ok: false, message: "Invalid team" });
+    }
+
+    const clientResolution = await resolveClientId(clientId);
+    if (!clientResolution.ok) {
+      return res.status(400).json({ ok: false, message: clientResolution.message });
     }
 
     if (!canManageRole(req.user?.role, cleanRole)) {
@@ -187,22 +265,24 @@ export async function createInvite(req, res) {
         });
     }
 
-    const days = Math.max(1, Math.min(30, Number(expiresInDays) || 7));
-    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
-
-    const item = await Invite.create({
+    const invite = await issueInvite({
       email: cleanEmail,
       fullName: String(fullName || "").trim(),
       role: cleanRole,
       team: cleanTeam,
-      status: "pending",
-      token: makeToken(),
-      expiresAt,
+      clientId: clientResolution.value,
+      expiresInDays,
       invitedBy: req.user?.id || req.user?._id || null,
     });
 
-    const populated = await Invite.findById(item._id)
+    await logAudit(req, {
+      action: "invite.created",
+      meta: { inviteId: invite._id, email: cleanEmail, role: cleanRole },
+    });
+
+    const populated = await Invite.findById(invite._id)
       .populate("invitedBy", "fullName email")
+      .populate("clientId", "companyName")
       .lean();
 
     return res.status(201).json({ ok: true, item: computeStatus(populated) });
@@ -239,7 +319,13 @@ export async function cancelInvite(req, res) {
       { new: true }
     )
       .populate("invitedBy", "fullName email")
+      .populate("clientId", "companyName")
       .lean();
+
+    await logAudit(req, {
+      action: "invite.cancelled",
+      meta: { inviteId: id, email: invite.email },
+    });
 
     return res.json({ ok: true, item: computeStatus(item) });
   } catch (err) {
@@ -266,22 +352,170 @@ export async function resendInvite(req, res) {
         .json({ ok: false, message: "Invite cannot be resent" });
     }
 
+    const rawToken = makeRawToken();
+
     const item = await Invite.findByIdAndUpdate(
       id,
       {
         status: "pending",
-        token: makeToken(),
+        tokenHash: hashToken(rawToken),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         cancelledAt: null,
       },
       { new: true }
     )
       .populate("invitedBy", "fullName email")
+      .populate("clientId", "companyName")
       .lean();
+
+    await sendInviteEmail({
+      email: item.email,
+      fullName: item.fullName,
+      rawToken,
+    });
+
+    await logAudit(req, {
+      action: "invite.resent",
+      meta: { inviteId: id, email: item.email },
+    });
 
     return res.json({ ok: true, item: computeStatus(item) });
   } catch (err) {
     console.error("resendInvite error:", err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+// GET /api/invites/verify?token=... — public, read-only. Lets the frontend
+// show invite context (email/role/company) before the recipient submits
+// the activation form, without consuming the invite.
+export async function verifyInvite(req, res) {
+  try {
+    const token = String(req.query.token || "").trim();
+    if (!token) {
+      return res.status(400).json({ ok: false, message: "Token is required" });
+    }
+
+    const invite = await Invite.findOne({ tokenHash: hashToken(token) })
+      .select("+tokenHash")
+      .populate("clientId", "companyName")
+      .lean();
+
+    if (!invite) {
+      return res.status(404).json({ ok: false, message: "This invitation link is invalid" });
+    }
+    if (invite.status === "accepted") {
+      return res.status(409).json({ ok: false, message: "This invitation has already been used" });
+    }
+    if (invite.status === "cancelled") {
+      return res.status(400).json({ ok: false, message: "This invitation has been cancelled" });
+    }
+    if (invite.status !== "pending" || invite.expiresAt < new Date()) {
+      return res.status(400).json({ ok: false, message: "This invitation has expired" });
+    }
+
+    return res.json({
+      ok: true,
+      invite: {
+        email: invite.email,
+        fullName: invite.fullName || "",
+        role: invite.role,
+        team: invite.team || "",
+        company: invite.clientId?.companyName || null,
+      },
+    });
+  } catch (err) {
+    console.error("verifyInvite error:", err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+// POST /api/invites/accept — public. Activates the invited account.
+export async function acceptInvite(req, res) {
+  try {
+    const token = String(req.body.token || "").trim();
+    const fullName = String(req.body.fullName || "").trim();
+    const password = String(req.body.password || "");
+
+    if (!token || !password) {
+      return res.status(400).json({ ok: false, message: "Token and password are required" });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ ok: false, message: "Password must be at least 8 characters" });
+    }
+
+    const invite = await Invite.findOne({ tokenHash: hashToken(token) }).select("+tokenHash");
+
+    if (!invite) {
+      return res.status(404).json({ ok: false, message: "This invitation link is invalid" });
+    }
+    if (invite.status === "accepted") {
+      return res.status(409).json({ ok: false, message: "This invitation has already been used" });
+    }
+    if (invite.status === "cancelled") {
+      return res.status(400).json({ ok: false, message: "This invitation has been cancelled" });
+    }
+    if (invite.status !== "pending" || invite.expiresAt < new Date()) {
+      return res.status(400).json({ ok: false, message: "This invitation has expired" });
+    }
+
+    // Always use the invited (server-side) email — never trust an email
+    // submitted by the accept-invite form itself.
+    const email = invite.email;
+
+    const existingUser = await User.findOne({ email }).select("_id").lean();
+    if (existingUser) {
+      // Explicit conflict handling: an account was created for this email
+      // through another path after the invite was sent. Do not silently
+      // create a duplicate or touch the existing account.
+      invite.status = "cancelled";
+      invite.cancelledAt = new Date();
+      await invite.save();
+
+      return res.status(409).json({
+        ok: false,
+        message:
+          "An account already exists for this email. Please use the login or forgot-password page instead.",
+      });
+    }
+
+    const passwordHash = await User.hashPassword(password);
+
+    const user = await User.create({
+      fullName: fullName || invite.fullName || "",
+      email,
+      role: invite.role,
+      isActive: true,
+      clientId: invite.clientId || null,
+      team: invite.team || "",
+      passwordHash,
+      passwordChangedAt: new Date(),
+    });
+
+    invite.status = "accepted";
+    invite.acceptedAt = new Date();
+    invite.acceptedByUserId = user._id;
+    await invite.save();
+
+    if (invite.accessRequestId) {
+      await AccessRequest.updateOne(
+        { _id: invite.accessRequestId },
+        { $set: { status: "invited" } }
+      );
+    }
+
+    await logAudit(req, {
+      action: "invite.accepted",
+      targetUserId: user._id,
+      meta: { inviteId: invite._id, email },
+    });
+
+    return res.status(201).json({
+      ok: true,
+      message: "Your account has been activated. You can now log in.",
+    });
+  } catch (err) {
+    console.error("acceptInvite error:", err);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }

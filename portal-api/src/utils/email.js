@@ -18,7 +18,10 @@ function getTransporter() {
 export async function sendMail({ to, subject, html, text }) {
   const t = getTransporter();
   if (!t) {
-    console.log(`[email] SMTP not configured — skipped: ${subject} → ${to}`);
+    // No SMTP configured (local/dev) — dump the email to the console
+    // instead of sending it, so links (invite/reset) are still usable.
+    console.log(`[email] SMTP not configured — not sent: "${subject}" → ${to}`);
+    console.log(text || html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
     return;
   }
   await t.sendMail({

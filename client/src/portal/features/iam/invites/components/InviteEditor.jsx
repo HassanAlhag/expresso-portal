@@ -6,8 +6,9 @@ import SmartSelect from "../../../../shared/ui/SmartSelect";
 import Pill from "../../../../shared/ui/Pill";
 import { listRoles } from "../../roles/api";
 import { listTeams } from "../../teams/api";
+import { listCustomers } from "../../../customers/api";
 import { createInvite } from "../api";
-import { Send, Users } from "lucide-react";
+import { Send, Users, Building2 } from "lucide-react";
 
 export default function InviteEditor({
   open,
@@ -20,6 +21,7 @@ export default function InviteEditor({
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState(null);
   const [team, setTeam] = useState(null);
+  const [client, setClient] = useState(null);
   const [expiresInDays, setExpiresInDays] = useState("7");
 
   const [roleOptions, setRoleOptions] = useState([]);
@@ -60,6 +62,7 @@ export default function InviteEditor({
 
     setEmail("");
     setFullName("");
+    setClient(null);
     setExpiresInDays("7");
     setError("");
     loadAll();
@@ -79,6 +82,7 @@ export default function InviteEditor({
         fullName: fullName.trim(),
         role: role?.key || "client",
         team: team?.key || "",
+        clientId: client?._id || null,
         expiresInDays: Number(expiresInDays) || 7,
       });
 
@@ -140,6 +144,29 @@ export default function InviteEditor({
             </div>
           )}
           placeholder="Select role…"
+        />
+
+        <SmartSelect
+          label="Company / client (optional)"
+          value={client}
+          onChange={(it) => setClient(it)}
+          loadOptions={async ({ q }) => {
+            const res = await listCustomers({ q, limit: 20 });
+            return { items: res?.items || [] };
+          }}
+          getKey={(x) => x._id}
+          renderValue={(x) => (
+            <div className="flex items-center gap-2">
+              <Pill tone="neutral">{x.companyName}</Pill>
+            </div>
+          )}
+          renderOption={(x) => (
+            <div className="flex items-center gap-2 text-sm font-extrabold text-slate-900">
+              <Building2 size={14} />
+              {x.companyName}
+            </div>
+          )}
+          placeholder="Link to a company…"
         />
 
         <SmartSelect

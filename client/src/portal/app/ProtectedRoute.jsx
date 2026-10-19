@@ -12,6 +12,7 @@ function parseToken(token) {
 
 const ROUTE_PERMISSIONS = [
   ["/portal/users/invites", "iam.invites.send"],
+  ["/portal/users/access-requests", "iam.invites.send"],
   ["/portal/users", "iam.users.read"],
   ["/portal/roles", "iam.roles.read"],
   ["/portal/teams", "iam.teams.read"],

@@ -1,24 +1,54 @@
 // src/portal/pages/PortalLogin.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { login } from "../shared/api/auth.api";
+import { Link, useNavigate } from "react-router-dom";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { login, googleLogin } from "../shared/api/auth.api";
+import {
+  AuthShell,
+  AuthHeading,
+  AuthField,
+  AuthError,
+  AuthSubmitButton,
+  AuthFooterLink,
+} from "../shared/ui/AuthCard";
 
-const BRAND = "#7F8AD1";
 const TOKEN_KEY = "portal_token";
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "";
+
+// Decoded for a UI hint only (prefilling the Request Access email) — this
+// is never treated as verified authorization. The actual login decision
+// always happens server-side against the Google-signed credential.
+function decodeEmailHint(credential) {
+  try {
+    const payload = JSON.parse(atob(credential.split(".")[1]));
+    return payload?.email || "";
+  } catch {
+    return "";
+  }
+}
+
+function applySession(res, email) {
+  localStorage.setItem(TOKEN_KEY, res.token);
+  localStorage.setItem("portal_email", email || res.user?.email || "");
+  localStorage.setItem("portal_user", JSON.stringify(res.user || null));
+  localStorage.setItem("portal_permissions", JSON.stringify(res.user?.permissions || []));
+}
 
 export default function PortalLogin() {
   const nav = useNavigate();
 
-  const [company, setCompany] = useState(
-    localStorage.getItem("portal_client") || ""
-  );
   const [email, setEmail] = useState(
     localStorage.getItem("portal_email") || ""
   );
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState("");
 
   const enter = async (e) => {
     e.preventDefault();
@@ -29,13 +59,7 @@ export default function PortalLogin() {
       const res = await login({ email, password });
       if (!res?.ok) throw new Error(res?.message || "Login failed");
 
-      localStorage.setItem(TOKEN_KEY, res.token);
-      localStorage.setItem("portal_client", company || "Client");
-      localStorage.setItem("portal_email", email || "");
-      localStorage.setItem("portal_user", JSON.stringify(res.user || null));
-      localStorage.setItem("portal_permissions", JSON.stringify(res.user?.permissions || []));
-
-      // ✅ New plan: NO onboarding. Always go to portal.
+      applySession(res, email);
       nav("/portal", { replace: true });
     } catch (e2) {
       setError(e2?.response?.data?.message || e2?.message || "Login failed");
@@ -44,89 +68,135 @@ export default function PortalLogin() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (googleLoading) return; // guard against double submission
+    setGoogleError("");
+    setGoogleLoading(true);
+
+    const credential = credentialResponse?.credential || "";
+
+    try {
+      const res = await googleLogin({ credential });
+
+      if (res?.ok) {
+        applySession(res);
+        nav("/portal", { replace: true });
+        return;
+      }
+
+      if (res?.code === "NO_PORTAL_ACCESS") {
+        nav("/portal/request-access", {
+          state: {
+            prefillEmail: decodeEmailHint(credential),
+            notice: "This Google account does not currently have Client Portal access.",
+          },
+        });
+        return;
+      }
+
+      setGoogleError(res?.message || "Google sign-in failed. Please try again.");
+    } catch (e2) {
+      setGoogleError(
+        e2?.response?.data?.message || e2?.message || "Google sign-in failed. Please try again."
+      );
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setGoogleError("Google sign-in failed. Please try again or use your email and password.");
+  };
+
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(900px circle at 18% 10%, rgba(127,138,209,0.14), transparent 55%), radial-gradient(800px circle at 85% 30%, rgba(0,0,0,0.05), transparent 55%)",
-          }}
-        />
-      </div>
+    <AuthShell>
+      <form onSubmit={enter}>
+        <AuthHeading subtitle="Welcome back." />
 
-      <div className="mx-auto flex min-h-screen w-[min(980px,92vw)] items-center justify-center py-10">
-        <form
-          onSubmit={enter}
-          className="w-full max-w-xl rounded-[32px] border border-neutral-200 bg-white/85 p-7 shadow-[0_30px_120px_rgba(0,0,0,0.10)] backdrop-blur-xl sm:p-10"
-        >
-          <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-            <span style={{ color: BRAND }}>Expresso</span>{" "}
-            <span className="text-neutral-950">Client Portal</span>
-          </h1>
+        <div className="mt-8 grid gap-5">
+          <AuthField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+          />
+          <AuthField
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            required
+            trailing={
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-600"
+              >
+                {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+              </button>
+            }
+          />
+        </div>
 
-          <p className="mt-3 text-base text-neutral-600">Login to continue.</p>
+        <AuthError>{error}</AuthError>
 
-          <div className="mt-8 grid gap-5">
-            <Field
-              label="Company"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              autoComplete="organization"
-            />
-            <Field
-              label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-            <Field
-              label="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
+        <AuthSubmitButton loading={loading} loadingLabel="Signing in...">
+          Sign In →
+        </AuthSubmitButton>
+
+        <AuthFooterLink to="/portal/forgot-password">
+          Forgot password?
+        </AuthFooterLink>
+
+        {GOOGLE_CLIENT_ID ? (
+          <div className="mt-6">
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-neutral-200" />
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
+                or
+              </span>
+              <div className="h-px flex-1 bg-neutral-200" />
+            </div>
+
+            <div className="mt-5 flex justify-center">
+              {googleLoading ? (
+                <div
+                  className="flex h-10 w-full max-w-[280px] items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-500"
+                  aria-live="polite"
+                >
+                  Verifying with Google...
+                </div>
+              ) : (
+                <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    theme="outline"
+                    size="large"
+                    shape="pill"
+                    text="continue_with"
+                    width="280"
+                    locale="en"
+                  />
+                </GoogleOAuthProvider>
+              )}
+            </div>
+
+            <AuthError>{googleError}</AuthError>
           </div>
+        ) : null}
 
-          {error ? (
-            <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </p>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-8 w-full rounded-2xl px-6 py-4 text-sm font-extrabold text-white active:scale-[0.99] disabled:opacity-70"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(127,138,209,1) 0%, rgba(0,0,0,0.92) 120%)",
-            }}
-          >
-            {loading ? "Signing in..." : "Enter portal →"}
-          </button>
-
-          <p className="mt-5 text-sm text-neutral-500">
-            Test user: superadmin@expresso.com / Inf-123*
-          </p>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function Field({ label, ...props }) {
-  return (
-    <label className="grid gap-2">
-      <span className="text-xs font-semibold tracking-[0.18em] text-neutral-500">
-        {label}
-      </span>
-      <input
-        {...props}
-        className="h-14 rounded-2xl border border-neutral-200 bg-white px-4 text-base text-neutral-900 shadow-sm outline-none transition focus:border-neutral-300 focus:ring-4 focus:ring-black/5"
-      />
-    </label>
+        <p className="mt-4 text-center text-sm text-neutral-500">
+          Need access?{" "}
+          <Link to="/portal/request-access" className="font-semibold" style={{ color: "#7F8AD1" }}>
+            Request access
+          </Link>
+        </p>
+      </form>
+    </AuthShell>
   );
 }

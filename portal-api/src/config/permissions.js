@@ -323,6 +323,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "brand_kit.read", "brand_kit.write",
     "reports.read",
     "activity.read",
+    "iam.users.read",
   ],
 
   staff: [

@@ -279,6 +279,9 @@ export default function InvitesPage() {
                           {invite.team ? (
                             <Badge tone="info">{invite.team}</Badge>
                           ) : null}
+                          {invite.clientId?.companyName ? (
+                            <Badge tone="neutral">{invite.clientId.companyName}</Badge>
+                          ) : null}
                         </div>
                       </td>
 

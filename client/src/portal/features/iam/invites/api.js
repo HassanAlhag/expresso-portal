@@ -33,3 +33,19 @@ export async function resendInvite(id) {
   const { data } = await api.post(`/invites/${id}/resend`);
   return data;
 }
+
+/**
+ * GET /api/invites/verify?token=... — public, no auth required.
+ */
+export async function verifyInvite(token) {
+  const { data } = await api.get("/invites/verify", { params: { token } });
+  return data;
+}
+
+/**
+ * POST /api/invites/accept — public, no auth required.
+ */
+export async function acceptInvite({ token, fullName, password }) {
+  const { data } = await api.post("/invites/accept", { token, fullName, password });
+  return data;
+}

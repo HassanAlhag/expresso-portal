@@ -38,10 +38,14 @@ const InviteSchema = new mongoose.Schema(
       index: true,
     },
 
-    token: {
+    // SHA-256 hash of the raw invite token. Only the raw token (sent via
+    // email) can be used to accept the invite — the hash alone is useless
+    // to whoever has DB access, same approach as User.resetPasswordTokenHash.
+    tokenHash: {
       type: String,
       required: true,
       unique: true,
+      select: false,
     },
 
     expiresAt: {
@@ -56,8 +60,30 @@ const InviteSchema = new mongoose.Schema(
       default: null,
     },
 
+    // Company/client this invite is pre-associated with, carried over to
+    // User.clientId when the invite is accepted. Optional — internal
+    // (non-client) roles are not tied to a Customer.
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+      default: null,
+    },
+
+    // Set when this invite originated from an approved AccessRequest.
+    accessRequestId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AccessRequest",
+      default: null,
+    },
+
     acceptedAt: {
       type: Date,
+      default: null,
+    },
+
+    acceptedByUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       default: null,
     },
 

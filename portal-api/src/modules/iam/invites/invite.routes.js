@@ -5,9 +5,15 @@ import {
   createInvite,
   cancelInvite,
   resendInvite,
+  verifyInvite,
+  acceptInvite,
 } from "./invite.controller.js";
 
 const router = express.Router();
+
+// Public — used by the accept-invite page, no auth required.
+router.get("/verify", verifyInvite);
+router.post("/accept", acceptInvite);
 
 router.get("/", requireAuth, requirePermission("iam.invites.send"), listInvites);
 router.post(

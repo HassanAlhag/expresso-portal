@@ -13,6 +13,7 @@ import authRoutes from "./modules/iam/auth/auth.routes.js";
 import iamUsersRoutes from "./modules/iam/users/user.routes.js";
 import rolesRoutes from "./modules/iam/roles/role.routes.js";
 import invitesRoutes from "./modules/iam/invites/invite.routes.js";
+import accessRequestsRoutes from "./modules/iam/access-requests/accessRequest.routes.js";
 import ticketRoutes from "./modules/tickets/ticket.routes.js";
 import projectRoutes from "./modules/projects/project.routes.js";
 import serviceTemplateRoutes from "./modules/services/serviceTemplate.routes.js";
@@ -66,6 +67,30 @@ const loginRateLimiter = createRateLimiter({
   message: "Too many login attempts, please try again later",
 });
 
+const passwordResetRateLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: "Too many password reset attempts, please try again later",
+});
+
+const requestAccessRateLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: "Too many requests, please try again later",
+});
+
+const acceptInviteRateLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: "Too many attempts, please try again later",
+});
+
+const googleLoginRateLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: "Too many attempts, please try again later",
+});
+
 export function createApp() {
   const app = express();
 
@@ -91,11 +116,17 @@ export function createApp() {
   );
 
   app.use("/api/auth/login", loginRateLimiter);
+  app.use("/api/auth/forgot-password", passwordResetRateLimiter);
+  app.use("/api/auth/reset-password", passwordResetRateLimiter);
+  app.use("/api/auth/request-access", requestAccessRateLimiter);
+  app.use("/api/auth/google", googleLoginRateLimiter);
   app.use("/api/auth", authRoutes);
 
+  app.use("/api/invites/accept", acceptInviteRateLimiter);
   app.use("/api/users", iamUsersRoutes);
   app.use("/api/roles", rolesRoutes);
   app.use("/api/invites", invitesRoutes);
+  app.use("/api/access-requests", accessRequestsRoutes);
   app.use("/api/permissions", permissionsRoutes);
 
   app.use("/api/tickets", ticketRoutes);

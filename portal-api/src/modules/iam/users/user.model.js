@@ -47,6 +47,9 @@ const UserSchema = new mongoose.Schema(
     lastLoginAt: { type: Date, default: null },
     passwordChangedAt: { type: Date, default: null },
 
+    resetPasswordTokenHash: { type: String, default: null, select: false },
+    resetPasswordExpiresAt: { type: Date, default: null, select: false },
+
     clientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",

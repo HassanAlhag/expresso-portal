@@ -26,6 +26,12 @@ function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
 }
 
+function validIds(values = []) {
+  return Array.isArray(values)
+    ? values.map((x) => String(x || "").trim()).filter(validId)
+    : [];
+}
+
 export async function listJobs(req, res) {
   try {
     const {
@@ -733,6 +739,60 @@ export async function deleteJob(req, res) {
     return res.json({ ok: true });
   } catch (e) {
     console.error("deleteJob:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function bulkAssignJobs(req, res) {
+  try {
+    const ids = validIds(req.body?.ids);
+    const assignees = validIds(req.body?.assignees);
+    const mode = String(req.body?.mode || "add").trim().toLowerCase();
+
+    if (!ids.length) {
+      return res.status(400).json({ ok: false, message: "No valid job ids" });
+    }
+
+    if (!assignees.length) {
+      return res
+        .status(400)
+        .json({ ok: false, message: "Select at least one staff member" });
+    }
+
+    const update =
+      mode === "replace"
+        ? { $set: { assignees } }
+        : { $addToSet: { assignees: { $each: assignees } } };
+
+    const result = await Job.updateMany({ _id: { $in: ids } }, update);
+
+    return res.json({
+      ok: true,
+      matched: result.matchedCount || 0,
+      modified: result.modifiedCount || 0,
+    });
+  } catch (e) {
+    console.error("bulkAssignJobs:", e);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+export async function bulkDeleteJobs(req, res) {
+  try {
+    const ids = validIds(req.body?.ids);
+
+    if (!ids.length) {
+      return res.status(400).json({ ok: false, message: "No valid job ids" });
+    }
+
+    const result = await Job.deleteMany({ _id: { $in: ids } });
+
+    return res.json({
+      ok: true,
+      deleted: result.deletedCount || 0,
+    });
+  } catch (e) {
+    console.error("bulkDeleteJobs:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }

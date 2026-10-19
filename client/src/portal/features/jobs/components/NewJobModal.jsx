@@ -106,7 +106,7 @@ function StaffPicker({ selected, onChange }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    listUsers({ limit: 100, isActive: true })
+    listUsers({ isInternal: "true", isActive: "true", limit: 100 })
       .then((res) => setUsers(Array.isArray(res?.items) ? res.items : res?.users || []))
       .catch(() => setUsers([]))
       .finally(() => setLoading(false));

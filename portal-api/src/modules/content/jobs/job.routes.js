@@ -3,6 +3,8 @@ import { requireAuth, requirePermission } from "../../../middleware/auth.js";
 import {
   addApproval,
   attachMedia,
+  bulkAssignJobs,
+  bulkDeleteJobs,
   createJob,
   deleteJob,
   getJob,
@@ -26,6 +28,18 @@ router.use(requireAuth);
 
 router.get("/", requirePermission("jobs.read"), listJobs);
 router.post("/", requirePermission("jobs.write"), createJob);
+
+router.patch(
+  "/bulk/assign",
+  requirePermission("jobs.write"),
+  bulkAssignJobs
+);
+
+router.delete(
+  "/bulk",
+  requirePermission("jobs.delete"),
+  bulkDeleteJobs
+);
 
 router.post(
   "/generate/from-enrollment/:enrollmentId",

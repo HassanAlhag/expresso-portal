@@ -6,6 +6,7 @@
   "dependencies": {
     "@carbon/icons-react": "^11.47.1",
     "@emailjs/browser": "^4.4.1",
+    "@react-oauth/google": "^0.13.5",
     "@react-three/drei": "^9.120.5",
     "@react-three/fiber": "^8.17.10",
     "@testing-library/jest-dom": "^5.17.0",
