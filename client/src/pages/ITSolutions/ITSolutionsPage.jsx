@@ -5,6 +5,8 @@ import SolutionCard from "../../components/SolutionCard/SolutionCard";
 import WhyExpressoGrid from "../../components/WhyExpressoGrid/WhyExpressoGrid";
 import ProcurementProcess from "../../components/ProcurementProcess/ProcurementProcess";
 import TechnologyCTA from "../../components/TechnologyCTA/TechnologyCTA";
+import TechnologyVendorPanel from "../../components/TechnologyVendorPanel/TechnologyVendorPanel";
+import { groupTechnologySolutions } from "../../utils/technologyGroups";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
@@ -16,10 +18,10 @@ const DEFAULT_IT_SOLUTIONS_PAGE_COPY = {
   heroDescription:
     "From ERP and CRM to IoT, cloud infrastructure, and data center hardware — we source, procure, and deploy the right technology for your business.",
   offerEyebrow: "What We Offer",
-  offerTitle: "Our solution",
-  offerHighlight: "categories",
+  offerTitle: "Technology for every",
+  offerHighlight: "business layer",
   offerSubtitle:
-    "We cover every layer of enterprise technology — software, hardware, infrastructure, and consulting.",
+    "Find the right technology across business software, cloud and hosting, infrastructure, and connectivity and advisory.",
 };
 
 function pageCopy(settings = {}, key) {
@@ -30,13 +32,28 @@ export default function ITSolutionsPage() {
   const settings = useSiteSettings();
   const pageSettings = settings?.itSolutions || {};
   const [solutions, setSolutions] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API}/web-content/solutions`)
-      .then((r) => r.json())
-      .then((d) => setSolutions(d.items || []))
-      .catch(() => {});
+    const controller = new AbortController();
+    fetch(`${API}/web-content/solutions`, { signal: controller.signal })
+      .then((r) => {
+        if (!r.ok) throw new Error("Unable to load solutions");
+        return r.json();
+      })
+      .then((d) => {
+        if (!Array.isArray(d.items)) throw new Error("Invalid solutions response");
+        setSolutions(d.items);
+        setGroups(Array.isArray(d.groups) ? d.groups : []);
+      })
+      .catch((e) => { if (e.name !== "AbortError") setError(true); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
   }, []);
+
+  const groupedSolutions = groupTechnologySolutions(solutions, groups);
 
   const heroImageUrl = pageSettings.heroImageUrl
     ? toWebsiteImageUrl(pageSettings.heroImageUrl)
@@ -54,21 +71,39 @@ export default function ITSolutionsPage() {
 
       <HomeSection
         eyebrow={pageCopy(pageSettings, "offerEyebrow")}
-        title={pageSettings.offerTitle || `${solutions.length || "Our"} solution`}
+        title={pageCopy(pageSettings, "offerTitle")}
         highlight={pageCopy(pageSettings, "offerHighlight")}
         subtitle={pageCopy(pageSettings, "offerSubtitle")}
         align="center"
       >
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {solutions.map((item, index) => (
-            <SolutionCard
-              key={item._id || item.slug}
-              {...item}
-              index={index}
-            />
+        <nav aria-label="Technology solution groups" className="mb-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {groupedSolutions.filter((group) => group.items.length).map((group) => (
+            <a key={group.id} href={`#${group.id}`} className="flex items-center justify-between gap-3 rounded-2xl border border-lotus-200 bg-lotus-50 px-5 py-4 text-sm font-bold text-lotus-700 transition hover:border-lotus-400 hover:bg-white">
+              {group.label}<span aria-hidden="true">↓</span>
+            </a>
+          ))}
+        </nav>
+
+        {loading && <p role="status" className="py-8 text-center text-ink-600">Loading technology solutions…</p>}
+        {error && <p role="alert" className="rounded-2xl bg-mist p-6 text-center text-ink-600">We couldn’t load our solutions. Please refresh the page or <a className="font-semibold text-lotus-700 underline" href="/contact-us">contact our team</a> for help.</p>}
+        {!loading && !error && !solutions.length && <p className="py-8 text-center text-ink-600">Our technology catalog is being updated. <a className="font-semibold text-lotus-700 underline" href="/contact-us">Tell us what you need.</a></p>}
+
+        <div className="space-y-12 md:space-y-16">
+          {groupedSolutions.filter((group) => group.items.length).map((group) => (
+            <section key={group.id} id={group.id} aria-labelledby={`${group.id}-title`} className="scroll-mt-32 border-t border-ink-200 pt-8">
+              <div className="mb-6 max-w-2xl">
+                <h2 id={`${group.id}-title`} className="font-dax-compact text-2xl font-bold text-night sm:text-3xl">{group.label}</h2>
+                <p className="mt-2 text-base leading-relaxed text-ink-600">{group.description}</p>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {group.items.map((item, index) => <SolutionCard key={item._id || item.slug} {...item} index={index} />)}
+              </div>
+            </section>
           ))}
         </div>
       </HomeSection>
+
+      <TechnologyVendorPanel />
 
       <WhyExpressoGrid />
 
