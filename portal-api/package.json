@@ -6,7 +6,8 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "seed": "node src/scripts/seedUser.js",
-    "seed:hr-kpi": "node src/scripts/seedHRKPI.js"
+    "seed:hr-kpi": "node src/scripts/seedHRKPI.js",
+    "test": "node --test \"test/**/*.test.js\""
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",
