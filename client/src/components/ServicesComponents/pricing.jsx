@@ -79,7 +79,7 @@ const PriceColumn = ({ highlight, title, price, statement, items }) => {
       <button
         className={`w-full rounded-lg p-3 text-base uppercase text-white transition-colors ${
           highlight
-            ? "bg-[#838FC6] hover:bg-indigo-700"
+            ? "bg-[#838FC6] hover:bg-lotus-700"
             : "bg-zinc-900 hover:bg-zinc-700"
         }`}
       >
@@ -93,7 +93,7 @@ const CheckListItem = ({ children, checked }) => {
   return (
     <div className="flex items-center gap-2 text-lg">
       {checked ? (
-        <FiCheckCircle className="text-xl text-indigo-600" />
+        <FiCheckCircle className="text-xl text-lotus-600" />
       ) : (
         <FiXSquare className="text-xl text-zinc-400" />
       )}

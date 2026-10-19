@@ -18,8 +18,8 @@ import {
   CAS_FINAL_CTA,
 } from "../../data/casProduct";
 
-const ACCENT = "#7F8AD1";
-const ACCENT_BG = "rgba(127,138,209,0.10)";
+const ACCENT = "#8390C8";
+const ACCENT_BG = "rgba(131,144,200,0.10)";
 
 export default function CASPage() {
   const navigate = useNavigate();

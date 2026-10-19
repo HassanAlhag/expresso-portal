@@ -17,12 +17,12 @@ import {
   FiPackage,
 } from "react-icons/fi";
 
-export const BRAND = "#6366f1";
-export const BRAND_BG = "rgba(99,102,241,0.10)";
-export const BRAND_GLOW = "rgba(99,102,241,0.15)";
+export const BRAND = "#5562A8";
+export const BRAND_BG = "rgba(131,144,200,0.10)";
+export const BRAND_GLOW = "rgba(131,144,200,0.15)";
 
 export const ICON_META = {
-  software: { Icon: FiLock, color: "#6366f1", bg: "rgba(99,102,241,0.10)" },
+  software: { Icon: FiLock, color: "#5562A8", bg: "rgba(131,144,200,0.10)" },
   erp: { Icon: FiDatabase, color: "#0ea5e9", bg: "rgba(14,165,233,0.10)" },
   crm: { Icon: FiUsers, color: "#10b981", bg: "rgba(16,185,129,0.10)" },
   queue: { Icon: FiList, color: "#f59e0b", bg: "rgba(245,158,11,0.10)" },

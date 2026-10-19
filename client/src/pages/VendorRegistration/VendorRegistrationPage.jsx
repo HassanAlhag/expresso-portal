@@ -15,7 +15,7 @@ import {
 } from "react-icons/fi";
 import { getCategoryTree, submitVendorApplication } from "../../api/vendorApplications";
 
-const BRAND = "#6366f1";
+const BRAND = "#5562A8";
 const STEPS = ["Company Info", "Category Selection", "Review & Submit"];
 
 const COUNTRIES = [
@@ -41,7 +41,7 @@ function Input({ ...props }) {
   return (
     <input
       {...props}
-      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-lotus-400 focus:ring-2 focus:ring-lotus-100"
     />
   );
 }
@@ -50,7 +50,7 @@ function Select({ children, ...props }) {
   return (
     <select
       {...props}
-      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-lotus-400 focus:ring-2 focus:ring-lotus-100"
     >
       {children}
     </select>
@@ -145,7 +145,7 @@ function CategoryPicker({ index, tree, value, onChange, onRemove, canRemove }) {
         )}
 
         {value.subcategoryId && (
-          <div className="flex items-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700">
+          <div className="flex items-center gap-2 rounded-xl border border-lotus-100 bg-lotus-50 px-3 py-2 text-xs font-semibold text-lotus-700">
             <FiCheckCircle size={13} />
             {mainName} › {catName} › {subName}
           </div>
@@ -249,13 +249,13 @@ export default function VendorRegistrationPage() {
 
   if (submitted) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50 px-4 py-20">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-lotus-50 px-4 py-20">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md rounded-3xl border border-indigo-100 bg-white p-10 text-center shadow-xl"
+          className="w-full max-w-md rounded-3xl border border-lotus-100 bg-white p-10 text-center shadow-xl"
         >
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-indigo-50">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-lotus-50">
             <FiCheckCircle size={36} color={BRAND} />
           </div>
           <h2 className="text-2xl font-black text-slate-900">Application Submitted</h2>
@@ -276,7 +276,7 @@ export default function VendorRegistrationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 px-4 py-16">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-lotus-50 px-4 py-16">
       <div className="mx-auto max-w-2xl">
 
         {/* Header */}
@@ -285,7 +285,7 @@ export default function VendorRegistrationPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-10 text-center"
         >
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-indigo-600 shadow-sm">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-lotus-100 bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-lotus-600 shadow-sm">
             <FiGrid size={12} />
             Vendor Portal
           </div>
@@ -306,9 +306,9 @@ export default function VendorRegistrationPage() {
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-black transition-all ${
                     i < step
-                      ? "bg-indigo-500 text-white"
+                      ? "bg-lotus-500 text-white"
                       : i === step
-                      ? "border-2 border-indigo-500 bg-white text-indigo-600"
+                      ? "border-2 border-lotus-500 bg-white text-lotus-600"
                       : "border-2 border-slate-200 bg-white text-slate-400"
                   }`}
                 >
@@ -316,7 +316,7 @@ export default function VendorRegistrationPage() {
                 </div>
                 <span
                   className={`mt-1 text-[10px] font-bold uppercase tracking-wider ${
-                    i === step ? "text-indigo-600" : "text-slate-400"
+                    i === step ? "text-lotus-600" : "text-slate-400"
                   }`}
                 >
                   {label}
@@ -325,7 +325,7 @@ export default function VendorRegistrationPage() {
               {i < STEPS.length - 1 && (
                 <div
                   className={`mb-5 h-px w-12 flex-shrink-0 transition-all sm:w-20 ${
-                    i < step ? "bg-indigo-400" : "bg-slate-200"
+                    i < step ? "bg-lotus-400" : "bg-slate-200"
                   }`}
                 />
               )}
@@ -446,7 +446,7 @@ export default function VendorRegistrationPage() {
                     <button
                       type="button"
                       onClick={addSelection}
-                      className="flex items-center gap-2 rounded-xl border border-dashed border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-600 transition hover:border-indigo-400 hover:bg-indigo-100"
+                      className="flex items-center gap-2 rounded-xl border border-dashed border-lotus-200 bg-lotus-50 px-4 py-3 text-sm font-bold text-lotus-600 transition hover:border-lotus-400 hover:bg-lotus-100"
                     >
                       <FiPlus size={15} />
                       Add another category ({selections.length}/3)
@@ -495,9 +495,9 @@ export default function VendorRegistrationPage() {
                     return (
                       <div
                         key={i}
-                        className="flex items-center gap-2 rounded-xl border border-indigo-100 bg-white px-3 py-2 text-sm font-semibold text-slate-800"
+                        className="flex items-center gap-2 rounded-xl border border-lotus-100 bg-white px-3 py-2 text-sm font-semibold text-slate-800"
                       >
-                        <FiGrid size={13} className="shrink-0 text-indigo-400" />
+                        <FiGrid size={13} className="shrink-0 text-lotus-400" />
                         {main?.name} › {cat?.name} › {sub?.name}
                       </div>
                     );
@@ -533,7 +533,7 @@ export default function VendorRegistrationPage() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700"
+                  className="flex items-center gap-2 rounded-xl bg-lotus-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-lotus-700"
                 >
                   Continue
                   <FiArrowRight size={14} />
@@ -543,7 +543,7 @@ export default function VendorRegistrationPage() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="flex items-center gap-2 rounded-xl bg-indigo-600 px-7 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700 disabled:opacity-60"
+                  className="flex items-center gap-2 rounded-xl bg-lotus-600 px-7 py-2.5 text-sm font-bold text-white transition hover:bg-lotus-700 disabled:opacity-60"
                 >
                   {submitting ? "Submitting…" : "Submit Application"}
                   {!submitting && <FiCheckCircle size={14} />}
@@ -555,7 +555,7 @@ export default function VendorRegistrationPage() {
 
         <p className="mt-6 text-center text-xs text-slate-400">
           Already registered?{" "}
-          <a href="/portal/login" className="font-bold text-indigo-500 hover:underline">
+          <a href="/portal/login" className="font-bold text-lotus-500 hover:underline">
             Log in to your portal
           </a>
         </p>

@@ -13,7 +13,7 @@ export default function CASShowcaseSection() {
       title="Technology we build,"
       highlight="not just implement."
       align="center"
-      className="border-y border-[rgba(127,138,209,0.10)] bg-[linear-gradient(180deg,rgba(127,138,209,0.035)_0%,rgba(127,138,209,0.015)_100%)]"
+      className="border-y border-[rgba(131,144,200,0.10)] bg-[linear-gradient(180deg,rgba(131,144,200,0.035)_0%,rgba(131,144,200,0.015)_100%)]"
     >
       <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-14">
         <motion.div
@@ -23,7 +23,7 @@ export default function CASShowcaseSection() {
           transition={{ duration: 0.35 }}
           className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8"
         >
-          <span className="inline-flex items-center rounded-full border border-[rgba(127,138,209,0.22)] bg-[rgba(127,138,209,0.07)] px-3 py-1 text-xs font-semibold tracking-wide text-[#5762b8]">
+          <span className="inline-flex items-center rounded-full border border-[rgba(131,144,200,0.22)] bg-[rgba(131,144,200,0.07)] px-3 py-1 text-xs font-semibold tracking-wide text-[#5562A8]">
             {CAS_PRODUCT.badge}
           </span>
 
@@ -42,7 +42,7 @@ export default function CASShowcaseSection() {
 
           <Link
             to={CAS_PRODUCT.to}
-            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#7F8AD1] px-6 py-3 text-sm font-semibold text-black transition hover:brightness-110 active:scale-[0.98]"
+            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#8390C8] px-6 py-3 text-sm font-semibold text-black transition hover:brightness-110 active:scale-[0.98]"
           >
             {CAS_PRODUCT.ctaLabel}
             <FiArrowRight size={14} aria-hidden="true" />

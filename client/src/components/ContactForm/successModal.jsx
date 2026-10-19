@@ -17,7 +17,7 @@ const SuccessModal = ({ isOpen, onClose }) => {
             animate={{ scale: 1, rotate: "0deg" }}
             exit={{ scale: 0, rotate: "0deg" }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-gradient-to-br from-violet-600 to-indigo-600 text-white p-6 rounded-lg w-full max-w-lg shadow-xl cursor-default relative overflow-hidden"
+            className="bg-gradient-to-br from-lotus-600 to-lotus-600 text-white p-6 rounded-lg w-full max-w-lg shadow-xl cursor-default relative overflow-hidden"
           >
             <FiCheckCircle className="text-white/10 rotate-12 text-[250px] absolute z-0 -top-24 -left-24" />
             <div className="relative z-10">
@@ -33,7 +33,7 @@ const SuccessModal = ({ isOpen, onClose }) => {
               <div className="flex gap-2">
                 <button
                   onClick={onClose}
-                  className="bg-white hover:opacity-90 transition-opacity text-indigo-600 font-semibold w-full py-2 rounded"
+                  className="bg-white hover:opacity-90 transition-opacity text-lotus-600 font-semibold w-full py-2 rounded"
                 >
                   Okay
                 </button>

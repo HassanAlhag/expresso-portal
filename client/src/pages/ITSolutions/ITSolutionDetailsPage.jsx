@@ -39,7 +39,7 @@ export default function ITSolutionDetailsPage() {
           <div className="mx-auto w-[min(900px,92vw)] text-center">
             <button
               onClick={() => navigate("/it-solutions")}
-              className="rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white"
+              className="rounded-2xl bg-lotus-600 px-6 py-3 text-sm font-bold text-white"
             >
               Back to Technology Solutions
             </button>

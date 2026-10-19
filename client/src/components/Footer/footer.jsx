@@ -4,7 +4,7 @@ import { FiFacebook, FiInstagram, FiLinkedin, FiTwitter } from "react-icons/fi";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const Footer = () => {
   const settings = useSiteSettings();
@@ -17,7 +17,7 @@ const Footer = () => {
       {/* Background vibe (matches your header / dark hero) */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-neutral-950 to-black" />
-        <div className="absolute inset-0 opacity-60 [background:radial-gradient(900px_circle_at_15%_20%,rgba(127,138,209,0.22),transparent_55%)]" />
+        <div className="absolute inset-0 opacity-60 [background:radial-gradient(900px_circle_at_15%_20%,rgba(131,144,200,0.22),transparent_55%)]" />
         <div className="absolute inset-0 opacity-50 [background:radial-gradient(700px_circle_at_85%_70%,rgba(255,0,0,0.14),transparent_55%)]" />
         <div className="absolute inset-x-0 top-0 h-px bg-white/10" />
       </div>
@@ -28,7 +28,7 @@ const Footer = () => {
           <div className="md:col-span-4">
             <Link
               to="/"
-              className="inline-flex items-center gap-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300/50"
+              className="inline-flex items-center gap-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-lotus-300/50"
               aria-label="Expresso Digital Home"
             >
               <img
@@ -66,7 +66,7 @@ const Footer = () => {
             <div className="mt-8">
               <Link
                 to="/contact-us"
-                className="inline-flex items-center justify-center rounded-2xl px-5 py-2.5 text-sm font-semibold text-black shadow-[0_18px_50px_rgba(127,138,209,0.28)] transition hover:brightness-110 active:scale-[0.98]"
+                className="inline-flex items-center justify-center rounded-2xl px-5 py-2.5 text-sm font-semibold text-black shadow-[0_18px_50px_rgba(131,144,200,0.28)] transition hover:brightness-110 active:scale-[0.98]"
                 style={{ backgroundColor: BRAND }}
               >
                 Let’s talk

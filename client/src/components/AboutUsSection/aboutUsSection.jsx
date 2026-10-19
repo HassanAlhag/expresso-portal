@@ -5,7 +5,7 @@ import { BsCloudCheckFill } from "react-icons/bs";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage } from "../../utils/websiteImages";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const DEFAULT_PARAGRAPHS = [
   "Expresso Digital Agency is a dynamic extension of Expresso Telecom Group (UAE / DIFC) bringing cutting-edge digital solutions to businesses across the Middle East & Africa—rooted in innovation and backed by a legacy of telecom excellence.",

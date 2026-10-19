@@ -114,14 +114,14 @@ const Copy = ({
       </p>
       {hasCta && (
         <button
-          className="group relative px-4 py-2 font-medium text-slate-100 transition-colors duration-[400ms] hover:text-indigo-300"
+          className="group relative px-4 py-2 font-medium text-slate-100 transition-colors duration-[400ms] hover:text-lotus-300"
           onClick={() => navigate(ctaLink)}
         >
           <span>{ctaText}</span>
-          <span className="absolute left-0 top-0 h-[2px] w-0 bg-indigo-300 transition-all duration-100 group-hover:w-full" />
-          <span className="absolute right-0 top-0 h-0 w-[2px] bg-indigo-300 transition-all delay-100 duration-100 group-hover:h-full" />
-          <span className="absolute bottom-0 right-0 h-[2px] w-0 bg-indigo-300 transition-all delay-200 duration-100 group-hover:w-full" />
-          <span className="absolute bottom-0 left-0 h-0 w-[2px] bg-indigo-300 transition-all delay-300 duration-100 group-hover:h-full" />
+          <span className="absolute left-0 top-0 h-[2px] w-0 bg-lotus-300 transition-all duration-100 group-hover:w-full" />
+          <span className="absolute right-0 top-0 h-0 w-[2px] bg-lotus-300 transition-all delay-100 duration-100 group-hover:h-full" />
+          <span className="absolute bottom-0 right-0 h-[2px] w-0 bg-lotus-300 transition-all delay-200 duration-100 group-hover:w-full" />
+          <span className="absolute bottom-0 left-0 h-0 w-[2px] bg-lotus-300 transition-all delay-300 duration-100 group-hover:h-full" />
         </button>
       )}
     </>
@@ -175,7 +175,7 @@ const TranslateWrapper = ({ children, reverse }) => {
 const LogoItem = ({ Icon, name }) => {
   return (
     <span className="flex items-center justify-center gap-4 px-4 py-2 md:py-4">
-      <Icon className="text-2xl text-indigo-600 md:text-3xl" />
+      <Icon className="text-2xl text-lotus-600 md:text-3xl" />
       <span className="whitespace-nowrap text-xl font-semibold uppercase md:text-2xl">
         {name}
       </span>

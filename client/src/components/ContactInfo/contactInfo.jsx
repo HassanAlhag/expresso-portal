@@ -7,7 +7,7 @@ import {
   FaGlobe,
 } from "react-icons/fa";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const ContactInfoSection = () => {
   return (
@@ -68,8 +68,8 @@ const InfoCard = ({ icon, title, highlight, desc, cta, href, targetBlank }) => {
         <div
           className="flex h-12 w-12 items-center justify-center rounded-2xl border"
           style={{
-            borderColor: "rgba(127,138,209,0.25)",
-            backgroundColor: "rgba(127,138,209,0.10)",
+            borderColor: "rgba(131,144,200,0.25)",
+            backgroundColor: "rgba(131,144,200,0.10)",
             color: BRAND,
           }}
         >

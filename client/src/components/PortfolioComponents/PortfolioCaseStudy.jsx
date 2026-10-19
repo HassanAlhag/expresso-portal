@@ -1,7 +1,7 @@
 import React from "react";
 import { FaCheck } from "react-icons/fa";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const PortfolioCaseStudy = ({
   clientName,
@@ -64,7 +64,7 @@ const PortfolioCaseStudy = ({
             className="h-[3px] w-full"
             style={{
               background:
-                "linear-gradient(90deg, rgba(127,138,209,1) 0%, rgba(127,138,209,0.40) 55%, rgba(0,0,0,0) 100%)",
+                "linear-gradient(90deg, rgba(131,144,200,1) 0%, rgba(131,144,200,0.40) 55%, rgba(0,0,0,0) 100%)",
             }}
           />
 
@@ -155,7 +155,7 @@ const PortfolioCaseStudy = ({
                         <span
                           className="mt-1 inline-flex h-9 w-9 flex-none items-center justify-center rounded-2xl"
                           style={{
-                            backgroundColor: "rgba(127,138,209,0.16)",
+                            backgroundColor: "rgba(131,144,200,0.16)",
                             color: BRAND,
                           }}
                         >
@@ -199,7 +199,7 @@ const BigBlock = ({ title, badge, children, accent = false }) => {
             className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black"
             style={{
               backgroundColor: accent
-                ? "rgba(127,138,209,0.20)"
+                ? "rgba(131,144,200,0.20)"
                 : "rgba(0,0,0,0.06)",
               color: accent ? BRAND : "#111827",
             }}

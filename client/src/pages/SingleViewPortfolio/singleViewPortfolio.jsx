@@ -6,8 +6,8 @@ import { usePortfolioItem } from "../../hooks/usePortfolioItem";
 import { usePortfolioItems } from "../../hooks/usePortfolioItems";
 import ShiftingContactForm from "../../components/ContactForm/contactForm";
 
-const BRAND = "#7F8AD1";
-const BRAND_DIM = "rgba(127,138,209,0.15)";
+const BRAND = "#8390C8";
+const BRAND_DIM = "rgba(131,144,200,0.15)";
 
 const reveal = {
   hidden: { opacity: 0, y: 28 },
@@ -73,7 +73,7 @@ function Hero({ portfolio, idx, total }) {
         className="absolute inset-0 opacity-70"
         style={{
           background:
-            "radial-gradient(780px circle at 15% 18%, rgba(127,138,209,0.22), transparent 34%), radial-gradient(900px circle at 88% 10%, rgba(255,255,255,0.08), transparent 32%)",
+            "radial-gradient(780px circle at 15% 18%, rgba(131,144,200,0.22), transparent 34%), radial-gradient(900px circle at 88% 10%, rgba(255,255,255,0.08), transparent 32%)",
         }}
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,10,0)_0%,rgba(5,6,10,0.72)_100%)]" />
@@ -104,8 +104,8 @@ function Hero({ portfolio, idx, total }) {
             <span
               className="mb-6 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em]"
               style={{
-                borderColor: "rgba(127,138,209,0.35)",
-                backgroundColor: "rgba(127,138,209,0.1)",
+                borderColor: "rgba(131,144,200,0.35)",
+                backgroundColor: "rgba(131,144,200,0.1)",
                 color: "#c6ccff",
               }}
             >
@@ -286,7 +286,7 @@ function ChallengeSection({ problems }) {
     <section className="relative overflow-hidden bg-[#05060A] py-20 md:py-24">
       {/* BG glow */}
       <div className="pointer-events-none absolute -left-32 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full blur-[120px]"
-        style={{ backgroundColor: "rgba(127,138,209,0.08)" }} />
+        style={{ backgroundColor: "rgba(131,144,200,0.08)" }} />
 
       <div className="relative mx-auto w-[min(1180px,92vw)]">
         {/* Section label */}
@@ -320,7 +320,7 @@ function ChallengeSection({ problems }) {
           >
             <div
               className="absolute -left-8 top-0 bottom-0 hidden w-px lg:block"
-              style={{ backgroundColor: "rgba(127,138,209,0.3)" }}
+              style={{ backgroundColor: "rgba(131,144,200,0.3)" }}
             />
             {/* Large quote mark */}
             <div className="mb-4 text-5xl font-black leading-none" style={{ color: BRAND, opacity: 0.3 }}>

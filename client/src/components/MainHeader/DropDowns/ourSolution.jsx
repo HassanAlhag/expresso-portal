@@ -23,7 +23,7 @@ const OurSolutionsComponent = () => {
         </div>
         <button
           onClick={() => handleNavigation("/learn-more")}
-          className="flex items-center gap-1 text-xs text-indigo-300 hover:underline"
+          className="flex items-center gap-1 text-xs text-lotus-300 hover:underline"
         >
           Learn more <FiArrowRight />
         </button>

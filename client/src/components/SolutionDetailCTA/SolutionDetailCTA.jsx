@@ -14,14 +14,14 @@ export default function SolutionDetailCTA({ solution }) {
       }}
     >
       <div className="relative mx-auto w-[min(1100px,92vw)] text-center">
-        <span className="inline-block rounded-full border border-indigo-400/40 bg-indigo-500/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-indigo-300">
+        <span className="inline-block rounded-full border border-lotus-400/40 bg-lotus-500/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-lotus-300">
           Need Guidance?
         </span>
 
         <h2 className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl">
           Interested in {solution.title}?
           <br />
-          Talk to our <span className="text-indigo-300">technology team.</span>
+          Talk to our <span className="text-lotus-300">technology team.</span>
         </h2>
 
         <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/55">
@@ -36,7 +36,7 @@ export default function SolutionDetailCTA({ solution }) {
                 `/contact-us?solution=${encodeURIComponent(solution.title)}`
               )
             }
-            className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-8 py-3.5 text-sm font-bold text-white transition hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-2xl bg-lotus-600 px-8 py-3.5 text-sm font-bold text-white transition hover:opacity-90"
           >
             Talk to an expert
             <FiArrowRight size={15} />

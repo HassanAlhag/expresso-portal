@@ -4,8 +4,8 @@ import { FiArrowRight } from "react-icons/fi";
 import HomeSection from "../../../components/HomeSection/HomeSection";
 import { CAS_BOOKING_JOURNEY, CAS_IMAGES } from "../../../data/casProduct";
 
-const ACCENT = "#7F8AD1";
-const ACCENT_BG = "rgba(127,138,209,0.10)";
+const ACCENT = "#8390C8";
+const ACCENT_BG = "rgba(131,144,200,0.10)";
 
 export default function CASBookingJourney() {
   const { bookingSlots, bookingConfirmed } = CAS_IMAGES;

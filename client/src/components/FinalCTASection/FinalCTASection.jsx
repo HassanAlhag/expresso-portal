@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage } from "../../utils/websiteImages";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 export default function FinalCTASection({
   onPrimaryClick,
@@ -27,7 +27,7 @@ export default function FinalCTASection({
           className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              "radial-gradient(rgba(127,138,209,0.22) 1px, transparent 1px)",
+              "radial-gradient(rgba(131,144,200,0.22) 1px, transparent 1px)",
             backgroundSize: "28px 28px",
           }}
         />
@@ -51,7 +51,7 @@ export default function FinalCTASection({
           className="pointer-events-none absolute inset-x-0 top-0 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent 0%, rgba(127,138,209,0.6) 50%, transparent 100%)",
+              "linear-gradient(90deg, transparent 0%, rgba(131,144,200,0.6) 50%, transparent 100%)",
           }}
         />
 
@@ -87,10 +87,10 @@ export default function FinalCTASection({
           <button
             type="button"
             onClick={onPrimaryClick}
-            className="inline-flex items-center gap-2.5 rounded-2xl px-8 py-4 text-sm font-bold text-black shadow-[0_16px_50px_rgba(127,138,209,0.30)] transition hover:brightness-110 active:scale-[0.98]"
+            className="inline-flex items-center gap-2.5 rounded-2xl px-8 py-4 text-sm font-bold text-black shadow-[0_16px_50px_rgba(131,144,200,0.30)] transition hover:brightness-110 active:scale-[0.98]"
             style={{
               background:
-                "linear-gradient(135deg, rgba(127,138,209,1) 0%, rgba(220,225,255,0.95) 110%)",
+                "linear-gradient(135deg, rgba(131,144,200,1) 0%, rgba(220,225,255,0.95) 110%)",
             }}
           >
             {primaryLabel}

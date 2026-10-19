@@ -10,16 +10,16 @@ const CareersContent = () => {
 
   return (
     <div className="grid w-full grid-cols-12 shadow-xl lg:w-[750px]">
-      <div className="col-span-12 flex flex-col justify-between bg-indigo-600 p-6 lg:col-span-4">
+      <div className="col-span-12 flex flex-col justify-between bg-lotus-600 p-6 lg:col-span-4">
         <div className="mb-6">
           <h2 className="mb-2 text-xl font-semibold text-white">Careers</h2>
-          <p className="text-sm text-indigo-100">
+          <p className="text-sm text-lotus-100">
             Placeholder was rated a top place to work by Placeholder.
           </p>
         </div>
         <button
           onClick={() => handleNavigation("/careers")}
-          className="flex items-center gap-1 text-xs text-indigo-200 hover:underline"
+          className="flex items-center gap-1 text-xs text-lotus-200 hover:underline"
         >
           Careers site <FiArrowRight />
         </button>

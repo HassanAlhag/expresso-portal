@@ -48,25 +48,25 @@ function SocialMediaPricingPage() {
   ];
   const featuresData = [
     {
-      icon: <RiMegaphoneLine size={50} className="text-indigo-500" />,
+      icon: <RiMegaphoneLine size={50} className="text-lotus-500" />,
       title: "Targeted Advertising",
       description:
         "Maximize your brand’s reach with data-driven social media ad campaigns. We create and optimize ads that drive engagement, conversions, and ROI across platforms like Facebook, Instagram, and LinkedIn.",
     },
     {
-      icon: <MdContentPaste size={50} className="text-indigo-500" />,
+      icon: <MdContentPaste size={50} className="text-lotus-500" />,
       title: "Content Strategy & Creation",
       description:
         "Engaging content is key to social media success. We craft high-quality visuals, videos, and captions tailored to your brand's voice, ensuring consistency and audience engagement.",
     },
     {
-      icon: <IoAnalyticsOutline size={50} className="text-indigo-500" />,
+      icon: <IoAnalyticsOutline size={50} className="text-lotus-500" />,
       title: "Analytics & Performance Tracking",
       description:
         "Gain deep insights into your social media performance. Our real-time analytics help track audience engagement, post reach, and campaign effectiveness for data-driven improvements.",
     },
     {
-      icon: <BsPeople size={50} className="text-indigo-500" />,
+      icon: <BsPeople size={50} className="text-lotus-500" />,
       title: "Community Management",
       description:
         "We help build strong relationships with your audience by managing comments, messages, and interactions, ensuring prompt responses and meaningful engagement.",

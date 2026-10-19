@@ -4,7 +4,7 @@ import BasicFAQ from "../../components/ServicesComponents/faq";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, resolveWebsiteImages } from "../../utils/websiteImages";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 function WebsiteDevelopmentPage() {
   const settings = useSiteSettings();

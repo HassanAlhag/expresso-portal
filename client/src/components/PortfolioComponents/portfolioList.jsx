@@ -7,7 +7,7 @@ import { PortfolioTab, TAB_DATA } from "./portfolioTabs";
 import MagnetButtonExample from "./viewButton";
 import { usePortfolioItems } from "../../hooks/usePortfolioItems";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 export default function PortfolioGrid() {
   const { items: allItems } = usePortfolioItems();
@@ -74,7 +74,7 @@ function ImageCard({ portfolio }) {
         "overflow-hidden rounded-2xl border border-neutral-200 bg-white",
         "shadow-[0_10px_35px_rgba(0,0,0,0.08)]",
         "transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_65px_rgba(0,0,0,0.14)]",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-lotus-500/60",
       ].join(" ")}
       aria-label={`Open portfolio ${portfolio.clientName}`}
     >
@@ -134,8 +134,8 @@ function ImageCard({ portfolio }) {
         <span
           className="shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition"
           style={{
-            borderColor: "rgba(127,138,209,0.25)",
-            background: "rgba(127,138,209,0.10)",
+            borderColor: "rgba(131,144,200,0.25)",
+            background: "rgba(131,144,200,0.10)",
             color: BRAND,
           }}
         >

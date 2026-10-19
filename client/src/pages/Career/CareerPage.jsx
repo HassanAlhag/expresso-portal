@@ -28,8 +28,8 @@ import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
 import { listPublicCareers, uploadCV, applyForCareer } from "../../api/careers";
 
-const BRAND = "#7F8AD1";
-const BRAND_BG = "rgba(127,138,209,0.12)";
+const BRAND = "#8390C8";
+const BRAND_BG = "rgba(131,144,200,0.12)";
 
 const PERKS = [
   {
@@ -65,7 +65,7 @@ const PERKS = [
 ];
 
 const DEPT_META = {
-  Marketing: { Icon: FiShare2, bg: "rgba(99,102,241,0.10)", text: "#6366f1" },
+  Marketing: { Icon: FiShare2, bg: "rgba(131,144,200,0.10)", text: "#5562A8" },
   "Digital Marketing": {
     Icon: FiSearch,
     bg: "rgba(16,185,129,0.10)",
@@ -295,7 +295,7 @@ function ApplyModal({ job, onClose }) {
           <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
             <div
               className="flex h-16 w-16 items-center justify-center rounded-full"
-              style={{ backgroundColor: "rgba(127,138,209,0.12)" }}
+              style={{ backgroundColor: "rgba(131,144,200,0.12)" }}
             >
               <FiCheckCircle size={28} style={{ color: BRAND }} />
             </div>
@@ -326,7 +326,7 @@ function ApplyModal({ job, onClose }) {
                   value={form.fullName}
                   onChange={set("fullName")}
                   placeholder="Sara Al-Mansoori"
-                  className="h-10 rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none focus:border-indigo-300 focus:bg-white transition"
+                  className="h-10 rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none focus:border-lotus-300 focus:bg-white transition"
                 />
               </label>
               <label className="grid gap-1.5">
@@ -339,7 +339,7 @@ function ApplyModal({ job, onClose }) {
                   value={form.email}
                   onChange={set("email")}
                   placeholder="sara@example.com"
-                  className="h-10 rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none focus:border-indigo-300 focus:bg-white transition"
+                  className="h-10 rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none focus:border-lotus-300 focus:bg-white transition"
                 />
               </label>
             </div>
@@ -352,7 +352,7 @@ function ApplyModal({ job, onClose }) {
                 value={form.phone}
                 onChange={set("phone")}
                 placeholder="+971 50 000 0000"
-                className="h-10 rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none focus:border-indigo-300 focus:bg-white transition"
+                className="h-10 rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none focus:border-lotus-300 focus:bg-white transition"
               />
             </label>
 
@@ -365,7 +365,7 @@ function ApplyModal({ job, onClose }) {
                 onChange={set("coverLetter")}
                 rows={3}
                 placeholder="Tell us why you're a great fit for this role…"
-                className="resize-none rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-300 focus:bg-white transition"
+                className="resize-none rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-lotus-300 focus:bg-white transition"
               />
             </label>
 
@@ -380,8 +380,8 @@ function ApplyModal({ job, onClose }) {
                 className={[
                   "flex items-center gap-3 rounded-xl border-2 border-dashed px-4 py-3 text-sm transition",
                   cvFile
-                    ? "border-indigo-300 bg-indigo-50/50 text-indigo-700"
-                    : "border-neutral-200 bg-neutral-50 text-neutral-500 hover:border-indigo-200 hover:bg-indigo-50/30",
+                    ? "border-lotus-300 bg-lotus-50/50 text-lotus-700"
+                    : "border-neutral-200 bg-neutral-50 text-neutral-500 hover:border-lotus-200 hover:bg-lotus-50/30",
                 ].join(" ")}
               >
                 <FiUpload size={15} className="flex-shrink-0" />
@@ -514,8 +514,8 @@ export default function CareerPage() {
           <span
             className="inline-block rounded-full border px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest"
             style={{
-              borderColor: "rgba(127,138,209,0.35)",
-              backgroundColor: "rgba(127,138,209,0.08)",
+              borderColor: "rgba(131,144,200,0.35)",
+              backgroundColor: "rgba(131,144,200,0.08)",
               color: "#a5aee8",
             }}
           >

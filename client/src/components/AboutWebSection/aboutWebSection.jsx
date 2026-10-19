@@ -23,7 +23,7 @@ const AboutWebSection = ({
       {/* ✅ Dark cinematic overlays (from the 2nd code) */}
       <div className="absolute inset-0 bg-black/65" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/80" />
-      <div className="absolute inset-0 [background:radial-gradient(ellipse_at_top_left,rgba(127,138,209,0.22),transparent_55%)]" />
+      <div className="absolute inset-0 [background:radial-gradient(ellipse_at_top_left,rgba(131,144,200,0.22),transparent_55%)]" />
       <div className="absolute inset-0 [background:radial-gradient(ellipse_at_bottom_right,rgba(0,0,0,0.7),transparent_60%)]" />
 
       <div className="relative mx-auto max-w-7xl px-6 py-20 md:py-28">
@@ -32,13 +32,13 @@ const AboutWebSection = ({
           <div className="text-left">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold tracking-widest text-white/80 backdrop-blur">
               ABOUT EXPRESSO{" "}
-              <span className="h-1.5 w-1.5 rounded-full bg-[#7F8AD1]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#8390C8]" />
               WEB & MARKETING
             </p>
 
             <h1 className="mt-6 text-4xl font-black tracking-tight leading-[1.08] sm:text-5xl lg:text-6xl">
               Empowering Businesses to Achieve{" "}
-              <span className="text-[#7F8AD1]">Real Growth</span>
+              <span className="text-[#8390C8]">Real Growth</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
@@ -51,7 +51,7 @@ const AboutWebSection = ({
 
             <div className="mt-8 flex flex-wrap gap-3">
               {/* Primary CTA */}
-              <button className="group inline-flex items-center gap-2 rounded-2xl bg-[#7F8AD1] px-6 py-3 text-sm font-semibold text-black shadow-[0_16px_50px_rgba(127,138,209,0.35)] transition hover:brightness-110 active:scale-[0.98]">
+              <button className="group inline-flex items-center gap-2 rounded-2xl bg-[#8390C8] px-6 py-3 text-sm font-semibold text-black shadow-[0_16px_50px_rgba(131,144,200,0.35)] transition hover:brightness-110 active:scale-[0.98]">
                 Read More
                 <FiArrowUpRight className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </button>
@@ -82,7 +82,7 @@ const AboutWebSection = ({
           {/* RIGHT (your first code + image only, no surrounding box) */}
           <div className="relative flex items-center justify-center">
             {/* glow */}
-            <div className="pointer-events-none absolute -inset-10 rounded-full bg-[#7F8AD1]/20 blur-3xl" />
+            <div className="pointer-events-none absolute -inset-10 rounded-full bg-[#8390C8]/20 blur-3xl" />
 
             <motion.div
               className="relative"

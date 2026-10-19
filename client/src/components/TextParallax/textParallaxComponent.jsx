@@ -6,7 +6,7 @@ import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 const IMG_PADDING = 8;
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const PARALLAX_FALLBACK = "/home2.jpg";
 const CARD_FALLBACK = "/home4.jpg";

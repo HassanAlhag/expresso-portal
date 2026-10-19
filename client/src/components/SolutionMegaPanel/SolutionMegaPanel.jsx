@@ -8,18 +8,18 @@ export default function SolutionMegaPanel({ solutions = [] }) {
 
   return (
     <section className="relative overflow-hidden bg-neutral-950 py-24">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_40%,rgba(99,102,241,0.18),transparent_35%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_40%,rgba(131,144,200,0.18),transparent_35%)]" />
 
       <div className="relative mx-auto w-[min(1280px,92vw)]">
         <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white shadow-[0_28px_90px_rgba(0,0,0,0.35)]">
           <div className="grid lg:grid-cols-[390px_1fr]">
             {/* Left dark panel */}
             <aside className="relative overflow-hidden bg-[#07070b] p-8 sm:p-10 lg:min-h-[520px]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(99,102,241,0.18),transparent_42%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(131,144,200,0.18),transparent_42%)]" />
 
               <div className="relative flex h-full flex-col justify-between">
                 <div>
-                  <span className="inline-flex rounded-full border border-indigo-400/35 bg-indigo-500/5 px-5 py-2 text-[11px] font-black uppercase tracking-[0.35em] text-indigo-300">
+                  <span className="inline-flex rounded-full border border-lotus-400/35 bg-lotus-500/5 px-5 py-2 text-[11px] font-black uppercase tracking-[0.35em] text-lotus-300">
                     Technology Solutions
                   </span>
 
@@ -35,7 +35,7 @@ export default function SolutionMegaPanel({ solutions = [] }) {
 
                 <button
                   onClick={() => navigate("/contact-us")}
-                  className="mt-10 inline-flex w-fit items-center gap-3 text-sm font-extrabold text-indigo-300 transition hover:text-white"
+                  className="mt-10 inline-flex w-fit items-center gap-3 text-sm font-extrabold text-lotus-300 transition hover:text-white"
                 >
                   Talk to an expert
                   <FiArrowRight size={17} />

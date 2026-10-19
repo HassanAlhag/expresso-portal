@@ -6,7 +6,7 @@ import Lightbox from "../Lightbox/Lightbox";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage } from "../../utils/websiteImages";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const DEFAULT_LAYOUT = [
   { top: "12%", left: "18%", rotate: "-10deg", size: "w-28 md:w-40" },
@@ -35,7 +35,7 @@ export const DragCards = ({
       subtitle="A playful gallery where visitors can drag, explore, and open selected work from our portfolio."
       align="center"
     >
-      <div className="relative overflow-hidden rounded-[32px] border border-neutral-200 bg-gradient-to-br from-[rgba(127,138,209,0.08)] via-white to-white p-6 md:p-10 shadow-[0_22px_70px_rgba(0,0,0,0.08)]">
+      <div className="relative overflow-hidden rounded-[32px] border border-neutral-200 bg-gradient-to-br from-[rgba(131,144,200,0.08)] via-white to-white p-6 md:p-10 shadow-[0_22px_70px_rgba(0,0,0,0.08)]">
         <div
           className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full blur-3xl"
           style={{ backgroundColor: BRAND, opacity: 0.16 }}
@@ -53,7 +53,7 @@ export const DragCards = ({
 
         <div className="relative z-10 grid grid-cols-1 gap-10 lg:grid-cols-[0.95fr,1.05fr] lg:items-center">
           <div>
-            <div className="inline-flex rounded-full border border-[rgba(127,138,209,0.18)] bg-white/80 px-4 py-2 text-xs font-semibold tracking-[0.18em] text-neutral-700">
+            <div className="inline-flex rounded-full border border-[rgba(131,144,200,0.18)] bg-white/80 px-4 py-2 text-xs font-semibold tracking-[0.18em] text-neutral-700">
               DRAG + DISCOVER
             </div>
 
@@ -82,7 +82,7 @@ export const DragCards = ({
                 className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-extrabold text-black transition hover:brightness-110"
                 style={{
                   background:
-                    "linear-gradient(135deg, #7F8AD1 0%, #D9DDFC 130%)",
+                    "linear-gradient(135deg, #8390C8 0%, #D9DDFC 130%)",
                 }}
               >
                 Build Your Plan
@@ -139,7 +139,7 @@ function Cards({ images }) {
           ref={containerRef}
           className="relative mx-auto h-[520px] w-full max-w-[560px] overflow-hidden rounded-[28px] border border-neutral-200 bg-white/75 shadow-[0_18px_55px_rgba(0,0,0,0.10)] backdrop-blur"
         >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(700px_circle_at_50%_45%,rgba(127,138,209,0.08),transparent_60%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(700px_circle_at_50%_45%,rgba(131,144,200,0.08),transparent_60%)]" />
 
           {prepared.map((image, index) => (
             <Card

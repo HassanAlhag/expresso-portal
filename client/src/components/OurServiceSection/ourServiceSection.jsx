@@ -6,7 +6,7 @@ import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage } from "../../utils/websiteImages";
 
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const DEFAULT_CARDS = [
   {
@@ -75,13 +75,13 @@ const Card = ({ resolvedImgSrc, title, description, link, tag }) => {
 
         {/* cinematic overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/70 transition duration-300 group-hover:via-black/35 group-hover:to-black/80" />
-        <div className="absolute inset-0 [background:radial-gradient(ellipse_at_top_left,rgba(127,138,209,0.28),transparent_55%)] opacity-0 transition duration-500 group-hover:opacity-100" />
+        <div className="absolute inset-0 [background:radial-gradient(ellipse_at_top_left,rgba(131,144,200,0.28),transparent_55%)] opacity-0 transition duration-500 group-hover:opacity-100" />
 
         {/* premium border glow */}
         <div
           className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100"
           style={{
-            boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 0 2px rgba(127,138,209,0.18)`,
+            boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 0 2px rgba(131,144,200,0.18)`,
           }}
         />
 

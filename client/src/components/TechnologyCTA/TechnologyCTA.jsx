@@ -23,9 +23,9 @@ export default function TechnologyCTA() {
         <span
           className="inline-block rounded-full border px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest"
           style={{
-            borderColor: "rgba(99,102,241,0.4)",
-            backgroundColor: "rgba(99,102,241,0.1)",
-            color: "#a5b4fc",
+            borderColor: "rgba(131,144,200,0.4)",
+            backgroundColor: "rgba(131,144,200,0.1)",
+            color: "#A9B1DD",
           }}
         >
           Start a Conversation
@@ -35,7 +35,7 @@ export default function TechnologyCTA() {
           Tell us what you need.
           <br />
           We'll find the{" "}
-          <span style={{ color: "#a5b4fc" }}>right solution.</span>
+          <span style={{ color: "#A9B1DD" }}>right solution.</span>
         </h2>
 
         <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/55">

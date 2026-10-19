@@ -5,7 +5,7 @@ import WebDevelopmentSolutions from "../../components/ServicesComponents/webSolu
 import WebSteps from "../../components/ServicesComponents/webSteps";
 import BasicFAQ from "../../components/ServicesComponents/faq";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 const API = process.env.REACT_APP_API_URL || "/api";
 
 // ─── Block renderers ──────────────────────────────────────────────────────────
@@ -245,7 +245,7 @@ export default function ServiceDetailPage() {
         <p className="text-neutral-500">The service you are looking for could not be found.</p>
         <button
           onClick={() => navigate("/services")}
-          className="rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white"
+          className="rounded-2xl bg-lotus-600 px-6 py-3 text-sm font-bold text-white"
         >
           Back to Services
         </button>

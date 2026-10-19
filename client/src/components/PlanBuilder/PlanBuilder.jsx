@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const steps = [
   { id: "goal", label: "Goal" },
@@ -492,7 +492,7 @@ export default function PlanBuilder({ onFinish }) {
                         onChange={(e) =>
                           setData((d) => ({ ...d, note: e.target.value }))
                         }
-                        className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none focus:ring-2 focus:ring-indigo-500/30"
+                        className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none focus:ring-2 focus:ring-lotus-500/30"
                         rows={4}
                         placeholder="Tell us anything helpful (industry, inspiration, links, goals)…"
                       />
@@ -522,8 +522,8 @@ export default function PlanBuilder({ onFinish }) {
                         <div
                           className="rounded-2xl border px-4 py-2 text-xs font-semibold"
                           style={{
-                            borderColor: "rgba(127,138,209,0.25)",
-                            backgroundColor: "rgba(127,138,209,0.10)",
+                            borderColor: "rgba(131,144,200,0.25)",
+                            backgroundColor: "rgba(131,144,200,0.10)",
                             color: BRAND,
                           }}
                         >
@@ -625,7 +625,7 @@ export default function PlanBuilder({ onFinish }) {
                       className="rounded-2xl px-6 py-3 text-sm font-semibold text-black shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
                       style={{
                         background:
-                          "linear-gradient(135deg, rgba(127,138,209,1) 0%, rgba(255,255,255,0.95) 110%)",
+                          "linear-gradient(135deg, rgba(131,144,200,1) 0%, rgba(255,255,255,0.95) 110%)",
                       }}
                     >
                       Generate My Plan →
@@ -637,7 +637,7 @@ export default function PlanBuilder({ onFinish }) {
                       className="rounded-2xl px-6 py-3 text-sm font-semibold text-black shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
                       style={{
                         background:
-                          "linear-gradient(135deg, rgba(127,138,209,1) 0%, rgba(255,255,255,0.95) 110%)",
+                          "linear-gradient(135deg, rgba(131,144,200,1) 0%, rgba(255,255,255,0.95) 110%)",
                       }}
                     >
                       Continue →
@@ -844,7 +844,7 @@ function Input({ label, value, onChange, placeholder }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none focus:ring-2 focus:ring-indigo-500/30"
+        className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none focus:ring-2 focus:ring-lotus-500/30"
       />
     </div>
   );

@@ -1,6 +1,6 @@
 import React from "react";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 export default function HomeSection({
   eyebrow,
@@ -29,7 +29,7 @@ export default function HomeSection({
                 "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.18em]",
                 isDark
                   ? "border-white/10 bg-white/5 text-white/70"
-                  : "border-[rgba(127,138,209,0.22)] bg-[rgba(127,138,209,0.07)] text-[#5762b8]",
+                  : "border-[rgba(131,144,200,0.22)] bg-[rgba(131,144,200,0.07)] text-[#5562A8]",
               ].join(" ")}
             >
               <span

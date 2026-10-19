@@ -1,6 +1,6 @@
 import React from "react";
 
-const BRAND = "#7F8AD1"; // Expresso logo color
+const BRAND = "#8390C8"; // Expresso logo color
 
 // Reusable header section (use everywhere for consistency)
 const ContactUsSection = ({

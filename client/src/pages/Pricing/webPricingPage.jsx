@@ -48,22 +48,22 @@ function WebPricingPage() {
   ];
   const featuresData = [
     {
-      icon: <CiMobile1 size={50} className="text-indigo-500" />,
+      icon: <CiMobile1 size={50} className="text-lotus-500" />,
       title: "Responsive Design",
       description: "Ensuring your website looks stunning and functions perfectly on all devices, from desktops to tablets and smartphones. A seamless experience for every user, regardless of screen size.",
     },
     {
-      icon: <RiSeoLine size={50} className="text-indigo-500" />,
+      icon: <RiSeoLine size={50} className="text-lotus-500" />,
       title: "SEO Optimization",
       description: "Improve your website's visibility on search engines with best-in-class SEO strategies. From keyword optimization to meta tags and speed enhancements, we help drive organic traffic and increase your online reach.",
     },
     {
-      icon: <SiFsecure size={50} className="text-indigo-500" />,
+      icon: <SiFsecure size={50} className="text-lotus-500" />,
       title: "Fast & Secure Hosting",
       description: "Experience ultra-fast loading speeds and top-tier security with our hosting solutions. Our servers are optimized for performance, ensuring 99.9% uptime and protection against cyber threats.",
     },
     {
-      icon: <BiCustomize size={50} className="text-indigo-500" />,
+      icon: <BiCustomize size={50} className="text-lotus-500" />,
       title: "Custom Features",
       description: "Get functionalities tailored to your business needs, from interactive elements and API integrations to advanced e-commerce solutions and automation. We build solutions that enhance user engagement and productivity.",
     },

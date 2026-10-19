@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { animate, useInView } from "framer-motion";
 import HomeSection from "../HomeSection/HomeSection";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 export const CountUpStats = ({ stats = [], heading, subtitle }) => {
   return (
@@ -61,7 +61,7 @@ const Stat = ({ num, suffix = "", decimals = 0, subheading }) => {
   }, [num, isInView, fmt]);
 
   return (
-    <div className="group relative overflow-hidden text-center rounded-3xl border border-neutral-200 bg-white px-7 py-9 shadow-[0_8px_24px_rgba(0,0,0,0.05)] transition duration-300 hover:-translate-y-1.5 hover:border-[rgba(127,138,209,0.30)] hover:shadow-[0_22px_60px_rgba(127,138,209,0.11)]">
+    <div className="group relative overflow-hidden text-center rounded-3xl border border-neutral-200 bg-white px-7 py-9 shadow-[0_8px_24px_rgba(0,0,0,0.05)] transition duration-300 hover:-translate-y-1.5 hover:border-[rgba(131,144,200,0.30)] hover:shadow-[0_22px_60px_rgba(131,144,200,0.11)]">
       {/* Top accent bar — appears on hover */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-[3px] rounded-t-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"

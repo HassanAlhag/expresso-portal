@@ -47,25 +47,25 @@ function GoogleAdsPricingPage() {
 
   const googleAdsFeatures = [
     {
-      icon: <RiAdvertisementFill size={50} className="text-indigo-500" />,
+      icon: <RiAdvertisementFill size={50} className="text-lotus-500" />,
       title: "Campaign Setup & Optimization",
       description:
         "We create and manage high-performing Google Ads campaigns tailored to your business goals, maximizing conversions while reducing costs.",
     },
     {
-      icon: <RiMoneyDollarCircleFill size={50} className="text-indigo-500" />,
+      icon: <RiMoneyDollarCircleFill size={50} className="text-lotus-500" />,
       title: "Budget & Bidding Strategy",
       description:
         "Optimize your ad spend with strategic bidding techniques, ensuring the best ROI while maximizing visibility and conversions.",
     },
     {
-      icon: <FaChartLine size={50} className="text-indigo-500" />,
+      icon: <FaChartLine size={50} className="text-lotus-500" />,
       title: "Performance Tracking & Reports",
       description:
         "Get detailed analytics and performance insights to track ROI, identify trends, and refine your ad strategies for continuous improvement.",
     },
     {
-      icon: <FaUserCheck size={50} className="text-indigo-500" />,
+      icon: <FaUserCheck size={50} className="text-lotus-500" />,
       title: "Audience Targeting & Retargeting",
       description:
         "Target the right audience with precision using advanced demographic, interest, and remarketing strategies for better ad engagement.",

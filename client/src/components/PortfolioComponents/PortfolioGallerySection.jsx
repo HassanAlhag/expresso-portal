@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FiArrowLeft, FiArrowRight, FiX } from "react-icons/fi";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 export default function PortfolioGallerySection({ images = [] }) {
   const prepared = useMemo(() => {
@@ -49,7 +49,7 @@ export default function PortfolioGallerySection({ images = [] }) {
           <div
             className="h-1 w-full"
             style={{
-              background: `linear-gradient(90deg, ${BRAND} 0%, rgba(127,138,209,0.35) 55%, rgba(0,0,0,0) 100%)`,
+              background: `linear-gradient(90deg, ${BRAND} 0%, rgba(131,144,200,0.35) 55%, rgba(0,0,0,0) 100%)`,
             }}
           />
 
@@ -98,7 +98,7 @@ export default function PortfolioGallerySection({ images = [] }) {
                       setIdx(i);
                       setOpen(true);
                     }}
-                    className="group relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-100 text-left shadow-[0_18px_55px_rgba(0,0,0,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_26px_80px_rgba(0,0,0,0.14)] focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="group relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-100 text-left shadow-[0_18px_55px_rgba(0,0,0,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_26px_80px_rgba(0,0,0,0.14)] focus:outline-none focus:ring-2 focus:ring-lotus-300"
                     aria-label={`Open ${img.alt}`}
                   >
                     <div

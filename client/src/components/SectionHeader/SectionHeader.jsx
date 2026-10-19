@@ -1,7 +1,7 @@
 // src/components/SectionHeader/SectionHeader.jsx
 import React from "react";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 export default function SectionHeader({
   highlight = "Section",

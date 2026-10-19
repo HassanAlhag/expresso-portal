@@ -12,7 +12,7 @@ function WhyCard({ Icon, title, desc, index }) {
       transition={{ duration: 0.4, delay: index * 0.08 }}
       className="rounded-2xl border border-white/10 bg-white/[0.04] p-6"
     >
-      <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-300">
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-lotus-500/15 text-lotus-300">
         <Icon size={18} />
       </span>
 

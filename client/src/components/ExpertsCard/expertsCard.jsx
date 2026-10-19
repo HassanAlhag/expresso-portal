@@ -56,7 +56,7 @@ const TeamSection = () => {
       }}
     >
       <div className="max-w-7xl mx-auto text-center px-4">
-        <h3 className="text-purple-600 text-lg font-bold mb-4">Team</h3>
+        <h3 className="text-lotus-600 text-lg font-bold mb-4">Team</h3>
         <h2 className="text-4xl sm:text-5xl font-bold text-gray-900">
           Our Expert <span className="text-yellow-500">Team</span>
         </h2>
@@ -84,7 +84,7 @@ const TeamSection = () => {
                     alt={member.name}
                     className="w-full h-full object-cover group-hover:opacity-50 transition-opacity duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-pink-500 to-purple-500 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center rounded-xl transition-opacity duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-t from-pink-500 to-lotus-500 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center rounded-xl transition-opacity duration-300">
                     <h4 className="text-white text-xl font-bold">
                       {member.name}
                     </h4>

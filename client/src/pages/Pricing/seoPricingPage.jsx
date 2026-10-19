@@ -47,25 +47,25 @@ function SeoPricingPage() {
 
   const seoFeatures = [
     {
-      icon: <RiSearchEyeLine size={50} className="text-indigo-500" />,
+      icon: <RiSearchEyeLine size={50} className="text-lotus-500" />,
       title: "Keyword Research & Strategy",
       description:
         "Discover high-ranking keywords tailored to your industry. Our advanced keyword research helps increase organic traffic and conversions.",
     },
     {
-      icon: <RiBarChartBoxLine size={50} className="text-indigo-500" />,
+      icon: <RiBarChartBoxLine size={50} className="text-lotus-500" />,
       title: "On-Page SEO Optimization",
       description:
         "Enhance your website’s visibility with optimized content, structured headings, meta descriptions, and improved internal linking.",
     },
     {
-      icon: <AiOutlineFundProjectionScreen size={50} className="text-indigo-500" />,
+      icon: <AiOutlineFundProjectionScreen size={50} className="text-lotus-500" />,
       title: "Technical SEO & Performance Fixes",
       description:
         "Boost site speed, mobile usability, and fix crawlability issues. Ensure your website is optimized for search engines and user experience.",
     },
     {
-      icon: <AiOutlineLink size={50} className="text-indigo-500" />,
+      icon: <AiOutlineLink size={50} className="text-lotus-500" />,
       title: "Backlink Building & Off-Page SEO",
       description:
         "Strengthen your domain authority with high-quality backlinks and off-page SEO strategies that improve search engine credibility.",

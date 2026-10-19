@@ -8,7 +8,7 @@ import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
 import { ServiceBanner } from "../../components/ServicesBanner/servicesBanner";
 import FinalCTASection from "../../components/FinalCTASection/FinalCTASection";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 const CATS = ["All", "Website Design", "Social Media"];
 
 export default function PortfolioGalleryPage() {
@@ -61,10 +61,10 @@ export default function PortfolioGalleryPage() {
                 className={[
                   "shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition-all",
                   active === cat
-                    ? "text-black shadow-[0_10px_28px_rgba(127,138,209,0.32)]"
+                    ? "text-black shadow-[0_10px_28px_rgba(131,144,200,0.32)]"
                     : "text-white/48 hover:text-white",
                 ].join(" ")}
-                style={active === cat ? { background: "linear-gradient(135deg, #7F8AD1 0%, #DDE1FF 130%)" } : {}}
+                style={active === cat ? { background: "linear-gradient(135deg, #8390C8 0%, #DDE1FF 130%)" } : {}}
               >
                 {cat}
               </button>

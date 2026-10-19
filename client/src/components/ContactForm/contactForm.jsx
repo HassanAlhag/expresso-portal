@@ -4,7 +4,7 @@ import emailjs from "@emailjs/browser";
 import { useNavigate } from "react-router-dom";
 import SuccessModal from "./successModal";
 
-const BRAND = "#7F8AD1"; // your logo indigo
+const BRAND = "#8390C8"; // your logo indigo
 const BASE_TRANSITION = { type: "spring", stiffness: 260, damping: 28 };
 
 const ShiftingContactForm = () => {
@@ -111,7 +111,7 @@ const Form = ({ selected, setSelected, setIsModalOpen }) => {
     <form onSubmit={handleSubmit} className="relative h-full">
       {/* top header strip (dark glass vibe like your header) */}
       <div className="relative overflow-hidden bg-neutral-950 px-7 py-8 sm:px-10">
-        <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(900px_circle_at_20%_10%,rgba(127,138,209,0.28),transparent_55%)]" />
+        <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(900px_circle_at_20%_10%,rgba(131,144,200,0.28),transparent_55%)]" />
         <div className="pointer-events-none absolute inset-0 opacity-60 [background:radial-gradient(700px_circle_at_80%_80%,rgba(255,0,0,0.14),transparent_55%)]" />
 
         <h3 className="mt-5 text-3xl font-black tracking-tight text-white sm:text-4xl">
@@ -202,7 +202,7 @@ const Form = ({ selected, setSelected, setIsModalOpen }) => {
             disabled={!canSubmit || submitting}
             className={[
               "inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold transition",
-              "shadow-[0_18px_55px_rgba(127,138,209,0.25)]",
+              "shadow-[0_18px_55px_rgba(131,144,200,0.25)]",
               !canSubmit || submitting
                 ? "cursor-not-allowed bg-neutral-200 text-neutral-500"
                 : "bg-neutral-950 text-white hover:bg-neutral-900",
@@ -265,7 +265,7 @@ const Images = ({ selected }) => {
     <div className="relative h-[280px] overflow-hidden bg-neutral-950 lg:h-full">
       {/* subtle overlays */}
       <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-b from-black/35 via-black/20 to-black/60" />
-      <div className="pointer-events-none absolute inset-0 z-10 opacity-70 [background:radial-gradient(900px_circle_at_30%_20%,rgba(127,138,209,0.25),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 z-10 opacity-70 [background:radial-gradient(900px_circle_at_30%_20%,rgba(131,144,200,0.25),transparent_55%)]" />
 
       {/* slide A */}
       <motion.div
@@ -326,7 +326,7 @@ const Input = ({ className = "", ...props }) => (
     className={[
       "w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900",
       "shadow-[0_10px_28px_rgba(0,0,0,0.06)]",
-      "placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-200/70 focus:border-neutral-300",
+      "placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-lotus-200/70 focus:border-neutral-300",
       className,
     ].join(" ")}
   />
@@ -338,7 +338,7 @@ const Textarea = ({ className = "", ...props }) => (
     className={[
       "min-h-[150px] w-full resize-none rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900",
       "shadow-[0_10px_28px_rgba(0,0,0,0.06)]",
-      "placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-200/70 focus:border-neutral-300",
+      "placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-lotus-200/70 focus:border-neutral-300",
       className,
     ].join(" ")}
   />

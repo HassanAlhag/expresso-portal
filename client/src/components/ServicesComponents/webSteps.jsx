@@ -82,7 +82,7 @@ const Content = ({ setFeatureInView, featureInView }) => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          <span className="rounded-full bg-indigo-600 px-2 py-1.5 text-xs font-medium text-white">
+          <span className="rounded-full bg-lotus-600 px-2 py-1.5 text-xs font-medium text-white">
             {featureInView.callout}
           </span>
           <p className="my-3 text-3xl font-bold sm:text-4xl md:text-5xl">{featureInView.title}</p>

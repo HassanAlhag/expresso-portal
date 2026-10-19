@@ -43,7 +43,7 @@ const WhyChooseUs = () => {
               key={index}
               className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300"
             >
-              <div className="inline-flex items-center justify-center w-10 h-10 mb-4 rounded-lg bg-purple-500 text-white">
+              <div className="inline-flex items-center justify-center w-10 h-10 mb-4 rounded-lg bg-lotus-500 text-white">
                 {item.icon}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">

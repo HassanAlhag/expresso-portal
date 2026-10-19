@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 const WAIT_TIME = 2800;
 
 export const ProtfolioHeader = () => {

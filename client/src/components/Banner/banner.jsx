@@ -28,7 +28,7 @@ const FALLBACK_SLIDES = [
   },
 ];
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 const AUTO_SECONDS = 5;
 
 const CARD_W = 278;
@@ -271,7 +271,7 @@ export default function Banner() {
           <div className="text-white/80">
             <div
               className="mb-4 h-2 w-32 rounded-full"
-              style={{ backgroundColor: "rgba(127,138,209,0.35)" }}
+              style={{ backgroundColor: "rgba(131,144,200,0.35)" }}
             />
             <div className="h-10 w-[min(520px,80vw)] rounded-xl bg-white/10" />
             <div className="mt-4 h-4 w-[min(560px,84vw)] rounded-lg bg-white/10" />
@@ -309,7 +309,7 @@ export default function Banner() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(700px circle at 78% 62%, rgba(127,138,209,0.20), transparent 55%)",
+              "radial-gradient(700px circle at 78% 62%, rgba(131,144,200,0.20), transparent 55%)",
           }}
         />
       </div>
@@ -348,7 +348,7 @@ export default function Banner() {
               className="rounded-2xl px-7 py-3 text-sm font-semibold text-black shadow-[0_18px_60px_rgba(0,0,0,0.30)] active:scale-[0.98]"
               style={{
                 background:
-                  "linear-gradient(135deg, rgba(127,138,209,1) 0%, rgba(255,255,255,0.95) 110%)",
+                  "linear-gradient(135deg, rgba(131,144,200,1) 0%, rgba(255,255,255,0.95) 110%)",
               }}
             >
               {current?.ctaLabel || "Explore Services"}
@@ -380,7 +380,7 @@ export default function Banner() {
                           ? BRAND
                           : "rgba(255,255,255,0.22)",
                         boxShadow: isOn
-                          ? "0 0 0 6px rgba(127,138,209,0.12)"
+                          ? "0 0 0 6px rgba(131,144,200,0.12)"
                           : "none",
                       }}
                       aria-label={`Go to slide ${index + 1}`}
@@ -501,7 +501,7 @@ export default function Banner() {
                           <div
                             className="absolute bottom-3 left-3 rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white/90"
                             style={{
-                              background: "rgba(127,138,209,0.35)",
+                              background: "rgba(131,144,200,0.35)",
                               backdropFilter: "blur(8px)",
                             }}
                           >

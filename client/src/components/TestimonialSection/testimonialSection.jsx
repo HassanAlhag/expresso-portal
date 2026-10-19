@@ -4,7 +4,7 @@ import HomeSection from "../HomeSection/HomeSection";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, resolveWebsiteImages } from "../../utils/websiteImages";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const DEFAULT_TESTIMONIALS = [
   {
@@ -80,8 +80,8 @@ export default function StackedCardTestimonials({ testimonials = DEFAULT_TESTIMO
         className="absolute inset-0"
         style={{
           background: `
-            radial-gradient(900px circle at 16% 20%, rgba(127,138,209,0.18), transparent 34%),
-            radial-gradient(700px circle at 84% 22%, rgba(127,138,209,0.10), transparent 28%),
+            radial-gradient(900px circle at 16% 20%, rgba(131,144,200,0.18), transparent 34%),
+            radial-gradient(700px circle at 84% 22%, rgba(131,144,200,0.10), transparent 28%),
             radial-gradient(1000px circle at 50% 60%, rgba(255,255,255,0.03), transparent 40%),
             linear-gradient(135deg, #0B0B11 0%, #11131D 55%, #0B0B11 100%)
           `,
@@ -154,7 +154,7 @@ export default function StackedCardTestimonials({ testimonials = DEFAULT_TESTIMO
                 className="rounded-[30px] border border-white/10 bg-white/[0.96] p-6 text-neutral-950 shadow-[0_20px_60px_rgba(0,0,0,0.22)] md:p-8"
               >
                 <div className="flex items-center justify-between gap-4">
-                  <div className="inline-flex rounded-full border border-[rgba(127,138,209,0.18)] bg-[rgba(127,138,209,0.08)] px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-neutral-700">
+                  <div className="inline-flex rounded-full border border-[rgba(131,144,200,0.18)] bg-[rgba(131,144,200,0.08)] px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-neutral-700">
                     FEATURED TESTIMONIAL
                   </div>
 
@@ -201,7 +201,7 @@ export default function StackedCardTestimonials({ testimonials = DEFAULT_TESTIMO
                       className={[
                         "group relative rounded-2xl border p-3 transition",
                         isActive
-                          ? "border-[rgba(127,138,209,0.35)] bg-white/[0.10] shadow-[0_16px_35px_rgba(127,138,209,0.12)]"
+                          ? "border-[rgba(131,144,200,0.35)] bg-white/[0.10] shadow-[0_16px_35px_rgba(131,144,200,0.12)]"
                           : "border-white/10 bg-white/[0.05] hover:border-white/20",
                       ].join(" ")}
                     >

@@ -67,7 +67,7 @@ const Testimonials = () => {
           className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-25"
           style={{ background: BRAND }}
         />
-        <div className="absolute -bottom-48 -right-48 h-[620px] w-[620px] rounded-full bg-indigo-500/20 blur-3xl" />
+        <div className="absolute -bottom-48 -right-48 h-[620px] w-[620px] rounded-full bg-lotus-500/20 blur-3xl" />
         <div className="absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_10%,rgba(255,255,255,0.08),transparent_60%)]" />
         <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-white/0 to-black/35" />
       </div>

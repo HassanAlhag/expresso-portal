@@ -128,7 +128,7 @@ const Copy = ({ badge, heading, headingHighlight, body }) => {
       </span>
       <h2 className="mb-6 mt-8 max-w-4xl font-dax-compact text-5xl font-black leading-[1.02] tracking-normal text-white sm:text-6xl lg:text-7xl">
         {heading}{" "}
-        <span className="text-[#7F8AD1]">{headingHighlight}</span>
+        <span className="text-[#8390C8]">{headingHighlight}</span>
       </h2>
       <p className="max-w-3xl text-lg leading-relaxed text-white/70 sm:text-xl">
         {body}

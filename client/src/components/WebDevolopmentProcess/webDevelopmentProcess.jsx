@@ -52,8 +52,8 @@ const Card = ({ resolvedImage, title, description, index }) => {
       className="group relative overflow-hidden rounded-3xl border border-neutral-200 bg-white p-5 shadow-[0_16px_50px_rgba(0,0,0,0.06)] transition hover:-translate-y-1 hover:shadow-[0_26px_80px_rgba(0,0,0,0.10)]"
     >
       {/* subtle glow */}
-      <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl opacity-0 transition group-hover:opacity-100" />
-      <div className="pointer-events-none absolute -left-28 -bottom-28 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl opacity-0 transition group-hover:opacity-100" />
+      <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-lotus-500/10 blur-3xl opacity-0 transition group-hover:opacity-100" />
+      <div className="pointer-events-none absolute -left-28 -bottom-28 h-64 w-64 rounded-full bg-lotus-500/10 blur-3xl opacity-0 transition group-hover:opacity-100" />
 
       {/* image */}
       <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50">
@@ -81,7 +81,7 @@ const Card = ({ resolvedImage, title, description, index }) => {
         {/* micro CTA */}
         <div className="mt-5 h-px w-full bg-neutral-200/70" />
         <div className="mt-4 flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-[0.18em] text-indigo-600">
+          <span className="text-xs font-semibold tracking-[0.18em] text-lotus-600">
             STEP {String(index + 1).padStart(2, "0")}
           </span>
 

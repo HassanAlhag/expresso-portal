@@ -4,7 +4,7 @@ const ServiceMainHeader = ({
   subheading,
   heading,
   desc,
-  subheadingColor = "text-indigo-500",
+  subheadingColor = "text-lotus-500",
   headingColor = "text-black",
   bgColor = "bg-white",
   descColor = "text-black",

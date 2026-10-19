@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { FiMaximize2, FiX, FiExternalLink } from "react-icons/fi";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 export default function CreativePostsShowcase({
   title = "Creative posts that look premium",

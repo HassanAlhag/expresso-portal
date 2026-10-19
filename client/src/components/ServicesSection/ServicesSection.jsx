@@ -12,7 +12,7 @@ import HomeSection from "../HomeSection/HomeSection";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage } from "../../utils/websiteImages";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const DEFAULT_CARDS = [
   {
@@ -152,9 +152,9 @@ function ServiceCard({
       ].join(" ")}
       style={{
         background: isBrand
-          ? "linear-gradient(135deg, #7F8AD1 0%, #919CE2 55%, #A8B1EF 100%)"
+          ? "linear-gradient(135deg, #8390C8 0%, #919CE2 55%, #A8B1EF 100%)"
           : isBrandSoft
-          ? "linear-gradient(180deg, rgba(127,138,209,0.14) 0%, rgba(127,138,209,0.06) 100%)"
+          ? "linear-gradient(180deg, rgba(131,144,200,0.14) 0%, rgba(131,144,200,0.06) 100%)"
           : undefined,
       }}
     >
@@ -204,7 +204,7 @@ function ServiceCard({
             isImage || isBrand
               ? "border-white/20 bg-white/10 text-white"
               : isBrandSoft
-              ? "border-[rgba(127,138,209,0.20)] bg-white/75 text-neutral-950"
+              ? "border-[rgba(131,144,200,0.20)] bg-white/75 text-neutral-950"
               : "border-black/10 bg-neutral-50 text-neutral-950",
           ].join(" ")}
         >
@@ -239,7 +239,7 @@ function ServiceCard({
               isImage || isBrand
                 ? "border border-white/15 bg-white/10 text-white hover:bg-white/18"
                 : isBrandSoft
-                ? "border border-[rgba(127,138,209,0.20)] bg-white/70 text-[#5762b8] hover:bg-white/90"
+                ? "border border-[rgba(131,144,200,0.20)] bg-white/70 text-[#5562A8] hover:bg-white/90"
                 : "border border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100",
             ].join(" ")}
           >
@@ -293,7 +293,7 @@ function CTAServiceCard({ onPrimaryClick, title, description, primaryLabel, seco
           onClick={onPrimaryClick}
           className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-black transition hover:brightness-110"
           style={{
-            background: "linear-gradient(135deg, #7F8AD1 0%, #D9DDFC 130%)",
+            background: "linear-gradient(135deg, #8390C8 0%, #D9DDFC 130%)",
           }}
         >
           {primaryLabel}

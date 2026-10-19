@@ -10,7 +10,7 @@ const HeroSection = () => {
     >
       <div className="max-w-[1100px] mx-auto px-4 flex lg-down:flex-col items-center gap-28">
         <div className="md:w-1/2">
-          <h3 className="text-purple-700 text-lg font-bold mb-2">We are Expresso</h3>
+          <h3 className="text-lotus-700 text-lg font-bold mb-2">We are Expresso</h3>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
             We want to give you the <span className="text-gradient">best service</span>
           </h1>
@@ -65,7 +65,7 @@ const HeroSection = () => {
               <p className="text-sm font-semibold text-gray-700 mb-1">Customer Service</p>
               <div className="w-full bg-gray-200 h-2 rounded">
                 <div
-                  className="bg-purple-500 h-2 rounded"
+                  className="bg-lotus-500 h-2 rounded"
                   style={{ width: "80%" }}
                 ></div>
               </div>
@@ -80,7 +80,7 @@ const HeroSection = () => {
               alt="Team"
               className="rounded-lg shadow-lg"
             />
-            <div className="absolute bottom-[-20px] left-[-20px] bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-lg shadow-lg">
+            <div className="absolute bottom-[-20px] left-[-20px] bg-gradient-to-r from-lotus-500 to-pink-500 text-white p-6 rounded-lg shadow-lg">
               <p className="text-sm">Years of</p>
               <h2 className="text-4xl font-bold">12+</h2>
               <p className="text-sm">Experiences</p>

@@ -5,7 +5,7 @@ import HomeSection from "../HomeSection/HomeSection";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage } from "../../utils/websiteImages";
 
-const BRAND = "#7F8AD1";
+const BRAND = "#8390C8";
 
 const isYouTube = (url = "") =>
   typeof url === "string" &&
@@ -86,7 +86,7 @@ export default function ReelsShowcase({
         `}</style>
       </div>
 
-      <div className="relative mt-10 overflow-hidden rounded-[28px] border border-neutral-200 bg-gradient-to-br from-[rgba(127,138,209,0.08)] via-white to-white px-5 py-5 shadow-[0_16px_45px_rgba(0,0,0,0.06)] md:px-6">
+      <div className="relative mt-10 overflow-hidden rounded-[28px] border border-neutral-200 bg-gradient-to-br from-[rgba(131,144,200,0.08)] via-white to-white px-5 py-5 shadow-[0_16px_45px_rgba(0,0,0,0.06)] md:px-6">
         <div
           className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full blur-3xl"
           style={{ backgroundColor: BRAND, opacity: 0.15 }}
@@ -115,7 +115,7 @@ export default function ReelsShowcase({
               onClick={onCtaClick}
               className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-black transition hover:brightness-110"
               style={{
-                background: "linear-gradient(135deg, #7F8AD1 0%, #D9DDFC 130%)",
+                background: "linear-gradient(135deg, #8390C8 0%, #D9DDFC 130%)",
               }}
             >
               {ctaText}
@@ -230,7 +230,7 @@ function ReelCard({ item, onOpen }) {
         <div className="absolute inset-0 flex items-center justify-center">
           <div
             className="grid h-14 w-14 place-items-center rounded-full bg-white/90 transition group-hover:scale-105"
-            style={{ boxShadow: "0 12px 40px rgba(127,138,209,0.18)" }}
+            style={{ boxShadow: "0 12px 40px rgba(131,144,200,0.18)" }}
           >
             <FiPlay className="text-neutral-950" />
           </div>
