@@ -213,17 +213,21 @@ export async function getRole(req, res) {
 // POST /api/roles
 export async function createRole(req, res) {
   try {
-    const parsed = validateCreateRole(req.body || {});
+    const rawKey = String(req.body?.key || "").trim().toLowerCase();
+    const systemKey = Boolean(DEFAULT_ROLE_PERMISSIONS[rawKey]);
+    const parsed = validateCreateRole(req.body || {}, { systemKey });
     if (!parsed.ok) {
       return res.status(400).json({ ok: false, message: parsed.message });
     }
 
-    const { key, label, description, permissions, isInternal } = parsed.value;
+    const { key, label, description, permissions } = parsed.value;
+    // Persisting a default system role keeps its fixed classification.
+    const isInternal = systemKey ? defaultIsInternal(key) : parsed.value.isInternal;
 
-    if (DEFAULT_ROLE_PERMISSIONS[key]) {
+    if (PROTECTED_ROLE_KEYS.has(key) && req.user?.role !== "super_admin") {
       return res
-        .status(409)
-        .json({ ok: false, message: "That key is reserved for a system role" });
+        .status(403)
+        .json({ ok: false, message: "Only a super admin can edit this role" });
     }
 
     const beyond = permissionsBeyondActor(req, permissions);
@@ -248,7 +252,7 @@ export async function createRole(req, res) {
       description,
       permissions,
       isInternal,
-      isSystem: false,
+      isSystem: systemKey,
     });
 
     await logAudit(req, {

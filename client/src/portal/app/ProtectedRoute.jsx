@@ -37,7 +37,7 @@ const ROUTE_PERMISSIONS = [
   ["/portal/procurement", "procurement.read"],
   ["/portal/hr/staff", "hr.staff.read"],
   ["/portal/hr/expenses", "hr.expenses.read"],
-  ["/portal/hr/monthly-expenses", "hr.expenses.read"],
+  ["/portal/hr/monthly-expenses", "hr.expenses.approve"],
   ["/portal/hr/leaves", "hr.leaves.read"],
   ["/portal/hr/skills", "hr.scorecards.read"],
   ["/portal/hr", "hr.staff.read"],
@@ -103,6 +103,18 @@ function readPermissions() {
   return [];
 }
 
+function readIsInternal(role) {
+  // Prefer the server's classification (custom roles, role registry); fall
+  // back to the system role list for sessions created before it existed.
+  try {
+    const user = JSON.parse(localStorage.getItem("portal_user") || "{}");
+    if (typeof user?.isInternal === "boolean") return user.isInternal;
+  } catch {
+    // ignore
+  }
+  return !EXTERNAL_CLIENT_ROLES.has(role) && role !== "vendor";
+}
+
 function isAllowed(role, pathname) {
   const r = String(role || "").toLowerCase();
   if (r === "super_admin" || r === "admin") return true;
@@ -112,7 +124,7 @@ function isAllowed(role, pathname) {
   if (p === "/portal/profile" || p === "/portal/settings") return true;
 
   if (
-    EXTERNAL_CLIENT_ROLES.has(r) &&
+    !readIsInternal(r) &&
     EXTERNAL_ROUTE_DENYLIST.some((prefix) => p === prefix || p.startsWith(prefix + "/"))
   ) {
     return false;

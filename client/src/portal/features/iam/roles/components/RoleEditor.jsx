@@ -124,6 +124,8 @@ export default function RoleEditor({
   const [label, setLabel] = useState("");
   const [description, setDescription] = useState("");
   const [permissions, setPermissions] = useState([]);
+  // true = Expresso team role, false = client/vendor role, null = not chosen.
+  const [isInternal, setIsInternal] = useState(null);
   const [query, setQuery] = useState("");
   const [activeDomain, setActiveDomain] = useState("all");
   const [error, setError] = useState("");
@@ -142,7 +144,11 @@ export default function RoleEditor({
     setLabel(initial?.label || initial?.name || "");
     setDescription(initial?.description || "");
     setPermissions(Array.isArray(initial?.permissions) ? initial.permissions : []);
+    setIsInternal(typeof initial?.isInternal === "boolean" ? initial.isInternal : null);
   }, [open, initial]);
+
+  // System roles have a fixed classification; custom roles must choose one.
+  const audienceLocked = Boolean(initial?.isSystem);
 
   const permissionSet = useMemo(() => new Set(permissions), [permissions]);
 
@@ -180,7 +186,7 @@ export default function RoleEditor({
     [permissionSet]
   );
 
-  const canSave = key.trim() && label.trim();
+  const canSave = key.trim() && label.trim() && (audienceLocked || isInternal !== null);
 
   const handleToggle = (keys, add) => {
     setPermissions((prev) => {
@@ -203,6 +209,7 @@ export default function RoleEditor({
         label: label.trim(),
         description: description.trim(),
         permissions,
+        ...(audienceLocked || isInternal === null ? {} : { isInternal }),
       };
 
       if (isEdit) {
@@ -289,6 +296,50 @@ export default function RoleEditor({
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Project Manager"
             />
+
+            <fieldset className="grid gap-2" disabled={audienceLocked}>
+              <legend className="mb-1 text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
+                WHO USES THIS ROLE
+              </legend>
+              {[
+                {
+                  value: true,
+                  title: "Expresso team (internal)",
+                  hint: "Sees records across all clients, within the permissions below.",
+                },
+                {
+                  value: false,
+                  title: "Client or vendor (external)",
+                  hint: "Limited to their own company. Internal-only modules are never available.",
+                },
+              ].map((option) => (
+                <label
+                  key={String(option.value)}
+                  className={[
+                    "flex cursor-pointer items-start gap-2 rounded-xl border p-3 text-sm",
+                    isInternal === option.value
+                      ? "border-indigo-300 bg-indigo-50"
+                      : "border-slate-200 bg-white",
+                    audienceLocked ? "cursor-not-allowed opacity-70" : "",
+                  ].join(" ")}
+                >
+                  <input
+                    type="radio"
+                    name="role-audience"
+                    className="mt-1"
+                    checked={isInternal === option.value}
+                    onChange={() => setIsInternal(option.value)}
+                  />
+                  <span>
+                    <span className="block font-bold text-slate-900">{option.title}</span>
+                    <span className="block text-xs text-slate-500">{option.hint}</span>
+                  </span>
+                </label>
+              ))}
+              {audienceLocked ? (
+                <p className="text-xs text-slate-500">System roles keep a fixed audience.</p>
+              ) : null}
+            </fieldset>
 
             <div className="grid gap-1.5">
               <label className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">

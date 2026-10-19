@@ -119,6 +119,15 @@ function RoleCard({ role, selected, onEdit }) {
         <Badge tone={role.isSystem ? "warning" : "info"} size="xs">
           {role.isSystem ? "System" : "Custom"}
         </Badge>
+        {typeof role.isInternal === "boolean" ? (
+          <Badge tone={role.isInternal ? "neutral" : "warning"} size="xs">
+            {role.isInternal ? "Internal" : "External"}
+          </Badge>
+        ) : (
+          <Badge tone="danger" size="xs">
+            Audience not set
+          </Badge>
+        )}
         {role.synthetic ? (
           <Badge tone="neutral" size="xs">
             Default

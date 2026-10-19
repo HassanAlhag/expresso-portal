@@ -13,7 +13,7 @@ function normalizePermissions(list) {
   return unique.filter((k) => VALID_PERMISSION_KEYS.has(k));
 }
 
-export function validateCreateRole(body = {}) {
+export function validateCreateRole(body = {}, options = {}) {
   const key = normalizeKey(body.key);
   const label = String(body.label || "").trim();
   const description = String(body.description || "").trim();
@@ -21,7 +21,7 @@ export function validateCreateRole(body = {}) {
 
   if (!key) return { ok: false, message: "key is required" };
   if (!label) return { ok: false, message: "label is required" };
-  if (typeof body.isInternal !== "boolean") {
+  if (typeof body.isInternal !== "boolean" && !options.systemKey) {
     return {
       ok: false,
       message: "isInternal is required: true for an Expresso team role, false for a client or vendor role",
@@ -35,7 +35,7 @@ export function validateCreateRole(body = {}) {
       label,
       description,
       permissions,
-      isInternal: body.isInternal,
+      isInternal: typeof body.isInternal === "boolean" ? body.isInternal : undefined,
     },
   };
 }
@@ -50,7 +50,7 @@ export function validateUpdateRole(body = {}) {
   if ("permissions" in body)
     patch.permissions = normalizePermissions(body.permissions);
   if ("isInternal" in body) {
-    if (typeof body.isInternal !== "boolean") {
+    if (typeof body.isInternal !== "boolean" && !options.systemKey) {
       return { ok: false, message: "isInternal must be true or false" };
     }
     patch.isInternal = body.isInternal;

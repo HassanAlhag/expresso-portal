@@ -121,3 +121,25 @@ test("creating a role requires an explicit internal/external choice", async () =
   assert.equal(ok.status, 201);
   assert.equal(ok.body.item.isInternal, true);
 });
+
+test("persisting a default system role keeps its fixed classification", async () => {
+  setupAuth({ users: [admin] });
+  stub(Role, "create", async (doc) => ({ _id: oid(), ...doc }));
+  const r = await call("POST", "/api/roles", {
+    user: admin,
+    body: { key: "client", label: "Client", permissions: ["projects.read"], isInternal: true },
+  });
+  assert.equal(r.status, 201);
+  assert.equal(r.body.item.isInternal, false);
+  assert.equal(r.body.item.isSystem, true);
+});
+
+test("admin cannot persist the admin role", async () => {
+  setupAuth({ users: [admin] });
+  stub(Role, "create", async (doc) => ({ _id: oid(), ...doc }));
+  const r = await call("POST", "/api/roles", {
+    user: admin,
+    body: { key: "admin", label: "Admin", permissions: ["projects.read"] },
+  });
+  assert.equal(r.status, 403);
+});

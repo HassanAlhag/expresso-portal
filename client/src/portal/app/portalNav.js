@@ -516,7 +516,7 @@ const ITEMS = {
     hint: "Registered company expenses",
     Icon: Wallet,
     accent: ACCENTS.sand,
-    permission: "hr.expenses.read",
+    permission: "hr.expenses.approve",
   },
 
   hrLeaves: {
