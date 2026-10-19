@@ -143,3 +143,14 @@ test("admin cannot persist the admin role", async () => {
   });
   assert.equal(r.status, 403);
 });
+
+test("system status is super-admin only and reveals no secret values", async () => {
+  setupAuth({ users: [admin, superAdmin] });
+  const denied = await call("GET", "/api/admin/system-status", { user: admin });
+  assert.equal(denied.status, 403);
+  const ok = await call("GET", "/api/admin/system-status", { user: superAdmin });
+  assert.equal(ok.status, 200);
+  const text = JSON.stringify(ok.body);
+  assert.doesNotMatch(text, /test-secret|mongodb:\/\//);
+  assert.equal(typeof ok.body.email.smtpConfigured, "boolean");
+});

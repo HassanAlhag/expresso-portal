@@ -2,6 +2,7 @@
 // from public S3 URLs into private storage. Safe by default:
 //
 //   node src/scripts/migrateConfidentialFiles.js            # dry run, prints plan
+//   ENV_FILE=~/expresso-prod.env node src/scripts/migrateConfidentialFiles.js --allow-remote
 //   node src/scripts/migrateConfidentialFiles.js --apply    # copy + update records
 //   node src/scripts/migrateConfidentialFiles.js --apply --delete-public
 //                                                         # also delete the public copies
@@ -13,7 +14,9 @@ import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-config({ path: resolve(__dirname, "../../.env") });
+// ENV_FILE lets you point at a one-off env file (e.g. production values kept
+// outside the project) without changing portal-api/.env.
+config({ path: process.env.ENV_FILE ? resolve(process.env.ENV_FILE) : resolve(__dirname, "../../.env") });
 
 const { default: mongoose } = await import("mongoose");
 const { connectDB } = await import("../config/db.js");
@@ -36,7 +39,8 @@ function keyFromUrl(url) {
 }
 
 async function main() {
-  assertSafeTarget();
+  // A dry run only reads; applying changes is a write.
+  assertSafeTarget({ readOnly: !APPLY });
   if (!process.env.AWS_S3_BUCKET || !privateBucket()) {
     throw new Error("Set AWS_S3_BUCKET (and preferably AWS_S3_PRIVATE_BUCKET) first.");
   }

@@ -23,3 +23,19 @@ test("scripts run against a local database", () => {
   assert.equal(r.status, 0);
   assert.match(r.stdout, /ran/);
 });
+
+const runEnv = (uri, extraEnv, args = []) =>
+  spawnSync(process.execPath, ["--input-type=module", "-e", `import { assertSafeTarget } from ${JSON.stringify(guard)}; assertSafeTarget(); console.log("ran");`, "--", ...args], {
+    env: { ...process.env, MONGO_URI: uri, ...extraEnv },
+    encoding: "utf8",
+  });
+
+test("a remote database declared as staging is allowed", () => {
+  const r = runEnv("mongodb+srv://u:p@staging.example.mongodb.net/db", { DB_ENVIRONMENT: "staging" });
+  assert.equal(r.status, 0);
+});
+
+test("production is refused even with --allow-remote", () => {
+  const r = runEnv("mongodb+srv://u:p@prod.example.mongodb.net/db", { DB_ENVIRONMENT: "production" }, ["--allow-remote"]);
+  assert.equal(r.status, 2);
+});
