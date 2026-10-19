@@ -1,5 +1,5 @@
 // src/App.js
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -89,6 +89,12 @@ function Content() {
     "/greetings",
     "/vendor-registration",
   ];
+  // Lets global CSS target the public website only (menus render in a portal
+  // on <body>, outside the App div).
+  useEffect(() => {
+    document.body.dataset.surface = isPortal ? "portal" : "site";
+  }, [isPortal]);
+
   const shouldHideHeader =
     hideHeaderRoutes.includes(location.pathname) || isPortal;
 

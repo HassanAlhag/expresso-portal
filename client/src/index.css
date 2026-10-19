@@ -57,6 +57,45 @@ html {
   height: 100%;
 }
 
+:root {
+  /* Expresso brand tokens — keep in sync with tailwind.config.js */
+  --ex-lotus-50: #f4f5fb;
+  --ex-lotus-100: #e8eaf6;
+  --ex-lotus-200: #ced3ec;
+  --ex-lotus-300: #a9b1dd;
+  --ex-lotus-400: #8390c8; /* logo colour: fills, dark-surface accents */
+  --ex-lotus-500: #6c79bc;
+  --ex-lotus-600: #5562a8; /* text, links and actions on light surfaces */
+  --ex-lotus-700: #444f8a;
+  --ex-lotus-800: #333b68;
+  --ex-lotus-900: #22274a;
+  --ex-espresso: #562d0f;
+  --ex-sand: #f8f4ef;
+  --ex-night: #15121f;
+  --ex-mist: #f7f7fa;
+  --ex-ink-600: #4b4757;
+  --ex-ink-500: #6b6776;
+  --ex-ink-200: #e4e2e8;
+  --ex-focus: 0 0 0 2px #ffffff, 0 0 0 4px var(--ex-lotus-600);
+}
+
+/* Consistent keyboard focus across the public website (portal has its own) */
+body[data-surface="site"] :where(a, button, [role="button"], input, select, textarea):focus-visible {
+  outline: 2px solid var(--ex-lotus-400);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 body {
   overflow-x: hidden;
   margin: 0;
