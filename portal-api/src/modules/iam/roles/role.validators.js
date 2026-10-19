@@ -21,6 +21,12 @@ export function validateCreateRole(body = {}) {
 
   if (!key) return { ok: false, message: "key is required" };
   if (!label) return { ok: false, message: "label is required" };
+  if (typeof body.isInternal !== "boolean") {
+    return {
+      ok: false,
+      message: "isInternal is required: true for an Expresso team role, false for a client or vendor role",
+    };
+  }
 
   return {
     ok: true,
@@ -29,6 +35,7 @@ export function validateCreateRole(body = {}) {
       label,
       description,
       permissions,
+      isInternal: body.isInternal,
     },
   };
 }
@@ -42,6 +49,12 @@ export function validateUpdateRole(body = {}) {
     patch.description = String(body.description || "").trim();
   if ("permissions" in body)
     patch.permissions = normalizePermissions(body.permissions);
+  if ("isInternal" in body) {
+    if (typeof body.isInternal !== "boolean") {
+      return { ok: false, message: "isInternal must be true or false" };
+    }
+    patch.isInternal = body.isInternal;
+  }
 
   if ("key" in patch && !patch.key) {
     return { ok: false, message: "key cannot be empty" };

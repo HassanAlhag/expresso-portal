@@ -1,6 +1,6 @@
 import User from "../modules/iam/users/user.model.js";
 import { verifyToken } from "../utils/jwt.js";
-import { resolvePermissions } from "../utils/resolvePermissions.js";
+import { resolveRoleContext } from "../utils/roleRegistry.js";
 
 function getBearerToken(req) {
   const h = req.headers.authorization || "";
@@ -33,11 +33,12 @@ export async function requireAuth(req, res, next) {
     }
 
     // Resolve effective permissions: role defaults + extra - revoked
-    const effectivePermissions = await resolvePermissions(
-      user.role,
-      user.extraPermissions || [],
-      user.revokedPermissions || []
-    );
+    const { permissions: effectivePermissions, isInternal } =
+      await resolveRoleContext(
+        user.role,
+        user.extraPermissions || [],
+        user.revokedPermissions || []
+      );
 
     req.user = {
       id: String(user._id),
@@ -46,6 +47,7 @@ export async function requireAuth(req, res, next) {
       role: user.role,
       clientId: user.clientId ? String(user.clientId) : null,
       permissions: effectivePermissions,
+      isInternal,
       isActive: user.isActive !== false,
     };
 

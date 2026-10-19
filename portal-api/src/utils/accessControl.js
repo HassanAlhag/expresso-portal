@@ -1,36 +1,32 @@
-const INTERNAL_ROLES = new Set([
-  "super_admin",
-  "admin",
-  "operations_manager",
-  "finance",
-  "procurement_manager",
-  "procurement_officer",
-  "project_manager",
-  "staff",
-  "hr_management",
-]);
-
-const EXTERNAL_CLIENT_ROLES = new Set([
-  "client",
-  "staff_client",
-  "procurement_client",
-  "client_admin",
-]);
+import {
+  SYSTEM_CLIENT_ROLES,
+  isSystemInternalRole,
+  normalizeRoleKey,
+} from "./roleRegistry.js";
 
 export function normalizeRole(role) {
-  return String(role || "").trim().toLowerCase();
+  return normalizeRoleKey(role);
 }
 
+/**
+ * Role-key-only classification (no DB). Prefer canSeeAllTenantRecords(req),
+ * which uses the resolved req.user.isInternal flag set by requireAuth.
+ */
 export function isInternalRole(role) {
-  return INTERNAL_ROLES.has(normalizeRole(role));
+  return isSystemInternalRole(role);
 }
 
 export function isExternalClientRole(role) {
-  return EXTERNAL_CLIENT_ROLES.has(normalizeRole(role));
+  return SYSTEM_CLIENT_ROLES.has(normalizeRoleKey(role));
+}
+
+export function isInternalUser(req) {
+  if (typeof req?.user?.isInternal === "boolean") return req.user.isInternal;
+  return isSystemInternalRole(req?.user?.role);
 }
 
 export function canSeeAllTenantRecords(req) {
-  return isInternalRole(req.user?.role);
+  return isInternalUser(req);
 }
 
 export function getUserClientId(req) {

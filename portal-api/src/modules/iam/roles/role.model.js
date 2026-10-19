@@ -29,6 +29,17 @@ const RoleSchema = new mongoose.Schema(
       default: [],
     },
 
+    /**
+     * true  = Expresso team role (sees all clients' records)
+     * false = external role (client / vendor); limited to own clientId and
+     *         never granted internal-only permissions.
+     * Unset on older documents: system roles fall back to the code registry,
+     * custom roles are treated as external until an admin sets this.
+     */
+    isInternal: {
+      type: Boolean,
+    },
+
     isSystem: {
       type: Boolean,
       default: false,

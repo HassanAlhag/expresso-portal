@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import User from "../users/user.model.js";
 import { signToken } from "../../../utils/jwt.js";
-import { resolvePermissions } from "../../../utils/resolvePermissions.js";
+import { resolveRoleContext } from "../../../utils/roleRegistry.js";
 import { sendMail } from "../../../utils/email.js";
 import { env } from "../../../config/env.js";
 
@@ -23,7 +23,7 @@ function buildTokenPayload(user) {
   return { id: user._id.toString(), role: user.role };
 }
 
-function buildUserPayload(user, permissions = []) {
+function buildUserPayload(user, permissions = [], isInternal = false) {
   return {
     _id:               user._id,
     fullName:          user.fullName,
@@ -39,6 +39,7 @@ function buildUserPayload(user, permissions = []) {
     phone:             user.phone || "",
     notes:             user.notes || "",
     permissions,
+    isInternal,
     extraPermissions:  user.extraPermissions  || [],
     revokedPermissions: user.revokedPermissions || [],
   };
@@ -73,7 +74,7 @@ export async function login(req, res) {
     user.lastLoginAt = new Date();
     await user.save({ validateBeforeSave: false });
 
-    const permissions = await resolvePermissions(
+    const { permissions, isInternal } = await resolveRoleContext(
       user.role,
       user.extraPermissions || [],
       user.revokedPermissions || []
@@ -82,7 +83,7 @@ export async function login(req, res) {
     return res.json({
       ok: true,
       token: signToken(buildTokenPayload(user)),
-      user: buildUserPayload(user, permissions),
+      user: buildUserPayload(user, permissions, isInternal),
     });
   } catch (err) {
     console.error("login error:", err);
@@ -160,7 +161,7 @@ export async function googleLogin(req, res) {
     user.lastLoginAt = new Date();
     await user.save({ validateBeforeSave: false });
 
-    const permissions = await resolvePermissions(
+    const { permissions, isInternal } = await resolveRoleContext(
       user.role,
       user.extraPermissions || [],
       user.revokedPermissions || []
@@ -169,7 +170,7 @@ export async function googleLogin(req, res) {
     return res.json({
       ok: true,
       token: signToken(buildTokenPayload(user)),
-      user: buildUserPayload(user, permissions),
+      user: buildUserPayload(user, permissions, isInternal),
     });
   } catch (err) {
     console.error("googleLogin error:", err);
@@ -192,7 +193,7 @@ export async function me(req, res) {
     // req.user.permissions is already resolved by requireAuth middleware
     return res.json({
       ok: true,
-      user: buildUserPayload(user, req.user?.permissions || []),
+      user: buildUserPayload(user, req.user?.permissions || [], req.user?.isInternal === true),
     });
   } catch (err) {
     console.error("me error:", err);

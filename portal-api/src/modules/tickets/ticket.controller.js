@@ -6,8 +6,8 @@ function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function isAdmin(role) {
-  return canSeeAllTenantRecords({ user: { role } });
+function isAdmin(req) {
+  return canSeeAllTenantRecords(req);
 }
 
 function externalTicketFilter(req) {
@@ -17,7 +17,7 @@ function externalTicketFilter(req) {
 }
 
 function canAccessTicket(req, ticket) {
-  if (isAdmin(req.user.role)) return true;
+  if (isAdmin(req)) return true;
   const clientId = getUserClientId(req);
   if (clientId && String(ticket.customerId || "") === clientId) return true;
   return String(ticket.clientId) === String(req.user.id);
@@ -51,7 +51,7 @@ const ALLOWED_STATUSES = new Set([
 export async function getTicketStats(req, res) {
   try {
     const baseFilter = {};
-    if (!isAdmin(req.user.role)) Object.assign(baseFilter, externalTicketFilter(req));
+    if (!isAdmin(req)) Object.assign(baseFilter, externalTicketFilter(req));
 
     const [byStatus, byPriority, byType, overdue] = await Promise.all([
       Ticket.aggregate([
@@ -109,7 +109,7 @@ export async function listTickets(req, res) {
     const limitNum = Math.min(200, Math.max(1, parseInt(limit, 10) || 20));
     const filter = {};
 
-    if (!isAdmin(req.user.role)) Object.assign(filter, externalTicketFilter(req));
+    if (!isAdmin(req)) Object.assign(filter, externalTicketFilter(req));
 
     if (status && status !== "all") filter.status = status;
     if (category) filter.category = category;
@@ -117,7 +117,7 @@ export async function listTickets(req, res) {
     if (type) filter.type = type;
     if (slaLevel) filter.slaLevel = slaLevel;
 
-    if (isAdmin(req.user.role)) {
+    if (isAdmin(req)) {
       if (oid(customerId)) filter.customerId = customerId;
       if (oid(projectId)) filter.projectId = projectId;
       if (assigneeId === "unassigned") filter.assigneeId = null;
@@ -192,7 +192,7 @@ export async function createTicket(req, res) {
       return res.status(400).json({ ok: false, message: "title and description are required" });
     }
 
-    const admin = isAdmin(req.user.role);
+    const admin = isAdmin(req);
     const resolvedCustomerId = admin ? oid(customerId) : oid(req.user?.clientId);
 
     const doc = await Ticket.create({
@@ -244,7 +244,7 @@ export async function getTicket(req, res) {
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
     // Hide internal comments from clients
-    if (!isAdmin(req.user.role)) {
+    if (!isAdmin(req)) {
       ticket.comments = (ticket.comments || []).filter((c) => c.visibility !== "internal");
     }
 
@@ -265,7 +265,7 @@ export async function updateTicket(req, res) {
     const ticket = await Ticket.findById(id);
     if (!ticket) return res.status(404).json({ ok: false, message: "Not found" });
 
-    const admin = isAdmin(req.user.role);
+    const admin = isAdmin(req);
     if (!canAccessTicket(req, ticket))
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
@@ -327,7 +327,7 @@ export async function addComment(req, res) {
     const ticket = await Ticket.findById(id);
     if (!ticket) return res.status(404).json({ ok: false, message: "Not found" });
 
-    const admin = isAdmin(req.user.role);
+    const admin = isAdmin(req);
     if (!canAccessTicket(req, ticket))
       return res.status(403).json({ ok: false, message: "Forbidden" });
 
@@ -357,7 +357,7 @@ export async function updateStatus(req, res) {
     const { id } = req.params;
     const { status, resolution } = req.body || {};
 
-    if (!isAdmin(req.user.role))
+    if (!isAdmin(req))
       return res.status(403).json({ ok: false, message: "Forbidden" });
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
@@ -395,7 +395,7 @@ export async function approveTicket(req, res) {
     const { id } = req.params;
     const { decision, note } = req.body || {};
 
-    if (!isAdmin(req.user.role))
+    if (!isAdmin(req))
       return res.status(403).json({ ok: false, message: "Forbidden" });
     if (!["approved", "rejected"].includes(decision))
       return res.status(400).json({ ok: false, message: "decision must be approved or rejected" });
