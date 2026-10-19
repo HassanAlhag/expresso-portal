@@ -177,13 +177,22 @@ function StatusChip({ status }) {
 
 /* ─── pipeline bar ──────────────────────────────────────────────────── */
 
+// Grouped from the real Job statuses (portal-api job.constants.js). The old
+// keys (todo/shoot/uploaded/review) no longer exist, so every bar read 0 (B3).
 const STAGES = [
-  { key: "todo", label: "To Do", color: "#cbd5e1" },
-  { key: "shoot", label: "Shoot", color: "#3b82f6" },
-  { key: "uploaded", label: "Uploaded", color: "#8b5cf6" },
-  { key: "review", label: "Review", color: "#f59e0b" },
-  { key: "delivered", label: "Delivered", color: "#10b981" },
+  { key: "planning", label: "Planning", color: "#cbd5e1", statuses: ["brief", "content_ready", "script", "pre_production"] },
+  { key: "production", label: "In production", color: "#3b82f6", statuses: ["designing", "shooting", "editing"] },
+  { key: "review", label: "In review", color: "#f59e0b", statuses: ["internal_review", "client_review"] },
+  { key: "ready", label: "Approved / scheduled", color: "#8b5cf6", statuses: ["approved", "scheduled"] },
+  { key: "delivered", label: "Delivered", color: "#10b981", statuses: ["published", "delivered"] },
 ];
+
+const STAGE_OF_STATUS = Object.fromEntries(
+  STAGES.flatMap((s) => s.statuses.map((status) => [status, s.key]))
+);
+const REVIEW_STATUSES = new Set(["internal_review", "client_review"]);
+const IN_PROGRESS_STATUSES = new Set(["script", "pre_production", "designing", "shooting", "editing"]);
+const DELIVERED_STATUSES = new Set(["published", "delivered"]);
 
 function PipelineBar({ jobs }) {
   const counts = useMemo(() => {
@@ -192,8 +201,8 @@ function PipelineBar({ jobs }) {
       m[s.key] = 0;
     });
     jobs.forEach((j) => {
-      const k = (j.status || "todo").toLowerCase();
-      if (k in m) m[k]++;
+      const k = STAGE_OF_STATUS[String(j.status || "").toLowerCase()];
+      if (k) m[k]++;
     });
     return m;
   }, [jobs]);
@@ -472,16 +481,29 @@ function ClientDashboard({ nav }) {
         const now = new Date();
         const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
         const lastDay  = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
-        const [t, p, e, j] = await Promise.all([
-          listTickets({ limit: 50, page: 1 }),
-          clientId ? listProjects({ customerId: clientId, status: "active", limit: 10 }) : Promise.resolve({ items: [] }),
-          clientId ? listEnrollments({ customerId: clientId, status: "active", limit: 1 }) : Promise.resolve({ items: [] }),
-          clientId ? listJobs({ customerId: clientId, dueDateFrom: firstDay, dueDateTo: lastDay, limit: 200 }) : Promise.resolve({ items: [] }),
+        // Only call endpoints this user may use, and let each widget fail on
+        // its own: one 403 used to blank the whole client dashboard (B7).
+        const perms = new Set(
+          (() => {
+            try {
+              return JSON.parse(localStorage.getItem("portal_permissions") || "[]");
+            } catch {
+              return [];
+            }
+          })()
+        );
+        const empty = Promise.resolve({ items: [] });
+        const [t, p, e, j] = await Promise.allSettled([
+          perms.has("tickets.read") ? listTickets({ limit: 50, page: 1 }) : empty,
+          clientId && perms.has("projects.read") ? listProjects({ customerId: clientId, status: "active", limit: 10 }) : empty,
+          clientId && perms.has("enrollments.read") ? listEnrollments({ customerId: clientId, status: "active", limit: 1 }) : empty,
+          clientId && perms.has("jobs.read") ? listJobs({ customerId: clientId, dueDateFrom: firstDay, dueDateTo: lastDay, limit: 200 }) : empty,
         ]);
-        setTickets(t?.items || []);
-        setProjects(p?.items || []);
-        setEnrollment((e?.items || [])[0] || null);
-        setMonthJobs(j?.items || []);
+        const items = (r) => (r.status === "fulfilled" ? r.value?.items || [] : []);
+        setTickets(items(t));
+        setProjects(items(p));
+        setEnrollment(items(e)[0] || null);
+        setMonthJobs(items(j));
       } finally {
         setLoading(false);
       }
@@ -943,15 +965,15 @@ export default function DashboardPage() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const approvals = useMemo(
-    () => jobs.filter((x) => x.status === "review"),
+    () => jobs.filter((x) => REVIEW_STATUSES.has(x.status)),
     [jobs]
   );
   const inProgress = useMemo(
-    () => jobs.filter((x) => ["shoot", "uploaded"].includes(x.status)),
+    () => jobs.filter((x) => IN_PROGRESS_STATUSES.has(x.status)),
     [jobs]
   );
   const delivered = useMemo(
-    () => jobs.filter((x) => x.status === "delivered"),
+    () => jobs.filter((x) => DELIVERED_STATUSES.has(x.status)),
     [jobs]
   );
   const openTickets = useMemo(
