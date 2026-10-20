@@ -107,6 +107,19 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- DIGITAL SOLUTIONS (software built by Expresso) -->
+  <url>
+    <loc>https://www.expressodigital.ae/digital-solutions</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.expressodigital.ae/digital-solutions/cas</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- PORTFOLIO BASE PAGE (dynamic details not added) -->
   <url>
     <loc>https://www.expressodigital.ae/portfolio/detail</loc>

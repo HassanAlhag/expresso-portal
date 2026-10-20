@@ -195,7 +195,7 @@ export default function MegaPanel({ menu }) {
       className={`grid overflow-hidden rounded-[22px] bg-white text-night shadow-[0_30px_80px_rgba(0,0,0,0.45)] ${columns}`}
     >
       <ContextPanel context={menu.context} />
-      {menu.featured ? (
+      {menu.featured?.length ? (
         <Featured items={menu.featured} />
       ) : (
         <Groups groups={menu.groups} emptyText={menu.emptyText} />

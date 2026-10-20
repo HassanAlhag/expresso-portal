@@ -105,7 +105,7 @@ const Footer = () => {
                   <FooterLink to="/about-us">About Us</FooterLink>
                   <FooterLink to="/portfolio">Portfolio</FooterLink>
                   <FooterLink to="/case-studies">Case Studies</FooterLink>
-                  <FooterLink to="/products/cas">CAS — Our Product</FooterLink>
+                  <FooterLink to="/digital-solutions">Digital Solutions</FooterLink>
                   <FooterLink to="/contact-us">Contact</FooterLink>
                 </ul>
               </div>

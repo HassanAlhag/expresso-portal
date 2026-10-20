@@ -3,12 +3,11 @@
 //   Our Work · Work With Us   (+ Client Portal; the logo links Home)
 // One source for the desktop mega menu and the mobile drawer.
 import { useEffect, useState } from "react";
-import { CAS_PRODUCT } from "../../data/casProduct";
 
 const API = process.env.REACT_APP_API_URL || "/api";
 
 // ---- CMS data (cached for the session) -------------------------------------
-const cache = { services: null, solutions: null };
+const cache = { services: null, solutions: null, digital: null };
 const inflight = {};
 
 function load(kind, path) {
@@ -31,15 +30,24 @@ function load(kind, path) {
 export function useCmsNavData() {
   const [services, setServices] = useState(cache.services || []);
   const [solutions, setSolutions] = useState(cache.solutions || []);
+  const [digital, setDigital] = useState(cache.digital || []);
+  // Distinguishes "still loading" from "loaded, nothing published yet".
+  const [digitalLoaded, setDigitalLoaded] = useState(cache.digital !== null);
   useEffect(() => {
     let alive = true;
     load("services", "/web-content/services").then((x) => alive && setServices(x));
+    // Technology Solutions: the API default excludes kind "digital".
     load("solutions", "/web-content/solutions").then((x) => alive && setSolutions(x));
+    load("digital", "/web-content/solutions?kind=digital").then((x) => {
+      if (!alive) return;
+      setDigital(x);
+      setDigitalLoaded(true);
+    });
     return () => {
       alive = false;
     };
   }, []);
-  return { services, solutions };
+  return { services, solutions, digital, digitalLoaded };
 }
 
 // ---- Digital Services grouping (Build · Grow · Create) ----------------------
@@ -69,7 +77,55 @@ function groupServices(services) {
 }
 
 // ---- Menus -------------------------------------------------------------------
-export function buildMenus({ services = [], solutions = [] } = {}) {
+// Digital Solutions: CMS Solution records with kind "digital".
+function digitalFeatured(digital) {
+  return digital.map((p) => ({
+    title: p.subtitle ? `${p.title} — ${p.subtitle}` : p.title,
+    desc: p.tagline || p.description,
+    to: `/digital-solutions/${p.slug}`,
+    badge: p.badge || "Built by Expresso",
+    cta: p.ctaLabel || `Explore ${p.title}`,
+  }));
+}
+
+function digitalAction(digital) {
+  const withDemo = digital.find((p) => p.demoCtaHref);
+  return {
+    tone: "lotus",
+    eyebrow: "See it working",
+    title: "Request a demo",
+    text: withDemo
+      ? `A walkthrough of ${withDemo.title} with the Expresso team.`
+      : "A walkthrough of our software with the Expresso team.",
+    primary: {
+      to: withDemo?.demoCtaHref || "/contact-us?interest=digital-solutions",
+      label: withDemo?.demoCtaLabel || "Request a demo",
+    },
+  };
+}
+
+// Shown when the CMS has no published Digital Solution (or the API is down):
+// the menu still leads somewhere useful instead of "Loading…" forever.
+const DIGITAL_FALLBACK_GROUPS = [
+  {
+    label: "Digital Solutions",
+    columns: 1,
+    items: [
+      {
+        title: "See our Digital Solutions",
+        desc: "Software designed, built and owned by Expresso",
+        to: "/digital-solutions",
+      },
+    ],
+  },
+];
+
+export function buildMenus({
+  services = [],
+  solutions = [],
+  digital = [],
+  digitalLoaded = false,
+} = {}) {
   return [
     {
       key: "about",
@@ -131,33 +187,20 @@ export function buildMenus({ services = [], solutions = [] } = {}) {
     {
       key: "digital-solutions",
       text: "Digital Solutions",
-      // Stage 2 introduces the /digital-solutions listing; until then the
-      // menu heading opens the existing CAS page.
-      href: CAS_PRODUCT.to,
-      match: ["/products/", "/digital-solutions"],
+      href: "/digital-solutions",
+      match: ["/digital-solutions", "/products/"],
       width: 900,
       context: {
         eyebrow: "Digital Solutions",
         title: "Software Expresso designs, builds and owns.",
         text: "Products built by our team — not resold, not white-labelled.",
         mark: true,
+        link: { to: "/digital-solutions", label: "All digital solutions" },
       },
-      featured: [
-        {
-          title: `${CAS_PRODUCT.name} — ${CAS_PRODUCT.fullName}`,
-          desc: CAS_PRODUCT.shortDescription,
-          to: CAS_PRODUCT.to,
-          badge: "Built by Expresso",
-          cta: CAS_PRODUCT.ctaLabel,
-        },
-      ],
-      action: {
-        tone: "lotus",
-        eyebrow: "See it working",
-        title: "Request a demo",
-        text: "A walkthrough of CAS for your clinic, with the Expresso team.",
-        primary: { to: CAS_PRODUCT.demoHref, label: CAS_PRODUCT.demoCtaLabel },
-      },
+      featured: digitalFeatured(digital),
+      groups: digitalLoaded && !digital.length ? DIGITAL_FALLBACK_GROUPS : [],
+      emptyText: "Loading solutions…",
+      action: digitalAction(digital),
     },
     {
       key: "technology",
