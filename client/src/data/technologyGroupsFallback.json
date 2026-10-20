@@ -1,0 +1,26 @@
+[
+  {
+    "id": "business-software",
+    "label": "Business Software",
+    "description": "Systems to connect your teams, customers and day-to-day operations.",
+    "legacySlugs": ["erp-solution", "crm-solution", "queue-management", "software-licensing"]
+  },
+  {
+    "id": "cloud-hosting",
+    "label": "Cloud & Hosting",
+    "description": "Cloud services, hosting and domains to keep your business online.",
+    "legacySlugs": ["cloud-services", "web-hosting-domains"]
+  },
+  {
+    "id": "infrastructure",
+    "label": "Infrastructure",
+    "description": "Data centers, hardware and networks that support your business.",
+    "legacySlugs": ["data-center", "data-center-hardware", "networking-hardware"]
+  },
+  {
+    "id": "connectivity-advisory",
+    "label": "Connectivity & Advisory",
+    "description": "Connected technology and expert guidance for your next step.",
+    "legacySlugs": ["iot-solutions", "vas-solutions", "it-consultation"]
+  }
+]

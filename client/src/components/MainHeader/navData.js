@@ -16,8 +16,12 @@ function load(kind, path) {
   if (cache[kind]) return Promise.resolve(cache[kind]);
   if (!inflight[kind]) {
     inflight[kind] = fetch(`${API}${path}`)
-      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((r) => {
+        if (!r.ok) throw new Error("Unable to load navigation content");
+        return r.json();
+      })
       .then((d) => {
+        if (d?.ok === false || !Array.isArray(d?.items)) throw new Error("Invalid navigation response");
         if (kind === "solutions") cache.solutionGroups = Array.isArray(d?.groups) ? d.groups : [];
         cache[kind] = Array.isArray(d?.items) ? d.items : [];
         return cache[kind];
@@ -38,16 +42,23 @@ export function useCmsNavData() {
   const [digitalLoaded, setDigitalLoaded] = useState(cache.digital !== null);
   useEffect(() => {
     let alive = true;
-    load("services", "/web-content/services").then((x) => alive && setServices(x));
-    // Technology Solutions: the API default excludes kind "digital".
-    load("solutions", "/web-content/solutions").then((x) => alive && setSolutions(x));
-    load("digital", "/web-content/solutions?kind=digital").then((x) => {
-      if (!alive) return;
-      setDigital(x);
-      setDigitalLoaded(true);
-    });
+    const refresh = () => {
+      load("services", "/web-content/services").then((x) => alive && setServices(x));
+      // Technology Solutions: the API default excludes kind "digital".
+      load("solutions", "/web-content/solutions").then((x) => alive && setSolutions(x));
+      load("digital", "/web-content/solutions?kind=digital").then((x) => {
+        if (!alive) return;
+        setDigital(x);
+        setDigitalLoaded(true);
+      });
+    };
+    refresh();
+    // Retry uncached failures when returning to the site; successful reads and
+    // in-flight requests remain shared by the desktop and mobile subscribers.
+    window.addEventListener("focus", refresh);
     return () => {
       alive = false;
+      window.removeEventListener("focus", refresh);
     };
   }, []);
   return { services, solutions, solutionGroups: cache.solutionGroups, digital, digitalLoaded };

@@ -71,6 +71,15 @@ test("technology navigation uses the API groups and existing detail URLs", () =>
   expect(menu.action.secondary.to).toBe("/portal/login");
 });
 
+test("legacy technology navigation has the four approved groups even when API metadata is missing", () => {
+  const slugs = ["erp-solution", "crm-solution", "queue-management", "software-licensing", "cloud-services", "web-hosting-domains", "data-center", "data-center-hardware", "networking-hardware", "iot-solutions", "vas-solutions", "it-consultation"];
+  const menu = techMenu({ solutions: [...slugs.map((slug) => ({ slug, title: slug })), CAS] });
+  expect(menu.groups.map(({ label }) => label)).toEqual(["Business Software", "Cloud & Hosting", "Infrastructure", "Connectivity & Advisory"]);
+  expect(menu.groups.map(({ items }) => items.length)).toEqual([4, 2, 3, 3]);
+  expect(menu.groups.flatMap(({ items }) => items.map(({ to }) => to))).not.toContain("/it-solutions/cas");
+  expect(menu.action.primary.to).toBe("/vendor-registration");
+});
+
 test("Work With Us keeps the approved client, vendor and talent journeys", () => {
   const menu = buildMenus().find(({ key }) => key === "work-with-us");
   expect(menu.groups.map(({ label }) => label)).toEqual(["As a client", "As a vendor", "As talent"]);
@@ -96,8 +105,18 @@ test("Strict Mode navigation consumers share requests without cleanup canceling 
     await act(async () => {
       for (const [url, resolve] of pending) {
         const items = url.includes("kind=digital") ? [CAS] : [{ title: "Shared ERP", slug: "erp-solution" }];
-        resolve({ ok: true, json: async () => ({ items, groups: [] }) });
+        resolve(url.endsWith("/solutions")
+          ? { ok: false, status: 503 }
+          : { ok: true, json: async () => ({ items, groups: [] }) });
       }
+    });
+    expect(result.current.solutions).toEqual([]);
+    // A startup/API failure must not become a permanent empty menu cache.
+    act(() => { window.dispatchEvent(new Event("focus")); });
+    expect(global.fetch).toHaveBeenCalledTimes(4);
+    await act(async () => {
+      const resolve = [...pending].find(([url]) => url.endsWith("/solutions"))[1];
+      resolve({ ok: true, json: async () => ({ items: [{ title: "Shared ERP", slug: "erp-solution" }] }) });
     });
     expect(result.current.solutions[0].title).toBe("Shared ERP");
     expect(result.current.digital).toEqual([CAS]);

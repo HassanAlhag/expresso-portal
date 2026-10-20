@@ -138,3 +138,43 @@ Local preview scripts, screenshots and browser results are ignored in
 `.codex-artifacts/stage3/`. The CMS selector and API persistence were validated
 without a live database; an authenticated database-backed editor session was not
 exercised.
+
+## Integrated real-API verification — 2026-10-20
+
+The old 3003 fixture process is stopped. Review the integrated site at
+<http://localhost:3000/it-solutions>, backed by the real local API at
+<http://localhost:5050/api/web-content/solutions>.
+
+The original Stage 3 build and the integrated technology menu were compared in
+the browser. With the current real API, their menu DOM and links are identical:
+1140px panel, outer columns 240px / 620px / 280px, and two 278px group columns.
+The technology layout, CSS and vendor panel were not lost during integration.
+The current API returns the same four group definitions and twelve title/slug/
+subtitle/group combinations as the old fixture. Existing CMS item order is kept.
+
+The fixture always synthesized `group` and `groups`; it therefore concealed a
+client compatibility gap. Before this fix, omitting that metadata collapsed all
+legacy items under “More Technology Solutions.” That failure was reproduced in
+the browser using actual local API items with only group metadata stripped.
+Separately, failed HTTP navigation requests were cached as an empty success for
+the session. These confirmed defects explain how an old/failed response could
+leave a different menu; the earlier response in the user's session is unavailable,
+and a fresh real-API load already rendered correctly at inspection time.
+
+The integrated client now uses approved read-only taxonomy/slug defaults only
+when API metadata or legacy assignments are absent. API labels and explicit CMS
+assignments win. No cards are invented, unknown records remain available, inactive
+records stay hidden, and digital records never enter technology groups. Failed
+or invalid navigation responses are not cached; returning focus retries uncached
+reads. The shared request and lifecycle guards remain intact.
+
+Verified on the real frontend/API: desktop and mobile groups (4 / 2 / 3 / 3 items),
+the grouped landing page, vendor registration links and existing form, ERP detail,
+Digital Solutions menu, and direct CAS route. The local API currently returns no
+published digital records, so its existing Digital Solutions landing-page fallback
+remains correct; CAS was not inserted or hard-coded into either menu.
+
+Validation: 27 client tests passed; lint had no errors and one existing warning;
+production build passed. The new build also reproduced the original Stage 3 menu
+DOM when consuming real API items stripped of group metadata. No database writes,
+seeds, API/configuration changes or Stage 4 visual work were performed.
