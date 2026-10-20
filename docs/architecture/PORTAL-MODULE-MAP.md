@@ -104,11 +104,11 @@ Source: [client/src/portal/features/enrollments](../../client/src/portal/feature
 | Frontend routes | /portal/projects; /portal/projects/:id |
 | API groups | /api/projects and /stats |
 | Models | Project; Customer; Enrollment; User |
-| Authorization | projects.read/write/delete; reads/updates use tenant helpers; create-scope gap is documented in RBAC map |
-| States / workflow | draft/planned/active/on_hold/in_review/completed/archived/cancelled are UI/code conventions, stored as strings; DELETE archives. |
+| Authorization | projects.read/write/delete; list and detail reads check the company, but create, update (including customerId reassignment) and delete do not — see RBAC map and remediation P0-2 |
+| States / workflow | draft/planned/active/on_hold/in_review/completed/archived/cancelled are UI/code conventions, stored as strings. Archiving is PATCH status=archived; DELETE (controller archiveProject) permanently deletes the project and leaves linked jobs, invoices, files and tickets orphaned (remediation P2-4). |
 | Other modules | Jobs, files, invoices and enrollment links share projectId; pre_contract/contracted/custom/internal modes. |
 | Files / notifications | Project files use File/privateStorage; no automated project update email found. |
-| Assessment | Active; creation needs conditional cross-tenant review for externally granted projects.write. |
+| Assessment | Active; create/update/delete lack company checks for externally granted projects.write/delete (P0-2) and DELETE is a hard delete (P2-4). |
 
 Source: [client/src/portal/features/projects](../../client/src/portal/features/projects).
 
@@ -210,7 +210,7 @@ Source: [client/src/portal/features/files](../../client/src/portal/features/file
 | States / workflow | draft/sent/paid/overdue/void; payments recompute amountPaid/balance via model save hook. |
 | Other modules | Connects to customer/project/enrollment; no Payment collection or accounting ledger integration. Expenses are a separate HR workflow. |
 | Files / notifications | Invoice uploads are URL descriptors; no payment gateway, invoice-send email service or automatic overdue scheduler found. |
-| Assessment | Active manual finance workflow; billing.delete is catalog-only and invoice number allocation needs concurrency review. |
+| Assessment | Active manual finance workflow; billing.delete is catalog-only. Invoice numbers are last-number + 1 on a unique field, so simultaneous creation fails with an error rather than duplicating (P2-3). |
 
 Source: [client/src/portal/features/billing](../../client/src/portal/features/billing).
 
@@ -359,7 +359,7 @@ Source: [client/src/portal/features/careers](../../client/src/portal/features/ca
 | Frontend routes | /portal/tickets; /portal/tickets/:id |
 | API groups | /api/tickets; /stats; /:id/comments; /:id/status; /:id/approve |
 | Models | Ticket; Customer; Project; User |
-| Authorization | tickets.read/write/delete plus actor/visibility/tenant checks |
+| Authorization | tickets.read/write/delete plus actor/visibility/tenant checks; DELETE has no company check (P0-2) |
 | States / workflow | open/in_progress/waiting_client/waiting_vendor/in_review/escalated/resolved/closed; change request approval pending/approved/rejected. |
 | Other modules | Connects customers/projects/users, with embedded comments and legacy clientId referring to User, not Customer. |
 | Files / notifications | Attachments are embedded URL metadata; internal/client comment visibility; no automatic ticket email service found. |

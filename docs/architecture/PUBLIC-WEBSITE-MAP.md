@@ -55,4 +55,4 @@ API prefixes in this table are relative to `/api`. Controller files: [web-conten
 
 The static sitemap now lists 34 canonical public paths and excludes portal/auth/vendor/thank-you workflows. It is not generated from live CMS publication: future slugs require an update, and a database wipe can leave indexed detail URLs without content. Missing approved legal/social content is a content decision, not a reason to invent routes or seed data.
 
-CMS editing is not proof of server publication safety: public inactive/detail queries and Portfolio/Production read filters require review in [API map](API-MAP.md). The blueprint describes current code, not a verified set of currently published records.
+CMS editing is not proof of server publication safety. Confirmed: public Portfolio and Production reads accept `status=draft`, Services/Solutions lists accept `includeInactive`, and their slug details ignore status ([remediation P0-1](REMEDIATION-PLAN.md)). Homepage slides, careers, homepage reels and procurement categories already filter server-side. See also [API map](API-MAP.md). The blueprint describes current code, not a verified set of currently published records.

@@ -19,7 +19,7 @@ const c = inv.counts;
 // 2. Required deliverables exist.
 const required = ['README.md', 'SYSTEM-ARCHITECTURE.md', 'PUBLIC-WEBSITE-MAP.md', 'PORTAL-MODULE-MAP.md', 'DATABASE-MAP.md',
   'RBAC-MAP.md', 'API-MAP.md', 'API-ENDPOINTS.md', 'USER-FLOWS.md', 'CODE-CLEANUP-AUDIT.md', 'DATABASE-RESET-PLAN.md',
-  'EXPRESSO-SYSTEM-BLUEPRINT.html', 'collection-classification.json', 'module-catalog.json'];
+  'EXPRESSO-SYSTEM-BLUEPRINT.html', 'collection-classification.json', 'module-catalog.json', 'REMEDIATION-PLAN.md'];
 for (const f of required) ok(fs.existsSync(path.join(dir, f)), `missing ${f}`);
 
 // 3. Headline counts quoted in the summary match the code.
@@ -69,7 +69,22 @@ ok(data.tiles.reduce((s, t) => s + t.routes, 0) + data.opsRoutes.length === c.ap
 for (const m of data.models) ok(m.cls === cls[m.name], `blueprint class for ${m.name} differs`);
 for (const href of [...html.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1])) ok(fs.existsSync(path.join(dir, href)), `blueprint links to missing ${href}`);
 
-// 8. No credentials in the documentation.
+// 8. Every blueprint element carries one lifecycle status, and every remediation ID it cites exists in the plan.
+const LIFE = ['CURRENT', 'NEEDS FIX', 'PLANNED', 'FUTURE'];
+const plan = read('REMEDIATION-PLAN.md');
+const planIds = new Set([...plan.matchAll(/^\| (P[0-4]-\d+) \|/gm)].map((m) => m[1]));
+for (const id of [...data.tiles.map((t) => t.id), ...data.surfaces.map((s) => s.id), ...data.external.map((e) => e.id), 'rbac', 'mongodb', 'storage'])
+  ok(LIFE.includes(data.life[id]), `blueprint element ${id} has no lifecycle status`);
+for (const L of data.target) for (const it of L.items) {
+  ok(LIFE.includes(it.life), `target item ${it.name} has an invalid status`);
+  ok(it.life !== 'CURRENT' || it.today !== '—', `target item ${it.name} is CURRENT but describes nothing existing`);
+}
+for (const f of data.flows) ok(LIFE.includes(f.life), `flow ${f.name} has no lifecycle status`);
+const cited = new Set([...Object.values(data.fixes).flat(), ...data.target.flatMap((L) => L.items.flatMap((i) => i.fixes)), ...data.flows.flatMap((f) => f.fixes)]);
+for (const id of cited) ok(planIds.has(id) && data.rem[id], `blueprint cites ${id}, which is not in REMEDIATION-PLAN.md`);
+ok(html.includes('id="view-current"') && html.includes('id="view-target"'), 'blueprint must keep separate current and target views');
+
+// 9. No credentials in the documentation.
 const secretish = /(mongodb(\+srv)?:\/\/[^\s`<"]+@|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY|(?:SMTP_PASS|JWT_SECRET|AWS_SECRET_ACCESS_KEY|SUPER_ADMIN_PASSWORD)\s*=\s*\S+)/;
 for (const f of fs.readdirSync(dir).filter((x) => /\.(md|html|json)$/.test(x))) ok(!secretish.test(read(f)), `${f} contains something that looks like a credential`);
 

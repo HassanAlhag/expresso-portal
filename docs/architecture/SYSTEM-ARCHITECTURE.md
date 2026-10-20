@@ -87,3 +87,7 @@ flowchart LR
 ```
 
 These arrows represent supported relationships, not automatic creation of every downstream record. See [user flows](USER-FLOWS.md) for explicit actions and missing automation. Counts, field refs and all endpoints are in the inventories; [public map](PUBLIC-WEBSITE-MAP.md) and [portal map](PORTAL-MODULE-MAP.md) are the page-level reading paths.
+
+## Current versus target platform
+
+Everything above describes the **current** code. The planned evolution — separate staff, client and vendor portal experiences on a unified Expresso Experience System, shared platform services (workflow, master data, notifications, integrations), operations (backup, reset/seed lifecycle, monitoring, log retention) and future intelligence — is described in the [remediation plan](REMEDIATION-PLAN.md#11-planned-workstream-portal-experience-and-target-platform) and shown in the blueprint's **Target platform** view. Nothing in that view exists unless it is marked CURRENT.

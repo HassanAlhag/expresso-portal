@@ -148,11 +148,11 @@
         "Enrollment",
         "User"
       ],
-      "permissions": "projects.read/write/delete; reads/updates use tenant helpers; create-scope gap is documented in RBAC map",
-      "workflow": "draft/planned/active/on_hold/in_review/completed/archived/cancelled are UI/code conventions, stored as strings; DELETE archives.",
+      "permissions": "projects.read/write/delete; list and detail reads check the company, but create, update (including customerId reassignment) and delete do not \u2014 see RBAC map and remediation P0-2",
+      "workflow": "draft/planned/active/on_hold/in_review/completed/archived/cancelled are UI/code conventions, stored as strings. Archiving is PATCH status=archived; DELETE (controller archiveProject) permanently deletes the project and leaves linked jobs, invoices, files and tickets orphaned (remediation P2-4).",
       "relationships": "Jobs, files, invoices and enrollment links share projectId; pre_contract/contracted/custom/internal modes.",
       "filesAndNotifications": "Project files use File/privateStorage; no automated project update email found.",
-      "status": "Active; creation needs conditional cross-tenant review for externally granted projects.write.",
+      "status": "Active; create/update/delete lack company checks for externally granted projects.write/delete (P0-2) and DELETE is a hard delete (P2-4).",
       "source": "client/src/portal/features/projects"
     },
     {
@@ -281,7 +281,7 @@
       "workflow": "draft/sent/paid/overdue/void; payments recompute amountPaid/balance via model save hook.",
       "relationships": "Connects to customer/project/enrollment; no Payment collection or accounting ledger integration. Expenses are a separate HR workflow.",
       "filesAndNotifications": "Invoice uploads are URL descriptors; no payment gateway, invoice-send email service or automatic overdue scheduler found.",
-      "status": "Active manual finance workflow; billing.delete is catalog-only and invoice number allocation needs concurrency review.",
+      "status": "Active manual finance workflow; billing.delete is catalog-only. Invoice numbers are last-number + 1 on a unique field, so simultaneous creation fails with an error rather than duplicating (P2-3).",
       "source": "client/src/portal/features/billing"
     },
     {
@@ -497,7 +497,7 @@
         "Project",
         "User"
       ],
-      "permissions": "tickets.read/write/delete plus actor/visibility/tenant checks",
+      "permissions": "tickets.read/write/delete plus actor/visibility/tenant checks; DELETE has no company check (P0-2)",
       "workflow": "open/in_progress/waiting_client/waiting_vendor/in_review/escalated/resolved/closed; change request approval pending/approved/rejected.",
       "relationships": "Connects customers/projects/users, with embedded comments and legacy clientId referring to User, not Customer.",
       "filesAndNotifications": "Attachments are embedded URL metadata; internal/client comment visibility; no automatic ticket email service found.",

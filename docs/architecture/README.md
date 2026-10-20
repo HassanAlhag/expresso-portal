@@ -2,7 +2,7 @@
 
 **Source baseline:** `website/integrated-solutions` at `58b8f86c`. This is an audit/documentation snapshot, not a redesign, cleanup, database assessment of live records, or authorization to reset anything.
 
-Start with [the offline visual blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html). Select a module to see its pages, APIs, models, permissions, relationships and implementation limits.
+Start with [the offline visual blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html). Select a module to see its pages, APIs, models, permissions, relationships and implementation limits. The blueprint has two views: **Current architecture** (what the code does today) and **Target platform** (planned and future capabilities). Every element carries one status: CURRENT, NEEDS FIX, PLANNED or FUTURE.
 
 ## What is Expresso Portal?
 
@@ -57,10 +57,10 @@ Nothing has been approved for deletion. The database map classifies schema purpo
 
 ## Main architectural risks
 
-1. **Authorization contracts differ by layer.** Static UI permission catalogs/defaults, route gates and controller role rules disagree. A conditional cross-tenant project-create gap exists for externally granted `projects.write`.
+1. **Authorization contracts differ by layer.** Static UI permission catalogs/defaults, route gates and controller role rules disagree. Project create, update and delete, and ticket delete, skip the company check, which matters if an external role is granted those keys. Invite tokens are written to production request logs.
 2. **Public publication is not consistently server-enforced.** Public Portfolio/Production reads can return drafts; web-content's inactive/detail reads are not protected management-only reads.
 3. **Vendor registration is ahead of vendor access.** Vendor-specific RFQ controllers and UI exist, but internal-only read gates and the frontend denylist block the journey.
-4. **Multi-record workflows are not transactional.** Vendor approval and CRM conversion can leave partial state after a mid-flow failure. Sequential invoice/RFQ number generation also needs concurrency review.
+4. **Multi-record workflows are not transactional.** Vendor approval and CRM conversion can leave partial state after a mid-flow failure. Invoice numbering can fail under simultaneous creation; RFQ numbering can duplicate. Project DELETE is a permanent delete that orphans linked records.
 5. **Reset and storage lifecycles are not one controlled process.** Existing seeds mix reference content, samples and updates; there is no approved backup/reset/system-seed/demo-seed pipeline. Account deletion has source-confirmed identity/import bugs.
 
 These are source findings, not a live penetration test or a claim about currently assigned users. [RBAC](RBAC-MAP.md), [API](API-MAP.md) and [cleanup audit](CODE-CLEANUP-AUDIT.md) provide evidence and conditions.
@@ -89,6 +89,7 @@ The import graph identifies **79 JavaScript/JSX files not reachable from the cur
 - [User flows](USER-FLOWS.md)
 - [Code cleanup candidates](CODE-CLEANUP-AUDIT.md)
 - [Future database reset plan](DATABASE-RESET-PLAN.md)
+- [Remediation plan and target platform workstream](REMEDIATION-PLAN.md) — draft for review
 
 ## Audit method and validation
 
