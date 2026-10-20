@@ -879,15 +879,11 @@ function SolutionFormModal({ open, onClose, initial, onSave, groups }) {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">Ownership</label>
-                <select
-                  className={inputCls}
-                  value={form.ownership}
-                  onChange={(e) => set("ownership", e.target.value)}
-                >
-                  <option value="expresso">Built & owned by Expresso</option>
-                  <option value="partner">Partner product</option>
-                </select>
+                <span className="mb-1 block text-xs font-bold text-slate-700">Ownership</span>
+                <p className="flex h-10 items-center rounded-xl border border-slate-100 bg-white/60 px-3 text-sm text-slate-600">
+                  Built &amp; owned by Expresso
+                </p>
+                <p className="mt-1 text-[11px] text-slate-400">Set by the type. Technology Solutions are never Expresso-owned.</p>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-slate-700">Main button label</label>

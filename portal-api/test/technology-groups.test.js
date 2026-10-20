@@ -34,7 +34,8 @@ test("existing detail URL and content survive grouping; explicit CMS assignment 
   stub(Solution, "findOne", (filter) => { assert.equal(filter.slug, item.slug); return q(item); });
   const res = await call("GET", "/api/web-content/solutions/erp-solution");
   assert.equal(res.status, 200);
-  assert.deepEqual(res.body.item, item);
+  // Ownership is presented from the type (technology -> partner).
+  assert.deepEqual(res.body.item, { ...item, ownership: "partner" });
 });
 
 test("CMS create persists a group and older API clients can still create known solutions", async () => {
