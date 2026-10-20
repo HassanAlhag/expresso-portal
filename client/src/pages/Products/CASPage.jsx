@@ -28,6 +28,9 @@ export default function CASPage() {
     <>
       <Helmet>
         <title>CAS — Clinic Appointment System | Expresso Digital</title>
+        {typeof window !== "undefined" ? (
+          <link rel="canonical" href={`${window.location.origin}${CAS_PRODUCT.to}`} />
+        ) : null}
         <meta
           name="description"
           content="CAS is a clinic appointment system designed and developed by Expresso Digital, connecting patient appointment booking with clinic-side doctor and schedule management."

@@ -4,6 +4,7 @@ import {
   BrowserRouter as Router,
   Route,
   Routes,
+  Navigate,
   useLocation,
 } from "react-router-dom";
 import { Helmet } from "react-helmet";
@@ -58,7 +59,12 @@ const ITSolutionDetailsPage = lazy(() =>
 const VendorRegistrationPage = lazy(() =>
   import("./pages/VendorRegistration/VendorRegistrationPage")
 );
-const CASPage = lazy(() => import("./pages/Products/CASPage"));
+const DigitalSolutionsPage = lazy(() =>
+  import("./pages/DigitalSolutions/DigitalSolutionsPage")
+);
+const DigitalSolutionDetailPage = lazy(() =>
+  import("./pages/DigitalSolutions/DigitalSolutionDetailPage")
+);
 
 function App() {
   return (
@@ -142,7 +148,16 @@ function Content() {
             path="/it-solutions/:slug"
             element={<ITSolutionDetailsPage />}
           />
-          <Route path="/products/cas" element={<CASPage />} />
+          <Route path="/digital-solutions" element={<DigitalSolutionsPage />} />
+          <Route
+            path="/digital-solutions/:slug"
+            element={<DigitalSolutionDetailPage />}
+          />
+          {/* Legacy CAS URL — kept working, permanently moved. */}
+          <Route
+            path="/products/cas"
+            element={<Navigate to="/digital-solutions/cas" replace />}
+          />
           <Route
             path="/vendor-registration"
             element={<VendorRegistrationPage />}

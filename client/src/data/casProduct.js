@@ -1,6 +1,8 @@
 // Shared copy/config for the CAS (Clinic Appointment System) product.
-// Keeping this in one place means the homepage showcase, nav entries, and
-// the /products/cas page all stay in sync.
+// Keeping this in one place means the homepage showcase and the CAS detail
+// page (/digital-solutions/cas — formerly /products/cas, which now redirects)
+// stay in sync. Listing data (menu, /digital-solutions) comes from the CMS
+// Solution record with kind "digital"; this file holds the page's long copy.
 //
 // All claims here are grounded in functionality verified end-to-end against
 // the real CAS system (CAS-01/CAS-02 evaluation waves) — patient doctor
@@ -14,11 +16,12 @@
 export const CAS_PRODUCT = {
   name: "CAS",
   fullName: "Clinic Appointment System",
-  eyebrow: "EXPRESSO PRODUCTS",
-  badge: "Expresso-built product",
+  eyebrow: "DIGITAL SOLUTIONS",
+  badge: "Built by Expresso",
   shortDescription:
     "A clinic appointment platform designed and developed by Expresso Digital.",
-  to: "/products/cas",
+  to: "/digital-solutions/cas",
+  legacyPath: "/products/cas",
   ctaLabel: "Explore CAS",
   demoCtaLabel: "Request a Demo",
   demoHref: "/contact-us?interest=cas-demo",
@@ -75,7 +78,7 @@ export const CAS_IMAGES = {
 };
 
 export const CAS_HERO = {
-  eyebrow: "EXPRESSO PRODUCTS",
+  eyebrow: "Digital Solutions",
   heading: "CAS",
   descriptor: "Clinic Appointment System",
   supporting:

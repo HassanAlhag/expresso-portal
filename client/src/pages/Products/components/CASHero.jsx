@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight } from "react-icons/fi";
+import { FiArrowRight, FiChevronRight } from "react-icons/fi";
+import { BrandMark } from "../../../brand";
 import { CAS_PRODUCT, CAS_HERO, CAS_IMAGES } from "../../../data/casProduct";
 
 const BRAND = "#8390C8";
@@ -9,7 +10,7 @@ export default function CASHero() {
   const { adminDashboard } = CAS_IMAGES;
 
   return (
-    <section className="relative overflow-hidden bg-[#05060A] pt-32 pb-16 text-white sm:pt-36 md:pb-24">
+    <section className="relative overflow-hidden bg-night pt-32 pb-16 text-white sm:pt-36 md:pb-24">
       <div
         className="pointer-events-none absolute inset-0 opacity-70"
         style={{
@@ -17,19 +18,32 @@ export default function CASHero() {
             "radial-gradient(780px circle at 12% 12%, rgba(131,144,200,0.24), transparent 40%), radial-gradient(900px circle at 92% 8%, rgba(255,255,255,0.06), transparent 34%)",
         }}
       />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,10,0)_0%,rgba(5,6,10,0.85)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(21,18,31,0)_0%,rgba(21,18,31,0.85)_100%)]" />
 
       <div className="relative mx-auto grid w-[min(1200px,92vw)] gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-10">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold tracking-[0.18em] text-white/70">
-            <span
-              className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-              style={{ backgroundColor: BRAND }}
-            />
-            {CAS_HERO.eyebrow}
+          <nav aria-label="Breadcrumb" className="text-[13px] font-medium text-white/55">
+            <ol className="flex flex-wrap items-center gap-1.5">
+              <li>
+                <Link to="/digital-solutions" className="transition hover:text-white">
+                  {CAS_HERO.eyebrow}
+                </Link>
+              </li>
+              <li aria-hidden="true">
+                <FiChevronRight size={13} />
+              </li>
+              <li aria-current="page" className="text-white/80">
+                {CAS_PRODUCT.name}
+              </li>
+            </ol>
+          </nav>
+
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-lotus-300/35 bg-lotus-400/15 py-1.5 pl-2.5 pr-3.5 text-[12px] font-bold text-lotus-200">
+            <BrandMark size={18} tone="white" />
+            {CAS_PRODUCT.badge}
           </div>
 
-          <h1 className="mt-6 text-5xl font-black leading-[1.02] tracking-tight sm:text-6xl md:text-7xl">
+          <h1 className="mt-5 text-5xl font-black leading-[1.02] tracking-tight sm:text-6xl md:text-7xl">
             {CAS_HERO.heading}
           </h1>
 
@@ -47,19 +61,15 @@ export default function CASHero() {
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
               to={CAS_PRODUCT.demoHref}
-              className="inline-flex items-center gap-2.5 rounded-2xl px-7 py-3.5 text-sm font-bold text-black shadow-[0_16px_50px_rgba(131,144,200,0.30)] transition hover:brightness-110 active:scale-[0.98]"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(131,144,200,1) 0%, rgba(220,225,255,0.95) 110%)",
-              }}
+              className="inline-flex items-center gap-2.5 rounded-full bg-lotus-400 px-7 py-3.5 text-sm font-bold text-night transition hover:bg-lotus-300 active:scale-[0.98]"
             >
               {CAS_PRODUCT.demoCtaLabel}
-              <FiArrowRight size={15} />
+              <FiArrowRight size={15} aria-hidden="true" />
             </Link>
 
             <Link
               to={CAS_PRODUCT.contactHref}
-              className="inline-flex items-center rounded-2xl border border-white/12 bg-white/5 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-white/20 hover:bg-white/10"
+              className="inline-flex items-center rounded-full border border-white/25 bg-white/5 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-white/20 hover:bg-white/10"
             >
               {CAS_PRODUCT.contactCtaLabel}
             </Link>
