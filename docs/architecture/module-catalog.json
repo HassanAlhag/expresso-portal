@@ -1,0 +1,597 @@
+{
+  "baseline": "58b8f86c",
+  "scope": "Source-reviewed feature areas; implementation presence is not production acceptance certification.",
+  "modules": [
+    {
+      "key": "iam",
+      "label": "Identity & access",
+      "purpose": "Accounts, roles, teams, invitations, access requests, login/reset/Google sign-in.",
+      "pages": [
+        "/portal/users",
+        "/portal/users/:id",
+        "/portal/users/invites",
+        "/portal/users/access-requests",
+        "/portal/roles",
+        "/portal/teams",
+        "/portal/login",
+        "/portal/forgot-password",
+        "/portal/reset-password",
+        "/portal/request-access",
+        "/portal/accept-invite"
+      ],
+      "api": "/api/auth; /api/users; /api/roles; /api/teams; /api/invites; /api/access-requests; /api/permissions/catalog",
+      "models": [
+        "User",
+        "Role",
+        "Team",
+        "Invite",
+        "AccessRequest",
+        "Audit"
+      ],
+      "permissions": "iam.* plus controller role hierarchy; self-service uses requireAuth",
+      "workflow": "Invite pending \u2192 accepted/cancelled/expired; access request pending \u2192 approved/rejected/invited; user active flag.",
+      "relationships": "User.role is a Role key; clientId links Customer; User.team is a key/string; HRStaff.teamId is an ObjectId.",
+      "filesAndNotifications": "Avatars reference public Media. SMTP sends invite/reset emails; IAM actions log Audit.",
+      "status": "Active; permission editor/catalog drift and hard-coded admin hierarchy need review.",
+      "source": "client/src/portal/features/iam"
+    },
+    {
+      "key": "customers",
+      "label": "Clients / customers",
+      "purpose": "Operational companies and their linked portal logins, distinct from prospect CRM accounts.",
+      "pages": [
+        "/portal/customers",
+        "/portal/customers/:id"
+      ],
+      "api": "/api/customers and /:id/users, /:id/create-login",
+      "models": [
+        "Customer",
+        "User",
+        "CRMAccount",
+        "CRMContact"
+      ],
+      "permissions": "customers.read/write/delete plus tenant checks",
+      "workflow": "Active/inactive companies; create linked client login; company department digital_agency/procurement/both.",
+      "relationships": "Hub for projects, enrollments, billing, procurement, files, messages, brand assets and metrics; CRM conversion can create/link a Customer.",
+      "filesAndNotifications": "Company logo uses Media; login creation returns credentials to the operator; no automatic welcome-email workflow is established here.",
+      "status": "Active CRUD and login surfaces; two login creation endpoints overlap and require review.",
+      "source": "client/src/portal/features/customers"
+    },
+    {
+      "key": "crm",
+      "label": "CRM / sales",
+      "purpose": "Prospect leads, accounts, contacts, deals and polymorphic activities.",
+      "pages": [
+        "/portal/crm",
+        "/portal/crm/leads",
+        "/portal/crm/leads/:id",
+        "/portal/crm/accounts",
+        "/portal/crm/accounts/:id",
+        "/portal/crm/contacts",
+        "/portal/crm/contacts/:id",
+        "/portal/crm/deals",
+        "/portal/crm/deals/:id"
+      ],
+      "api": "/api/crm/{leads,accounts,contacts,deals,activities}",
+      "models": [
+        "CRMLead",
+        "CRMAccount",
+        "CRMContact",
+        "CRMDeal",
+        "CRMActivity",
+        "Customer",
+        "Enrollment"
+      ],
+      "permissions": "crm.read/write/delete; external users lose crm.* in roleRegistry",
+      "workflow": "Lead new/contacted/qualified/unqualified/converted; deal open/won/lost/archived with pipeline/stage constants; activity pending/done/cancelled.",
+      "relationships": "Plan submission creates lead/contact. Lead conversion links account/deal/contact; deal conversion creates/links an operational Customer. No automatic paid contract is implied.",
+      "filesAndNotifications": "No domain upload pipeline; activities record calls/emails/tasks but do not themselves send email.",
+      "status": "Active; multi-record conversion is not transactional and overlapping conversion link fields need consolidation.",
+      "source": "client/src/portal/features/crm"
+    },
+    {
+      "key": "services",
+      "label": "Service catalog / templates",
+      "purpose": "Reusable commercial scope groups, deliverables, prices, execution modes, SLA and file definitions.",
+      "pages": [
+        "/portal/services",
+        "/portal/services/new",
+        "/portal/services/:id",
+        "/portal/services/:id/edit"
+      ],
+      "api": "/api/service and /:id/files, /:id/files/:fileId/url",
+      "models": [
+        "ServiceTemplate",
+        "Media"
+      ],
+      "permissions": "services.read/write/delete; internal permission prefixes",
+      "workflow": "draft/active/archived; recurring/phased_project/one_time execution; monthly/quarterly/yearly/one_time billing.",
+      "relationships": "Enrollments copy/override template scope into finalScope; the catalog is not the public DigitalService CMS collection.",
+      "filesAndNotifications": "Template attachments use privateStorage via shared upload middleware; cover imagery uses Media. No automated notifications.",
+      "status": "Active builder; sample presets and overlapping quick-create/builder controls need business review.",
+      "source": "client/src/portal/features/services"
+    },
+    {
+      "key": "enrollments",
+      "label": "Client service enrollments",
+      "purpose": "A client-specific service subscription/engagement with pricing, scope overrides and responsibility assignments.",
+      "pages": [
+        "/portal/enrollments",
+        "/portal/enrollments/:id"
+      ],
+      "api": "/api/enrollments",
+      "models": [
+        "Enrollment",
+        "Customer",
+        "ServiceTemplate",
+        "User"
+      ],
+      "permissions": "enrollments.read/write/delete; internal-only permission prefix",
+      "workflow": "String status (default active), dates, execution/pricing snapshots; schema does not enforce a single universal lifecycle enum.",
+      "relationships": "References Customer/template and optional Project. Jobs can be explicitly generated from finalScope; creation alone is not automatic project/invoice creation.",
+      "filesAndNotifications": "Scope may include file/approval metadata; no dedicated upload endpoint or external notification on enrollment creation.",
+      "status": "Active; scope normalization is duplicated and linking/generation is a partly manual lifecycle.",
+      "source": "client/src/portal/features/enrollments"
+    },
+    {
+      "key": "projects",
+      "label": "Projects",
+      "purpose": "Delivery containers for customer work, enrollment-linked work and internal projects.",
+      "pages": [
+        "/portal/projects",
+        "/portal/projects/:id"
+      ],
+      "api": "/api/projects and /stats",
+      "models": [
+        "Project",
+        "Customer",
+        "Enrollment",
+        "User"
+      ],
+      "permissions": "projects.read/write/delete; reads/updates use tenant helpers; create-scope gap is documented in RBAC map",
+      "workflow": "draft/planned/active/on_hold/in_review/completed/archived/cancelled are UI/code conventions, stored as strings; DELETE archives.",
+      "relationships": "Jobs, files, invoices and enrollment links share projectId; pre_contract/contracted/custom/internal modes.",
+      "filesAndNotifications": "Project files use File/privateStorage; no automated project update email found.",
+      "status": "Active; creation needs conditional cross-tenant review for externally granted projects.write.",
+      "source": "client/src/portal/features/projects"
+    },
+    {
+      "key": "jobs",
+      "label": "Delivery jobs / approvals",
+      "purpose": "Tasks and content deliverables, assignments, media, approval history, publication and post metrics.",
+      "pages": [
+        "/portal/jobs",
+        "/portal/jobs/:id"
+      ],
+      "api": "/api/jobs; /generate/from-enrollment/:enrollmentId; /:id/approval; /:id/attach-media; /:id/publish; /:id/post-metrics",
+      "models": [
+        "Job",
+        "Project",
+        "Enrollment",
+        "Media",
+        "User"
+      ],
+      "permissions": "jobs.read/write/delete; external permission prefix denied",
+      "workflow": "brief \u2192 script/pre_production \u2192 designing/shooting/editing \u2192 internal_review/client_review \u2192 approved/scheduled \u2192 published/delivered; on_hold/archived; separate publishStatus.",
+      "relationships": "Generated from enrollment scopes; also drives Productions, content calendar, customer/project tabs and public website reels.",
+      "filesAndNotifications": "draft/final/poster Media references, approval subdocuments; approval entries are stored history, not guaranteed email messages.",
+      "status": "Active; board stages duplicated in several views and state transitions are not one central workflow engine.",
+      "source": "client/src/portal/features/jobs"
+    },
+    {
+      "key": "delivery",
+      "label": "Service delivery overview",
+      "purpose": "Cross-project overview of scopes and delivery jobs.",
+      "pages": [
+        "/portal/service-delivery"
+      ],
+      "api": "/api/projects; /api/jobs; /api/enrollments",
+      "models": [
+        "Project",
+        "Job",
+        "Enrollment"
+      ],
+      "permissions": "UI projects.read; underlying requests require their own permissions",
+      "workflow": "Aggregates job and project states; no separate delivery collection.",
+      "relationships": "A view over existing operational records, not another project or job system.",
+      "filesAndNotifications": "Uses linked job/file metadata; no separate notifications.",
+      "status": "Active aggregate; access can differ from underlying API requirements.",
+      "source": "client/src/portal/features/delivery"
+    },
+    {
+      "key": "productions",
+      "label": "Production workspace",
+      "purpose": "Creative/video workflow presented as a specialized view of delivery jobs.",
+      "pages": [
+        "/portal/productions",
+        "/portal/productions/:id"
+      ],
+      "api": "Current workspace: /api/jobs via productions/jobs.api.js; older /api/productions API still mounted",
+      "models": [
+        "Job",
+        "Media",
+        "Production"
+      ],
+      "permissions": "UI productions.read; actual workspace requires jobs.read/write/delete",
+      "workflow": "Current Job stages; old Production uses draft/published/archived, a different concept.",
+      "relationships": "Public reels now come from Job. Legacy Production is still referenced by Job.productionId and media-library API exports.",
+      "filesAndNotifications": "Uses Media attachments and shared creative review history; no separate production email worker.",
+      "status": "Partial consolidation: UI uses Job while an older Production stack and unused panels remain.",
+      "source": "client/src/portal/features/productions"
+    },
+    {
+      "key": "media-library",
+      "label": "Media library",
+      "purpose": "Shared public website and creative-work assets with image/video processing and metadata.",
+      "pages": [
+        "/portal/media-library"
+      ],
+      "api": "/api/media; unused legacy production functions share this API module",
+      "models": [
+        "Media",
+        "User"
+      ],
+      "permissions": "media.read/write/delete; internal-only permission prefix",
+      "workflow": "draft/published/archived asset metadata; image/video/file types.",
+      "relationships": "Referenced by CMS, jobs, portfolios, logos, brand assets and older business fields.",
+      "filesAndNotifications": "Multer memory upload \u2192 Sharp variants for images \u2192 public S3 or development uploads directory. No external notification.",
+      "status": "Active; public media must not be treated as confidential File/CV storage.",
+      "source": "client/src/portal/features/media-library"
+    },
+    {
+      "key": "files",
+      "label": "Client/project files",
+      "purpose": "Private attachments, access visibility, approvals and signed downloads.",
+      "pages": [
+        "/portal/files"
+      ],
+      "api": "/api/files; /:id/download-url; /download-urls",
+      "models": [
+        "File",
+        "Customer",
+        "Project",
+        "Job",
+        "Production",
+        "User"
+      ],
+      "permissions": "files.read/write/delete plus internal/client visibility and tenant ownership checks",
+      "workflow": "visibility internal/client; approved boolean; independent of Media publish status.",
+      "relationships": "Links operational records and retains legacy public URL metadata alongside current private keys.",
+      "filesAndNotifications": "Private S3 prefix/bucket or private-uploads in development; signed links; legacy public objects require explicit migration review.",
+      "status": "Active mixed-era storage model; do not delete legacy metadata before object reconciliation.",
+      "source": "client/src/portal/features/files"
+    },
+    {
+      "key": "billing",
+      "label": "Finance / invoices & payments",
+      "purpose": "Invoice items, totals, manual payments, paid/void/overdue actions and aggregates.",
+      "pages": [
+        "/portal/billing",
+        "/portal/billing/:id"
+      ],
+      "api": "/api/billing/invoices; /:id/payments; /:id/mark-paid; /:id/void; /invoices/mark-overdue; /api/billing/stats",
+      "models": [
+        "Invoice",
+        "Customer",
+        "Project",
+        "Enrollment",
+        "User"
+      ],
+      "permissions": "billing.read/write; external users cannot hold billing.write/delete; tenant-scoped reads",
+      "workflow": "draft/sent/paid/overdue/void; payments recompute amountPaid/balance via model save hook.",
+      "relationships": "Connects to customer/project/enrollment; no Payment collection or accounting ledger integration. Expenses are a separate HR workflow.",
+      "filesAndNotifications": "Invoice uploads are URL descriptors; no payment gateway, invoice-send email service or automatic overdue scheduler found.",
+      "status": "Active manual finance workflow; billing.delete is catalog-only and invoice number allocation needs concurrency review.",
+      "source": "client/src/portal/features/billing"
+    },
+    {
+      "key": "procurement",
+      "label": "Procurement / vendor operations",
+      "purpose": "Categories, vendor onboarding, client requests, RFQs, supplier matching and quotations.",
+      "pages": [
+        "/portal/procurement",
+        "/portal/procurement/requests",
+        "/portal/procurement/requests/:id",
+        "/portal/procurement/vendors",
+        "/portal/procurement/categories",
+        "/portal/procurement/vendor-applications",
+        "/portal/procurement/rfqs",
+        "/portal/procurement/rfqs/new",
+        "/portal/procurement/rfqs/:id",
+        "/portal/procurement/rfqs/:id/edit"
+      ],
+      "api": "/api/procurement/{categories,vendors,requests,rfqs}; /api/vendor-applications",
+      "models": [
+        "ProcurementCategory",
+        "ProcurementVendor",
+        "VendorApplication",
+        "ProcurementRequest",
+        "RFQ",
+        "Quotation",
+        "User",
+        "Customer"
+      ],
+      "permissions": "procurement.read/write/approve/delete; internal gates on vendor/category/RFQ reads; quotation submit has vendor role alias",
+      "workflow": "Request new/assessing/quoted/approved/ordered/delivered/cancelled; RFQ draft/published/closed/awarded; quotation submitted/under_review/accepted/rejected; application pending/approved/rejected.",
+      "relationships": "Application approval creates vendor User/profile; request \u2192 RFQ; matching uses category ObjectIds; quotations link RFQ/vendor. No separate purchase-order or inventory model.",
+      "filesAndNotifications": "RFQ/quotation attachments are URL descriptors; optional SMTP on RFQ publish; approval returns temporary credentials, without an enforced first-login-change flow.",
+      "status": "Partial vendor journey: vendor-specific controller/UI branches exist but RFQ read routes and frontend denylist block vendor access.",
+      "source": "client/src/portal/features/procurement"
+    },
+    {
+      "key": "hr",
+      "label": "People / HR",
+      "purpose": "Staff profiles, skills, scorecards, learning goals, leave, expenses and KPI indicators/goals/check-ins.",
+      "pages": [
+        "/portal/hr",
+        "/portal/hr/staff",
+        "/portal/hr/staff/:id",
+        "/portal/hr/expenses",
+        "/portal/hr/expenses/:id",
+        "/portal/hr/monthly-expenses",
+        "/portal/hr/leaves",
+        "/portal/hr/skills",
+        "/portal/hr/kpi",
+        "/portal/hr/kpi/indicators",
+        "/portal/hr/kpi/goals"
+      ],
+      "api": "/api/hr/{staff,expenses,leaves,scorecard-templates,kpi}",
+      "models": [
+        "HRStaff",
+        "HRExpense",
+        "HRLeave",
+        "ScorecardTemplate",
+        "KPIIndicator",
+        "KPIGoal",
+        "KPICheckin",
+        "Team",
+        "User"
+      ],
+      "permissions": "hr.staff.*, hr.expenses.*, hr.leaves.*, hr.scorecards.*, hr.kpi.*; owner-scoped self-service; no self-approval",
+      "workflow": "Expense submitted\u2192approved\u2192registered\u2192paid or rejected; leave submitted\u2192approved/rejected/cancelled; staff active/on_leave/probation/inactive/terminated; KPI active/completed/at_risk/missed/cancelled.",
+      "relationships": "Staff linkedUserId differs from actor/staffUserId on claims; KPI autoSource can derive from leave, expense, scorecard and learning data.",
+      "filesAndNotifications": "Receipts are URL/legacy Media fields, not a proven private receipt-upload flow. No automated HR emails found.",
+      "status": "Active workflows; KPI UI gate/catalog drift, arbitrary receipt URLs and linkage consistency need review.",
+      "source": "client/src/portal/features/hr"
+    },
+    {
+      "key": "social",
+      "label": "Content calendar / metrics",
+      "purpose": "Scheduled/published content calendar and manually recorded social performance.",
+      "pages": [
+        "/portal/content-calendar"
+      ],
+      "api": "/api/jobs; /api/social-metrics",
+      "models": [
+        "Job",
+        "SocialMetrics",
+        "Customer"
+      ],
+      "permissions": "Route gate jobs.read; metric endpoints social.metrics.read/write",
+      "workflow": "Job schedule/publication states; metric period/platform dimensions.",
+      "relationships": "Calendar joins delivery jobs to customer social metrics; not a live social-network publishing connector.",
+      "filesAndNotifications": "Uses job media and optional externalPostUrl. No social platform OAuth/API publishing integration found.",
+      "status": "Active manual tracking; social permission keys are missing from static frontend catalog.",
+      "source": "client/src/portal/features/social"
+    },
+    {
+      "key": "messaging",
+      "label": "Messaging / unread notifications",
+      "purpose": "Company-thread messages, read markers and inbox counts.",
+      "pages": [
+        "/portal/messages"
+      ],
+      "api": "/api/messaging; /read/:customerId; /unread/:customerId; /notifications/counts",
+      "models": [
+        "Message",
+        "Customer",
+        "User"
+      ],
+      "permissions": "messaging.read/write plus customer-scoped authorization",
+      "workflow": "Persisted messages and readBy user IDs; internal/client sender distinction.",
+      "relationships": "Topbar polls unread counts every 60 seconds; no standalone Notification model, websocket or queue.",
+      "filesAndNotifications": "Attachments are URL strings, not automatic secure file ownership checks on arbitrary links; no message email delivery found.",
+      "status": "Active polling implementation; most notification preferences are stored settings, not shipped notification automations.",
+      "source": "client/src/portal/features/messaging"
+    },
+    {
+      "key": "brand-kit",
+      "label": "Client brand kit",
+      "purpose": "Per-client logos, colors, fonts, guidelines and templates.",
+      "pages": [
+        "/portal/brand-kit"
+      ],
+      "api": "/api/brand-kit",
+      "models": [
+        "BrandAsset",
+        "Customer",
+        "Media",
+        "User"
+      ],
+      "permissions": "brand_kit.read/write and tenant checks",
+      "workflow": "Asset type logo/color/font/guideline/template/icon; no formal publish lifecycle.",
+      "relationships": "Client workspace brand data differs from public site branding stored in SiteSettings/code.",
+      "filesAndNotifications": "Media references and URL values; no independent mail/notification mechanism.",
+      "status": "Active; keys absent from static frontend permission catalog.",
+      "source": "client/src/portal/features/brand-kit"
+    },
+    {
+      "key": "website",
+      "label": "Website CMS",
+      "purpose": "Homepage slides/settings, public Digital Services and shared Digital/Technology Solution records.",
+      "pages": [
+        "/portal/website/slides",
+        "/portal/website/settings",
+        "/portal/website/digital-services",
+        "/portal/website/solutions"
+      ],
+      "api": "/api/homepage/slides; /api/site-settings; /api/web-content/{services,solutions}",
+      "models": [
+        "HeroSlide",
+        "SiteSettings",
+        "DigitalService",
+        "Solution",
+        "Media"
+      ],
+      "permissions": "website.read/write; public reads are separate routes, with publication-boundary issues documented",
+      "workflow": "Slides/records use isActive and order; Solution kind digital/technology with derived ownership and technology group.",
+      "relationships": "One Solution CMS feeds two public sections. CAS registry guarantees core discovery; CMS only enriches CAS and adds other products.",
+      "filesAndNotifications": "Images use Media/SiteSettings overrides; no publish-event notification system.",
+      "status": "Active; CMS cannot edit all page copy; public includeInactive/detail reads need review.",
+      "source": "client/src/portal/features/website"
+    },
+    {
+      "key": "portfolio",
+      "label": "Portfolio CMS",
+      "purpose": "Editable public case studies and gallery projects.",
+      "pages": [
+        "/portal/website/portfolio",
+        "/portal/website/portfolio/:id",
+        "/portal/portfolio",
+        "/portal/portfolio/:id"
+      ],
+      "api": "/api/portfolio",
+      "models": [
+        "Portfolio",
+        "Media"
+      ],
+      "permissions": "UI portfolio.read; writes portfolio.write/delete; GET API is public",
+      "workflow": "draft/published/archived, publication date and approval/system fields.",
+      "relationships": "Feeds public /portfolio and /case-studies; detail uses slug or ObjectId. Separate from work-delivery Project.",
+      "filesAndNotifications": "Media cover/gallery refs, static fallback assets; no portfolio publication notifications.",
+      "status": "Active; public API currently does not enforce published-only access.",
+      "source": "client/src/portal/features/portfolio"
+    },
+    {
+      "key": "careers",
+      "label": "Careers CMS / applications",
+      "purpose": "Job vacancy publishing and candidate application review.",
+      "pages": [
+        "/portal/careers"
+      ],
+      "api": "/api/careers; /public; /:id/apply; /cv-upload; /applications; /applications/:id/cv-url",
+      "models": [
+        "Career",
+        "JobApplication",
+        "Media (legacy)"
+      ],
+      "permissions": "website.read/write; public vacancy/application/CV-upload entry points",
+      "workflow": "Career isActive; application new/reviewing/interview/rejected/hired.",
+      "relationships": "Public /careers form uses a separate CV upload then application creation; no automatic HRStaff/User conversion.",
+      "filesAndNotifications": "Private CV keys with signed authorized download; orphan uploads possible if a candidate never submits; no automatic candidate mail found.",
+      "status": "Active review workflow; publication, retention and upload abuse controls need review.",
+      "source": "client/src/portal/features/careers"
+    },
+    {
+      "key": "tickets",
+      "label": "Support / change requests",
+      "purpose": "Customer/internal/procurement support threads, assignments, approvals and resolution.",
+      "pages": [
+        "/portal/tickets",
+        "/portal/tickets/:id"
+      ],
+      "api": "/api/tickets; /stats; /:id/comments; /:id/status; /:id/approve",
+      "models": [
+        "Ticket",
+        "Customer",
+        "Project",
+        "User"
+      ],
+      "permissions": "tickets.read/write/delete plus actor/visibility/tenant checks",
+      "workflow": "open/in_progress/waiting_client/waiting_vendor/in_review/escalated/resolved/closed; change request approval pending/approved/rejected.",
+      "relationships": "Connects customers/projects/users, with embedded comments and legacy clientId referring to User, not Customer.",
+      "filesAndNotifications": "Attachments are embedded URL metadata; internal/client comment visibility; no automatic ticket email service found.",
+      "status": "Active; legacy authorRole enum client/admin is narrower than current role registry.",
+      "source": "client/src/portal/features/tickets"
+    },
+    {
+      "key": "dashboard",
+      "label": "Role dashboards",
+      "purpose": "Role-specific internal, client and vendor summaries over operational modules.",
+      "pages": [
+        "/portal"
+      ],
+      "api": "Module list/stats endpoints: jobs, tickets, customers, projects, CRM, procurement, billing, HR, enrollments",
+      "models": [],
+      "permissions": "Authenticated shell; individual APIs enforce domain permissions; some fetches use Promise.allSettled",
+      "workflow": "No persisted dashboard lifecycle; vendor RFQ load is currently denied by API internal gate.",
+      "relationships": "Role-name branches select dashboards; custom roles are not automatically equivalent to every built-in dashboard.",
+      "filesAndNotifications": "No uploads; unread notifications come from messaging.",
+      "status": "Active aggregate with role assumptions; a denied/failed metric can look empty or zero.",
+      "source": "client/src/portal/features/dashboard"
+    },
+    {
+      "key": "reports",
+      "label": "Reports",
+      "purpose": "Browser-built operational summaries from several module statistics endpoints.",
+      "pages": [
+        "/portal/reports"
+      ],
+      "api": "/api/{projects,tickets,billing}/stats; /api/procurement/requests/stats; /api/hr/{staff,expenses,leaves}/stats; /api/customers",
+      "models": [],
+      "permissions": "UI reports.read; APIs enforce their own read/approve permissions; reports.export has no implementation found",
+      "workflow": "Snapshots computed from operational data; no scheduled report lifecycle.",
+      "relationships": "Granting reports.read alone does not grant access to source statistics.",
+      "filesAndNotifications": "No dedicated report export storage or mail scheduler found.",
+      "status": "Partial reporting surface; unused API wrapper duplicates inline requests and export permission is unused.",
+      "source": "client/src/portal/features/reports"
+    },
+    {
+      "key": "activity",
+      "label": "Activity / audit trail",
+      "purpose": "Filter and inspect IAM/system audit events.",
+      "pages": [
+        "/portal/activity",
+        "/portal/users/:id"
+      ],
+      "api": "/api/audit; /api/users/:id/activity",
+      "models": [
+        "Audit",
+        "User"
+      ],
+      "permissions": "activity.read plus authentication",
+      "workflow": "Append-only audit records; no universal business event bus.",
+      "relationships": "Most logAudit calls are IAM operations; CRMActivity and Job approval history are separate domain histories.",
+      "filesAndNotifications": "No uploads or external notifications; audit logging is not a substitute for DB/file backup.",
+      "status": "Active IAM-focused audit surface; activity/api.js wrapper is unused.",
+      "source": "client/src/portal/features/activity"
+    },
+    {
+      "key": "profile",
+      "label": "My profile",
+      "purpose": "Current account identity and profile preferences.",
+      "pages": [
+        "/portal/profile"
+      ],
+      "api": "/api/auth/me; /api/users/me",
+      "models": [
+        "User",
+        "Media"
+      ],
+      "permissions": "requireAuth self-service field whitelist",
+      "workflow": "Profile edits and avatar URL/Media metadata; no separate Profile collection.",
+      "relationships": "Shares the same User record as IAM, login and staff links.",
+      "filesAndNotifications": "Avatar Media references/URLs; no dedicated profile notification.",
+      "status": "Active page; unused profile API/hook wrappers duplicate direct requests.",
+      "source": "client/src/portal/features/profile"
+    },
+    {
+      "key": "settings",
+      "label": "My settings",
+      "purpose": "Own profile/password/notification preference settings.",
+      "pages": [
+        "/portal/settings"
+      ],
+      "api": "/api/users/me; /api/auth/change-password; /api/users/me/notifications",
+      "models": [
+        "User"
+      ],
+      "permissions": "Authenticated self-service; password change checks current password",
+      "workflow": "Password change invalidates older tokens through passwordChangedAt; notification switches are persisted preferences.",
+      "relationships": "Not environment configuration and not SiteSettings; there is no general application-settings collection here.",
+      "filesAndNotifications": "No uploads; preference toggles do not prove downstream project/ticket/billing email delivery.",
+      "status": "Active self-service; unused settings API wrapper duplicates direct calls.",
+      "source": "client/src/portal/features/settings"
+    }
+  ]
+}
