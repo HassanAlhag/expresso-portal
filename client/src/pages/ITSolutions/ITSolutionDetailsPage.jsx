@@ -34,15 +34,18 @@ export default function ITSolutionDetailsPage({ section = "technology" }) {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    let alive = true;
     setNotFound(false);
     setSolution(null);
     fetch(`${API}/web-content/solutions/${slug}`)
       .then((r) => r.json())
       .then((d) => {
+        if (!alive) return;
         if (d.ok && d.item) setSolution(d.item);
         else setNotFound(true);
       })
-      .catch(() => setNotFound(true));
+      .catch(() => { if (alive) setNotFound(true); });
+    return () => { alive = false; };
   }, [slug]);
 
   if (notFound) {

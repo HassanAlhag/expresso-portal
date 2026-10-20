@@ -1,4 +1,6 @@
-import { buildMenus, isMenuActive } from "./navData";
+import React, { StrictMode } from "react";
+import { act, renderHook } from "@testing-library/react";
+import { buildMenus, isMenuActive, useCmsNavData } from "./navData";
 
 const digitalMenu = (cms) => buildMenus(cms).find((m) => m.key === "digital-solutions");
 const techMenu = (cms) => buildMenus(cms).find((m) => m.key === "technology");
@@ -77,4 +79,32 @@ test("Work With Us keeps the approved client, vendor and talent journeys", () =>
     ["/vendor-registration"],
     ["/careers"],
   ]);
+});
+
+test("Strict Mode navigation consumers share requests without cleanup canceling another consumer", async () => {
+  const originalFetch = global.fetch;
+  const pending = new Map();
+  global.fetch = jest.fn((url) => new Promise((resolve) => pending.set(url, resolve)));
+  const wrapper = ({ children }) => <StrictMode>{children}</StrictMode>;
+  const { unmount: unmountFirst } = renderHook(useCmsNavData, { wrapper });
+  const { result, unmount: unmountSecond } = renderHook(useCmsNavData, { wrapper });
+  try {
+    // Services, Technology and Digital each have one shared in-flight read.
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(global.fetch.mock.calls.every(([, options]) => !options?.signal)).toBe(true);
+    unmountFirst();
+    await act(async () => {
+      for (const [url, resolve] of pending) {
+        const items = url.includes("kind=digital") ? [CAS] : [{ title: "Shared ERP", slug: "erp-solution" }];
+        resolve({ ok: true, json: async () => ({ items, groups: [] }) });
+      }
+    });
+    expect(result.current.solutions[0].title).toBe("Shared ERP");
+    expect(result.current.digital).toEqual([CAS]);
+    expect(result.current.digitalLoaded).toBe(true);
+  } finally {
+    unmountFirst();
+    unmountSecond();
+    global.fetch = originalFetch;
+  }
 });

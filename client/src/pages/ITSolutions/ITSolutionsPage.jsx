@@ -37,20 +37,23 @@ export default function ITSolutionsPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetch(`${API}/web-content/solutions`, { signal: controller.signal })
+    // Strict Mode replays this effect. Ignore retired results instead of
+    // aborting the read during cleanup (which creates a lifecycle AbortError).
+    let alive = true;
+    fetch(`${API}/web-content/solutions`)
       .then((r) => {
         if (!r.ok) throw new Error("Unable to load solutions");
         return r.json();
       })
       .then((d) => {
+        if (!alive) return;
         if (!Array.isArray(d.items)) throw new Error("Invalid solutions response");
         setSolutions(d.items);
         setGroups(Array.isArray(d.groups) ? d.groups : []);
       })
-      .catch((e) => { if (e.name !== "AbortError") setError(true); })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
-    return () => controller.abort();
+      .catch(() => { if (alive) setError(true); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
   }, []);
 
   const groupedSolutions = groupTechnologySolutions(solutions, groups);
