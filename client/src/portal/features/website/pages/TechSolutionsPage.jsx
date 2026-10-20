@@ -625,7 +625,34 @@ const EMPTY_SOLUTION = {
   heroImageUrl: "",
   heroImageMediaId: null,
   isActive: true,
+  // Classification (website IA): "technology" = sourced & delivered,
+  // "digital" = software built and owned by Expresso (e.g. CAS).
+  kind: "technology",
+  ownership: "partner",
+  tagline: "",
+  badge: "",
+  ctaLabel: "",
+  demoCtaLabel: "",
+  demoCtaHref: "",
+  customPage: "",
 };
+
+const KIND_OPTIONS = [
+  { value: "technology", label: "Technology Solution", hint: "Sourced & delivered · /it-solutions" },
+  { value: "digital", label: "Digital Solution", hint: "Built by Expresso · /digital-solutions" },
+];
+
+const CUSTOM_PAGE_OPTIONS = [
+  { value: "", label: "Standard layout (content blocks)" },
+  { value: "cas", label: "CAS product page" },
+];
+
+function publicPath(form) {
+  return `${form.kind === "digital" ? "/digital-solutions" : "/it-solutions"}/${form.slug || "…"}`;
+}
+
+const inputCls =
+  "h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100";
 
 function toSlug(s) {
   return String(s || "")
@@ -649,6 +676,8 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
   }, [open, initial]);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  const setKind = (kind) =>
+    setForm((p) => ({ ...p, kind, ownership: kind === "digital" ? "expresso" : "partner" }));
 
   const handleTitleChange = (v) => {
     set("title", v);
@@ -681,6 +710,30 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
       <div className="space-y-4 p-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
+            <span className="mb-1 block text-xs font-bold text-slate-700">Website section</span>
+            <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Website section">
+              {KIND_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={form.kind === o.value}
+                  onClick={() => setKind(o.value)}
+                  className={[
+                    "rounded-xl border px-3 py-2 text-left transition",
+                    form.kind === o.value
+                      ? "border-indigo-400 bg-indigo-50"
+                      : "border-slate-200 bg-white hover:border-slate-300",
+                  ].join(" ")}
+                >
+                  <span className="block text-sm font-bold text-slate-900">{o.label}</span>
+                  <span className="block text-[11px] text-slate-500">{o.hint}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="sm:col-span-2">
             <label className="mb-1 block text-xs font-bold text-slate-700">Title *</label>
             <input
               className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
@@ -698,7 +751,7 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
               onChange={(e) => { setSlugEdited(true); set("slug", toSlug(e.target.value)); }}
               placeholder="erp-solution"
             />
-            <p className="mt-1 text-[11px] text-slate-400">URL: /it-solutions/{form.slug || "…"}</p>
+            <p className="mt-1 text-[11px] text-slate-400">URL: {publicPath(form)}</p>
           </div>
 
           <div>
@@ -780,6 +833,83 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
             </div>
           </div>
 
+          {form.kind === "digital" && (
+            <div className="sm:col-span-2 grid gap-4 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3 sm:grid-cols-2">
+              <p className="sm:col-span-2 text-[11px] font-bold uppercase tracking-wide text-indigo-700">
+                Digital Solution · product listing
+              </p>
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs font-bold text-slate-700">Tagline</label>
+                <input
+                  className={inputCls}
+                  value={form.tagline}
+                  onChange={(e) => set("tagline", e.target.value)}
+                  placeholder="One sentence shown on the product card and menu"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700">Badge</label>
+                <input
+                  className={inputCls}
+                  value={form.badge}
+                  onChange={(e) => set("badge", e.target.value)}
+                  placeholder="Built by Expresso"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700">Ownership</label>
+                <select
+                  className={inputCls}
+                  value={form.ownership}
+                  onChange={(e) => set("ownership", e.target.value)}
+                >
+                  <option value="expresso">Built & owned by Expresso</option>
+                  <option value="partner">Partner product</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700">Main button label</label>
+                <input
+                  className={inputCls}
+                  value={form.ctaLabel}
+                  onChange={(e) => set("ctaLabel", e.target.value)}
+                  placeholder={`Explore ${form.title || "product"}`}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700">Detail page</label>
+                <select
+                  className={inputCls}
+                  value={form.customPage}
+                  onChange={(e) => set("customPage", e.target.value)}
+                >
+                  {CUSTOM_PAGE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700">Demo button label</label>
+                <input
+                  className={inputCls}
+                  value={form.demoCtaLabel}
+                  onChange={(e) => set("demoCtaLabel", e.target.value)}
+                  placeholder="Request a Demo"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700">Demo button link</label>
+                <input
+                  className={inputCls}
+                  value={form.demoCtaHref}
+                  onChange={(e) => set("demoCtaHref", e.target.value)}
+                  placeholder="/contact-us?interest=demo"
+                />
+                <p className="mt-1 text-[11px] text-slate-400">Site path (/…) or https:// link. Leave empty to hide.</p>
+              </div>
+            </div>
+          )}
+
           <div className="sm:col-span-2 flex items-center gap-3">
             <label className="text-sm font-semibold text-slate-700">Active</label>
             <button
@@ -803,7 +933,7 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
         {initial && (
           <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs text-amber-700">
             Use the <span className="font-bold">B</span> button in the solutions list to edit this page's content blocks. Public URL:{" "}
-            <span className="font-mono font-bold">/it-solutions/{form.slug}</span>.
+            <span className="font-mono font-bold">{publicPath(form)}</span>.
           </div>
         )}
 
@@ -1238,7 +1368,8 @@ export default function TechSolutionsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await listSolutions({ includeInactive: true });
+      // Both website sections live in one Solutions collection.
+      const res = await listSolutions({ includeInactive: true, kind: "all" });
       setItems(res.items || []);
     } catch {
       toast.error("Failed to load solutions.");
@@ -1307,9 +1438,9 @@ export default function TechSolutionsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black text-slate-900">Technology Solutions</h1>
+          <h1 className="text-xl font-black text-slate-900">Solutions</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Manage solution cards and their detail content. Drag to reorder.
+            Technology Solutions and Digital Solutions (built by Expresso). Manage cards and detail content. Drag to reorder.
           </p>
         </div>
         <button
@@ -1375,9 +1506,15 @@ export default function TechSolutionsPage() {
                         ].join(" ")}>
                           {item.isActive ? "Active" : "Inactive"}
                         </span>
+                        <span className={[
+                          "rounded-full px-2 py-0.5 text-[10px] font-black uppercase",
+                          item.kind === "digital" ? "bg-indigo-50 text-indigo-700" : "bg-slate-100 text-slate-500",
+                        ].join(" ")}>
+                          {item.kind === "digital" ? "Digital · Built by Expresso" : "Technology"}
+                        </span>
                       </div>
                       {item.subtitle && <p className="mt-0.5 truncate text-xs text-slate-400">{item.subtitle}</p>}
-                      <p className="mt-0.5 font-mono text-[11px] text-slate-400">/{item.slug}</p>
+                      <p className="mt-0.5 font-mono text-[11px] text-slate-400">{publicPath(item)}</p>
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1">
