@@ -4,7 +4,7 @@
 // One source for the desktop mega menu and the mobile drawer.
 import { useEffect, useState } from "react";
 import { groupTechnologySolutions } from "../../utils/technologyGroups";
-import { onlyDigital } from "../../utils/solutionKinds";
+import { mergeDigitalProducts } from "../../data/coreDigitalProducts";
 
 const API = process.env.REACT_APP_API_URL || "/api";
 
@@ -38,8 +38,6 @@ export function useCmsNavData() {
   const [services, setServices] = useState(cache.services || []);
   const [solutions, setSolutions] = useState(cache.solutions || []);
   const [digital, setDigital] = useState(cache.digital || []);
-  // Distinguishes "still loading" from "loaded, nothing published yet".
-  const [digitalLoaded, setDigitalLoaded] = useState(cache.digital !== null);
   useEffect(() => {
     let alive = true;
     const refresh = () => {
@@ -49,7 +47,6 @@ export function useCmsNavData() {
       load("digital", "/web-content/solutions?kind=digital").then((x) => {
         if (!alive) return;
         setDigital(x);
-        setDigitalLoaded(true);
       });
     };
     refresh();
@@ -61,7 +58,7 @@ export function useCmsNavData() {
       window.removeEventListener("focus", refresh);
     };
   }, []);
-  return { services, solutions, solutionGroups: cache.solutionGroups, digital, digitalLoaded };
+  return { services, solutions, solutionGroups: cache.solutionGroups, digital };
 }
 
 // ---- Digital Services grouping (Build · Grow · Create) ----------------------
@@ -91,19 +88,19 @@ function groupServices(services) {
 }
 
 // ---- Menus -------------------------------------------------------------------
-// Digital Solutions: CMS Solution records with kind "digital".
-function digitalFeatured(digital) {
-  return onlyDigital(digital).map((p) => ({
+// Core products remain discoverable while CMS marketing metadata loads/fails.
+function digitalFeatured(products) {
+  return products.map((p) => ({
     title: p.subtitle ? `${p.title} — ${p.subtitle}` : p.title,
     desc: p.tagline || p.description,
-    to: `/digital-solutions/${p.slug}`,
+    to: p.to,
     badge: p.badge || "Built by Expresso",
     cta: p.ctaLabel || `Explore ${p.title}`,
   }));
 }
 
-function digitalAction(digital) {
-  const withDemo = onlyDigital(digital).find((p) => p.demoCtaHref);
+function digitalAction(products) {
+  const withDemo = products.find((p) => p.demoCtaHref);
   return {
     tone: "lotus",
     eyebrow: "See it working",
@@ -118,29 +115,13 @@ function digitalAction(digital) {
   };
 }
 
-// Shown when the CMS has no published Digital Solution (or the API is down):
-// the menu still leads somewhere useful instead of "Loading…" forever.
-const DIGITAL_FALLBACK_GROUPS = [
-  {
-    label: "Digital Solutions",
-    columns: 1,
-    items: [
-      {
-        title: "See our Digital Solutions",
-        desc: "Software designed, built and owned by Expresso",
-        to: "/digital-solutions",
-      },
-    ],
-  },
-];
-
 export function buildMenus({
   services = [],
   solutions = [],
   solutionGroups = [],
   digital = [],
-  digitalLoaded = false,
 } = {}) {
+  const products = mergeDigitalProducts(digital);
   return [
     {
       key: "about",
@@ -212,10 +193,9 @@ export function buildMenus({
         mark: true,
         link: { to: "/digital-solutions", label: "All digital solutions" },
       },
-      featured: digitalFeatured(digital),
-      groups: digitalLoaded && !onlyDigital(digital).length ? DIGITAL_FALLBACK_GROUPS : [],
-      emptyText: "Loading solutions…",
-      action: digitalAction(digital),
+      featured: digitalFeatured(products),
+      groups: [],
+      action: digitalAction(products),
     },
     {
       key: "technology",

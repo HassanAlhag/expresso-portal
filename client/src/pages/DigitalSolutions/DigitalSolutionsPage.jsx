@@ -4,13 +4,13 @@ import { Helmet } from "react-helmet";
 import { FiArrowRight } from "react-icons/fi";
 import { BrandMark, SectionEyebrow } from "../../brand";
 import { toWebsiteImageUrl } from "../../utils/websiteImages";
-import { onlyDigital } from "../../utils/solutionKinds";
+import { mergeDigitalProducts } from "../../data/coreDigitalProducts";
 
 const API = process.env.REACT_APP_API_URL || "/api";
 
 // /digital-solutions — software Expresso designs, builds and owns.
-// Every product listed here is a CMS Solution record with kind "digital";
-// adding the next product is a CMS entry, not a code change.
+// Core products remain available independently of CMS publication. Published
+// Digital Solution records enrich core metadata or add further products.
 
 const PAGE_TITLE = "Digital Solutions — Software built by Expresso | Expresso Digital";
 const PAGE_DESCRIPTION =
@@ -44,7 +44,7 @@ const SITE_PARTS = [
 
 function productLinks(p) {
   return {
-    to: `/digital-solutions/${p.slug}`,
+    to: p.to,
     cta: p.ctaLabel || `Explore ${p.title}`,
     demoTo: p.demoCtaHref || "",
     demoLabel: p.demoCtaLabel || "Request a demo",
@@ -136,38 +136,14 @@ function ProductCard({ p, wide, first }) {
   );
 }
 
-function ProductsSkeleton() {
-  return (
-    <div role="status" className="h-[420px] animate-pulse rounded-[28px] bg-mist" aria-label="Loading products" />
-  );
-}
-
-function EmptyProducts() {
-  return (
-    <div className="flex flex-col items-center gap-3 rounded-[28px] border border-dashed border-lotus-200 bg-white px-6 py-14 text-center">
-      <BrandMark size={56} tone="lotus-200" />
-      <p className="m-0 text-lg font-semibold text-night">Our products are being updated.</p>
-      <p className="m-0 max-w-md text-[15px] leading-relaxed text-ink-500">
-        Talk to the team to see what Expresso has built.
-      </p>
-      <Link
-        to="/contact-us?interest=digital-solutions"
-        className="mt-2 inline-flex items-center gap-2 rounded-full bg-lotus-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-lotus-700"
-      >
-        Contact Expresso
-      </Link>
-    </div>
-  );
-}
-
 export default function DigitalSolutionsPage() {
-  const [products, setProducts] = useState(null);
+  const [cmsProducts, setCmsProducts] = useState(null);
   const [error, setError] = useState(false);
   const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
     let alive = true;
-    setProducts(null);
+    setCmsProducts(null);
     setError(false);
     fetch(`${API}/web-content/solutions?kind=digital`)
       .then((r) => {
@@ -176,7 +152,7 @@ export default function DigitalSolutionsPage() {
       })
       .then((d) => {
         if (d?.ok === false || !Array.isArray(d?.items)) throw new Error("Invalid solutions response");
-        if (alive) setProducts(onlyDigital(d.items));
+        if (alive) setCmsProducts(d.items);
       })
       .catch(() => { if (alive) setError(true); });
     return () => {
@@ -184,6 +160,7 @@ export default function DigitalSolutionsPage() {
     };
   }, [requestKey]);
 
+  const products = mergeDigitalProducts(cmsProducts || []);
   const canonical =
     typeof window !== "undefined" ? `${window.location.origin}/digital-solutions` : null;
 
@@ -231,10 +208,15 @@ export default function DigitalSolutionsPage() {
             </h2>
           </div>
 
+          {cmsProducts === null && !error ? (
+            <p role="status" aria-label="Loading products" className="py-4 text-center text-ink-600">
+              Loading the latest product information…
+            </p>
+          ) : null}
           {error ? (
             <div role="alert" className="flex flex-col items-center gap-3 rounded-[28px] bg-mist px-6 py-14 text-center">
-              <p className="m-0 text-lg font-semibold text-night">We couldn’t load our products.</p>
-              <p className="m-0 text-[15px] text-ink-600">Please try again or contact our team for help.</p>
+              <p className="m-0 text-lg font-semibold text-night">We couldn’t load the latest product information.</p>
+              <p className="m-0 text-[15px] text-ink-600">You can still explore our products below. Please try again or contact our team for help.</p>
               <div className="mt-2 flex flex-wrap justify-center gap-4">
                 <button type="button" onClick={() => setRequestKey((key) => key + 1)} className="rounded-full bg-lotus-600 px-6 py-3 text-sm font-bold text-white hover:bg-lotus-700">
                   Try again
@@ -244,17 +226,12 @@ export default function DigitalSolutionsPage() {
                 </Link>
               </div>
             </div>
-          ) : products === null ? (
-            <ProductsSkeleton />
-          ) : products.length === 0 ? (
-            <EmptyProducts />
-          ) : (
-            <div className={products.length > 1 ? "grid gap-6 md:grid-cols-2" : "grid"}>
-              {products.map((p, i) => (
-                <ProductCard key={p._id || p.slug} p={p} wide={products.length === 1} first={i === 0} />
-              ))}
-            </div>
-          )}
+          ) : null}
+          <div className={products.length > 1 ? "grid gap-6 md:grid-cols-2" : "grid"}>
+            {products.map((p, i) => (
+              <ProductCard key={p.slug} p={p} wide={products.length === 1} first={i === 0} />
+            ))}
+          </div>
         </div>
       </section>
 

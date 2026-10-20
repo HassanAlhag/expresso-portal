@@ -17,8 +17,8 @@ test("technology products never appear as Expresso-owned Digital Solutions", () 
   expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas"]);
 });
 
-test("a list with only technology records counts as no Digital Solutions", () => {
+test("a list with only technology records retains core Digital Solutions without leaking technology", () => {
   const menu = buildMenus({ digital: [ERP], digitalLoaded: true }).find((m) => m.key === "digital-solutions");
-  expect(menu.featured).toEqual([]);
-  expect(menu.groups[0].items[0].to).toBe("/digital-solutions");
+  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas"]);
+  expect(menu.groups).toEqual([]);
 });

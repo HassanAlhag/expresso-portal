@@ -22,7 +22,7 @@ test("Digital Solutions heading opens the landing page, not CAS", () => {
   expect(digitalMenu({}).href).toBe("/digital-solutions");
 });
 
-test("Digital Solutions products come from CMS records with their own URLs", () => {
+test("published CAS metadata merges into one canonical Digital Solutions menu entry", () => {
   const menu = digitalMenu({ digital: [CAS], digitalLoaded: true });
   expect(menu.featured).toHaveLength(1);
   expect(menu.featured[0]).toMatchObject({
@@ -40,10 +40,27 @@ test("a second product needs no code change", () => {
   expect(menu.featured[1].badge).toBe("Built by Expresso");
 });
 
-test("while loading the menu waits; once loaded and empty it still links somewhere", () => {
-  expect(digitalMenu({ digital: [], digitalLoaded: false }).groups).toEqual([]);
-  const empty = digitalMenu({ digital: [], digitalLoaded: true });
-  expect(empty.groups[0].items[0].to).toBe("/digital-solutions");
+test("CAS is discoverable once before loading, with an empty CMS, or after an API failure", () => {
+  for (const cms of [{}, { digital: [] }]) {
+    const menu = digitalMenu(cms);
+    expect(menu.featured).toHaveLength(1);
+    expect(menu.featured[0].to).toBe("/digital-solutions/cas");
+    expect(menu.featured[0].title).toBe("CAS — Clinic Appointment System");
+    expect(menu.action.primary.to).toBe("/contact-us?interest=cas-demo");
+  }
+});
+
+test("a future CMS product does not replace the core CAS menu entry", () => {
+  const menu = digitalMenu({ digital: [{ slug: "next", kind: "digital", title: "Next" }] });
+  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas", "/digital-solutions/next"]);
+});
+
+test("CMS marketing overrides are shared by menu title, description and demo action without duplicates", () => {
+  const cms = { ...CAS, title: "CAS for clinics", tagline: "Approved CMS tagline", demoCtaHref: "/contact-us?interest=walkthrough" };
+  const menu = digitalMenu({ digital: [cms, cms] });
+  expect(menu.featured).toHaveLength(1);
+  expect(menu.featured[0]).toMatchObject({ title: "CAS for clinics — Clinic Appointment System", desc: cms.tagline });
+  expect(menu.action.primary.to).toBe(cms.demoCtaHref);
 });
 
 test("Technology Solutions menu does not list digital products", () => {
@@ -105,22 +122,26 @@ test("Strict Mode navigation consumers share requests without cleanup canceling 
     await act(async () => {
       for (const [url, resolve] of pending) {
         const items = url.includes("kind=digital") ? [CAS] : [{ title: "Shared ERP", slug: "erp-solution" }];
-        resolve(url.endsWith("/solutions")
+        resolve(url.includes("/solutions")
           ? { ok: false, status: 503 }
           : { ok: true, json: async () => ({ items, groups: [] }) });
       }
     });
     expect(result.current.solutions).toEqual([]);
+    expect(result.current.digital).toEqual([]);
+    expect(digitalMenu(result.current).featured[0].to).toBe("/digital-solutions/cas");
     // A startup/API failure must not become a permanent empty menu cache.
     act(() => { window.dispatchEvent(new Event("focus")); });
-    expect(global.fetch).toHaveBeenCalledTimes(4);
+    expect(global.fetch).toHaveBeenCalledTimes(5);
     await act(async () => {
       const resolve = [...pending].find(([url]) => url.endsWith("/solutions"))[1];
       resolve({ ok: true, json: async () => ({ items: [{ title: "Shared ERP", slug: "erp-solution" }] }) });
+      const resolveDigital = [...pending].find(([url]) => url.includes("kind=digital"))[1];
+      resolveDigital({ ok: true, json: async () => ({ items: [CAS] }) });
     });
     expect(result.current.solutions[0].title).toBe("Shared ERP");
     expect(result.current.digital).toEqual([CAS]);
-    expect(result.current.digitalLoaded).toBe(true);
+    expect(digitalMenu(result.current).featured).toHaveLength(1);
   } finally {
     unmountFirst();
     unmountSecond();

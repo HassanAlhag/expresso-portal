@@ -1,8 +1,8 @@
 // Shared copy/config for the CAS (Clinic Appointment System) product.
 // Keeping this in one place means the homepage showcase and the CAS detail
 // page (/digital-solutions/cas — formerly /products/cas, which now redirects)
-// stay in sync. Listing data (menu, /digital-solutions) comes from the CMS
-// Solution record with kind "digital"; this file holds the page's long copy.
+// stay in sync. The core-product registry reuses this metadata for discovery;
+// published CMS records can enrich it without making CAS depend on the CMS.
 //
 // All claims here are grounded in functionality verified end-to-end against
 // the real CAS system (CAS-01/CAS-02 evaluation waves) — patient doctor
@@ -14,6 +14,7 @@
 // verified, and none of it should be implied here.
 
 export const CAS_PRODUCT = {
+  slug: "cas",
   name: "CAS",
   fullName: "Clinic Appointment System",
   eyebrow: "DIGITAL SOLUTIONS",
