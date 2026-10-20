@@ -31,7 +31,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     <a href="/services" className="hover:text-gray-300">SERVICES</a>
                     <a href="/solutions" className="hover:text-gray-300">SOLUTIONS</a>
                     <a href="/discover" className="hover:text-gray-300">DISCOVER</a>
-                    <a href="/contact" className="hover:text-gray-300">LET'S CONNECT</a>
+                    <a href="/contact-us" className="hover:text-gray-300">LET'S CONNECT</a>
                     <a href="/login" className="hover:text-gray-300">LOGIN</a>
                 </nav>
 

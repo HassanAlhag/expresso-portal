@@ -123,7 +123,7 @@ export default function ReelsShowcase({
             </button>
 
             <a
-              href="/contact"
+              href="/contact-us"
               className="inline-flex items-center justify-center rounded-2xl border border-neutral-200 bg-white px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-50"
             >
               Talk to Us

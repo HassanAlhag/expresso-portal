@@ -1,4 +1,5 @@
 import React, { memo, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MonitorSmartphone,
   Megaphone,
@@ -140,7 +141,7 @@ const HOME_CTA = {
     "Tell us your goal, your style, and what you need. We'll help shape the right direction for your brand, website, or campaign.",
   primaryLabel: "Build Your Plan",
   secondaryLabel: "Schedule a Call",
-  secondaryLink: "/contact",
+  secondaryLink: "/contact-us",
 };
 
 // ─── Gallery defaults ─────────────────────────────────────────────────────────
@@ -170,12 +171,11 @@ const SHUFFLE_DEFAULT_KEYS = [
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function Home() {
+  const navigate = useNavigate();
   const [productionItems, setProductionItems] = useState([]);
   const settings = useSiteSettings();
 
-  const scrollToLeadForm = () => {
-    document.getElementById("lead-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const openPlanBuilder = () => navigate("/build-your-plan");
 
   useEffect(() => {
     listWebsiteReels()
@@ -215,19 +215,19 @@ function Home() {
         <CountUpStats heading={COUNTUP_HEADING} stats={MARKETING_STATS} />
         <TextParallaxContentExample />
         <ServicesSection
-          onPrimaryClick={scrollToLeadForm}
+          onPrimaryClick={openPlanBuilder}
           cards={HOME_SERVICE_CARDS}
         />
         <ShuffleHero items={marqueeItems} />
-        <ReelsShowcase reels={reels} onCtaClick={scrollToLeadForm} />
+        <ReelsShowcase reels={reels} onCtaClick={() => navigate("/contact-us?interest=reels")} />
         <CASShowcaseSection />
         <StackedCardTestimonials testimonials={HOME_TESTIMONIALS} />
         <DragCards
           title="EXPRESSO"
           images={galleryImages}
-          onPrimaryClick={scrollToLeadForm}
+          onPrimaryClick={openPlanBuilder}
         />
-        <FinalCTASection onPrimaryClick={scrollToLeadForm} {...HOME_CTA} />
+        <FinalCTASection onPrimaryClick={openPlanBuilder} {...HOME_CTA} />
       </div>
     </main>
   );

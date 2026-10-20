@@ -1,4 +1,5 @@
 import React, { lazy, Suspense, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { ServiceBanner } from "../../components/ServicesBanner/servicesBanner";
 import ServiceMainHeader from "../../components/ServicesComponents/serviceMainSection";
 import RevealCards from "../../components/OurServiceSection/ourServiceSection";
@@ -113,9 +114,15 @@ function pageCopy(settings = {}, key) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function ServiceMainPage() {
+  const { hash } = useLocation();
   const settings = useSiteSettings();
   const servicesSettings = settings?.services || {};
   const [serviceCards, setServiceCards] = useState(null);
+
+  // This page is lazy-loaded, so scroll after its anchor has mounted.
+  useEffect(() => {
+    if (hash === "#clients") document.getElementById("clients")?.scrollIntoView();
+  }, [hash]);
 
   useEffect(() => {
     fetch(`${API}/web-content/services`)
@@ -160,17 +167,19 @@ function ServiceMainPage() {
         desc={pageCopy(servicesSettings, "processDescription")}
       />
       <WebDevelopmentProcess cards={PROCESS_CARDS} backgroundColor="white" />
-      <ServiceMainHeader
-        subheading={pageCopy(servicesSettings, "clientsSubheading")}
-        heading={pageCopy(servicesSettings, "clientsHeading")}
-        desc={pageCopy(servicesSettings, "clientsDescription")}
-        bgColor="bg-gray-900"
-        headingColor="text-white"
-        descColor="text-gray-300"
-      />
-      <Suspense fallback={null}>
-        <ScrollingLogos />
-      </Suspense>
+      <section id="clients" aria-label="Clients and partners" className="scroll-mt-32">
+        <ServiceMainHeader
+          subheading={pageCopy(servicesSettings, "clientsSubheading")}
+          heading={pageCopy(servicesSettings, "clientsHeading")}
+          desc={pageCopy(servicesSettings, "clientsDescription")}
+          bgColor="bg-gray-900"
+          headingColor="text-white"
+          descColor="text-gray-300"
+        />
+        <Suspense fallback={null}>
+          <ScrollingLogos />
+        </Suspense>
+      </section>
       <ServiceMainHeader
         subheading={pageCopy(servicesSettings, "testimonialsSubheading")}
         heading={pageCopy(servicesSettings, "testimonialsHeading")}

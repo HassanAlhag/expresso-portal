@@ -67,7 +67,7 @@ export default function ServicesSection({
   ctaDescription = "Tell us your goals and we'll shape the right website, content, ads, branding, and analytics setup for your business.",
   ctaPrimaryLabel = "Build Your Plan",
   ctaSecondaryLabel = "Talk to Us",
-  ctaSecondaryLink = "/contact",
+  ctaSecondaryLink = "/contact-us",
 }) {
   return (
     <HomeSection

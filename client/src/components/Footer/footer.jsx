@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FiFacebook, FiInstagram, FiLinkedin, FiTwitter } from "react-icons/fi";
+import { FiInstagram } from "react-icons/fi";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
 
@@ -48,17 +48,8 @@ const Footer = () => {
 
             {/* Social */}
             <div className="mt-6 flex items-center gap-3">
-              <SocialIcon to="/" label="Facebook">
-                <FiFacebook />
-              </SocialIcon>
-              <SocialIcon to="/" label="Instagram">
+              <SocialIcon href="https://www.instagram.com/expresso.digitalagency/" label="Instagram">
                 <FiInstagram />
-              </SocialIcon>
-              <SocialIcon to="/" label="LinkedIn">
-                <FiLinkedin />
-              </SocialIcon>
-              <SocialIcon to="/" label="Twitter">
-                <FiTwitter />
               </SocialIcon>
             </div>
 
@@ -159,16 +150,7 @@ const Footer = () => {
           <p className="text-xs text-white/50">
             © {new Date().getFullYear()} Expresso Digital. All rights reserved.
           </p>
-
-          <div className="flex items-center gap-4 text-xs text-white/50">
-            <Link to="/privacy" className="hover:text-white/80">
-              Privacy
-            </Link>
-            <span className="h-3 w-px bg-white/10" />
-            <Link to="/terms" className="hover:text-white/80">
-              Terms
-            </Link>
-          </div>
+          {/* Legal links await approved Privacy Policy and Terms content. */}
         </div>
       </div>
     </footer>
@@ -187,14 +169,16 @@ const FooterLink = ({ to, children }) => (
   </li>
 );
 
-const SocialIcon = ({ to, label, children }) => (
-  <Link
-    to={to}
+const SocialIcon = ({ href, label, children }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
     aria-label={label}
     className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-white/40 hover:text-white"
   >
     <span className="text-lg">{children}</span>
-  </Link>
+  </a>
 );
 
 export default Footer;

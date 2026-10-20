@@ -17,7 +17,7 @@ export default function SolutionImageShowcaseBlock({
   accentBg = BRAND_BG,
 }) {
   return (
-    <section className="bg-neutral-50 py-20">
+    <section className="overflow-x-clip bg-neutral-50 py-20">
       <div className="mx-auto grid w-[min(1200px,92vw)] gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
         <motion.div
           initial={{ opacity: 0, y: 24 }}

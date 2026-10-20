@@ -13,7 +13,7 @@ export default function FinalCTASection({
   description = "Tell us your goal, your style, and what you need. We'll help shape the right direction for your brand, website, or campaign.",
   primaryLabel = "Build Your Plan",
   secondaryLabel = "Schedule a Call",
-  secondaryLink = "/contact",
+  secondaryLink = "/contact-us",
 }) {
   const settings = useSiteSettings();
   const logo = resolveWebsiteImage(settings, "/logo.png");

@@ -32,21 +32,54 @@ export default function ITSolutionDetailsPage({ section = "technology" }) {
   const navigate = useNavigate();
   const [solution, setSolution] = useState(null);
   const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState(false);
+  const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
     let alive = true;
     setNotFound(false);
+    setError(false);
     setSolution(null);
     fetch(`${API}/web-content/solutions/${slug}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (!alive) return;
-        if (d.ok && d.item) setSolution(d.item);
-        else setNotFound(true);
+      .then((r) => {
+        if (r.status === 404) {
+          if (alive) setNotFound(true);
+          return undefined;
+        }
+        if (!r.ok) throw new Error(`Solution request failed: ${r.status}`);
+        return r.json();
       })
-      .catch(() => { if (alive) setNotFound(true); });
+      .then((d) => {
+        if (!alive || d === undefined) return;
+        if (!d?.ok || !d.item?.slug) throw new Error("Invalid solution response");
+        setSolution(d.item);
+      })
+      .catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
-  }, [slug]);
+  }, [slug, requestKey]);
+
+  if (error) {
+    return (
+      <>
+        <AuroraHero
+          heading={cfg.label}
+          subtitle="Solution Unavailable"
+          description="We couldn’t load this solution. Please try again."
+          useImageOverrides={false}
+        />
+        <section className="py-20" role="alert" aria-label="Solution loading failed">
+          <div className="mx-auto flex w-[min(900px,92vw)] flex-wrap justify-center gap-4">
+            <button onClick={() => setRequestKey((key) => key + 1)} className="rounded-2xl bg-lotus-600 px-6 py-3 text-sm font-bold text-white">
+              Try again
+            </button>
+            <button onClick={() => navigate(cfg.listPath)} className="rounded-2xl border border-lotus-200 px-6 py-3 text-sm font-bold text-lotus-700">
+              {cfg.backLabel}
+            </button>
+          </div>
+        </section>
+      </>
+    );
+  }
 
   if (notFound) {
     return (

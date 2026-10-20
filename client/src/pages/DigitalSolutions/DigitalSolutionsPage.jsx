@@ -138,7 +138,7 @@ function ProductCard({ p, wide, first }) {
 
 function ProductsSkeleton() {
   return (
-    <div className="h-[420px] animate-pulse rounded-[28px] bg-mist" aria-label="Loading products" />
+    <div role="status" className="h-[420px] animate-pulse rounded-[28px] bg-mist" aria-label="Loading products" />
   );
 }
 
@@ -162,17 +162,27 @@ function EmptyProducts() {
 
 export default function DigitalSolutionsPage() {
   const [products, setProducts] = useState(null);
+  const [error, setError] = useState(false);
+  const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
     let alive = true;
+    setProducts(null);
+    setError(false);
     fetch(`${API}/web-content/solutions?kind=digital`)
-      .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((d) => alive && setProducts(onlyDigital(Array.isArray(d?.items) ? d.items : [])))
-      .catch(() => alive && setProducts([]));
+      .then((r) => {
+        if (!r.ok) throw new Error(`Solutions request failed: ${r.status}`);
+        return r.json();
+      })
+      .then((d) => {
+        if (d?.ok === false || !Array.isArray(d?.items)) throw new Error("Invalid solutions response");
+        if (alive) setProducts(onlyDigital(d.items));
+      })
+      .catch(() => { if (alive) setError(true); });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [requestKey]);
 
   const canonical =
     typeof window !== "undefined" ? `${window.location.origin}/digital-solutions` : null;
@@ -221,7 +231,20 @@ export default function DigitalSolutionsPage() {
             </h2>
           </div>
 
-          {products === null ? (
+          {error ? (
+            <div role="alert" className="flex flex-col items-center gap-3 rounded-[28px] bg-mist px-6 py-14 text-center">
+              <p className="m-0 text-lg font-semibold text-night">We couldn’t load our products.</p>
+              <p className="m-0 text-[15px] text-ink-600">Please try again or contact our team for help.</p>
+              <div className="mt-2 flex flex-wrap justify-center gap-4">
+                <button type="button" onClick={() => setRequestKey((key) => key + 1)} className="rounded-full bg-lotus-600 px-6 py-3 text-sm font-bold text-white hover:bg-lotus-700">
+                  Try again
+                </button>
+                <Link to="/contact-us?interest=digital-solutions" className="self-center font-semibold text-lotus-700 underline">
+                  Contact Expresso
+                </Link>
+              </div>
+            </div>
+          ) : products === null ? (
             <ProductsSkeleton />
           ) : products.length === 0 ? (
             <EmptyProducts />
