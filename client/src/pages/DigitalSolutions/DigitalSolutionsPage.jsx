@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet";
 import { FiArrowRight } from "react-icons/fi";
 import { BrandMark, SectionEyebrow } from "../../brand";
 import { toWebsiteImageUrl } from "../../utils/websiteImages";
+import { onlyDigital } from "../../utils/solutionKinds";
 
 const API = process.env.REACT_APP_API_URL || "/api";
 
@@ -166,7 +167,7 @@ export default function DigitalSolutionsPage() {
     let alive = true;
     fetch(`${API}/web-content/solutions?kind=digital`)
       .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((d) => alive && setProducts(Array.isArray(d?.items) ? d.items : []))
+      .then((d) => alive && setProducts(onlyDigital(Array.isArray(d?.items) ? d.items : [])))
       .catch(() => alive && setProducts([]));
     return () => {
       alive = false;

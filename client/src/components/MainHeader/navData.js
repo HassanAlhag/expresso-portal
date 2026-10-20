@@ -4,6 +4,7 @@
 // One source for the desktop mega menu and the mobile drawer.
 import { useEffect, useState } from "react";
 import { groupTechnologySolutions } from "../../utils/technologyGroups";
+import { onlyDigital } from "../../utils/solutionKinds";
 
 const API = process.env.REACT_APP_API_URL || "/api";
 
@@ -81,7 +82,7 @@ function groupServices(services) {
 // ---- Menus -------------------------------------------------------------------
 // Digital Solutions: CMS Solution records with kind "digital".
 function digitalFeatured(digital) {
-  return digital.map((p) => ({
+  return onlyDigital(digital).map((p) => ({
     title: p.subtitle ? `${p.title} — ${p.subtitle}` : p.title,
     desc: p.tagline || p.description,
     to: `/digital-solutions/${p.slug}`,
@@ -91,7 +92,7 @@ function digitalFeatured(digital) {
 }
 
 function digitalAction(digital) {
-  const withDemo = digital.find((p) => p.demoCtaHref);
+  const withDemo = onlyDigital(digital).find((p) => p.demoCtaHref);
   return {
     tone: "lotus",
     eyebrow: "See it working",
@@ -201,7 +202,7 @@ export function buildMenus({
         link: { to: "/digital-solutions", label: "All digital solutions" },
       },
       featured: digitalFeatured(digital),
-      groups: digitalLoaded && !digital.length ? DIGITAL_FALLBACK_GROUPS : [],
+      groups: digitalLoaded && !onlyDigital(digital).length ? DIGITAL_FALLBACK_GROUPS : [],
       emptyText: "Loading solutions…",
       action: digitalAction(digital),
     },
