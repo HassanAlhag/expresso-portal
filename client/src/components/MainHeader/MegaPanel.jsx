@@ -87,7 +87,7 @@ function Groups({ groups, emptyText }) {
   return (
     <div
       className="grid gap-4 p-6"
-      style={{ gridTemplateColumns: `repeat(${visible.length}, minmax(0, 1fr))` }}
+      style={{ gridTemplateColumns: `repeat(${visible.length > 3 ? 2 : visible.length}, minmax(0, 1fr))` }}
     >
       {visible.map((g) => (
         <div key={g.label} className="flex flex-col gap-1">

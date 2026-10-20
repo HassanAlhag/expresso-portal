@@ -3,11 +3,12 @@
 //   Our Work · Work With Us   (+ Client Portal; the logo links Home)
 // One source for the desktop mega menu and the mobile drawer.
 import { useEffect, useState } from "react";
+import { groupTechnologySolutions } from "../../utils/technologyGroups";
 
 const API = process.env.REACT_APP_API_URL || "/api";
 
 // ---- CMS data (cached for the session) -------------------------------------
-const cache = { services: null, solutions: null, digital: null };
+const cache = { services: null, solutions: null, digital: null, solutionGroups: [] };
 const inflight = {};
 
 function load(kind, path) {
@@ -16,6 +17,7 @@ function load(kind, path) {
     inflight[kind] = fetch(`${API}${path}`)
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((d) => {
+        if (kind === "solutions") cache.solutionGroups = Array.isArray(d?.groups) ? d.groups : [];
         cache[kind] = Array.isArray(d?.items) ? d.items : [];
         return cache[kind];
       })
@@ -47,7 +49,7 @@ export function useCmsNavData() {
       alive = false;
     };
   }, []);
-  return { services, solutions, digital, digitalLoaded };
+  return { services, solutions, solutionGroups: cache.solutionGroups, digital, digitalLoaded };
 }
 
 // ---- Digital Services grouping (Build · Grow · Create) ----------------------
@@ -123,6 +125,7 @@ const DIGITAL_FALLBACK_GROUPS = [
 export function buildMenus({
   services = [],
   solutions = [],
+  solutionGroups = [],
   digital = [],
   digitalLoaded = false,
 } = {}) {
@@ -214,25 +217,23 @@ export function buildMenus({
         text: "We source, implement and support the systems your business runs on — through a vetted vendor network.",
         link: { to: "/it-solutions", label: "All technology solutions" },
       },
-      // Stage 3 replaces this single list with the four approved groups.
-      groups: [
-        {
-          label: "Solutions",
-          columns: 3,
-          items: solutions.map((s) => ({
+      groups: groupTechnologySolutions(solutions, solutionGroups)
+        .filter((group) => group.items.length)
+        .map((group) => ({
+          label: group.label,
+          items: group.items.map((s) => ({
             title: s.title,
             desc: s.subtitle,
             to: `/it-solutions/${s.slug}`,
           })),
-        },
-      ],
+        })),
       emptyText: "Loading solutions…",
       action: {
         tone: "sand",
         eyebrow: "For vendors & suppliers",
-        title: "Become an Expresso vendor",
-        text: "Join the procurement network behind our technology solutions. Approved vendors receive matching RFQs.",
-        primary: { to: "/vendor-registration", label: "Register as a vendor" },
+        title: "Become an Expresso Vendor",
+        text: "Register your company and solution or product categories to participate in our procurement and RFQ process.",
+        primary: { to: "/vendor-registration", label: "Register as a Vendor" },
         secondary: { to: "/portal/login", label: "Already approved? Vendor sign in" },
       },
     },

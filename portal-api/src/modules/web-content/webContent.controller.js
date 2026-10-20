@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 import DigitalService from "./digitalService.model.js";
 import Solution from "./solution.model.js";
+import {
+  TECHNOLOGY_GROUPS,
+  TECHNOLOGY_GROUP_IDS,
+  defaultTechnologyGroup,
+  withTechnologyGroup,
+} from "./technologyGroups.js";
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
@@ -189,13 +195,42 @@ function classificationFields(body, { partial }) {
   return { value: out };
 }
 
+// Technology group rule (Stage 2 + Stage 3 combined):
+// - digital solutions never carry a technology group (stored as "");
+// - technology solutions use one of the four approved groups; a record
+//   without one falls back, on read only, to its legacy slug default
+//   (see withTechnologyGroup), so nothing is written just by reading.
+// Rejects malformed group input before any database access. A group must be
+// a known id (or "" meaning none); anything else is invalid for either kind.
+function groupInputError(body) {
+  if (typeof body.group === "undefined") return null;
+  if (typeof body.group !== "string") return "Invalid technology group";
+  const g = body.group.trim();
+  if (g && !TECHNOLOGY_GROUP_IDS.includes(g)) return "Invalid technology group";
+  return null;
+}
+
+function resolveGroup({ kind, body, slug, isCreate, kindChanged }) {
+  if (kind === "digital") return { value: "" };
+  const provided = typeof body.group !== "undefined";
+  const g = provided ? body.group.trim() : "";
+  if (isCreate) return { value: g || defaultTechnologyGroup(slug) };
+  if (provided) {
+    if (!g) return { error: "Choose a technology group" };
+    return { value: g };
+  }
+  // Switched from digital to technology without choosing: use the slug default.
+  if (kindChanged) return { value: defaultTechnologyGroup(slug) };
+  return { skip: true };
+}
+
 export async function listSolutions(req, res) {
   try {
     const { includeInactive, kind } = req.query;
     const filter = kindFilter(kind);
     if (!includeInactive) filter.isActive = true;
     const items = await Solution.find(filter).sort({ order: 1, createdAt: 1 }).lean();
-    return res.json({ ok: true, items });
+    return res.json({ ok: true, items: items.map(withTechnologyGroup), groups: TECHNOLOGY_GROUPS });
   } catch (e) {
     console.error("listSolutions:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
@@ -207,7 +242,7 @@ export async function getSolutionBySlug(req, res) {
     const { slug } = req.params;
     const item = await Solution.findOne({ slug: String(slug).trim() }).lean();
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
-    return res.json({ ok: true, item });
+    return res.json({ ok: true, item: withTechnologyGroup(item) });
   } catch (e) {
     console.error("getSolutionBySlug:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
@@ -220,14 +255,19 @@ export async function createSolution(req, res) {
     if (!String(title || "").trim()) return res.status(400).json({ ok: false, message: "title is required" });
     const normalizedSlug = slugify(slug || title);
     if (!normalizedSlug) return res.status(400).json({ ok: false, message: "slug is required" });
+    const groupError = groupInputError(req.body || {});
+    if (groupError) return res.status(400).json({ ok: false, message: groupError });
     const cls = classificationFields(req.body || {}, { partial: false });
     if (cls.error) return res.status(400).json({ ok: false, message: cls.error });
+    const grp = resolveGroup({ kind: cls.value.kind, body: req.body || {}, slug: normalizedSlug, isCreate: true });
+    if (grp.error) return res.status(400).json({ ok: false, message: grp.error });
     const item = await Solution.create({
       ...cls.value,
       title: String(title).trim(),
       subtitle: String(subtitle || "").trim(),
       description: String(description || "").trim(),
       slug: normalizedSlug,
+      group: grp.value,
       icon: String(icon || "software").trim(),
       heroImageUrl: String(heroImageUrl || "").trim(),
       heroImageMediaId: validId(heroImageMediaId) ? heroImageMediaId : null,
@@ -237,7 +277,7 @@ export async function createSolution(req, res) {
       createdBy: req.user?.id || null,
       updatedBy: req.user?.id || null,
     });
-    return res.status(201).json({ ok: true, item });
+    return res.status(201).json({ ok: true, item: withTechnologyGroup(item) });
   } catch (e) {
     if (e.code === 11000) return res.status(409).json({ ok: false, message: "Slug already in use" });
     console.error("createSolution:", e);
@@ -250,6 +290,8 @@ export async function updateSolution(req, res) {
     const { id } = req.params;
     if (!validId(id)) return res.status(400).json({ ok: false, message: "Invalid id" });
     const body = req.body || {};
+    const groupError = groupInputError(body);
+    if (groupError) return res.status(400).json({ ok: false, message: groupError });
     const patch = { updatedBy: req.user?.id || null };
     if (typeof body.title !== "undefined") patch.title = String(body.title || "").trim();
     if (typeof body.subtitle !== "undefined") patch.subtitle = String(body.subtitle || "").trim();
@@ -268,9 +310,26 @@ export async function updateSolution(req, res) {
     const cls = classificationFields(body, { partial: true });
     if (cls.error) return res.status(400).json({ ok: false, message: cls.error });
     Object.assign(patch, cls.value);
+
+    // The group rule depends on the record's kind, which a partial update may
+    // not send, so read the current kind/slug first.
+    const current = await Solution.findById(id).select("kind slug").lean();
+    if (!current) return res.status(404).json({ ok: false, message: "Not found" });
+    const currentKind = current.kind === "digital" ? "digital" : "technology";
+    const kind = cls.value.kind || currentKind;
+    const grp = resolveGroup({
+      kind,
+      body,
+      slug: patch.slug || current.slug,
+      isCreate: false,
+      kindChanged: kind !== currentKind,
+    });
+    if (grp.error) return res.status(400).json({ ok: false, message: grp.error });
+    if (!grp.skip) patch.group = grp.value;
+
     const item = await Solution.findByIdAndUpdate(id, patch, { new: true }).lean();
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
-    return res.json({ ok: true, item });
+    return res.json({ ok: true, item: withTechnologyGroup(item) });
   } catch (e) {
     if (e.code === 11000) return res.status(409).json({ ok: false, message: "Slug already in use" });
     console.error("updateSolution:", e);

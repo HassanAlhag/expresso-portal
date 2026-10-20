@@ -621,6 +621,7 @@ const EMPTY_SOLUTION = {
   subtitle: "",
   description: "",
   slug: "",
+  group: "",
   icon: "software",
   heroImageUrl: "",
   heroImageMediaId: null,
@@ -638,8 +639,8 @@ const EMPTY_SOLUTION = {
 };
 
 const KIND_OPTIONS = [
-  { value: "technology", label: "Technology Solution", hint: "Sourced & delivered · /it-solutions" },
-  { value: "digital", label: "Digital Solution", hint: "Built by Expresso · /digital-solutions" },
+  { value: "digital", label: "Digital Solution", hint: "Software built by Expresso · /digital-solutions" },
+  { value: "technology", label: "Technology Solution", hint: "Sourced & delivered, grouped · /it-solutions" },
 ];
 
 const CUSTOM_PAGE_OPTIONS = [
@@ -661,7 +662,7 @@ function toSlug(s) {
     .replace(/^-+|-+$/g, "");
 }
 
-function SolutionFormModal({ open, onClose, initial, onSave }) {
+function SolutionFormModal({ open, onClose, initial, onSave, groups }) {
   const toast = useToast();
   const [form, setForm] = useState(EMPTY_SOLUTION);
   const [saving, setSaving] = useState(false);
@@ -676,8 +677,14 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
   }, [open, initial]);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  // Digital Solutions never have a technology group; switching type clears it.
   const setKind = (kind) =>
-    setForm((p) => ({ ...p, kind, ownership: kind === "digital" ? "expresso" : "partner" }));
+    setForm((p) => ({
+      ...p,
+      kind,
+      ownership: kind === "digital" ? "expresso" : "partner",
+      group: kind === "digital" ? "" : p.group,
+    }));
 
   const handleTitleChange = (v) => {
     set("title", v);
@@ -687,6 +694,10 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
   const handleSave = async () => {
     if (!form.title.trim()) { toast.error("Title is required"); return; }
     if (!form.slug.trim()) { toast.error("Slug is required"); return; }
+    if (form.kind !== "digital" && !groups.some((group) => group.id === form.group)) {
+      toast.error("Choose a technology group");
+      return;
+    }
     setSaving(true);
     try {
       await onSave(form);
@@ -710,8 +721,8 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
       <div className="space-y-4 p-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <span className="mb-1 block text-xs font-bold text-slate-700">Website section</span>
-            <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Website section">
+            <span className="mb-1 block text-xs font-bold text-slate-700">Type</span>
+            <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Type">
               {KIND_OPTIONS.map((o) => (
                 <button
                   key={o.value}
@@ -763,6 +774,17 @@ function SolutionFormModal({ open, onClose, initial, onSave }) {
               placeholder="Streamline operations end-to-end"
             />
           </div>
+
+          {form.kind !== "digital" && (
+            <div className="sm:col-span-2">
+              <label htmlFor="solution-technology-group" className="mb-1 block text-xs font-bold text-slate-700">Technology group *</label>
+              <select id="solution-technology-group" value={form.group} onChange={(e) => set("group", e.target.value)} className={inputClass} required>
+                <option value="">Choose a group</option>
+                {groups.map((group) => <option key={group.id} value={group.id}>{group.label}</option>)}
+              </select>
+              <p className="mt-1 text-[11px] text-slate-400">Used on Technology Solutions and in the website navigation.</p>
+            </div>
+          )}
 
           <div className="sm:col-span-2">
             <label className="mb-1 block text-xs font-bold text-slate-700">Description</label>
@@ -1357,6 +1379,7 @@ function BlocksEditor({ solution, solutionId, blocks: initialBlocks, onSaved }) 
 export default function TechSolutionsPage() {
   const toast = useToast();
   const [items, setItems] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -1371,6 +1394,7 @@ export default function TechSolutionsPage() {
       // Both website sections live in one Solutions collection.
       const res = await listSolutions({ includeInactive: true, kind: "all" });
       setItems(res.items || []);
+      setGroups(res.groups || []);
     } catch {
       toast.error("Failed to load solutions.");
     } finally {
@@ -1440,7 +1464,7 @@ export default function TechSolutionsPage() {
         <div>
           <h1 className="text-xl font-black text-slate-900">Solutions</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Technology Solutions and Digital Solutions (built by Expresso). Manage cards and detail content. Drag to reorder.
+            Digital Solutions (software built by Expresso) and Technology Solutions (grouped). Edit a solution to set its type and, for technology, its group. Drag to reorder.
           </p>
         </div>
         <button
@@ -1513,6 +1537,9 @@ export default function TechSolutionsPage() {
                           {item.kind === "digital" ? "Digital · Built by Expresso" : "Technology"}
                         </span>
                       </div>
+                      {item.kind !== "digital" && (
+                        <p className="mt-0.5 text-xs font-semibold text-slate-500">{groups.find((group) => group.id === item.group)?.label || "Choose a technology group"}</p>
+                      )}
                       {item.subtitle && <p className="mt-0.5 truncate text-xs text-slate-400">{item.subtitle}</p>}
                       <p className="mt-0.5 font-mono text-[11px] text-slate-400">{publicPath(item)}</p>
                     </div>
@@ -1591,6 +1618,7 @@ export default function TechSolutionsPage() {
         open={formOpen}
         onClose={() => setFormOpen(false)}
         initial={editing}
+        groups={groups}
         onSave={editing ? handleUpdate : handleCreate}
       />
 

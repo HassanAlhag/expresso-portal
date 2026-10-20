@@ -61,6 +61,7 @@ test("invalid kind or unknown custom page is rejected", async () => {
 test("existing technology solutions keep working when updated without new fields", async () => {
   setupAuth({ users: [editor] });
   let patch;
+  stub(Solution, "findById", () => q({ kind: "technology", slug: "erp-solution" }));
   stub(Solution, "findByIdAndUpdate", (_id, p) => {
     patch = p;
     return q({ _id, ...p });
