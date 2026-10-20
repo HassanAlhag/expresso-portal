@@ -17,6 +17,33 @@ function canManageRole(actorRole, targetRole) {
   return false;
 }
 
+/**
+ * True when the change would leave no active super admin: the target is an
+ * active super admin and is being deleted, deactivated or given another role,
+ * and no other active super admin exists. Without one, nobody can manage
+ * access and recovery needs server access.
+ */
+async function wouldRemoveLastSuperAdmin(target, id, { deleting = false, nextRole, nextActive } = {}) {
+  if (String(target?.role || "").toLowerCase() !== "super_admin") return false;
+  if (target.isActive === false) return false;
+  const staysSuperAdmin =
+    !deleting &&
+    String(nextRole ?? "super_admin").toLowerCase() === "super_admin" &&
+    nextActive !== false;
+  if (staysSuperAdmin) return false;
+  const others = await User.countDocuments({
+    role: "super_admin",
+    isActive: { $ne: false },
+    _id: { $ne: id },
+  });
+  return others === 0;
+}
+
+const LAST_SUPER_ADMIN = {
+  ok: false,
+  message: "Cannot remove the last active super admin",
+};
+
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -265,7 +292,7 @@ export async function updateUser(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid user id" });
     }
 
-    const target = await User.findById(id).select("role email").lean();
+    const target = await User.findById(id).select("role email isActive").lean();
     if (!target) {
       return res.status(404).json({ ok: false, message: "User not found" });
     }
@@ -284,6 +311,16 @@ export async function updateUser(req, res) {
       !canManageRole(req.user?.role, nextRole)
     ) {
       return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
+
+    if (
+      await wouldRemoveLastSuperAdmin(target, id, {
+        nextRole,
+        nextActive:
+          typeof req.body?.isActive !== "undefined" ? Boolean(req.body.isActive) : undefined,
+      })
+    ) {
+      return res.status(409).json(LAST_SUPER_ADMIN);
     }
 
     const patch = {};
@@ -393,13 +430,17 @@ export async function setUserStatus(req, res) {
         .json({ ok: false, message: "isActive must be boolean" });
     }
 
-    const target = await User.findById(id).select("role").lean();
+    const target = await User.findById(id).select("role isActive").lean();
     if (!target) {
       return res.status(404).json({ ok: false, message: "User not found" });
     }
 
     if (!canManageRole(req.user?.role, target.role)) {
       return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
+
+    if (await wouldRemoveLastSuperAdmin(target, id, { nextActive: isActive })) {
+      return res.status(409).json(LAST_SUPER_ADMIN);
     }
 
     const user = await User.findByIdAndUpdate(id, { isActive }, { new: true })
@@ -539,7 +580,7 @@ export async function deleteUser(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid user id" });
     }
 
-    const target = await User.findById(id).select("role email clientId").lean();
+    const target = await User.findById(id).select("role email clientId isActive").lean();
     if (!target) {
       return res.status(404).json({ ok: false, message: "User not found" });
     }
@@ -548,9 +589,13 @@ export async function deleteUser(req, res) {
       return res.status(403).json({ ok: false, message: "Forbidden — cannot delete this role" });
     }
 
-    // Prevent self-deletion
-    if (String(req.user._id) === String(id)) {
+    // Prevent self-deletion (requireAuth sets req.user.id, not _id).
+    if (String(req.user?.id) === String(id)) {
       return res.status(400).json({ ok: false, message: "Cannot delete your own account" });
+    }
+
+    if (await wouldRemoveLastSuperAdmin(target, id, { deleting: true })) {
+      return res.status(409).json(LAST_SUPER_ADMIN);
     }
 
     await User.findByIdAndDelete(id);

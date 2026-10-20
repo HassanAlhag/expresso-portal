@@ -63,6 +63,8 @@ Nothing has been approved for deletion. The database map classifies schema purpo
 4. **Multi-record workflows are not transactional.** Vendor approval and CRM conversion can leave partial state after a mid-flow failure. Invoice numbering can fail under simultaneous creation; RFQ numbering can duplicate. Project DELETE is a permanent delete that orphans linked records.
 5. **Reset and storage lifecycles are not one controlled process.** Existing seeds mix reference content, samples and updates; there is no approved backup/reset/system-seed/demo-seed pipeline. Account deletion has source-confirmed identity/import bugs.
 
+**Update — Stage R1:** P0-1 to P0-4 (items 1, 2 and the log/admin issues above) have been fixed and covered by automated tests; see the [remediation plan's implementation status](REMEDIATION-PLAN.md#implementation-status). The findings in this audit describe the code at `58b8f86c`.
+
 These are source findings, not a live penetration test or a claim about currently assigned users. [RBAC](RBAC-MAP.md), [API](API-MAP.md) and [cleanup audit](CODE-CLEANUP-AUDIT.md) provide evidence and conditions.
 
 ## What code appears unnecessary?

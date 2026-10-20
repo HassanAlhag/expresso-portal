@@ -2,7 +2,7 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · [Cleanup audit](CODE-CLEANUP-AUDIT.md) · [Reset plan](DATABASE-RESET-PLAN.md)
 
-**Status: draft for review with Hassan. Planning only.** Nothing in this plan has been implemented. No application code, database data, authentication, infrastructure, storage, configuration or `.env` file was changed, and no file was deleted.
+**Status: approved planning baseline (`852369df`).** Stage R1 (P0 only) has been implemented on top of it; see [Implementation status](#implementation-status). Everything else in this plan is still pending. No database data, infrastructure, storage, configuration or `.env` file has been changed by any stage, and no file has been deleted.
 
 **Baseline:** branch `website/integrated-solutions`. Application code is at `58b8f86c`; the architecture docs were committed at `e867d95f`.
 
@@ -12,6 +12,31 @@
 - The invite verification token is written to production request logs.
 
 One finding was **narrower** than first described: invoice numbers fail with an error rather than duplicating. These corrections are listed in [section 8](#8-false-positives-corrections-and-runtime-confirmations).
+
+## Implementation status
+
+Status words used here: **Implemented** = code changed in the working tree · **Verified** = covered by automated tests that pass, and that fail against the pre-R1 code · **Pending** = not done yet (code, decision or runtime check).
+
+### Stage R1 — P0 security (implemented, awaiting review; not yet committed or deployed)
+
+| ID | Implemented | Automated tests | Still pending |
+|---|---|---|---|
+| P0-1 | **Implemented** — `optionalAuth` middleware; portfolio and productions lists/details force `status: published` and services/solutions lists/details force active records unless the caller holds `portfolio.read`, `productions.read` or `website.read`. Failed authentication (invalid, expired or deactivated) falls back to anonymous: public content stays available and no draft privilege is granted | **Verified** — 39 tests in `portal-api/test/r1-security.test.js`, including anonymous, authorised CMS, signed-in without permission, invalid-token and expired-token cases for all four content types | Staging check that the portal CMS still lists drafts with a real session. Draft records already exposed before the fix are not retractable |
+| P0-2 | **Implemented** — tenant/company isolation: company checks on project create, update (including `customerId` and internal-mode changes) and permanent delete, and on ticket delete | **Verified** — 16 tests (tenant/company isolation) | **External-role permission policy: pending the access-model stage (R2).** Decided 20 Oct 2026 (see below): external roles lose general project create/edit/delete and ticket hard-delete. Not yet implemented; the read-only report of external roles holding these keys is still to run. DELETE remains a permanent delete (P2-4) |
+| P0-3 | **Implemented** — self-delete guard compares `req.user.id`; the last active super admin cannot be deleted, deactivated or demoted (delete, status and user-edit paths) | **Verified** — 8 tests | P1-2 (client-linked user delete crash, same function) is a separate P1 item and was not changed |
+| P0-4 | **Implemented** — request logger drops query strings and private-file path tokens from both the URL **and the Referer** (which carried `/portal/accept-invite?token=` and `/portal/reset-password?token=`) | **Verified** — 3 tests, including the real app's logger | Log retention, access and purging of logs written before the fix (Hassan's decision); optional move of invite verification to a POST body was not done |
+
+### Business decisions recorded (20 Oct 2026)
+
+| Topic | Decision | Applies in |
+|---|---|---|
+| External roles and projects/tickets (P0-2 part b) | External/client roles must not receive general project create, edit or delete capability. Clients may view projects belonging to their company and use only specifically designed client actions. Clients must never hard-delete tickets | Access-model stage (R2) |
+| Vendor RFQ visibility (P1-1) | Published RFQs matching the vendor's approved categories, plus the vendor's own quotations | R2 |
+| Vendor authentication (P2-1) | Email invitation using an expiring, single-use token | R2 |
+| Project deletion (P2-4) | Normal deletion should eventually become archive behaviour. **Not implemented in R1** | R2 |
+| Historical request logs (P0-4) | Do not purge yet; retention and access policy handled separately | Separate decision |
+
+Decision taken during implementation: for productions, drafts are shown to holders of `productions.read` (as in P3-1), not `productions.write` as P0-1's "expected" row first said, so viewing drafts needs only the read permission.
 
 ## Priority scale
 
@@ -81,13 +106,13 @@ These are refactors and consolidations that touch many screens or the shared dat
 ### Requires Hassan's business decision
 | ID | Decision needed |
 |---|---|
-| P1-1 | What may a vendor see? Proposed: published RFQs matching their categories, their own quotations, and nothing about other vendors or internal budget |
-| P2-1 | How should vendor credentials be delivered? Email invitation (recommended) vs temporary password shown to staff. Force a password change at first login? |
-| P0-2 | Should **any** external (client) role ever create, edit or delete projects, or delete tickets? If not, these permissions are blocked for externals entirely |
-| P2-4 | Should deleting a project be a real delete, or an archive that keeps jobs, invoices and files linked? |
+| P1-1 | **Decided 20 Oct 2026:** published RFQs matching the vendor's approved categories, plus the vendor's own quotations. Nothing about other vendors or internal fields |
+| P2-1 | **Decided 20 Oct 2026:** email invitation with an expiring, single-use token (no temporary password shown to staff) |
+| P0-2 | **Decided 20 Oct 2026:** external/client roles must not have general project create, edit or delete. Clients view their own company's projects and use only specifically designed client actions. Clients never hard-delete tickets. Implementation in the access-model stage (R2) |
+| P2-4 | **Decided 20 Oct 2026:** normal project deletion should become archive behaviour. Not part of R1 |
 | P2-5 | Should an empty permission list on a built-in role mean "no permissions" or "use the defaults"? |
 | P3-3 | Do you want internal notes on user profiles? Build the endpoint or remove the frontend code |
-| P0-4 | How long are production request logs kept, and who can read them? |
+| P0-4 | **Decided 20 Oct 2026:** do not purge historical request logs yet; log retention and access policy will be handled separately |
 | Messaging | Should every staff member with `messaging.read` see every client's thread, or only assigned account owners? (Not a defect today; a policy choice) |
 | P4-7 | Archive or delete the old local Strapi folder |
 | P2-7 | Which website content is the approved baseline (for a future `db:seed-cms`), and which seed data is demo only |
@@ -113,6 +138,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | API: anonymous `?status=draft` → only published; anonymous `?includeInactive=1` → active only; anonymous slug of an inactive or draft record → 404; editor with permission → drafts returned; external client with token but no permission → published only. Client: CMS lists still show inactive items; public pages unchanged |
 | **Data change** | None |
 | **Order** | Stage 1 |
+| **Status (R1)** | Implemented and verified by automated tests. Pending: staging check of portal CMS draft access |
 
 ### P0-2 Cross-company project writes and ticket deletion
 
@@ -128,6 +154,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | External with `projects.write`: create for another company → 403; create for own company → 201 with company forced; update another company's project → 403; reassign `customerId` → 403; delete another company's project or ticket → 403. Internal users unchanged |
 | **Data change** | None. A read-only report of affected roles is recommended |
 | **Order** | Stage 1 |
+| **Status (R1)** | Tenant/company isolation: implemented and verified by automated tests. External-role permission policy (part b): pending the access-model stage (R2), with the business decision recorded under [Implementation status](#implementation-status) |
 
 ### P0-3 User self-delete guard never fires; no last-super-admin protection
 
@@ -143,6 +170,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Self-delete → 400; delete the only active super admin → 409; delete one of two → 200; deactivate the last super admin → 409 |
 | **Data change** | None |
 | **Order** | Stage 1 |
+| **Status (R1)** | Implemented and verified by automated tests. P1-2 still pending |
 
 ### P0-4 Invite tokens written to production request logs
 
@@ -158,6 +186,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Unit-test the formatter: URLs with `token=` and `/private-files/<x>` are redacted; ordinary URLs unchanged |
 | **Data change** | None. If logs are retained, consider purging old entries containing tokens (Hassan's decision) |
 | **Order** | Stage 1 |
+| **Status (R1)** | Implemented (URL and Referer) and verified by automated tests. Pending: log retention/purge decision |
 
 ---
 

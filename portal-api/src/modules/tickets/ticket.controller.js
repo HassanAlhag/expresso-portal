@@ -436,6 +436,12 @@ export async function deleteTicket(req, res) {
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
 
+    const existing = await Ticket.findById(id).select("customerId clientId").lean();
+    if (!existing) return res.status(404).json({ ok: false, message: "Not found" });
+    // Same company boundary as viewing or updating a ticket.
+    if (!canAccessTicket(req, existing))
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+
     const ticket = await Ticket.findByIdAndDelete(id);
     if (!ticket) return res.status(404).json({ ok: false, message: "Not found" });
 

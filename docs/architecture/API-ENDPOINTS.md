@@ -1,10 +1,10 @@
 # API endpoint index
 
-[API map](API-MAP.md) · [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · Baseline `58b8f86c`.
+[API map](API-MAP.md) · [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · Baseline `58b8f86c` plus Stage R1 security fixes.
 
 All **282** explicit method/path registrations, grouped by business domain. Generated from [source-inventory.json](source-inventory.json); regenerate rather than edit by hand.
 
-- **Guard** = middleware on the route: `auth` (valid session), a permission key, `internal-only` (staff), `super_admin`, `role vendor`. **public** means no session is required. Controllers add tenant, ownership and state checks that are not shown here.
+- **Guard** = middleware on the route: `auth` (valid session), a permission key, `internal-only` (staff), `super_admin`, `role vendor`. **public** means no session is required; **public, optional sign-in** means anonymous callers get published/active records only, while signed-in CMS users with the right permission also see drafts (Stage R1, P0-1). Controllers add tenant, ownership and state checks that are not shown here.
 - **Frontend consumer** = reachable client files with a literal call to this path (best effort; calls built from variables can be missed). `—` means none was found.
 
 ## Admin diagnostics — 1 route
@@ -100,12 +100,12 @@ Models: Job, Media, Production, SocialMetrics.
 | POST | `/api/media` | auth · `media.write` · upload.single("file") | `uploadMedia` (media.controller.js) | portal/features/media-library/api.js |
 | DELETE | `/api/media/:id` | auth · `media.delete` | `deleteMedia` (media.controller.js) | portal/features/media-library/api.js |
 | PATCH | `/api/media/:id` | auth · `media.write` | `updateMedia` (media.controller.js) | portal/features/media-library/api.js |
-| GET | `/api/productions` | public | `listProductions` (production.controller.js) | portal/features/media-library/api.js |
+| GET | `/api/productions` | public, optional sign-in | `listProductions` (production.controller.js) | portal/features/media-library/api.js |
 | POST | `/api/productions` | auth · `productions.write` | `createProduction` (production.controller.js) | portal/features/media-library/api.js |
 | DELETE | `/api/productions/:id` | auth · `productions.delete` | `deleteProduction` (production.controller.js) | portal/features/media-library/api.js |
 | PATCH | `/api/productions/:id` | auth · `productions.write` | `updateProduction` (production.controller.js) | portal/features/media-library/api.js |
 | PATCH | `/api/productions/:id/status` | auth · `productions.write` | `inline` (production.routes.js) | — |
-| GET | `/api/productions/:slug` | public | `getProductionBySlug` (production.controller.js) | — |
+| GET | `/api/productions/:slug` | public, optional sign-in | `getProductionBySlug` (production.controller.js) | — |
 | GET | `/api/social-metrics` | auth · `social.metrics.read` | `listMetrics` (socialMetrics.controller.js) | portal/features/social/api.js |
 | POST | `/api/social-metrics` | auth · `social.metrics.write` | `upsertMetrics` (socialMetrics.controller.js) | portal/features/social/api.js |
 | DELETE | `/api/social-metrics/:id` | auth · `social.metrics.write` | `deleteMetrics` (socialMetrics.controller.js) | portal/features/social/api.js |
@@ -309,11 +309,11 @@ Models: Portfolio.
 
 | Method | Path | Guard | Handler | Frontend consumer |
 |---|---|---|---|---|
-| GET | `/api/portfolio` | public | `listPortfolio` (portfolio.controller.js) | hooks/usePortfolioItems.js<br>portal/features/portfolio/api.js |
+| GET | `/api/portfolio` | public, optional sign-in | `listPortfolio` (portfolio.controller.js) | hooks/usePortfolioItems.js<br>portal/features/portfolio/api.js |
 | POST | `/api/portfolio` | auth · `portfolio.write` | `createPortfolio` (portfolio.controller.js) | hooks/usePortfolioItems.js<br>portal/features/portfolio/api.js |
 | DELETE | `/api/portfolio/:id` | auth · `portfolio.delete` | `deletePortfolio` (portfolio.controller.js) | hooks/usePortfolioItem.js<br>portal/features/portfolio/api.js |
 | PATCH | `/api/portfolio/:id` | auth · `portfolio.write` | `updatePortfolio` (portfolio.controller.js) | hooks/usePortfolioItem.js<br>portal/features/portfolio/api.js |
-| GET | `/api/portfolio/:slug` | public | `getPortfolioBySlug` (portfolio.controller.js) | hooks/usePortfolioItem.js<br>portal/features/portfolio/api.js |
+| GET | `/api/portfolio/:slug` | public, optional sign-in | `getPortfolioBySlug` (portfolio.controller.js) | hooks/usePortfolioItem.js<br>portal/features/portfolio/api.js |
 
 ## Private file downloads — 1 route
 
@@ -422,15 +422,15 @@ Models: DigitalService, Solution.
 
 | Method | Path | Guard | Handler | Frontend consumer |
 |---|---|---|---|---|
-| GET | `/api/web-content/services` | public | `listServices` (webContent.controller.js) | pages/ServiceMain/serviceMain.jsx<br>portal/features/website/api.js |
+| GET | `/api/web-content/services` | public, optional sign-in | `listServices` (webContent.controller.js) | pages/ServiceMain/serviceMain.jsx<br>portal/features/website/api.js |
 | POST | `/api/web-content/services` | auth · `website.write` | `createService` (webContent.controller.js) | pages/ServiceMain/serviceMain.jsx<br>portal/features/website/api.js |
 | DELETE | `/api/web-content/services/:id` | auth · `website.write` | `deleteService` (webContent.controller.js) | pages/Services/ServiceDetailPage.jsx<br>portal/features/website/api.js |
 | PATCH | `/api/web-content/services/:id` | auth · `website.write` | `updateService` (webContent.controller.js) | pages/Services/ServiceDetailPage.jsx<br>portal/features/website/api.js |
-| GET | `/api/web-content/services/:slug` | public | `getServiceBySlug` (webContent.controller.js) | pages/Services/ServiceDetailPage.jsx |
+| GET | `/api/web-content/services/:slug` | public, optional sign-in | `getServiceBySlug` (webContent.controller.js) | pages/Services/ServiceDetailPage.jsx |
 | PATCH | `/api/web-content/services/reorder` | auth · `website.write` | `reorderServices` (webContent.controller.js) | portal/features/website/api.js |
-| GET | `/api/web-content/solutions` | public | `listSolutions` (webContent.controller.js) | pages/DigitalSolutions/DigitalSolutionsPage.jsx<br>pages/ITSolutions/ITSolutionsPage.jsx<br>portal/features/website/api.js |
+| GET | `/api/web-content/solutions` | public, optional sign-in | `listSolutions` (webContent.controller.js) | pages/DigitalSolutions/DigitalSolutionsPage.jsx<br>pages/ITSolutions/ITSolutionsPage.jsx<br>portal/features/website/api.js |
 | POST | `/api/web-content/solutions` | auth · `website.write` | `createSolution` (webContent.controller.js) | pages/DigitalSolutions/DigitalSolutionsPage.jsx<br>pages/ITSolutions/ITSolutionsPage.jsx<br>portal/features/website/api.js |
 | DELETE | `/api/web-content/solutions/:id` | auth · `website.write` | `deleteSolution` (webContent.controller.js) | pages/ITSolutions/ITSolutionDetailsPage.jsx<br>portal/features/website/api.js |
 | PATCH | `/api/web-content/solutions/:id` | auth · `website.write` | `updateSolution` (webContent.controller.js) | pages/ITSolutions/ITSolutionDetailsPage.jsx<br>portal/features/website/api.js |
-| GET | `/api/web-content/solutions/:slug` | public | `getSolutionBySlug` (webContent.controller.js) | pages/ITSolutions/ITSolutionDetailsPage.jsx |
+| GET | `/api/web-content/solutions/:slug` | public, optional sign-in | `getSolutionBySlug` (webContent.controller.js) | pages/ITSolutions/ITSolutionDetailsPage.jsx |
 | PATCH | `/api/web-content/solutions/reorder` | auth · `website.write` | `reorderSolutions` (webContent.controller.js) | portal/features/website/api.js |

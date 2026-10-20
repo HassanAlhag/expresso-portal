@@ -235,6 +235,15 @@ export async function createProject(req, res) {
       });
     }
 
+    // Company boundary: users who cannot see every company (external roles)
+    // may only create projects for their own company, never internal ones.
+    if (
+      !canSeeAllTenantRecords(req) &&
+      (cleanMode === "internal" || !requireOwnClient(req, resolvedCustomerId))
+    ) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
+
     if (resolvedEnrollmentId) {
       const enrollment = await Enrollment.findById(resolvedEnrollmentId).lean();
       if (!enrollment) {
@@ -319,6 +328,20 @@ export async function updateProject(req, res) {
     }
 
     const body = req.body || {};
+
+    // Company boundary: the project must belong to the caller's company, and
+    // external users cannot move it to another company or make it internal.
+    if (!canSeeAllTenantRecords(req)) {
+      const movesCompany =
+        typeof body.customerId !== "undefined" &&
+        String(body.customerId || "") !== String(current.customerId || "");
+      const makesInternal =
+        typeof body.projectMode !== "undefined" &&
+        String(body.projectMode).trim() === "internal";
+      if (!requireOwnClient(req, current.customerId) || movesCompany || makesInternal) {
+        return res.status(403).json({ ok: false, message: "Forbidden" });
+      }
+    }
     const patch = { updatedBy: req.user?.id || null };
 
     if (typeof body.name !== "undefined") {
@@ -479,6 +502,15 @@ export async function archiveProject(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
+    const existing = await Project.findById(id).select("customerId").lean();
+    if (!existing) {
+      return res.status(404).json({ ok: false, message: "Not found" });
+    }
+    if (!requireOwnClient(req, existing.customerId)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
+
+    // Permanent delete (unchanged behaviour; lifecycle is remediation P2-4).
     const item = await Project.findByIdAndDelete(id).lean();
 
     if (!item) {

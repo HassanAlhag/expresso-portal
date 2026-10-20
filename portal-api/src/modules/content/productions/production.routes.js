@@ -6,13 +6,14 @@ import {
   updateProduction,
   deleteProduction,
 } from "./production.controller.js";
-import { requireAuth, requirePermission } from "../../../middleware/auth.js";
+import { optionalAuth, requireAuth, requirePermission } from "../../../middleware/auth.js";
 
 const router = Router();
 
 // Public — website showcase
-router.get("/", listProductions);
-router.get("/:slug", getProductionBySlug);
+// Published items only, unless the caller holds productions.read.
+router.get("/", optionalAuth, listProductions);
+router.get("/:slug", optionalAuth, getProductionBySlug);
 
 // Portal management
 router.post("/", requireAuth, requirePermission("productions.write"), createProduction);

@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 import Portfolio from "./portfolio.model.js";
+import { userHasPermission } from "../../middleware/auth.js";
+
+// Drafts and archived items are visible only to portfolio managers. Everyone
+// else (anonymous visitors included) sees published items only.
+const canSeeUnpublished = (req) => userHasPermission(req.user, "portfolio.read");
 
 function safeRx(s) {
   const v = String(s || "").trim();
@@ -26,7 +31,8 @@ export async function listPortfolio(req, res) {
   const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 12));
 
   const filter = {};
-  if (status) filter.status = status;
+  if (!canSeeUnpublished(req)) filter.status = "published";
+  else if (status) filter.status = String(status);
   if (category) filter.category = category;
   if (tag) filter.tags = tag;
 
@@ -71,7 +77,9 @@ export async function getPortfolioBySlug(req, res) {
     .populate("gallery", "url thumbnailUrl type title")
     .lean();
 
-  if (!item) return res.status(404).json({ ok: false, message: "Not found" });
+  // 404 (not 403) so an unpublished slug is not confirmed to exist.
+  if (!item || (item.status !== "published" && !canSeeUnpublished(req)))
+    return res.status(404).json({ ok: false, message: "Not found" });
   res.json({ ok: true, item });
 }
 

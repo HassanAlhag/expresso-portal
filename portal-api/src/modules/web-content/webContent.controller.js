@@ -7,6 +7,14 @@ import {
   defaultTechnologyGroup,
   withTechnologyGroup,
 } from "./technologyGroups.js";
+import { userHasPermission } from "../../middleware/auth.js";
+
+// Inactive services/solutions are visible only to website editors
+// (website.read). Everyone else, anonymous visitors included, sees active
+// records only, on lists and on slug detail pages.
+const canSeeInactive = (req) => userHasPermission(req.user, "website.read");
+// Records created before isActive existed count as active (schema default).
+const ACTIVE = { isActive: { $ne: false } };
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
@@ -25,7 +33,7 @@ export async function listServices(req, res) {
   try {
     const { includeInactive } = req.query;
     const filter = {};
-    if (!includeInactive) filter.isActive = true;
+    if (!includeInactive || !canSeeInactive(req)) filter.isActive = true;
     const items = await DigitalService.find(filter).sort({ order: 1, createdAt: 1 }).lean();
     return res.json({ ok: true, items });
   } catch (e) {
@@ -37,7 +45,8 @@ export async function listServices(req, res) {
 export async function getServiceBySlug(req, res) {
   try {
     const { slug } = req.params;
-    const item = await DigitalService.findOne({ slug: String(slug).trim() }).lean();
+    const filter = { slug: String(slug).trim(), ...(canSeeInactive(req) ? {} : ACTIVE) };
+    const item = await DigitalService.findOne(filter).lean();
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
     return res.json({ ok: true, item });
   } catch (e) {
@@ -236,7 +245,7 @@ export async function listSolutions(req, res) {
   try {
     const { includeInactive, kind } = req.query;
     const filter = kindFilter(kind);
-    if (!includeInactive) filter.isActive = true;
+    if (!includeInactive || !canSeeInactive(req)) filter.isActive = true;
     const items = await Solution.find(filter).sort({ order: 1, createdAt: 1 }).lean();
     return res.json({ ok: true, items: items.map(presentSolution), groups: TECHNOLOGY_GROUPS });
   } catch (e) {
@@ -248,7 +257,8 @@ export async function listSolutions(req, res) {
 export async function getSolutionBySlug(req, res) {
   try {
     const { slug } = req.params;
-    const item = await Solution.findOne({ slug: String(slug).trim() }).lean();
+    const filter = { slug: String(slug).trim(), ...(canSeeInactive(req) ? {} : ACTIVE) };
+    const item = await Solution.findOne(filter).lean();
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
     return res.json({ ok: true, item: presentSolution(item) });
   } catch (e) {

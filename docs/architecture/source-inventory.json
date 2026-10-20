@@ -10561,9 +10561,13 @@
       "path": "/api/portfolio",
       "domain": "portfolio",
       "file": "portal-api/src/modules/portfolio/portfolio.routes.js",
-      "line": 14,
+      "line": 15,
       "globalGuards": [],
       "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
         {
           "label": "listPortfolio",
           "source": "portal-api/src/modules/portfolio/portfolio.controller.js"
@@ -10575,7 +10579,7 @@
       "path": "/api/portfolio",
       "domain": "portfolio",
       "file": "portal-api/src/modules/portfolio/portfolio.routes.js",
-      "line": 18,
+      "line": 19,
       "globalGuards": [],
       "handlers": [
         {
@@ -10597,7 +10601,7 @@
       "path": "/api/portfolio/:id",
       "domain": "portfolio",
       "file": "portal-api/src/modules/portfolio/portfolio.routes.js",
-      "line": 20,
+      "line": 21,
       "globalGuards": [],
       "handlers": [
         {
@@ -10619,7 +10623,7 @@
       "path": "/api/portfolio/:id",
       "domain": "portfolio",
       "file": "portal-api/src/modules/portfolio/portfolio.routes.js",
-      "line": 19,
+      "line": 20,
       "globalGuards": [],
       "handlers": [
         {
@@ -10641,9 +10645,13 @@
       "path": "/api/portfolio/:slug",
       "domain": "portfolio",
       "file": "portal-api/src/modules/portfolio/portfolio.routes.js",
-      "line": 15,
+      "line": 16,
       "globalGuards": [],
       "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
         {
           "label": "getPortfolioBySlug",
           "source": "portal-api/src/modules/portfolio/portfolio.controller.js"
@@ -11341,9 +11349,13 @@
       "path": "/api/productions",
       "domain": "content",
       "file": "portal-api/src/modules/content/productions/production.routes.js",
-      "line": 14,
+      "line": 15,
       "globalGuards": [],
       "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
         {
           "label": "listProductions",
           "source": "portal-api/src/modules/content/productions/production.controller.js"
@@ -11355,7 +11367,7 @@
       "path": "/api/productions",
       "domain": "content",
       "file": "portal-api/src/modules/content/productions/production.routes.js",
-      "line": 18,
+      "line": 19,
       "globalGuards": [],
       "handlers": [
         {
@@ -11377,7 +11389,7 @@
       "path": "/api/productions/:id",
       "domain": "content",
       "file": "portal-api/src/modules/content/productions/production.routes.js",
-      "line": 20,
+      "line": 21,
       "globalGuards": [],
       "handlers": [
         {
@@ -11399,7 +11411,7 @@
       "path": "/api/productions/:id",
       "domain": "content",
       "file": "portal-api/src/modules/content/productions/production.routes.js",
-      "line": 19,
+      "line": 20,
       "globalGuards": [],
       "handlers": [
         {
@@ -11421,7 +11433,7 @@
       "path": "/api/productions/:id/status",
       "domain": "content",
       "file": "portal-api/src/modules/content/productions/production.routes.js",
-      "line": 21,
+      "line": 22,
       "globalGuards": [],
       "handlers": [
         {
@@ -11443,9 +11455,13 @@
       "path": "/api/productions/:slug",
       "domain": "content",
       "file": "portal-api/src/modules/content/productions/production.routes.js",
-      "line": 15,
+      "line": 16,
       "globalGuards": [],
       "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
         {
           "label": "getProductionBySlug",
           "source": "portal-api/src/modules/content/productions/production.controller.js"
@@ -12695,9 +12711,13 @@
       "path": "/api/web-content/services",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 21,
+      "line": 22,
       "globalGuards": [],
       "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
         {
           "label": "listServices",
           "source": "portal-api/src/modules/web-content/webContent.controller.js"
@@ -12709,7 +12729,7 @@
       "path": "/api/web-content/services",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 23,
+      "line": 24,
       "globalGuards": [],
       "handlers": [
         {
@@ -12731,7 +12751,7 @@
       "path": "/api/web-content/services/:id",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 26,
+      "line": 27,
       "globalGuards": [],
       "handlers": [
         {
@@ -12753,7 +12773,7 @@
       "path": "/api/web-content/services/:id",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 25,
+      "line": 26,
       "globalGuards": [],
       "handlers": [
         {
@@ -12775,9 +12795,13 @@
       "path": "/api/web-content/services/:slug",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 22,
+      "line": 23,
       "globalGuards": [],
       "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
         {
           "label": "getServiceBySlug",
           "source": "portal-api/src/modules/web-content/webContent.controller.js"
@@ -12789,7 +12813,7 @@
       "path": "/api/web-content/services/reorder",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 24,
+      "line": 25,
       "globalGuards": [],
       "handlers": [
         {
@@ -12811,9 +12835,13 @@
       "path": "/api/web-content/solutions",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 29,
+      "line": 30,
       "globalGuards": [],
       "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
         {
           "label": "listSolutions",
           "source": "portal-api/src/modules/web-content/webContent.controller.js"
@@ -12825,7 +12853,7 @@
       "path": "/api/web-content/solutions",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 31,
+      "line": 32,
       "globalGuards": [],
       "handlers": [
         {
@@ -12847,7 +12875,7 @@
       "path": "/api/web-content/solutions/:id",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 34,
+      "line": 35,
       "globalGuards": [],
       "handlers": [
         {
@@ -12869,7 +12897,7 @@
       "path": "/api/web-content/solutions/:id",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 33,
+      "line": 34,
       "globalGuards": [],
       "handlers": [
         {
@@ -12891,9 +12919,13 @@
       "path": "/api/web-content/solutions/:slug",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 30,
+      "line": 31,
       "globalGuards": [],
       "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
         {
           "label": "getSolutionBySlug",
           "source": "portal-api/src/modules/web-content/webContent.controller.js"
@@ -12905,7 +12937,7 @@
       "path": "/api/web-content/solutions/reorder",
       "domain": "web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 32,
+      "line": 33,
       "globalGuards": [],
       "handlers": [
         {
@@ -15359,7 +15391,12 @@
       "ui": []
     },
     "productions.read": {
-      "api": [],
+      "api": [
+        {
+          "file": "portal-api/src/modules/content/productions/production.controller.js",
+          "line": 7
+        }
+      ],
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
@@ -15375,15 +15412,15 @@
       "api": [
         {
           "file": "portal-api/src/modules/content/productions/production.routes.js",
-          "line": 18
-        },
-        {
-          "file": "portal-api/src/modules/content/productions/production.routes.js",
           "line": 19
         },
         {
           "file": "portal-api/src/modules/content/productions/production.routes.js",
-          "line": 21
+          "line": 20
+        },
+        {
+          "file": "portal-api/src/modules/content/productions/production.routes.js",
+          "line": 22
         }
       ],
       "ui": []
@@ -15392,7 +15429,7 @@
       "api": [
         {
           "file": "portal-api/src/modules/content/productions/production.routes.js",
-          "line": 20
+          "line": 21
         }
       ],
       "ui": []
@@ -15600,7 +15637,12 @@
       "ui": []
     },
     "portfolio.read": {
-      "api": [],
+      "api": [
+        {
+          "file": "portal-api/src/modules/portfolio/portfolio.controller.js",
+          "line": 7
+        }
+      ],
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
@@ -15624,11 +15666,11 @@
       "api": [
         {
           "file": "portal-api/src/modules/portfolio/portfolio.routes.js",
-          "line": 18
+          "line": 19
         },
         {
           "file": "portal-api/src/modules/portfolio/portfolio.routes.js",
-          "line": 19
+          "line": 20
         }
       ],
       "ui": []
@@ -15637,7 +15679,7 @@
       "api": [
         {
           "file": "portal-api/src/modules/portfolio/portfolio.routes.js",
-          "line": 20
+          "line": 21
         }
       ],
       "ui": []
@@ -16956,6 +16998,10 @@
         {
           "file": "portal-api/src/modules/homepage/slide.routes.js",
           "line": 10
+        },
+        {
+          "file": "portal-api/src/modules/web-content/webContent.controller.js",
+          "line": 15
         }
       ],
       "ui": [
@@ -17021,10 +17067,6 @@
         },
         {
           "file": "portal-api/src/modules/web-content/webContent.routes.js",
-          "line": 23
-        },
-        {
-          "file": "portal-api/src/modules/web-content/webContent.routes.js",
           "line": 24
         },
         {
@@ -17037,7 +17079,7 @@
         },
         {
           "file": "portal-api/src/modules/web-content/webContent.routes.js",
-          "line": 31
+          "line": 27
         },
         {
           "file": "portal-api/src/modules/web-content/webContent.routes.js",
@@ -17050,6 +17092,10 @@
         {
           "file": "portal-api/src/modules/web-content/webContent.routes.js",
           "line": 34
+        },
+        {
+          "file": "portal-api/src/modules/web-content/webContent.routes.js",
+          "line": 35
         }
       ],
       "ui": [
