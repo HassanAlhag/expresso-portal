@@ -2,7 +2,7 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · [Cleanup audit](CODE-CLEANUP-AUDIT.md) · [Reset plan](DATABASE-RESET-PLAN.md)
 
-**Status: approved planning baseline (`852369df`).** Stage R1 (P0, committed `b2958e76`) and Stage R2 (access model and vendor journey; implemented and test-verified, deployment verification pending) have been implemented on top of it; see [Implementation status](#implementation-status). Everything else in this plan is still pending. No database data, infrastructure, storage, configuration or `.env` file has been changed by any stage, and the only file deleted is the portal's duplicate permission catalogue (`client/src/portal/config/permissions.js`, P1-6 in R2), after both permission editors moved to the API catalogue.
+**Status: approved planning baseline (`852369df`).** Stage R1 (P0, committed `b2958e76`), Stage R2 (access model and vendor journey, committed `26a2cca6`; deployment verification pending) and Stage R3 (reliability and data consistency; implemented, awaiting review) have been implemented on top of it, and the portal design study is committed as the design baseline (`f0d9bc02`); see [Implementation status](#implementation-status). Everything else in this plan is still pending. No database data, infrastructure, storage, configuration or `.env` file has been changed by any stage, and the only file deleted is the portal's duplicate permission catalogue (`client/src/portal/config/permissions.js`, P1-6 in R2), after both permission editors moved to the API catalogue.
 
 **Baseline:** branch `website/integrated-solutions`. Application code is at `58b8f86c`; the architecture docs were committed at `e867d95f`.
 
@@ -16,6 +16,24 @@ One finding was **narrower** than first described: invoice numbers fail with an 
 ## Implementation status
 
 Status words used here: **Implemented** = code changed in the working tree · **Verified** = covered by automated tests that pass, and that fail against the pre-R1 code · **Pending** = not done yet (code, decision or runtime check).
+
+### Stage R3 — reliability and data consistency (implemented, awaiting review; not yet committed or deployed)
+
+| | |
+|---|---|
+| **R3 implementation** | **IMPLEMENTED AND AUTOMATED-TEST VERIFIED** for the items below, except where marked blocked or deferred |
+| **Blocked by read-only data check** | P2-3 RFQ part: the **unique index on `rfqNumber`** (needs the read-only duplicate aggregate in section 8). New RFQ numbers no longer repeat without it |
+| **Read-only reports before deployment** | (1) Duplicate `rfqNumber` values (aggregate in section 8). (2) Records already orphaned by earlier permanent project deletes: jobs, invoices, files, tickets and enrollments whose `projectId` has no project. Neither is needed for the R3 code; both are needed before cleaning up old data |
+| **Schema / index / migration** | One new collection, `counters` (model `Counter`, SYSTEM), written by the app on first use; no index beyond `_id`; no migration (each counter starts from the highest number already stored). Allocation relies only on MongoDB single-document atomicity (`$inc`, an insert refused by the unique `_id`, `$max`), never on in-process state, so it is safe with several API instances. During a rolling deploy, instances still running pre-R3 code can produce a colliding number: invoices recover (unique index, retry); RFQs could duplicate until the index exists. No other schema change: projects already had `status: "archived"` and `archivedAt` |
+
+| ID | Implemented | Automated tests | Still pending |
+|---|---|---|---|
+| P2-3 (invoices) | **Implemented** — invoice numbers come from an atomic per-year counter (`utils/sequence.js`, `counters` collection) that starts above the highest existing `INV-YYYY-NNNN`; format and the unique index unchanged; a hand-entered number in the standard format (create or edit) moves that year's counter past it with `$max`, so automatic numbering never runs into it; if the counter is still behind (e.g. a number written by older code), creation moves it past and retries; each attempt is one write, so no partial invoices; a duplicate hand-entered number is a 409 on create and update instead of a 500; if the counter itself fails, the response is a 503 and nothing is created | **Verified** — 14 API tests in `portal-api/test/r3-reliability.test.js`: simultaneous creations with an existing counter and with **no counter yet** (20 requests race the bootstrap; one insert wins; numbers start strictly above the highest existing), manual numbers, year boundary (2026/2027), allocation failure, and a check that allocation keeps no in-memory state. 9 of the 10 request-level tests fail against the pre-R3 code (the one that passes, "start above the highest number", already held) | — |
+| P2-3 (RFQs) | **Partly implemented** — RFQ numbers (both creation paths) come from the same per-year counter, starting above the highest existing `RFQ-YYYY-NNNN`; deletions and simultaneous creation no longer repeat numbers; existing numbers, including any duplicates, are left as they are | **Verified (code)** — 7 API tests (simultaneous creations with and without an existing counter, deletion, old count-based numbers, year boundary 2026/2027/2028, create-from-request, allocation failure → 503 with no RFQ); all 5 request-level tests fail against the pre-R3 code. RFQ numbers are not user-editable, so there is no manual-number path. **Uniqueness is not database-enforced** until the index exists | **BLOCKED BY READ-ONLY DATA CHECK:** unique index on `rfqNumber` |
+| P2-4 | **Implemented** — `DELETE /api/projects/:id` archives (`status: "archived"`, `archivedAt`) and never deletes; linked jobs, invoices, files, tickets and enrollments are untouched; repeating it is harmless; project lists hide archived projects unless `status=archived` or `includeArchived=true`; company boundary (R1) and the external-role refusal (R2) unchanged; the portal's trash button is now an archive button whose confirmation says history is kept, and the default status filter reads "All except archived" | **Verified** — 7 API tests in `r3-reliability.test.js` (the 4 archive tests fail against the pre-R3 code; the boundary, R2 refusal and direct-access tests pass on both, as intended), 3 R1 boundary tests updated to check the archive write, 3 client tests. An archived project can still be opened directly. `GET /api/projects/stats` (Reports) still counts all projects, with archived as its own status, and the job list's project-type filter still includes jobs of archived projects; both are history views, not the active project list; **kept by decision (21 Oct 2026)**, with archived shown as its own status | Read-only orphan report for earlier permanent deletes (data clean-up only). There is no hard-delete route and no restore action beyond changing the status |
+| P2-7 (`seedUser.js` only) | **Partly implemented** — `seedUser.js` is insert-only: an existing email is left unchanged (exit 1); `--reset-password` needs an existing account that is already super_admin, changes only `passwordHash` and `passwordChangedAt` (the write is guarded by `role: "super_admin"`), never creates or promotes an account and never touches permissions, company or profile fields; a concurrent creation is refused by the unique email index; the legacy `permissions` field is no longer written; importing the script doesn't run it | **Verified** — 8 tests with stubbed models (the script was not run against any database) | **DEFERRED:** backup/reset/seed pipeline (Stage 5) |
+
+Deferred from R3 by the plan's own timing: **P2-2** (CRM conversions, after Stage 4), **P2-6** (settings read without write, after Stage 4) and the **P2-7 pipeline** (Stage 5). P1-2 is a P1 item and was not part of this P2 stage.
 
 ### Stage R1 — P0 security (committed in `b2958e76`; not yet deployed)
 
@@ -55,7 +73,7 @@ Deferred from R2: **P2-3** RFQ numbering (needs the read-only duplicate check) a
 | External roles and projects/tickets (P0-2 part b) | External/client roles must not receive general project create, edit or delete capability. Clients may view projects belonging to their company and use only specifically designed client actions. Clients must never hard-delete tickets | Implemented in R2 |
 | Vendor RFQ visibility (P1-1) | Published RFQs matching the vendor's approved categories, plus the vendor's own quotations | Implemented in R2 |
 | Vendor authentication (P2-1) | Email invitation using an expiring, single-use token | Implemented in R2 |
-| Project deletion (P2-4) | Normal deletion should eventually become archive behaviour. **Not implemented in R1 or R2** | Later workstream |
+| Project deletion (P2-4) | Normal deletion should become archive behaviour | Implemented in R3 |
 | Historical request logs (P0-4) | Do not purge yet; retention and access policy handled separately | Separate decision |
 
 Decision taken during implementation: for productions, drafts are shown to holders of `productions.read` (as in P3-1), not `productions.write` as P0-1's "expected" row first said, so viewing drafts needs only the read permission.
@@ -359,6 +377,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Data change** | Yes. Initialise counters from current maxima. Resolve any duplicate RFQ numbers (renumber or keep with a suffix — Hassan to approve) before adding the unique index |
 | **Order** | Stage 1 (invoice) and Stage 2 (RFQ, after the duplicate check) |
 | **Status (R2)** | **Deferred.** Needs the read-only duplicate check on `rfqNumber` before a unique index can be added |
+| **Status (R3)** | Invoices: implemented and verified (atomic per-year counter; duplicate numbers give 409). RFQs: counter implemented and verified, so new numbers can't repeat; **unique index blocked by the read-only duplicate check**. Counters start from current maxima at runtime, so no initialisation script is needed |
 
 ### P2-4 Project DELETE is a real delete named "archive"
 
@@ -375,6 +394,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Data change** | Read-only orphan report (jobs, invoices, files, tickets, enrollments with a missing project) |
 | **Order** | Stage 2 |
 | **Status (R2)** | **Deferred by decision.** Normal deletion will become archiving in a later workstream; R2 only removes delete from external roles |
+| **Status (R3)** | Implemented and verified per the decision: DELETE archives; archived projects are hidden by default and listed with `status=archived`; nothing linked is deleted. The read-only orphan report is still needed for records orphaned before R3 |
 
 ### P2-5 Role with an empty permission list silently gets defaults
 
@@ -421,6 +441,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Tests** | Seed against an in-memory or local MongoDB: idempotent re-runs; refusal on production without the flag; existing admin password unchanged |
 | **Data change** | None now. The future reset is a separate, approved operation |
 | **Order** | `seedUser.js` in Stage 1; pipeline in Stage 5 |
+| **Status (R3)** | `seedUser.js` insert-only: implemented and verified with stubs (not run). Pipeline deferred |
 
 ---
 
@@ -605,7 +626,8 @@ These corrections have been applied to README, PORTAL-MODULE-MAP, RBAC-MAP, API-
 | P1-2 delete crash | Only for users with `clientId` | Staging test only; never on production |
 | P1-3 role editor dropping hidden keys | The editor initialises from the role's stored list, so hidden keys are probably preserved on save; "select all" and "clear all" may drop them | Staging: edit a role holding `messaging.read`, save, re-read via the API |
 | P2-1, P2-2 partial writes | Only when a write fails mid-way | Read-only orphan report (vendor users without profiles; accounts and contacts without deals; customers with open deals) |
-| P2-3 RFQ duplicates | Only after deletions or concurrent creation | Read-only aggregate on `rfqNumber` |
+| P2-3 RFQ duplicates | Only after deletions or concurrent creation | Read-only aggregate on `rfqNumber`: `db.rfqs.aggregate([{ $group: { _id: "$rfqNumber", n: { $sum: 1 } } }, { $match: { n: { $gt: 1 } } }, { $count: "duplicateNumbers" }])` — counts only; required before a unique index |
+| P2-4 orphans from earlier deletes | Only projects deleted before R3 | Read-only counts, per collection (`jobs`, `invoices`, `files`, `tickets`, `enrollments`), of documents whose non-null `projectId` has no matching `projects._id` (`$lookup` + `$match` on an empty result + `$count`) |
 | P2-5 empty role fallback | Only if a Role document has an empty list | Read-only query on `roles` |
 | SMTP delivery failures not shown to users | Depends on SMTP configuration per environment | Staging test with SMTP disabled |
 | P4-2 unreachable files | The static graph cannot see string-built imports; tests are excluded | Build plus manual search per group |

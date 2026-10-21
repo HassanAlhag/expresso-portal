@@ -4,18 +4,23 @@ import Quotation from "./quotation.model.js";
 import ProcurementVendor from "./vendor.model.js";
 import ProcurementRequest from "./request.model.js";
 import { sendMail } from "../../utils/email.js";
+import { nextNumber } from "../../utils/sequence.js";
 import { findActiveVendorProfile, rfqMatchesVendor, VENDOR_RFQ_FIELDS } from "./vendorAccess.js";
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
 }
 
-async function genRfqNumber() {
-  const count = await RFQ.countDocuments();
-  return `RFQ-${new Date().getFullYear()}-${String(count + 1).padStart(
-    4,
-    "0"
-  )}`;
+// RFQ-YYYY-NNNN from an atomic per-year counter that starts above the highest
+// number already used. Replaces countDocuments() + 1, which repeated numbers
+// after a deletion or under simultaneous creation and never reset per year
+// (remediation P2-3). A unique index on rfqNumber waits for a read-only check
+// of existing data.
+const RFQ_ALLOCATION_FAILED = "Could not allocate an RFQ number right now. Nothing was created. Please try again.";
+
+export async function genRfqNumber(year) {
+  const { value } = await nextNumber({ Model: RFQ, field: "rfqNumber", label: "RFQ", key: "rfq", year });
+  return value;
 }
 
 // Approved vendor profile for the caller. Set by the route guard
@@ -67,7 +72,13 @@ export async function createRfqFromRequest(req, res) {
       });
     }
 
-    const rfqNumber = await genRfqNumber();
+    let rfqNumber;
+    try {
+      rfqNumber = await genRfqNumber();
+    } catch (allocErr) {
+      console.error("createRfqFromRequest: number allocation failed:", allocErr?.message);
+      return res.status(503).json({ ok: false, message: RFQ_ALLOCATION_FAILED });
+    }
 
     const descriptionParts = [
       request.description,
@@ -118,7 +129,13 @@ export async function createRfq(req, res) {
       ? body.subcategoryIds.filter(validId)
       : [];
 
-    const rfqNumber = await genRfqNumber();
+    let rfqNumber;
+    try {
+      rfqNumber = await genRfqNumber();
+    } catch (allocErr) {
+      console.error("createRfq: number allocation failed:", allocErr?.message);
+      return res.status(503).json({ ok: false, message: RFQ_ALLOCATION_FAILED });
+    }
 
     const doc = await RFQ.create({
       rfqNumber,

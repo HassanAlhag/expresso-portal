@@ -4,7 +4,7 @@
 
 ## Scope and meaning of “module”
 
-There are **26 portal feature-area folders**, backed by **21 API domain folders**, 44 mounted routers and 44 registered Mongoose models. These are code counts, not live database record counts. Authentication pages/layouts sit outside the feature folders and are included under IAM. Dashboard, delivery and reporting are views over other modules, not additional databases.
+There are **26 portal feature-area folders**, backed by **21 API domain folders**, 44 mounted routers and 45 registered Mongoose models. These are code counts, not live database record counts. Authentication pages/layouts sit outside the feature folders and are included under IAM. Dashboard, delivery and reporting are views over other modules, not additional databases.
 
 “Active” means a mounted route and source-backed implementation exist. It does **not** certify production acceptance, live credentials, every workflow transition, or every role's experience. This audit did not sign in, create records or run business transactions. Incomplete and conflicting paths are called out rather than invented.
 
@@ -105,7 +105,7 @@ Source: [client/src/portal/features/enrollments](../../client/src/portal/feature
 | API groups | /api/projects and /stats |
 | Models | Project; Customer; Enrollment; User |
 | Authorization | projects.read/write/delete; list and detail reads check the company, but create, update (including customerId reassignment) and delete do not — see RBAC map and remediation P0-2 |
-| States / workflow | draft/planned/active/on_hold/in_review/completed/archived/cancelled are UI/code conventions, stored as strings. Archiving is PATCH status=archived; DELETE (controller archiveProject) permanently deletes the project and leaves linked jobs, invoices, files and tickets orphaned (remediation P2-4). |
+| States / workflow | draft/planned/active/on_hold/in_review/completed/archived/cancelled are UI/code conventions, stored as strings. Archiving is PATCH status=archived. Since R3, DELETE (controller archiveProject) also archives (status=archived, archivedAt) and never deletes; linked jobs, invoices, files and tickets are kept. Lists hide archived projects unless `status=archived` or `includeArchived=true` (remediation P2-4). Before R3, DELETE permanently deleted the project and orphaned linked records. |
 | Other modules | Jobs, files, invoices and enrollment links share projectId; pre_contract/contracted/custom/internal modes. |
 | Files / notifications | Project files use File/privateStorage; no automated project update email found. |
 | Assessment | Active; create/update/delete lack company checks for externally granted projects.write/delete (P0-2) and DELETE is a hard delete (P2-4). |

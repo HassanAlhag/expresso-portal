@@ -6,8 +6,8 @@
     "portalFeatureAreas": 26,
     "mountedRouters": 44,
     "apiRoutes": 283,
-    "models": 44,
-    "modelFiles": 44,
+    "models": 45,
+    "modelFiles": 45,
     "defaultRoles": 14,
     "permissionKeys": 74,
     "frontendCatalogKeys": 0
@@ -235,6 +235,26 @@
     }
   ],
   "models": [
+    {
+      "name": "Counter",
+      "collection": "counters",
+      "domain": "admin",
+      "file": "portal-api/src/modules/admin/counter.model.js",
+      "line": 16,
+      "fields": [
+        {
+          "path": "_id",
+          "type": "String",
+          "line": 10
+        },
+        {
+          "path": "seq",
+          "type": "Number",
+          "line": 11
+        }
+      ],
+      "indexes": []
+    },
     {
       "name": "Invoice",
       "collection": "invoices",
@@ -19608,6 +19628,7 @@
         "range": "^8.7.0",
         "importFiles": [
           "portal-api/src/config/db.js",
+          "portal-api/src/modules/admin/counter.model.js",
           "portal-api/src/modules/admin/systemStatus.routes.js",
           "portal-api/src/modules/billing/billing.controller.js",
           "portal-api/src/modules/billing/invoice.model.js",

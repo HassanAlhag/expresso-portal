@@ -14,7 +14,7 @@ flowchart TD
     JWT --> RBAC["Permission / role / internal / tenant / owner gates"]
     RBAC --> Business["Express domain routes → controllers / services"]
     PublicAPI --> Business
-    Business --> Models["44 Mongoose models"]
+    Business --> Models["45 Mongoose models"]
     Models --> Mongo["MongoDB configured by MONGO_URI"]
     Business --> PublicStore["Public media: S3 or development uploads"]
     Business --> PrivateStore["Private files / CVs: S3 or private-uploads"]

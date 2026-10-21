@@ -1,7 +1,7 @@
 export const BRAND = "#7F8AD1";
 
 export const PROJECT_STATUS_OPTIONS = [
-  { value: "", label: "All" },
+  { value: "", label: "All except archived" },
   { value: "draft", label: "Draft" },
   { value: "planned", label: "Planned" },
   { value: "active", label: "Active" },

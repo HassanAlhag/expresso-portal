@@ -42,5 +42,6 @@
   "VendorApplication": "BUSINESS",
   "ProcurementVendor": "BUSINESS",
   "Project": "BUSINESS",
-  "Ticket": "BUSINESS"
+  "Ticket": "BUSINESS",
+  "Counter": "SYSTEM"
 }

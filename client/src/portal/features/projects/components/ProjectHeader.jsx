@@ -15,7 +15,7 @@ import {
   BriefcaseBusiness,
   FileClock,
   Settings2,
-  Trash2,
+  Archive,
 } from "lucide-react";
 import ProjectStatusPill from "./ProjectStatusPill";
 import ProjectPriorityPill from "./ProjectPriorityPill";
@@ -247,9 +247,15 @@ export default function ProjectHeader({
           Create Job
         </Button>
 
-        {onArchive && (
-          <Button variant="outline" onClick={onArchive} disabled={busy}>
-            <Trash2 size={16} />
+        {onArchive && project?.status !== "archived" && (
+          <Button
+            variant="outline"
+            onClick={onArchive}
+            disabled={busy}
+            aria-label="Archive project"
+            title="Archive project"
+          >
+            <Archive size={16} />
           </Button>
         )}
       </div>

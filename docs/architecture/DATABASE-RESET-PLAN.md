@@ -33,13 +33,13 @@ The API **starts against an empty database**. `server.js` validates the environm
 | 11 | **CAS Digital Solution record** | Optional: CAS is discoverable from code. A record only enriches its card | `seedDigitalSolutions.js` (insert-only) | CMS |
 | 12 | **Portfolio, hero slides, careers, Media** | Public galleries, case studies, home slider and vacancies are empty without them | Export/import approved content; `seedPortfolio.js` exists, but its content must be confirmed as approved | CMS |
 
-## 2. Classification of all 44 collections
+## 2. Classification of all 45 collections
 
 From the [database map](DATABASE-MAP.md). **No collection is test-only by design** — test records are *rows* inside real business collections.
 
 | Class | Count | Collections | Fresh install | Business-data reset |
 |---|---:|---|---|---|
-| SYSTEM | 2 | `users`, `roles` | Create super admin; optionally seed roles | **Keep** (except chosen test users — see below) |
+| SYSTEM | 3 | `users`, `roles`, `counters` | Create super admin; optionally seed roles; `counters` starts empty and fills itself | **Keep** (except chosen test users — see below). Keep `counters` so issued invoice and RFQ numbers are never reused |
 | CONFIGURATION | 6 | `sitesettings`, `teams`, `servicetemplates`, `procurementcategories`, `scorecardtemplates`, `kpiindicators` | Seed or import approved set | **Keep** |
 | CMS | 7 | `solutions`, `digitalservices`, `heroslides`, `portfolios`, `careers`, `media`, `productions` | Import approved content | **Keep** (prune drafts deliberately) |
 | LOG/AUDIT | 1 | `audits` | Empty | Retain per a retention policy; never silently erase |

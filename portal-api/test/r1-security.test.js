@@ -176,36 +176,42 @@ test("P0-2 project update: internal staff can still edit and reassign any projec
   assert.equal(String(patched.customerId), companyA);
 });
 
-test("P0-2 project delete: same-company permanent delete succeeds (controller boundary)", async () => {
+// R3 (P2-4): DELETE archives instead of deleting. The company boundary is the
+// same as before; these tests now check the archive write.
+test("P0-2 project delete: same-company archive succeeds (controller boundary)", async () => {
   const p = existingProject(companyA);
-  let deleted = null;
-  stub(Project, "findByIdAndDelete", (id) => {
-    deleted = id;
-    return q(p);
+  let archived = null;
+  stub(Project, "findByIdAndDelete", mustNotWrite("Project.findByIdAndDelete"));
+  stub(Project, "updateOne", (filter, update) => {
+    archived = { filter, update };
+    return q({ modifiedCount: 1 });
   });
   const r = await runController(archiveProject, { user: externalHolder, params: { id: String(p._id) } });
   assert.equal(r.status, 200);
-  assert.equal(String(deleted), String(p._id));
+  assert.equal(String(archived.filter._id), String(p._id));
+  assert.equal(archived.update.$set.status, "archived");
 });
 
 test("P0-2 project delete: another company's project is not deleted (controller boundary)", async () => {
   const p = existingProject(companyB);
   stub(Project, "findByIdAndDelete", mustNotWrite("Project.findByIdAndDelete"));
+  stub(Project, "updateOne", mustNotWrite("Project.updateOne"));
   const r = await runController(archiveProject, { user: externalHolder, params: { id: String(p._id) } });
   assert.equal(r.status, 403);
 });
 
-test("P0-2 project delete: internal staff and super admin can delete any company's project", async () => {
+test("P0-2 project delete: internal staff and super admin can archive any company's project", async () => {
   asActors();
   const p = existingProject(companyB);
-  let deletes = 0;
-  stub(Project, "findByIdAndDelete", () => {
-    deletes += 1;
-    return q(p);
+  let archives = 0;
+  stub(Project, "findByIdAndDelete", mustNotWrite("Project.findByIdAndDelete"));
+  stub(Project, "updateOne", () => {
+    archives += 1;
+    return q({ modifiedCount: 1 });
   });
   assert.equal((await call("DELETE", `/api/projects/${p._id}`, { user: pm })).status, 200);
   assert.equal((await call("DELETE", `/api/projects/${p._id}`, { user: superAdmin })).status, 200);
-  assert.equal(deletes, 2);
+  assert.equal(archives, 2);
 });
 
 test("P0-2 + R2: over the API, an external user granted project/ticket write or delete is refused before any write", async () => {

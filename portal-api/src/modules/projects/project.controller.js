@@ -93,7 +93,10 @@ export async function listProjects(req, res) {
 
     if (validId(enrollmentId)) filter.enrollmentId = enrollmentId;
 
+    // Archived projects are hidden unless asked for: ?status=archived shows
+    // them, ?includeArchived=true lists them alongside the rest (P2-4).
     if (status) filter.status = String(status).trim();
+    else if (String(req.query.includeArchived || "") !== "true") filter.status = { $ne: "archived" };
     if (type) filter.type = String(type).trim();
     if (team) filter.team = String(team).trim();
     if (priority) filter.priority = String(priority).trim();
@@ -495,6 +498,10 @@ export async function updateProject(req, res) {
   }
 }
 
+// DELETE /api/projects/:id — archives the project (remediation P2-4).
+// Business deletion is archiving: the project and everything linked to it
+// (jobs, invoices, files, tickets, enrollments) are kept. There is no hard
+// delete through the API. Repeating the request is harmless.
 export async function archiveProject(req, res) {
   try {
     const { id } = req.params;
@@ -502,7 +509,7 @@ export async function archiveProject(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
-    const existing = await Project.findById(id).select("customerId").lean();
+    const existing = await Project.findById(id).select("customerId status archivedAt").lean();
     if (!existing) {
       return res.status(404).json({ ok: false, message: "Not found" });
     }
@@ -510,14 +517,15 @@ export async function archiveProject(req, res) {
       return res.status(403).json({ ok: false, message: "Forbidden" });
     }
 
-    // Permanent delete (unchanged behaviour; lifecycle is remediation P2-4).
-    const item = await Project.findByIdAndDelete(id).lean();
-
-    if (!item) {
-      return res.status(404).json({ ok: false, message: "Not found" });
+    if (existing.status !== "archived") {
+      await Project.updateOne(
+        { _id: id, status: { $ne: "archived" } },
+        { $set: { status: "archived", archivedAt: new Date(), updatedBy: req.user?.id || null } }
+      );
     }
 
-    return res.json({ ok: true });
+    const item = await Project.findById(id).select("status archivedAt").lean();
+    return res.json({ ok: true, archived: true, item });
   } catch (e) {
     console.error("archiveProject:", e);
     return res.status(500).json({ ok: false, message: "Server error" });

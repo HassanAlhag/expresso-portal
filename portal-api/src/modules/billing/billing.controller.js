@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Invoice from "./invoice.model.js";
 import { canSeeAllTenantRecords } from "../../utils/accessControl.js";
+import { nextNumber, highestInUse, raiseCounter, isDuplicateKey, parseNumber } from "../../utils/sequence.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -26,16 +27,23 @@ function canSeeAll(req) {
   return canSeeAllTenantRecords(req);
 }
 
-async function nextInvoiceNumber() {
-  const year = new Date().getFullYear();
-  const prefix = `INV-${year}-`;
-  const last = await Invoice.findOne({ number: { $regex: `^${escapeRegex(prefix)}` } })
-    .sort({ number: -1 })
-    .lean();
-  if (!last?.number) return `${prefix}0001`;
-  const seq = parseInt(last.number.slice(prefix.length), 10);
-  return `${prefix}${String(isNaN(seq) ? 1 : seq + 1).padStart(4, "0")}`;
+// Invoice numbers stay INV-YYYY-NNNN and unique (unique index on `number`).
+// They now come from an atomic counter, so simultaneous creations no longer
+// compute the same number and fail (remediation P2-3).
+export function nextInvoiceNumber(year) {
+  return nextNumber({ Model: Invoice, field: "number", label: "INV", key: "invoice", year });
 }
+
+// A number typed by hand in the standard format moves that year's counter
+// past it, so automatic numbering never runs into it later.
+async function keepCounterAbove(number) {
+  const parsed = parseNumber(number, { label: "INV", key: "invoice" });
+  if (parsed) await raiseCounter(parsed.counterKey, parsed.seq);
+}
+
+const ALLOCATION_FAILED = "Could not allocate an invoice number right now. Nothing was created. Please try again.";
+
+const MAX_NUMBER_ATTEMPTS = 5;
 
 const VALID_STATUSES = ["draft", "sent", "paid", "overdue", "void"];
 const VALID_METHODS = ["bank_transfer", "cash", "card", "cheque", "online", "other"];
@@ -160,9 +168,8 @@ export async function createInvoice(req, res) {
     if (!mongoose.Types.ObjectId.isValid(customerId))
       return res.status(400).json({ ok: false, message: "Valid customerId required" });
 
-    const autoNumber = number?.trim() || (await nextInvoiceNumber());
-
-    const doc = await Invoice.create({
+    const manualNumber = number?.trim() || "";
+    const fields = {
       customerId,
       currency: String(currency || "AED").trim(),
       dueDate: dueDate ? new Date(dueDate) : null,
@@ -172,14 +179,42 @@ export async function createInvoice(req, res) {
       discount: Number(discount || 0),
       items: Array.isArray(items) ? items : [],
       status: VALID_STATUSES.includes(status) ? status : "draft",
-      number: autoNumber,
       issuedAt: status === "sent" ? new Date() : null,
       paidAt: status === "paid" ? new Date() : null,
       projectId: projectId && mongoose.Types.ObjectId.isValid(projectId) ? projectId : null,
       enrollmentId: enrollmentId && mongoose.Types.ObjectId.isValid(enrollmentId) ? enrollmentId : null,
       createdBy: req.user?.id || null,
       updatedBy: req.user?.id || null,
-    });
+    };
+
+    // One write per attempt, so a failed attempt leaves nothing behind.
+    let doc = null;
+    for (let attempt = 0; attempt < MAX_NUMBER_ATTEMPTS && !doc; attempt += 1) {
+      let allocated = null;
+      if (!manualNumber) {
+        try {
+          allocated = await nextInvoiceNumber();
+        } catch (allocErr) {
+          console.error("createInvoice: number allocation failed:", allocErr?.message);
+          return res.status(503).json({ ok: false, message: ALLOCATION_FAILED });
+        }
+      }
+      try {
+        doc = await Invoice.create({ ...fields, number: manualNumber || allocated.value });
+      } catch (e) {
+        if (!isDuplicateKey(e, "number")) throw e;
+        if (manualNumber) {
+          return res.status(409).json({ ok: false, message: `Invoice number ${manualNumber} is already in use` });
+        }
+        // The counter is behind a number entered by hand: move it past the
+        // highest stored number and try again.
+        await raiseCounter(allocated.counterKey, await highestInUse(Invoice, "number", allocated.prefix));
+      }
+    }
+    if (!doc) {
+      return res.status(409).json({ ok: false, message: "Could not allocate an invoice number. Please try again." });
+    }
+    if (manualNumber) await keepCounterAbove(manualNumber).catch((e) => console.error("createInvoice: counter update failed:", e?.message));
 
     const item = await Invoice.findById(doc._id)
       .populate("customerId", "companyName contactName primaryEmail")
@@ -244,6 +279,7 @@ export async function updateInvoice(req, res) {
 
     Object.assign(doc, patch);
     await doc.save();
+    if (patch.number) await keepCounterAbove(patch.number).catch((e) => console.error("updateInvoice: counter update failed:", e?.message));
 
     const item = await Invoice.findById(id)
       .populate("customerId", "companyName contactName primaryEmail")
@@ -253,6 +289,9 @@ export async function updateInvoice(req, res) {
 
     return res.json({ ok: true, item });
   } catch (e) {
+    if (isDuplicateKey(e, "number")) {
+      return res.status(409).json({ ok: false, message: "That invoice number is already in use" });
+    }
     console.error("updateInvoice:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }

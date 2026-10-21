@@ -112,17 +112,18 @@ export default function ProjectDetailsPage() {
 
   const handleArchive = () => {
     setConfirmState({
-      title: "Delete project",
-      message: `Delete "${project?.name}"? This cannot be undone.`,
-      danger: true,
+      title: "Archive project",
+      message: `Archive "${project?.name}"? It leaves the active project list but keeps its jobs, invoices, files and history. You can find it under the Archived status filter and restore it by changing its status.`,
+      confirmLabel: "Archive project",
       onConfirm: async () => {
         setBusy(true);
         setConfirmState(null);
         try {
           await archiveProject(id);
+          toast.success("Project archived.");
           nav("/portal/projects");
         } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
+          toast.error(e?.response?.data?.message || e?.message || "Archive failed");
           setBusy(false);
         }
       },
@@ -240,6 +241,7 @@ export default function ProjectDetailsPage() {
         title={confirmState?.title}
         message={confirmState?.message}
         danger={confirmState?.danger}
+        confirmLabel={confirmState?.confirmLabel}
         onConfirm={confirmState?.onConfirm}
         onClose={() => setConfirmState(null)}
       />

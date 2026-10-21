@@ -4,9 +4,15 @@
 
 ## What was inspected
 
-Every `*.model.js` definition under `portal-api/src/modules` was parsed: **44 files, 44 distinct registered models, 44 expected collection names**. Model getter calls such as `mongoose.model("Ticket")` are not additional model definitions. Embedded schemas are not counted as collections. Collection names below use Mongoose's default pluralizer unless explicitly configured; actual live collection existence/counts were **not queried**.
+Every `*.model.js` definition under `portal-api/src/modules` was parsed: **45 files, 45 distinct registered models, 45 expected collection names** (44 at the audit baseline; R3 added `Counter`). Model getter calls such as `mongoose.model("Ticket")` are not additional model definitions. Embedded schemas are not counted as collections. Collection names below use Mongoose's default pluralizer unless explicitly configured; actual live collection existence/counts were **not queried**.
 
 The source inventory records fields, explicit refs, enums and index declarations for every model. Classification is a **retention recommendation for the model's purpose**, not approval to delete records. No collection is classified TEST/LEGACY merely because sample records might exist. **No confirmed test-only collection was found.**
+
+## Admin
+
+| Model → expected collection | Class | Relationships and reset note | Source |
+|---|---|---|---|
+| Counter → `counters` | SYSTEM | Refs: none. Added in R3 (P2-3): one document per sequence and year (`invoice-2026`, `rfq-2026`) holding the last issued number. Keep on a business-data reset so invoice and RFQ numbers already sent out are never reused. Safe to lose: a missing counter restarts from the highest number still stored. | [portal-api/src/modules/admin/counter.model.js](../../portal-api/src/modules/admin/counter.model.js) L16 |
 
 ## Billing
 
@@ -144,7 +150,7 @@ The source inventory records fields, explicit refs, enums and index declarations
 
 ## Classification totals
 
-**BUSINESS: 28**, **CMS: 7**, **CONFIGURATION: 6**, **LOG/AUDIT: 1**, **SYSTEM: 2** (User, Role). TEST/LEGACY: **0 confirmed** — test records are rows inside real collections, not separate collections.
+**BUSINESS: 28**, **CMS: 7**, **CONFIGURATION: 6**, **LOG/AUDIT: 1**, **SYSTEM: 3** (User, Role, Counter). TEST/LEGACY: **0 confirmed** — test records are rows inside real collections, not separate collections.
 
 ## ER diagrams
 

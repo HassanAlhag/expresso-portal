@@ -18,7 +18,7 @@ The repository contains one React application with two surfaces: public marketin
 | Backend domain folders | **21** | Domains represented by mounted routers in `portal-api/src/modules` |
 | Mounted Express routers | **44** | Router mounts in `app.js` |
 | Explicit API method/path registrations | **283** | Includes `/api/health`; excludes static files, implicit HEAD/OPTIONS, rate-limit mounts and 404 handler. 282 at the audit baseline; R2 added `GET /api/users/:id/effective-permissions` |
-| Mongoose models / expected collections | **44 / 44** | Registered definitions in 44 model files; not live collection or document counts |
+| Mongoose models / expected collections | **45 / 45** | Registered definitions in 45 model files (R3 added `Counter`); not live collection or document counts |
 | Built-in role defaults | **14** | Nine internal and five external defaults; actual custom/live assignments not queried |
 | API permission keys | **74** | The single catalog. The portal's drifting static copy (66 keys at the audit baseline) was removed in R2; the portal now loads the catalog from `GET /api/permissions/catalog` |
 
@@ -53,7 +53,7 @@ Internal ServiceTemplate records are business configuration, not public DigitalS
 
 ## What is safe to reset?
 
-Nothing has been approved for deletion. The database map classifies schema purposes: **2 SYSTEM, 6 CONFIGURATION, 7 CMS, 28 BUSINESS, 1 LOG/AUDIT; 0 confirmed TEST/LEGACY collections**. BUSINESS means potentially resettable after an approved retention/reference plan, not disposable. Finance, HR, applications, conversations, published Jobs and shared assets need explicit decisions. Preserve/recreate stable IDs and configuration deliberately; never identify whole collections as test-only from the appearance of a few records.
+Nothing has been approved for deletion. The database map classifies schema purposes: **3 SYSTEM, 6 CONFIGURATION, 7 CMS, 28 BUSINESS, 1 LOG/AUDIT; 0 confirmed TEST/LEGACY collections**. BUSINESS means potentially resettable after an approved retention/reference plan, not disposable. Finance, HR, applications, conversations, published Jobs and shared assets need explicit decisions. Preserve/recreate stable IDs and configuration deliberately; never identify whole collections as test-only from the appearance of a few records.
 
 ## Main architectural risks
 
@@ -63,7 +63,7 @@ Nothing has been approved for deletion. The database map classifies schema purpo
 4. **Multi-record workflows are not transactional.** Vendor approval and CRM conversion can leave partial state after a mid-flow failure. Invoice numbering can fail under simultaneous creation; RFQ numbering can duplicate. Project DELETE is a permanent delete that orphans linked records.
 5. **Reset and storage lifecycles are not one controlled process.** Existing seeds mix reference content, samples and updates; there is no approved backup/reset/system-seed/demo-seed pipeline. Account deletion has source-confirmed identity/import bugs.
 
-**Update — Stage R2:** the access model and vendor journey items are implemented and covered by automated tests (P1-1, P1-3, P1-4, P1-5, P2-1, P2-5, P3-4 and the external-role policy of P0-2); see the remediation plan. **Update — Stage R1:** P0-1 to P0-4 (items 1, 2 and the log/admin issues above) have been fixed and covered by automated tests; see the [remediation plan's implementation status](REMEDIATION-PLAN.md#implementation-status). The findings in this audit describe the code at `58b8f86c`.
+**Update — Stage R3 (awaiting review):** invoice and RFQ numbers come from an atomic per-year counter (new `counters` collection; RFQ unique index still waits for a read-only duplicate check), project DELETE archives instead of deleting, and `seedUser.js` is insert-only (P2-3, P2-4, the `seedUser.js` part of P2-7); see the remediation plan. **Update — Stage R2:** the access model and vendor journey items are implemented and covered by automated tests (P1-1, P1-3, P1-4, P1-5, P2-1, P2-5, P3-4 and the external-role policy of P0-2); see the remediation plan. **Update — Stage R1:** P0-1 to P0-4 (items 1, 2 and the log/admin issues above) have been fixed and covered by automated tests; see the [remediation plan's implementation status](REMEDIATION-PLAN.md#implementation-status). The findings in this audit describe the code at `58b8f86c`.
 
 These are source findings, not a live penetration test or a claim about currently assigned users. [RBAC](RBAC-MAP.md), [API](API-MAP.md) and [cleanup audit](CODE-CLEANUP-AUDIT.md) provide evidence and conditions.
 
