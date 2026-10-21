@@ -6,6 +6,8 @@ import Team from "../teams/team.model.js";
 import User from "../users/user.model.js";
 import AccessRequest from "../access-requests/accessRequest.model.js";
 import Customer from "../../customers/customer.model.js";
+import ProcurementVendor from "../../procurement/vendor.model.js";
+import VendorApplication from "../../procurement/vendor-application.model.js";
 import { logAudit } from "../audit/audit.service.js";
 import { sendMail } from "../../../utils/email.js";
 import { env } from "../../../config/env.js";
@@ -92,27 +94,45 @@ function computeStatus(invite) {
   return invite;
 }
 
-async function sendInviteEmail({ email, fullName, rawToken }) {
-  const acceptUrl = `${env.frontendUrl}/portal/accept-invite?token=${rawToken}`;
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+  );
+}
 
-  await sendMail({
-    to: email,
-    subject: "You're invited to the Expresso Digital Client Portal",
+/**
+ * Builds the invitation email. Vendor invitations name the Vendor Portal;
+ * every other invitation keeps the Client Portal wording.
+ */
+export function buildInviteEmail({ fullName, acceptUrl, role }) {
+  const isVendor = role === "vendor";
+  const portalName = isVendor ? "Expresso Digital Vendor Portal" : "Expresso Digital Client Portal";
+  const purpose = isVendor
+    ? `<p>Your vendor application has been approved. You've been invited to activate your account on the <strong>${portalName}</strong>, where you can view requests for quotation in your approved categories and submit quotations.</p>`
+    : `<p>You've been invited to activate your access to the <strong>${portalName}</strong>.</p>`;
+  return {
+    subject: `You're invited to the ${portalName}`,
     html: `
-      <p>Hi ${fullName || ""},</p>
-      <p>You've been invited to activate your access to the <strong>Expresso Digital Client Portal</strong>.</p>
+      <p>Hi ${escapeHtml(fullName)},</p>
+      ${purpose}
       <p>Click the link below to set your password and activate your account:</p>
       <p><a href="${acceptUrl}">${acceptUrl}</a></p>
       <p>This link will expire soon and can only be used once. If you weren't expecting this invitation, you can safely ignore this email.</p>
     `,
-  });
+  };
+}
+
+export async function sendInviteEmail({ email, fullName, rawToken, role }) {
+  const acceptUrl = `${env.frontendUrl}/portal/accept-invite?token=${rawToken}`;
+  const { subject, html } = buildInviteEmail({ fullName, acceptUrl, role });
+  await sendMail({ to: email, subject, html });
 }
 
 /**
- * Creates an Invite record and sends the invitation email. Shared by the
- * direct admin "New invite" flow and the access-request approval flow.
+ * Creates an Invite record without sending email. Returns the raw token, which
+ * exists only in memory (only its hash is stored) and must only be emailed.
  */
-export async function issueInvite({
+export async function createInviteRecord({
   email,
   fullName = "",
   role,
@@ -121,6 +141,7 @@ export async function issueInvite({
   expiresInDays = 7,
   invitedBy = null,
   accessRequestId = null,
+  vendorId = null,
 }) {
   const days = Math.max(1, Math.min(30, Number(expiresInDays) || 7));
   const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
@@ -133,14 +154,28 @@ export async function issueInvite({
     team,
     clientId: clientId || null,
     accessRequestId: accessRequestId || null,
+    vendorId: vendorId || null,
     status: "pending",
     tokenHash: hashToken(rawToken),
     expiresAt,
     invitedBy: invitedBy || null,
   });
 
-  await sendInviteEmail({ email, fullName, rawToken });
+  return { invite, rawToken };
+}
 
+/**
+ * Creates an Invite record and sends the invitation email. Shared by the
+ * direct admin "New invite" flow and the access-request approval flow.
+ */
+export async function issueInvite(options) {
+  const { invite, rawToken } = await createInviteRecord(options);
+  await sendInviteEmail({
+    email: options.email,
+    fullName: options.fullName || "",
+    rawToken,
+    role: options.role,
+  });
   return invite;
 }
 
@@ -361,6 +396,9 @@ export async function resendInvite(req, res) {
         tokenHash: hashToken(rawToken),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         cancelledAt: null,
+        // Clear any abandoned acceptance claim. acceptedByUserId is kept so a
+        // half-finished vendor acceptance resumes with the same account id.
+        acceptedAt: null,
       },
       { new: true }
     )
@@ -372,6 +410,7 @@ export async function resendInvite(req, res) {
       email: item.email,
       fullName: item.fullName,
       rawToken,
+      role: item.role,
     });
 
     await logAudit(req, {
@@ -430,7 +469,21 @@ export async function verifyInvite(req, res) {
   }
 }
 
+// An acceptance that started but did not finish (process stopped part-way)
+// can be completed with the same link after this many milliseconds. Until
+// then a second, concurrent submission is refused.
+export const ACCEPT_CLAIM_STALE_MS = 2 * 60 * 1000;
+
 // POST /api/invites/accept — public. Activates the invited account.
+//
+// Steps (each safe to repeat, so an interrupted acceptance can be completed):
+//   1. Claim the invitation atomically (one request at a time; records the
+//      account id that will be created).
+//   2. Vendor invitations: link that account id to the approved vendor profile.
+//      This happens before the account exists, so a failed link never leaves
+//      a login behind.
+//   3. Create the account with the reserved id (or, on a retry, finish it).
+//   4. Mark the invitation accepted. From then on the link is spent.
 export async function acceptInvite(req, res) {
   try {
     const token = String(req.body.token || "").trim();
@@ -444,7 +497,8 @@ export async function acceptInvite(req, res) {
       return res.status(400).json({ ok: false, message: "Password must be at least 8 characters" });
     }
 
-    const invite = await Invite.findOne({ tokenHash: hashToken(token) }).select("+tokenHash");
+    const tokenHash = hashToken(token);
+    const invite = await Invite.findOne({ tokenHash }).select("+tokenHash").lean();
 
     if (!invite) {
       return res.status(404).json({ ok: false, message: "This invitation link is invalid" });
@@ -463,15 +517,38 @@ export async function acceptInvite(req, res) {
     // submitted by the accept-invite form itself.
     const email = invite.email;
 
-    const existingUser = await User.findOne({ email }).select("_id").lean();
-    if (existingUser) {
-      // Explicit conflict handling: an account was created for this email
-      // through another path after the invite was sent. Do not silently
-      // create a duplicate or touch the existing account.
-      invite.status = "cancelled";
-      invite.cancelledAt = new Date();
-      await invite.save();
+    // 1. Atomic claim. Reuses the account id reserved by an earlier,
+    //    interrupted attempt so retries converge on one account.
+    const now = new Date();
+    const userId = invite.acceptedByUserId || new mongoose.Types.ObjectId();
+    const claimed = await Invite.findOneAndUpdate(
+      {
+        _id: invite._id,
+        tokenHash,
+        status: "pending",
+        expiresAt: { $gt: now },
+        $or: [{ acceptedAt: null }, { acceptedAt: { $lt: new Date(now.getTime() - ACCEPT_CLAIM_STALE_MS) } }],
+      },
+      { $set: { acceptedAt: now, acceptedByUserId: userId } },
+      { new: true }
+    ).lean();
+    if (!claimed) {
+      return res.status(409).json({
+        ok: false,
+        message: "This invitation is already being used. If you did not just submit it, try again in a few minutes.",
+      });
+    }
+    const releaseClaim = () =>
+      Invite.updateOne({ _id: invite._id, status: "pending" }, { $set: { acceptedAt: null } });
 
+    // An account with this email that is not the one reserved by this
+    // invitation was created another way: do not touch it.
+    const existingUser = await User.findOne({ email }).select("_id").lean();
+    if (existingUser && String(existingUser._id) !== String(userId)) {
+      await Invite.updateOne(
+        { _id: invite._id },
+        { $set: { status: "cancelled", cancelledAt: new Date(), acceptedAt: null, acceptedByUserId: null } }
+      );
       return res.status(409).json({
         ok: false,
         message:
@@ -479,23 +556,67 @@ export async function acceptInvite(req, res) {
       });
     }
 
+    // 2. Vendor invitation: link the reserved account id to the approved,
+    //    active vendor profile (idempotent for a retry with the same id).
+    if (invite.vendorId) {
+      const linked = await ProcurementVendor.updateOne(
+        { _id: invite.vendorId, isActive: true, userId: { $in: [null, userId] } },
+        { $set: { userId } }
+      );
+      if (!linked?.matchedCount && !linked?.modifiedCount) {
+        // The profile was deactivated or belongs to another account: this
+        // invitation can no longer be used. No account has been created.
+        await Invite.updateOne(
+          { _id: invite._id },
+          { $set: { status: "cancelled", cancelledAt: new Date(), acceptedAt: null } }
+        );
+        console.error(`acceptInvite: vendor profile ${invite.vendorId} not linkable for invite ${invite._id}`);
+        return res.status(409).json({
+          ok: false,
+          message: "This vendor invitation can no longer be used. Please contact Expresso.",
+        });
+      }
+      await VendorApplication.updateOne({ vendorId: invite.vendorId }, { $set: { userId } });
+    }
+
+    // 3. Create the account with the reserved id, or finish the one an
+    //    interrupted attempt created (the submitted password applies).
     const passwordHash = await User.hashPassword(password);
+    try {
+      if (existingUser) {
+        await User.updateOne(
+          { _id: userId },
+          { $set: { passwordHash, passwordChangedAt: new Date(), isActive: true } }
+        );
+      } else {
+        await User.create({
+          _id: userId,
+          fullName: fullName || invite.fullName || "",
+          email,
+          role: invite.role,
+          isActive: true,
+          clientId: invite.clientId || null,
+          team: invite.team || "",
+          passwordHash,
+          passwordChangedAt: new Date(),
+        });
+      }
+    } catch (createErr) {
+      // Leave the claim retryable; the vendor link (if any) points at the
+      // reserved id and is reused by the retry.
+      try {
+        await releaseClaim();
+      } catch (releaseErr) {
+        console.error(`acceptInvite: could not release claim on invite ${invite._id}:`, releaseErr.message);
+      }
+      throw createErr;
+    }
 
-    const user = await User.create({
-      fullName: fullName || invite.fullName || "",
-      email,
-      role: invite.role,
-      isActive: true,
-      clientId: invite.clientId || null,
-      team: invite.team || "",
-      passwordHash,
-      passwordChangedAt: new Date(),
-    });
-
-    invite.status = "accepted";
-    invite.acceptedAt = new Date();
-    invite.acceptedByUserId = user._id;
-    await invite.save();
+    // 4. Spend the invitation.
+    await Invite.updateOne(
+      { _id: invite._id },
+      { $set: { status: "accepted", acceptedAt: new Date(), acceptedByUserId: userId } }
+    );
 
     if (invite.accessRequestId) {
       await AccessRequest.updateOne(
@@ -506,8 +627,8 @@ export async function acceptInvite(req, res) {
 
     await logAudit(req, {
       action: "invite.accepted",
-      targetUserId: user._id,
-      meta: { inviteId: invite._id, email },
+      targetUserId: userId,
+      meta: { inviteId: invite._id, email, vendorId: invite.vendorId || null },
     });
 
     return res.status(201).json({

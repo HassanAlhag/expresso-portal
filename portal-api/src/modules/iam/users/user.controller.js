@@ -4,9 +4,11 @@ import User from "./user.model.js";
 import Role from "../roles/role.model.js";
 import { logAudit } from "../audit/audit.service.js";
 import {
+  ALL_PERMISSION_KEYS,
   DEFAULT_ROLE_PERMISSIONS,
   VALID_PERMISSION_KEYS,
 } from "../../../config/permissions.js";
+import { externalDeniedIn, resolveRoleContext } from "../../../utils/roleRegistry.js";
 
 function canManageRole(actorRole, targetRole) {
   const actor = String(actorRole || "").toLowerCase();
@@ -552,6 +554,23 @@ export async function updateUserPermissions(req, res) {
       }
     }
 
+    // Client and vendor users can never be granted internal-only permissions
+    // individually either (they would be stripped at sign-in anyway).
+    if (patch.extraPermissions) {
+      const { isInternal } = await resolveRoleContext(target.role);
+      if (!isInternal) {
+        const already = new Set(target.extraPermissions || []);
+        const denied = externalDeniedIn(patch.extraPermissions.filter((p) => !already.has(p)));
+        if (denied.length > 0) {
+          return res.status(400).json({
+            ok: false,
+            message: "Client and vendor users cannot hold these permissions",
+            denied,
+          });
+        }
+      }
+    }
+
     const user = await User.findByIdAndUpdate(id, patch, { new: true })
       .select("fullName email role extraPermissions revokedPermissions")
       .lean();
@@ -568,6 +587,61 @@ export async function updateUserPermissions(req, res) {
     return res.json({ ok: true, user });
   } catch (err) {
     console.error("updateUserPermissions error:", err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+}
+
+/**
+ * GET /api/users/:id/effective-permissions
+ * What the API will actually grant this user, computed by the same function
+ * used at sign-in (role registry). The portal shows this instead of guessing
+ * from a copy of the role defaults.
+ */
+export async function getEffectivePermissions(req, res) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ ok: false, message: "Invalid user id" });
+    }
+    const target = await User.findById(id)
+      .select("role extraPermissions revokedPermissions")
+      .lean();
+    if (!target) {
+      return res.status(404).json({ ok: false, message: "User not found" });
+    }
+
+    const extraPermissions = target.extraPermissions || [];
+    const revokedPermissions = target.revokedPermissions || [];
+    const role = String(target.role || "").toLowerCase();
+
+    if (role === "super_admin") {
+      return res.json({
+        ok: true,
+        role,
+        isInternal: true,
+        bypass: true,
+        roleSource: "built-in",
+        rolePermissions: ALL_PERMISSION_KEYS,
+        extraPermissions,
+        revokedPermissions,
+        effective: ALL_PERMISSION_KEYS,
+      });
+    }
+
+    const ctx = await resolveRoleContext(role, extraPermissions, revokedPermissions);
+    return res.json({
+      ok: true,
+      role,
+      isInternal: ctx.isInternal,
+      bypass: false,
+      roleSource: ctx.roleSource,
+      rolePermissions: [...ctx.rolePermissions].sort(),
+      extraPermissions,
+      revokedPermissions,
+      effective: [...ctx.permissions].sort(),
+    });
+  } catch (err) {
+    console.error("getEffectivePermissions error:", err);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }

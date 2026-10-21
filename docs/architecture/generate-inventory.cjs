@@ -142,7 +142,10 @@ function pureConfig(file) {
   return JSON.parse(vm.runInNewContext(s+'; JSON.stringify({catalog:PERMISSION_CATALOG, defaults:DEFAULT_ROLE_PERMISSIONS})',{}, {timeout:1000}));
 }
 const backendPermissions=pureConfig('portal-api/src/config/permissions.js');
-const frontendPermissions=pureConfig('client/src/portal/config/permissions.js');
+// The portal's static copy of the catalog was removed in R2 (it now loads the
+// catalog from GET /api/permissions/catalog). Report it only if it reappears.
+const frontendCopy='client/src/portal/config/permissions.js';
+const frontendPermissions=sources.has(frontendCopy)?pureConfig(frontendCopy):null;
 const permissionUsage={};
 const known=backendPermissions.catalog.flatMap(x=>x.permissions.map(p=>p.key));
 for(const k of known)permissionUsage[k]={api:[],ui:[]};
@@ -175,7 +178,7 @@ for(const area of ['client','portal-api']){
   const pkg=JSON.parse(fs.readFileSync(path.join(root,area,'package.json'),'utf8'));
   dependencies[area]=Object.entries(pkg.dependencies||{}).map(([name,range])=>({name,range,importFiles:[...sources].filter(([file,s])=>file.startsWith(area+'/')&&s.imports.some(i=>i.source===name||i.source.startsWith(name+'/'))).map(([f])=>f)}));
 }
-const inventory={baseline,methodology:'Static source inventory, not live MongoDB contents or runtime authorization proof. No application imports; default collection names use Mongoose pluralization.',counts:{backendDomains:new Set(mounts.map(m=>m.file.split('/')[3])).size,portalFeatureAreas:fs.readdirSync(path.join(root,'client/src/portal/features'),{withFileTypes:true}).filter(d=>d.isDirectory()).length,mountedRouters:mounts.length,apiRoutes:apiRoutes.length,models:models.length,modelFiles:new Set(models.map(m=>m.file)).size,defaultRoles:Object.keys(backendPermissions.defaults).length,permissionKeys:known.length,frontendCatalogKeys:frontendPermissions.catalog.flatMap(d=>d.permissions).length},mounts,models,apiRoutes,frontendRoutes,backendPermissions,frontendPermissions,permissionUsage,frontendRequests:requests,unreachableFrontendCandidates:unreachable,unresolvedLocalJs,dependencies};
+const inventory={baseline,methodology:'Static source inventory, not live MongoDB contents or runtime authorization proof. No application imports; default collection names use Mongoose pluralization.',counts:{backendDomains:new Set(mounts.map(m=>m.file.split('/')[3])).size,portalFeatureAreas:fs.readdirSync(path.join(root,'client/src/portal/features'),{withFileTypes:true}).filter(d=>d.isDirectory()).length,mountedRouters:mounts.length,apiRoutes:apiRoutes.length,models:models.length,modelFiles:new Set(models.map(m=>m.file)).size,defaultRoles:Object.keys(backendPermissions.defaults).length,permissionKeys:known.length,frontendCatalogKeys:frontendPermissions?frontendPermissions.catalog.flatMap(d=>d.permissions).length:0},mounts,models,apiRoutes,frontendRoutes,backendPermissions,frontendPermissions,permissionUsage,frontendRequests:requests,unreachableFrontendCandidates:unreachable,unresolvedLocalJs,dependencies};
 const output=JSON.stringify(inventory,null,2)+'\n', dest=path.join(__dirname,'source-inventory.json');
 if(process.argv.includes('--check')) {if(fs.readFileSync(dest,'utf8')!==output)throw new Error('source-inventory.json is stale');}
 else fs.writeFileSync(dest,output);

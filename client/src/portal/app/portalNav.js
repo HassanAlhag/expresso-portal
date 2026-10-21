@@ -157,7 +157,7 @@ const ITEMS = {
     hint: "Jobs, review, publishing",
     Icon: Clapperboard,
     accent: ACCENTS.rose,
-    permission: "productions.read",
+    permission: "jobs.read",
   },
 
   serviceDelivery: {

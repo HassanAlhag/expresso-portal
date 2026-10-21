@@ -25,9 +25,11 @@ for (const f of required) ok(fs.existsSync(path.join(dir, f)), `missing ${f}`);
 // 3. Headline counts quoted in the summary match the code.
 const readme = read('README.md');
 for (const [label, n] of [['portal feature areas', c.portalFeatureAreas], ['backend domains', c.backendDomains],
-  ['routers', c.mountedRouters], ['routes', c.apiRoutes], ['roles', c.defaultRoles], ['API keys', c.permissionKeys], ['UI keys', c.frontendCatalogKeys]])
+  ['routers', c.mountedRouters], ['routes', c.apiRoutes], ['roles', c.defaultRoles], ['API keys', c.permissionKeys]])
   ok(readme.includes(`**${n}**`), `README does not state ${label} = ${n}`);
 ok(readme.includes(`**${c.models} / ${c.models}**`), `README does not state ${c.models} models`);
+// Since R2 the API catalog is the only one: the portal must not ship its own copy.
+ok(c.frontendCatalogKeys === 0, 'a frontend copy of the permission catalog has reappeared (client/src/portal/config/permissions.js)');
 const modules = JSON.parse(read('module-catalog.json')).modules;
 ok(modules.length === c.portalFeatureAreas, `module-catalog has ${modules.length} modules, expected ${c.portalFeatureAreas}`);
 

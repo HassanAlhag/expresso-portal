@@ -4,6 +4,7 @@ import Quotation from "./quotation.model.js";
 import ProcurementVendor from "./vendor.model.js";
 import ProcurementRequest from "./request.model.js";
 import { sendMail } from "../../utils/email.js";
+import { findActiveVendorProfile, rfqMatchesVendor, VENDOR_RFQ_FIELDS } from "./vendorAccess.js";
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
@@ -17,8 +18,10 @@ async function genRfqNumber() {
   )}`;
 }
 
-async function getVendorProfile(userId) {
-  return ProcurementVendor.findOne({ userId, isActive: true }).lean();
+// Approved vendor profile for the caller. Set by the route guard
+// (requireStaffOrApprovedVendor / requireApprovedVendor); null for staff.
+function vendorOf(req) {
+  return req.vendorProfile || null;
 }
 
 // POST /api/procurement/requests/:id/create-rfq
@@ -142,23 +145,19 @@ export async function listRfqs(req, res) {
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
 
-    const isVendor = req.user?.role === "vendor";
+    const vendor = vendorOf(req);
+    const isVendor = Boolean(vendor);
 
     let filter = {};
 
     if (isVendor) {
-      const vendor = await getVendorProfile(req.user.id);
-      if (!vendor) {
-        return res
-          .status(403)
-          .json({ ok: false, message: "Vendor profile not found" });
-      }
+      // Vendors see only published RFQs in their approved categories.
       filter = {
         status: "published",
-        subcategoryIds: { $in: vendor.categories },
+        subcategoryIds: { $in: vendor.categories || [] },
       };
     } else {
-      if (status) filter.status = status;
+      if (status) filter.status = String(status);
     }
 
     if (q.trim()) {
@@ -169,11 +168,13 @@ export async function listRfqs(req, res) {
       filter.$or = [{ title: rx }, { rfqNumber: rx }, { description: rx }];
     }
 
+    const listQuery = RFQ.find(filter).populate("subcategoryIds", "name code");
+    if (isVendor) listQuery.select(VENDOR_RFQ_FIELDS);
+    else listQuery.populate("createdBy", "fullName email");
+
     const [total, items] = await Promise.all([
       RFQ.countDocuments(filter),
-      RFQ.find(filter)
-        .populate("subcategoryIds", "name code")
-        .populate("createdBy", "fullName email")
+      listQuery
         .sort({ createdAt: -1 })
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
@@ -182,7 +183,6 @@ export async function listRfqs(req, res) {
 
     // For vendors, attach whether they've submitted a quotation
     if (isVendor) {
-      const vendor = await getVendorProfile(req.user.id);
       const rfqIds = items.map((r) => r._id);
       const quotations = await Quotation.find({
         rfqId: { $in: rfqIds },
@@ -220,42 +220,30 @@ export async function getRfq(req, res) {
     if (!validId(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
 
-    const item = await RFQ.findById(id)
-      .populate("subcategoryIds", "name code")
-      .populate("createdBy", "fullName email")
-      .lean();
+    const vendor = vendorOf(req);
+    const detailQuery = RFQ.findById(id).populate("subcategoryIds", "name code");
+    if (vendor) detailQuery.select(VENDOR_RFQ_FIELDS);
+    else detailQuery.populate("createdBy", "fullName email");
+    const item = await detailQuery.lean();
 
     if (!item)
       return res.status(404).json({ ok: false, message: "RFQ not found" });
 
-    if (req.user?.role === "vendor") {
-      if (
-        item.status !== "published" &&
-        item.status !== "closed" &&
-        item.status !== "awarded"
-      ) {
-        return res
-          .status(403)
-          .json({ ok: false, message: "RFQ not available" });
-      }
-      const vendor = await getVendorProfile(req.user.id);
-      if (!vendor)
-        return res
-          .status(403)
-          .json({ ok: false, message: "Vendor profile not found" });
-
-      const vendorCats = vendor.categories.map(String);
-      const rfqCats = item.subcategoryIds.map((c) => String(c._id || c));
-      const matched = rfqCats.some((c) => vendorCats.includes(c));
-      if (!matched)
-        return res
-          .status(403)
-          .json({ ok: false, message: "RFQ not in your categories" });
+    if (vendor) {
+      // A vendor sees an RFQ in its approved categories while it is published,
+      // or afterwards (closed/awarded) only if they submitted a quotation.
+      // Anything else is reported as not found, so its existence is not confirmed.
+      const notFound = () => res.status(404).json({ ok: false, message: "RFQ not found" });
+      if (!rfqMatchesVendor(item, vendor)) return notFound();
 
       const myQuotation = await Quotation.findOne({
         rfqId: item._id,
         vendorId: vendor._id,
       }).lean();
+      const visible =
+        item.status === "published" ||
+        (["closed", "awarded"].includes(item.status) && Boolean(myQuotation));
+      if (!visible) return notFound();
       item.myQuotation = myQuotation || null;
     }
 
@@ -400,18 +388,12 @@ export async function listQuotations(req, res) {
     if (!validId(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
 
-    const isVendor = req.user?.role === "vendor";
+    const vendor = vendorOf(req);
 
     let filter = { rfqId: id };
 
-    if (isVendor) {
-      const vendor = await getVendorProfile(req.user.id);
-      if (!vendor)
-        return res
-          .status(403)
-          .json({ ok: false, message: "Vendor profile not found" });
-      filter.vendorId = vendor._id;
-    }
+    // A vendor only ever sees their own quotation.
+    if (vendor) filter.vendorId = vendor._id;
 
     const items = await Quotation.find(filter)
       .populate("vendorId", "name email contactPerson")
@@ -441,16 +423,14 @@ export async function submitQuotation(req, res) {
         .json({ ok: false, message: "RFQ is not accepting quotations" });
     }
 
-    const vendor = await getVendorProfile(req.user.id);
+    const vendor = vendorOf(req) || (await findActiveVendorProfile(req.user?.id));
     if (!vendor)
       return res
         .status(403)
         .json({ ok: false, message: "Vendor profile not found" });
 
     // Check vendor is matched
-    const vendorCats = vendor.categories.map(String);
-    const rfqCats = rfq.subcategoryIds.map(String);
-    if (!rfqCats.some((c) => vendorCats.includes(c))) {
+    if (!rfqMatchesVendor(rfq, vendor)) {
       return res
         .status(403)
         .json({ ok: false, message: "This RFQ is not in your categories" });

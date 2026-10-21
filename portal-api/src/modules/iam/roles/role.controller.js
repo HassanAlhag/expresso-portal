@@ -6,7 +6,7 @@ import {
   DEFAULT_ROLE_PERMISSIONS,
   VALID_PERMISSION_KEYS,
 } from "../../../config/permissions.js";
-import { isSystemInternalRole } from "../../../utils/roleRegistry.js";
+import { externalDeniedIn, isSystemInternalRole } from "../../../utils/roleRegistry.js";
 import { logAudit } from "../audit/audit.service.js";
 
 // Roles only a super admin may edit.
@@ -84,18 +84,25 @@ function synthesizeMissingSystemRoles(items, q) {
   return [...items, ...synthetic];
 }
 
+// A stored role's permission list is authoritative, including an explicit
+// empty list (no access). Defaults are shown only when nothing is stored.
+// Mirrors resolveRoleContext in utils/roleRegistry.js.
 function normalizeRolePermissions(role) {
   if (!role) return role;
-  const defaults = DEFAULT_ROLE_PERMISSIONS[role.key];
-  const valid = Array.isArray(role.permissions)
-    ? role.permissions.filter((permission) => VALID_PERMISSION_KEYS.has(permission))
-    : [];
-
-  if (defaults && valid.length === 0) {
-    return withInternalFlag({ ...role, permissions: defaults });
+  if (!Array.isArray(role.permissions)) {
+    return withInternalFlag({ ...role, permissions: DEFAULT_ROLE_PERMISSIONS[role.key] || [] });
   }
-
+  const valid = role.permissions.filter((permission) => VALID_PERMISSION_KEYS.has(permission));
   return withInternalFlag({ ...role, permissions: valid });
+}
+
+/** 400 body when an external role is given permissions external users may never hold. */
+function externalDeniedResponse(denied) {
+  return {
+    ok: false,
+    message: "Client and vendor roles cannot hold these permissions",
+    denied,
+  };
 }
 
 function escapeRegex(s) {
@@ -239,6 +246,11 @@ export async function createRole(req, res) {
       });
     }
 
+    if (isInternal === false) {
+      const denied = externalDeniedIn(permissions || []);
+      if (denied.length > 0) return res.status(400).json(externalDeniedResponse(denied));
+    }
+
     const exists = await Role.findOne({ key }).lean();
     if (exists) {
       return res
@@ -316,6 +328,21 @@ export async function updateRole(req, res) {
           missing: beyond,
         });
       }
+    }
+
+    // External (client/vendor) roles can never be given internal-only
+    // permissions. Newly added keys are refused; when a role becomes external,
+    // its whole resulting permission list is checked.
+    const wasInternal = withInternalFlag(target).isInternal;
+    const willBeInternal = "isInternal" in patch ? patch.isInternal : wasInternal;
+    if (willBeInternal === false) {
+      const resulting = "permissions" in patch ? patch.permissions : target.permissions || [];
+      const toCheck =
+        wasInternal === false
+          ? resulting.filter((p) => !(target.permissions || []).includes(p))
+          : resulting;
+      const denied = externalDeniedIn(toCheck);
+      if (denied.length > 0) return res.status(400).json(externalDeniedResponse(denied));
     }
 
     if ("key" in patch && patch.key !== target.key) {

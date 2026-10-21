@@ -19,7 +19,8 @@ const ROUTE_PERMISSIONS = [
   ["/portal/customers", "customers.read"],
   ["/portal/projects", "projects.read"],
   ["/portal/service-delivery", "projects.read"],
-  ["/portal/productions", "productions.read"],
+  // The production workspace shows delivery jobs (GET /api/jobs).
+  ["/portal/productions", "jobs.read"],
   ["/portal/jobs", "jobs.read"],
   ["/portal/content-calendar", "jobs.read"],
   ["/portal/media-library", "media.read"],
@@ -40,6 +41,8 @@ const ROUTE_PERMISSIONS = [
   ["/portal/hr/monthly-expenses", "hr.expenses.approve"],
   ["/portal/hr/leaves", "hr.leaves.read"],
   ["/portal/hr/skills", "hr.scorecards.read"],
+  // KPI pages use the KPI permission, not hr.staff.read (must precede /portal/hr).
+  ["/portal/hr/kpi", "hr.kpi.read"],
   ["/portal/hr", "hr.staff.read"],
   ["/portal/reports", "reports.read"],
   ["/portal/activity", "activity.read"],
@@ -115,7 +118,17 @@ function readIsInternal(role) {
   return !EXTERNAL_CLIENT_ROLES.has(role) && role !== "vendor";
 }
 
-function isAllowed(role, pathname) {
+// Vendors may open the RFQ list and individual RFQs (not create or edit). The
+// API decides what each vendor actually sees: published RFQs in their
+// approved categories and their own quotations only.
+function isVendorRfqView(role, p) {
+  if (role !== "vendor") return false;
+  if (p === "/portal/procurement/rfqs") return true;
+  const m = p.match(/^\/portal\/procurement\/rfqs\/([^/]+)$/);
+  return Boolean(m) && m[1] !== "new";
+}
+
+export function isAllowed(role, pathname) {
   const r = String(role || "").toLowerCase();
   if (r === "super_admin" || r === "admin") return true;
 
@@ -125,6 +138,7 @@ function isAllowed(role, pathname) {
 
   if (
     !readIsInternal(r) &&
+    !isVendorRfqView(r, p) &&
     EXTERNAL_ROUTE_DENYLIST.some((prefix) => p === prefix || p.startsWith(prefix + "/"))
   ) {
     return false;

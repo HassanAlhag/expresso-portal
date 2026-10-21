@@ -10,9 +10,6 @@ import {
   Clock,
   RefreshCw,
   ChevronRight,
-  Copy,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 
 import Card from "../../../shared/ui/Card";
@@ -44,17 +41,8 @@ const STATUS_ICON = {
 };
 
 // ── Credentials modal shown after approval ────────────────────────────────────
-function CredentialsModal({ credentials, onClose }) {
-  const [showPw, setShowPw] = useState(false);
-  const [copied, setCopied] = useState("");
-
-  const copy = (text, key) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(key);
-      setTimeout(() => setCopied(""), 2000);
-    });
-  };
-
+function InvitationSentModal({ invitation, onClose }) {
+  const expires = invitation?.expiresAt ? new Date(invitation.expiresAt) : null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md rounded-3xl border border-black/10 bg-white p-6 shadow-2xl">
@@ -63,54 +51,26 @@ function CredentialsModal({ credentials, onClose }) {
           <span className="font-black text-slate-900">Application Approved</span>
         </div>
         <p className="mb-5 text-sm text-slate-500">
-          Share these credentials with the vendor. The password will only be shown once.
+          {invitation?.emailSent
+            ? "An invitation email has been sent to the vendor. They set their own password when they accept it."
+            : "The vendor is approved, but the invitation email could not be sent. Resend it from Users → Invites."}
         </p>
 
         <div className="grid gap-3">
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div>
-              <div className="text-[11px] font-black uppercase tracking-widest text-slate-400">Email</div>
-              <div className="mt-0.5 text-sm font-bold text-slate-900">{credentials.email}</div>
-            </div>
-            <button
-              type="button"
-              onClick={() => copy(credentials.email, "email")}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
-            >
-              <Copy size={12} />
-              {copied === "email" ? "Copied!" : "Copy"}
-            </button>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="text-[11px] font-black uppercase tracking-widest text-slate-400">Invitation sent to</div>
+            <div className="mt-0.5 text-sm font-bold text-slate-900">{invitation?.email}</div>
           </div>
-
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-black uppercase tracking-widest text-slate-400">Temp Password</div>
-              <div className="mt-0.5 font-mono text-sm font-bold tracking-wider text-slate-900">
-                {showPw ? credentials.tempPassword : "••••••••••••"}
-              </div>
+          {expires ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="text-[11px] font-black uppercase tracking-widest text-slate-400">Link expires</div>
+              <div className="mt-0.5 text-sm font-bold text-slate-900">{expires.toLocaleString()}</div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowPw((v) => !v)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
-              >
-                {showPw ? <EyeOff size={12} /> : <Eye size={12} />}
-              </button>
-              <button
-                type="button"
-                onClick={() => copy(credentials.tempPassword, "pw")}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
-              >
-                <Copy size={12} />
-                {copied === "pw" ? "Copied!" : "Copy"}
-              </button>
-            </div>
-          </div>
+          ) : null}
         </div>
 
-        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-          {credentials.note}
+        <p className="mt-4 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+          The link works once. No password is created or shown here.
         </p>
 
         <Button className="mt-5 w-full" onClick={onClose}>
@@ -143,9 +103,9 @@ function ApplicationDrawer({ applicationId, onClose, onApproved, onRejected }) {
     if (!item?._id) return;
     setConfirmState({
       title: "Approve Application",
-      message: `Approve "${item.companyName}" and generate portal credentials?`,
+      message: `Approve "${item.companyName}" and email them an invitation to set up their portal login?`,
       danger: false,
-      confirmLabel: "Approve & Create Login",
+      confirmLabel: "Approve & Send Invitation",
       onConfirm: async () => {
         setBusy(true);
         try {
@@ -342,7 +302,7 @@ export default function VendorApplicationsPage() {
   const [total, setTotal] = useState(0);
 
   const [selectedId, setSelectedId] = useState(null);
-  const [credentials, setCredentials] = useState(null);
+  const [invitation, setInvitation] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -364,7 +324,7 @@ export default function VendorApplicationsPage() {
 
   const handleApproved = (res) => {
     setSelectedId(null);
-    setCredentials(res?.credentials || null);
+    setInvitation(res?.invitation || null);
     load();
   };
 
@@ -480,11 +440,11 @@ export default function VendorApplicationsPage() {
         />
       )}
 
-      {/* Credentials modal */}
-      {credentials && (
-        <CredentialsModal
-          credentials={credentials}
-          onClose={() => setCredentials(null)}
+      {/* Invitation confirmation */}
+      {invitation && (
+        <InvitationSentModal
+          invitation={invitation}
+          onClose={() => setInvitation(null)}
         />
       )}
     </div>

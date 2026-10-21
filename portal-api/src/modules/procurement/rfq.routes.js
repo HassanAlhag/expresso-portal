@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { requireAuth, requirePermission, requireRole } from "../../middleware/auth.js";
+import { requireAuth, requirePermission } from "../../middleware/auth.js";
 import { requireInternalUser } from "../../utils/accessControl.js";
+import { requireApprovedVendor, requireStaffOrApprovedVendor } from "./vendorAccess.js";
 import {
   createRfq,
   listRfqs,
@@ -16,19 +17,19 @@ import {
 
 const router = Router();
 
-const vendor = requireRole("vendor");
-
 // RFQ endpoints
-router.get("/", requireAuth, requireInternalUser, requirePermission("procurement.read"), listRfqs);
+// Reads: internal staff, or approved vendors (who see only published RFQs in
+// their approved categories and only their own quotations — see controller).
+router.get("/", requireAuth, requirePermission("procurement.read"), requireStaffOrApprovedVendor, listRfqs);
 router.post("/", requireAuth, requireInternalUser, requirePermission("procurement.write"), createRfq);
-router.get("/:id", requireAuth, requireInternalUser, requirePermission("procurement.read"), getRfq);
+router.get("/:id", requireAuth, requirePermission("procurement.read"), requireStaffOrApprovedVendor, getRfq);
 router.patch("/:id", requireAuth, requireInternalUser, requirePermission("procurement.write"), updateRfq);
 router.patch("/:id/publish", requireAuth, requireInternalUser, requirePermission("procurement.approve"), publishRfq);
 router.patch("/:id/close", requireAuth, requireInternalUser, requirePermission("procurement.approve"), closeRfq);
 
 // Per-RFQ quotations
-router.get("/:id/quotations", requireAuth, requireInternalUser, requirePermission("procurement.read"), listQuotations);
-router.post("/:id/quotations", requireAuth, vendor, submitQuotation);
+router.get("/:id/quotations", requireAuth, requirePermission("procurement.read"), requireStaffOrApprovedVendor, listQuotations);
+router.post("/:id/quotations", requireAuth, requireApprovedVendor, submitQuotation);
 router.get("/:id/matched-vendors", requireAuth, requireInternalUser, requirePermission("procurement.read"), getMatchedVendors);
 
 // Quotation status (staff only)

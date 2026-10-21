@@ -2,7 +2,7 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · [Cleanup audit](CODE-CLEANUP-AUDIT.md) · [Reset plan](DATABASE-RESET-PLAN.md)
 
-**Status: approved planning baseline (`852369df`).** Stage R1 (P0 only) has been implemented on top of it; see [Implementation status](#implementation-status). Everything else in this plan is still pending. No database data, infrastructure, storage, configuration or `.env` file has been changed by any stage, and no file has been deleted.
+**Status: approved planning baseline (`852369df`).** Stage R1 (P0, committed `b2958e76`) and Stage R2 (access model and vendor journey; implemented and test-verified, deployment verification pending) have been implemented on top of it; see [Implementation status](#implementation-status). Everything else in this plan is still pending. No database data, infrastructure, storage, configuration or `.env` file has been changed by any stage, and the only file deleted is the portal's duplicate permission catalogue (`client/src/portal/config/permissions.js`, P1-6 in R2), after both permission editors moved to the API catalogue.
 
 **Baseline:** branch `website/integrated-solutions`. Application code is at `58b8f86c`; the architecture docs were committed at `e867d95f`.
 
@@ -17,23 +17,45 @@ One finding was **narrower** than first described: invoice numbers fail with an 
 
 Status words used here: **Implemented** = code changed in the working tree · **Verified** = covered by automated tests that pass, and that fail against the pre-R1 code · **Pending** = not done yet (code, decision or runtime check).
 
-### Stage R1 — P0 security (implemented, awaiting review; not yet committed or deployed)
+### Stage R1 — P0 security (committed in `b2958e76`; not yet deployed)
 
 | ID | Implemented | Automated tests | Still pending |
 |---|---|---|---|
 | P0-1 | **Implemented** — `optionalAuth` middleware; portfolio and productions lists/details force `status: published` and services/solutions lists/details force active records unless the caller holds `portfolio.read`, `productions.read` or `website.read`. Failed authentication (invalid, expired or deactivated) falls back to anonymous: public content stays available and no draft privilege is granted | **Verified** — 39 tests in `portal-api/test/r1-security.test.js`, including anonymous, authorised CMS, signed-in without permission, invalid-token and expired-token cases for all four content types | Staging check that the portal CMS still lists drafts with a real session. Draft records already exposed before the fix are not retractable |
-| P0-2 | **Implemented** — tenant/company isolation: company checks on project create, update (including `customerId` and internal-mode changes) and permanent delete, and on ticket delete | **Verified** — 16 tests (tenant/company isolation) | **External-role permission policy: pending the access-model stage (R2).** Decided 20 Oct 2026 (see below): external roles lose general project create/edit/delete and ticket hard-delete. Not yet implemented; the read-only report of external roles holding these keys is still to run. DELETE remains a permanent delete (P2-4) |
+| P0-2 | **Implemented** — tenant/company isolation: company checks on project create, update (including `customerId` and internal-mode changes) and permanent delete, and on ticket delete | **Verified** — 16 tests (tenant/company isolation) | **External-role permission policy: implemented and verified in R2** — `projects.write`, `projects.delete` and `tickets.delete` are external-denied: stripped at sign-in and refused by the role and user-permission editors (API). DELETE remains a permanent delete for internal users (P2-4) |
 | P0-3 | **Implemented** — self-delete guard compares `req.user.id`; the last active super admin cannot be deleted, deactivated or demoted (delete, status and user-edit paths) | **Verified** — 8 tests | P1-2 (client-linked user delete crash, same function) is a separate P1 item and was not changed |
 | P0-4 | **Implemented** — request logger drops query strings and private-file path tokens from both the URL **and the Referer** (which carried `/portal/accept-invite?token=` and `/portal/reset-password?token=`) | **Verified** — 3 tests, including the real app's logger | Log retention, access and purging of logs written before the fix (Hassan's decision); optional move of invite verification to a POST body was not done |
+
+### Stage R2 — access model and vendor journey (reviewed and committed; not yet deployed)
+
+| | |
+|---|---|
+| **R2 implementation** | **IMPLEMENTED AND AUTOMATED-TEST VERIFIED** |
+| **Deployment verification** | **PENDING — READ-ONLY ROLE/USER IMPACT REPORT** (not run: the configured remote database could not be safely identified as development or staging) |
+| **Required before deployment** | (1) Read-only report of saved roles with an explicitly empty permission list, or only obsolete/unknown permissions, with assigned-user counts. (2) Read-only report of external (client/vendor) roles and users carrying `projects.write`, `projects.delete` or `tickets.delete`, by role and as personal extras. (3) Staging/manual verification of the vendor journey: apply → approve → Vendor Portal invitation email → accept → log in → see matching published RFQs → submit a quotation |
+| **Known remaining race (accepted; not addressed in R2)** | `procurementvendors.applicationId` has no unique constraint. If the process dies during the narrow clean-up window of two concurrent approvals, an extra unlinked vendor profile can remain. It grants no access. Belongs to later consistency/data work; see "P2-1 compensation limit (R2)" |
+
+
+| ID | Implemented | Automated tests | Still pending |
+|---|---|---|---|
+| P1-1 | **Implemented** — RFQ read routes admit internal staff or approved vendors (active vendor profile, not role name); vendors get published RFQs in approved categories, closed/awarded only if they quoted, own quotations only, vendor-safe fields; portal lets vendors open RFQ list/detail | **Verified** — 11 API tests in `portal-api/test/r2-access.test.js`, 3 client gate tests | Staging check with a real vendor account; vendors approved under the old flow keep their existing logins |
+| P1-3 | **Implemented** — portal permission copy removed; role editor and access tab load `GET /api/permissions/catalog` (74 keys, defaults, external-denied list); editor no longer drops keys on toggle | **Verified** — 2 API catalogue tests, 3 client tests | Visual check of the role editor with a real session |
+| P1-4 | **Implemented** — `GET /api/users/:id/effective-permissions`; access tab shows stored-role, default or none, plus overrides | **Verified** — 3 API tests | — |
+| P1-5 | **Implemented** — `/portal/hr/kpi` gated by `hr.kpi.read` | **Verified** — 2 client tests | — |
+| P2-1 | **Implemented** — invitation-based vendor onboarding (expiring, single-use, no password shown; the email names the Vendor Portal); approval writes ordered with clean-up and a conditional status change, and a repeated approval resumes an interrupted one (reuses the unlinked profile, replaces the undelivered invitation); acceptance claims the invitation atomically, links the vendor profile before the account exists, and can be completed with the same link after an interruption | **Verified** — 27 API tests: `r2-vendor-approval.test.js` (16: wording, double-click and 5-way concurrent approval, retry after compensated failure, resumed approval), `r2-vendor-acceptance.test.js` (6: single use, concurrent acceptance, failed linking, failed account creation then retry, interrupted acceptance), `r2-vendor-acceptance-guards.test.js` (4), and the token-logging test in `r2-access.test.js` | No database transaction. A remaining crash window and its recovery are described under "P2-1 compensation limit (R2)" below; recovery uses the normal Approve / Resend actions, not manual database repair |
+| P2-5 | **Implemented** — explicit empty role permission list = no access; role list shows stored lists as stored | **Verified** — 6 API tests | **Read-only check before release:** built-in Role documents whose stored list is empty or contains only obsolete keys would lose access |
+| P3-4 | **Implemented** — `/portal/productions` route gate and menu use `jobs.read` | **Verified** — 2 client tests | — |
+
+Deferred from R2: **P2-3** RFQ numbering (needs the read-only duplicate check) and **P2-4** archiving (later workstream by decision).
 
 ### Business decisions recorded (20 Oct 2026)
 
 | Topic | Decision | Applies in |
 |---|---|---|
-| External roles and projects/tickets (P0-2 part b) | External/client roles must not receive general project create, edit or delete capability. Clients may view projects belonging to their company and use only specifically designed client actions. Clients must never hard-delete tickets | Access-model stage (R2) |
-| Vendor RFQ visibility (P1-1) | Published RFQs matching the vendor's approved categories, plus the vendor's own quotations | R2 |
-| Vendor authentication (P2-1) | Email invitation using an expiring, single-use token | R2 |
-| Project deletion (P2-4) | Normal deletion should eventually become archive behaviour. **Not implemented in R1** | R2 |
+| External roles and projects/tickets (P0-2 part b) | External/client roles must not receive general project create, edit or delete capability. Clients may view projects belonging to their company and use only specifically designed client actions. Clients must never hard-delete tickets | Implemented in R2 |
+| Vendor RFQ visibility (P1-1) | Published RFQs matching the vendor's approved categories, plus the vendor's own quotations | Implemented in R2 |
+| Vendor authentication (P2-1) | Email invitation using an expiring, single-use token | Implemented in R2 |
+| Project deletion (P2-4) | Normal deletion should eventually become archive behaviour. **Not implemented in R1 or R2** | Later workstream |
 | Historical request logs (P0-4) | Do not purge yet; retention and access policy handled separately | Separate decision |
 
 Decision taken during implementation: for productions, drafts are shown to holders of `productions.read` (as in P3-1), not `productions.write` as P0-1's "expected" row first said, so viewing drafts needs only the read permission.
@@ -110,7 +132,7 @@ These are refactors and consolidations that touch many screens or the shared dat
 | P2-1 | **Decided 20 Oct 2026:** email invitation with an expiring, single-use token (no temporary password shown to staff) |
 | P0-2 | **Decided 20 Oct 2026:** external/client roles must not have general project create, edit or delete. Clients view their own company's projects and use only specifically designed client actions. Clients never hard-delete tickets. Implementation in the access-model stage (R2) |
 | P2-4 | **Decided 20 Oct 2026:** normal project deletion should become archive behaviour. Not part of R1 |
-| P2-5 | Should an empty permission list on a built-in role mean "no permissions" or "use the defaults"? |
+| P2-5 | **Decided (R2 brief):** an explicit empty permission list means no access; defaults only initialise roles that have no stored configuration |
 | P3-3 | Do you want internal notes on user profiles? Build the endpoint or remove the frontend code |
 | P0-4 | **Decided 20 Oct 2026:** do not purge historical request logs yet; log retention and access policy will be handled separately |
 | Messaging | Should every staff member with `messaging.read` see every client's thread, or only assigned account owners? (Not a defect today; a policy choice) |
@@ -154,7 +176,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | External with `projects.write`: create for another company → 403; create for own company → 201 with company forced; update another company's project → 403; reassign `customerId` → 403; delete another company's project or ticket → 403. Internal users unchanged |
 | **Data change** | None. A read-only report of affected roles is recommended |
 | **Order** | Stage 1 |
-| **Status (R1)** | Tenant/company isolation: implemented and verified by automated tests. External-role permission policy (part b): pending the access-model stage (R2), with the business decision recorded under [Implementation status](#implementation-status) |
+| **Status (R1/R2)** | Tenant/company isolation: implemented and verified in R1. External-role permission policy (part b): implemented and verified in R2 (11 tests in `r2-access.test.js`; the R1 boundary tests now call the controllers directly, because the API no longer lets an external user hold these permissions) |
 
 ### P0-3 User self-delete guard never fires; no last-super-admin protection
 
@@ -206,6 +228,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Vendor: list → only matched published RFQs; open unmatched or draft → 403/404; quotations list → own only; submit → 201, duplicate → 409; matched-vendors → 403. Client: all RFQ routes → 403. Internal: unchanged. UI: vendor can reach RFQ list and detail; client cannot |
 | **Data change** | None. Optional read-only check that every approved vendor has a linked active profile with categories |
 | **Order** | Stage 2 (after the decision) |
+| **Status (R2)** | Implemented and verified by automated tests: approved vendors (active vendor profile) see published RFQs in their approved categories, closed/awarded ones only if they quoted, and only their own quotations; vendor-safe fields only; staff access unchanged |
 
 ### P1-2 Deleting a client-linked user crashes after the delete
 
@@ -236,6 +259,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Role editor shows 74 keys grouped like the API; save round-trips all keys; per-user grant of `messaging.read` works; API rejects unknown keys |
 | **Data change** | None |
 | **Order** | Stage 2 |
+| **Status (R2)** | Implemented and verified by automated tests: the portal's copy was removed and both editors load `GET /api/permissions/catalog`; all 74 keys are editable. Also fixed: toggling any permission used to drop keys missing from the copy |
 
 ### P1-4 Built-in role previews and defaults shown incorrectly
 
@@ -251,6 +275,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Preview equals API effective permissions for a built-in role, an edited built-in role, a custom role, and a user with extras or revokes |
 | **Data change** | None |
 | **Order** | Stage 2 |
+| **Status (R2)** | Implemented and verified by automated tests: new `GET /api/users/:id/effective-permissions` computes the preview with the sign-in rules (stored role, defaults, overrides, external restrictions) |
 
 ### P1-5 KPI pages gated by the wrong permission
 
@@ -266,6 +291,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Route gate unit tests for the four combinations |
 | **Data change** | None |
 | **Order** | Stage 2 |
+| **Status (R2)** | Implemented and verified by automated tests (route gate `hr.kpi.read`) |
 
 ---
 
@@ -285,6 +311,23 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Simulated failure after user creation → no user, no vendor, application still pending; success path creates all three; duplicate email → 409 with nothing written; invite email sent (mocked) |
 | **Data change** | Read-only check for vendor users without profiles, and profiles on non-approved applications; repair after review |
 | **Order** | Stage 2 |
+| **Status (R2)** | Implemented and verified by automated tests: approval creates the vendor profile and an expiring, single-use email invitation (no password shown); ordered writes with clean-up instead of a transaction; acceptance links the account to the profile. Hardened before commit: vendor-specific invitation wording, idempotent re-approval, atomic single-use acceptance (see below) |
+
+#### P2-1 compensation limit (R2)
+
+R2 keeps ordered writes with compensation; it does not add a MongoDB transaction, a migration or a new index. What is and is not guaranteed:
+
+| | |
+|---|---|
+| **Guaranteed (tested)** | Two or more simultaneous approvals end with one vendor profile and one active invitation (the conditional "not yet approved" update picks one winner; the others remove what they created, or get 409 if they see the first approval still running). An approval that fails part-way removes what it created and can simply be approved again. Two simultaneous acceptances of the same link create one account (atomic claim on the invitation). A used link cannot be accepted again. If the vendor profile cannot be linked (deactivated or already linked), no account is created and the invitation is cancelled. An account created another way for the same email is never taken over |
+| **Remaining crash window — approval** | If the API process stops after creating the vendor profile (and possibly the invitation) but before the application is marked approved, or while compensation is running, those records stay behind and the application remains *pending*. Nothing was emailed, so no one can use the invitation |
+| **Detectable partial state — approval** | A `procurementvendors` record with `applicationId` set and `userId: null` whose application is not `approved`; optionally a pending `vendor` invitation whose `vendorId` is that profile. The API logs `approveVendorApplication: resuming interrupted approval of <applicationId> (leftover vendor profiles: …; leftover invitations: …)` when it finds them. Logs carry ids only, never tokens |
+| **Recovery — approval** | Staff press **Approve** again. Once the leftovers are older than two minutes (`LEFTOVER_STALE_MS`), approval reuses the unlinked profile, cancels the undelivered invitation, issues a fresh one and completes. Within the two minutes it answers 409 ("already being approved") so a double-click cannot interfere with a running approval. If the process stops after the application is approved but before the email is sent, staff use **Resend** on the Invites page (new token, Vendor Portal wording) |
+| **Remaining crash window — acceptance** | If the process stops after the invitation is claimed but before it is marked accepted, the invitation stays *pending* with `acceptedAt` and `acceptedByUserId` set; the vendor profile may already point at that reserved account id; the account may or may not exist yet |
+| **Detectable partial state — acceptance** | A pending invitation with `acceptedAt` set (an abandoned claim); a vendor profile whose `userId` has no matching user. Neither grants access: there is no login until the account exists, and the account only exists under the reserved id that the vendor profile expects |
+| **Recovery — acceptance** | The vendor opens the same link again after two minutes (`ACCEPT_CLAIM_STALE_MS`); acceptance reuses the reserved account id, creates the account or sets the password just chosen on the account created before the stop, and marks the invitation accepted. If the link has expired, staff use **Resend**, which clears the abandoned claim and keeps the reserved id |
+| **Exact remaining race (not closed without a schema/index change)** | `procurementvendors.applicationId` has no unique index. Two approvals that both start before either creates a profile still each create one; the loser deletes its own. If the process stops during that deletion, an extra unlinked vendor profile for an approved application remains. It grants nothing (no invitation or account points at it) and shows up as a second `procurementvendors` record with the same `applicationId` and `userId: null`. A unique partial index on `applicationId`, or a transaction, would close this; both need an index build or replica-set session on the live database, so they are left for a later stage |
+| **Future improvement** | When P1-1 / P2-2 adopt transactions (`session.withTransaction`, Atlas replica set), move approval (profile, invitation, application status) and acceptance (account, profile link, invitation status) into one transaction each, and add a unique partial index on `procurementvendors.applicationId`. The retry behaviour above stays as a safety net |
 
 ### P2-2 CRM conversions are not atomic; duplicate link fields
 
@@ -315,6 +358,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | 20 parallel creations → 20 distinct numbers; year rollover; deleted RFQ does not cause reuse |
 | **Data change** | Yes. Initialise counters from current maxima. Resolve any duplicate RFQ numbers (renumber or keep with a suffix — Hassan to approve) before adding the unique index |
 | **Order** | Stage 1 (invoice) and Stage 2 (RFQ, after the duplicate check) |
+| **Status (R2)** | **Deferred.** Needs the read-only duplicate check on `rfqNumber` before a unique index can be added |
 
 ### P2-4 Project DELETE is a real delete named "archive"
 
@@ -330,6 +374,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Delete with linked jobs → 409; delete empty project → 200; archive via PATCH unchanged |
 | **Data change** | Read-only orphan report (jobs, invoices, files, tickets, enrollments with a missing project) |
 | **Order** | Stage 2 |
+| **Status (R2)** | **Deferred by decision.** Normal deletion will become archiving in a later workstream; R2 only removes delete from external roles |
 
 ### P2-5 Role with an empty permission list silently gets defaults
 
@@ -345,6 +390,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Missing doc → defaults; empty doc → none (or per flag) |
 | **Data change** | Possibly: set the flag on existing roles to preserve today's behaviour |
 | **Order** | Stage 2 |
+| **Status (R2)** | Implemented and verified by automated tests: a stored role's list is authoritative, so an explicit empty list means no access; defaults apply only when no Role document exists. Read-only check of existing Role documents still recommended before release |
 
 ### P2-6 Public site-settings GET writes to the database
 
@@ -439,6 +485,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Route gate tests |
 | **Data change** | None |
 | **Order** | Stage 2 |
+| **Status (R2)** | Implemented and verified by automated tests (route gate and menu use `jobs.read`) |
 
 ### P3-5 UI shows actions users cannot perform; admin passes page gate; stale cached permissions
 

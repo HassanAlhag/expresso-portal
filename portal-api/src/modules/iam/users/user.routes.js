@@ -11,6 +11,7 @@ import {
   setUserStatus,
   adminResetPassword,
   updateUserPermissions,
+  getEffectivePermissions,
   deleteUser,
 } from "./user.controller.js";
 
@@ -56,6 +57,12 @@ router.get("/", requireAuth, requirePermission("iam.users.read"), listUsers);
 router.post("/", requireAuth, requirePermission("iam.users.write"), createUser);
 
 router.get("/:id", requireAuth, requirePermission("iam.users.read"), getUser);
+router.get(
+  "/:id/effective-permissions",
+  requireAuth,
+  requirePermission("iam.users.read"),
+  getEffectivePermissions
+);
 router.patch(
   "/:id",
   requireAuth,

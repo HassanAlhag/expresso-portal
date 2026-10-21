@@ -54,6 +54,12 @@ export const EXTERNAL_DENIED_PREFIXES = [
   "procurement.delete",
   "billing.write",
   "billing.delete",
+  // Approved access model (R2): clients view their own company's projects and
+  // use designed client actions only — never general project create/edit/
+  // delete, and never ticket hard-delete.
+  "projects.write",
+  "projects.delete",
+  "tickets.delete",
 ];
 
 export function normalizeRoleKey(role) {
@@ -65,10 +71,17 @@ export function isSystemInternalRole(roleKey) {
   return SYSTEM_INTERNAL_ROLES.has(normalizeRoleKey(roleKey));
 }
 
+export function isExternalDenied(permission) {
+  return EXTERNAL_DENIED_PREFIXES.some((prefix) => permission === prefix || permission.startsWith(prefix));
+}
+
 export function stripExternalDenied(permissions = []) {
-  return permissions.filter(
-    (p) => !EXTERNAL_DENIED_PREFIXES.some((prefix) => p === prefix || p.startsWith(prefix))
-  );
+  return permissions.filter((p) => !isExternalDenied(p));
+}
+
+/** Permissions in the list that an external role or user can never hold. */
+export function externalDeniedIn(permissions = []) {
+  return permissions.filter((p) => isExternalDenied(p));
 }
 
 function decideInternal(roleKey, roleDoc) {
@@ -79,7 +92,9 @@ function decideInternal(roleKey, roleDoc) {
 
 /**
  * Resolve a user's effective permissions and internal/external status.
- *   role permissions (DB, falling back to code defaults)
+ *   role permissions: a stored Role document is authoritative — an explicit
+ *   empty list means no role permissions (approved R2 rule). Code defaults
+ *   apply only when no Role document exists for a built-in role.
  *   + per-user extras − per-user revokes
  *   − external-denied permissions when the role is not internal
  */
@@ -100,13 +115,11 @@ export async function resolveRoleContext(
     roleDoc = null;
   }
 
-  const rolePermissions = Array.isArray(roleDoc?.permissions)
+  const hasStoredConfig = Boolean(roleDoc) && Array.isArray(roleDoc.permissions);
+  const base = hasStoredConfig
     ? roleDoc.permissions.filter((p) => VALID_PERMISSION_KEYS.has(p))
-    : [];
-  const base =
-    rolePermissions.length > 0
-      ? rolePermissions
-      : DEFAULT_ROLE_PERMISSIONS[roleKey] || [];
+    : DEFAULT_ROLE_PERMISSIONS[roleKey] || [];
+  const roleSource = hasStoredConfig ? "stored" : DEFAULT_ROLE_PERMISSIONS[roleKey] ? "default" : "none";
 
   const effective = new Set([
     ...base,
@@ -116,5 +129,6 @@ export async function resolveRoleContext(
 
   const isInternal = decideInternal(roleKey, roleDoc);
   const permissions = isInternal ? [...effective] : stripExternalDenied([...effective]);
-  return { permissions, isInternal };
+  const rolePermissions = isInternal ? [...base] : stripExternalDenied([...base]);
+  return { permissions, isInternal, rolePermissions, roleSource };
 }

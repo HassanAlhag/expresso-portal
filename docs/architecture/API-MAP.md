@@ -4,9 +4,9 @@
 
 ## Counting and interpretation
 
-**282 explicit method/path registrations**, in **44 mounted Express routers plus `/api/health`**, grouped below by business domain. The 21 backend domain folders are counted separately from the direct health route. Implicit Express HEAD/OPTIONS handling, static `/uploads`, CORS, rate-limit middleware and the catch-all 404 are not counted as business endpoints. There are **no duplicate exact method/path registrations** in this inventory, and no same-file static-path shadowing by an earlier matching parameter route was found.
+**283 explicit method/path registrations** (282 at the audit baseline; R2 added `GET /api/users/:id/effective-permissions`), in **44 mounted Express routers plus `/api/health`**, grouped below by business domain. The 21 backend domain folders are counted separately from the direct health route. Implicit Express HEAD/OPTIONS handling, static `/uploads`, CORS, rate-limit middleware and the catch-all 404 are not counted as business endpoints. There are **no duplicate exact method/path registrations** in this inventory, and no same-file static-path shadowing by an earlier matching parameter route was found.
 
-Every one of the 282 routes is listed, grouped by domain with its guard and handler, in [API-ENDPOINTS.md](API-ENDPOINTS.md). Source lines are in [source-inventory.json](source-inventory.json). This is the drill-down, not the manager's reading path. Route guards are not the entire authorization policy: controllers also enforce internal status, ownership, role hierarchy, state and field restrictions. `vendor` in RFQ routes is an alias for `requireRole("vendor")`.
+Every one of the 283 routes is listed, grouped by domain with its guard and handler, in [API-ENDPOINTS.md](API-ENDPOINTS.md). Source lines are in [source-inventory.json](source-inventory.json). This is the drill-down, not the manager's reading path. Route guards are not the entire authorization policy: controllers also enforce internal status, ownership, role hierarchy, state and field restrictions. `vendor` in RFQ routes is an alias for `requireRole("vendor")`.
 
 ## Admin — 1 routes
 

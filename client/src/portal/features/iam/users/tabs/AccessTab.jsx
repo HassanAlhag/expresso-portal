@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Badge from "../../../../shared/ui/Badge";
 import Button from "../../../../shared/ui/Button";
 import { useToast } from "../../../../shared/ui/Toast";
 import { Plus, X, ShieldCheck, ShieldOff, Shield } from "lucide-react";
-import { updateUserPermissions } from "../api";
-import { ALL_PERMISSION_KEYS, DEFAULT_ROLE_PERMISSIONS } from "../../../../config/permissions";
+import { getEffectivePermissions, updateUserPermissions } from "../api";
+import { isExternalDeniedKey, usePermissionCatalog } from "../../../../shared/hooks/usePermissionCatalog";
 
 function roleTone(role) {
   if (role === "super_admin") return "danger";
@@ -13,15 +13,15 @@ function roleTone(role) {
   return "neutral";
 }
 
-function PermissionPicker({ exclude = [], onPick }) {
+function PermissionPicker({ keys = [], exclude = [], onPick }) {
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return ALL_PERMISSION_KEYS.filter(
+    return keys.filter(
       (k) => !exclude.includes(k) && (!q || k.includes(q))
     );
-  }, [search, exclude]);
+  }, [keys, search, exclude]);
 
   return (
     <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3">
@@ -64,17 +64,37 @@ export default function AccessTab({ user: initialUser }) {
   const extra   = useMemo(() => user?.extraPermissions   || [], [user]);
   const revoked = useMemo(() => user?.revokedPermissions || [], [user]);
 
-  const roleBasePerms = useMemo(
-    () => DEFAULT_ROLE_PERMISSIONS[role] || [],
-    [role]
-  );
+  // Role permissions and effective permissions come from the API, so the
+  // preview reflects stored role configuration, custom roles and the
+  // client/vendor restrictions exactly as enforced.
+  const { allKeys, externalDeniedPrefixes } = usePermissionCatalog();
+  const [access, setAccess] = useState(null);
+  const [accessError, setAccessError] = useState("");
 
-  const effectivePerms = useMemo(() => {
-    if (role === "super_admin") return ALL_PERMISSION_KEYS;
-    const set = new Set([...roleBasePerms, ...extra]);
-    revoked.forEach((p) => set.delete(p));
-    return [...set].sort();
-  }, [role, roleBasePerms, extra, revoked]);
+  const loadAccess = useCallback(async () => {
+    if (!user?._id) return;
+    try {
+      setAccessError("");
+      setAccess(await getEffectivePermissions(user._id));
+    } catch (e) {
+      setAccessError(e?.response?.data?.message || "Could not load this user's effective permissions.");
+    }
+  }, [user?._id]);
+
+  useEffect(() => {
+    loadAccess();
+  }, [loadAccess, role]);
+
+  const roleBasePerms = useMemo(() => access?.rolePermissions || [], [access]);
+  const effectivePerms = useMemo(() => access?.effective || [], [access]);
+  const isExternal = access ? access.isInternal === false : false;
+
+  // Keys an admin may grant individually: external users cannot be given
+  // internal-only permissions (the API refuses them too).
+  const grantableKeys = useMemo(
+    () => (isExternal ? allKeys.filter((k) => !isExternalDeniedKey(k, externalDeniedPrefixes)) : allKeys),
+    [allKeys, externalDeniedPrefixes, isExternal]
+  );
 
   const save = async (nextExtra, nextRevoked) => {
     setBusy(true);
@@ -84,6 +104,7 @@ export default function AccessTab({ user: initialUser }) {
         revokedPermissions: nextRevoked,
       });
       setUser((u) => ({ ...u, ...res.user }));
+      await loadAccess();
       toast.success("Permissions updated.");
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed to update permissions.");
@@ -111,6 +132,16 @@ export default function AccessTab({ user: initialUser }) {
         <p className="mt-2 text-xs text-slate-500">
           Base permissions are inherited from the role. Use the override panels below to grant or revoke specific permissions for this user without changing the role.
         </p>
+        {access && !access.bypass ? (
+          <p className="mt-1 text-xs text-slate-400">
+            {access.roleSource === "stored"
+              ? `Role permissions come from the saved role configuration (${roleBasePerms.length}).`
+              : access.roleSource === "default"
+                ? `Role permissions are the built-in defaults (${roleBasePerms.length}).`
+                : "This role has no permissions configured."}
+            {isExternal ? " Client and vendor users cannot hold internal-only permissions." : ""}
+          </p>
+        ) : null}
       </div>
 
       {/* Effective permissions */}
@@ -124,7 +155,11 @@ export default function AccessTab({ user: initialUser }) {
             <Badge tone="danger">ALL (super_admin)</Badge>
           )}
         </div>
-        {effectivePerms.length === 0 ? (
+        {accessError ? (
+          <p className="text-sm font-semibold text-rose-600">{accessError}</p>
+        ) : !access ? (
+          <p className="text-sm italic text-slate-400">Loading…</p>
+        ) : effectivePerms.length === 0 ? (
           <p className="text-sm italic text-slate-400">No effective permissions.</p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
@@ -158,7 +193,7 @@ export default function AccessTab({ user: initialUser }) {
         <p className="mt-1 text-[11px] text-slate-400">Permissions added to this user beyond their role.</p>
 
         {showExtraPicker && (
-          <PermissionPicker exclude={[...extra, ...revoked, ...roleBasePerms]} onPick={addExtra} />
+          <PermissionPicker keys={grantableKeys} exclude={[...extra, ...revoked, ...roleBasePerms]} onPick={addExtra} />
         )}
 
         {extra.length > 0 && (
@@ -195,7 +230,7 @@ export default function AccessTab({ user: initialUser }) {
         <p className="mt-1 text-[11px] text-slate-400">Permissions removed from this user that their role would normally grant.</p>
 
         {showRevokedPicker && (
-          <PermissionPicker exclude={[...revoked, ...extra]} onPick={addRevoked} />
+          <PermissionPicker keys={allKeys} exclude={[...revoked, ...extra]} onPick={addRevoked} />
         )}
 
         {revoked.length > 0 && (

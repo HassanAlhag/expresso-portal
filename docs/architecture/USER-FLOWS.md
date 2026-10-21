@@ -91,6 +91,8 @@ flowchart TD
 
 **Decision needed (not taken in this audit):** define what a vendor may see — published RFQs in their categories only — and then align route gates, controller filters and the UI denylist together.
 
+**Status after Stage R2 (not yet deployed).** The steps above describe the audit baseline. In R2, approval no longer creates a user or a password: it creates the ProcurementVendor profile and emails an expiring, single-use invitation to the **Expresso Digital Vendor Portal**. The vendor sets their own password on `/portal/accept-invite`, which creates the vendor account and links it to the profile. Approved vendors (active profile with a linked account) can open published RFQs in their approved categories and submit quotations. Interrupted approvals and acceptances are completed by approving again or reopening the same link; see "P2-1 compensation limit (R2)" in [REMEDIATION-PLAN.md](REMEDIATION-PLAN.md).
+
 ## 5. Portal authentication — COMPLETE
 
 | Path | Screen → API | What the server does |

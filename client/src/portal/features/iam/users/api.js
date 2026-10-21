@@ -87,6 +87,13 @@ export async function saveUserNotes(id, note) {
 }
 
 // PATCH /api/users/:id/permissions
+// What the API will actually grant this user (role + overrides), computed
+// server-side by the same rules used at sign-in.
+export async function getEffectivePermissions(id) {
+  const { data } = await api.get(`/users/${id}/effective-permissions`);
+  return data;
+}
+
 export async function updateUserPermissions(id, { extraPermissions, revokedPermissions }) {
   const { data } = await api.patch(`/users/${id}/permissions`, { extraPermissions, revokedPermissions });
   return data;

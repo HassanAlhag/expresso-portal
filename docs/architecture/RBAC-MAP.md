@@ -25,6 +25,14 @@ Sources: [auth middleware](../../portal-api/src/middleware/auth.js), [role regis
 - Externals lose internal-only prefixes including CRM/HR/IAM/website/media/catalog/enrollments/portfolio/production/jobs/social and sensitive billing/customer/procurement mutations. Remaining privileges still require tenant scoping.
 - Frontend localStorage contains token/user/permission hints; ProtectedRoute decodes the token and checks route prefixes. It does not replace JWT verification or server authorization. Axios clears expired sessions on protected 401s.
 
+## Status after Stages R1 and R2
+
+This map describes the code at the audit baseline `58b8f86c`. Since then:
+- **R1** added company checks to project writes and ticket delete, last-super-admin protection and token-free request logs.
+- **R2** made the API the only permission catalogue (the portal copy is gone; all 74 keys are editable), made role previews come from `GET /api/users/:id/effective-permissions`, made `projects.write`, `projects.delete` and `tickets.delete` external-denied (stripped at sign-in, refused by the role and user-permission editors), made an explicit empty role permission list mean no access, fixed the KPI and Productions page gates, and opened RFQ reads to approved vendors (active vendor profile) with vendor-only filtering.
+
+See [REMEDIATION-PLAN.md](REMEDIATION-PLAN.md#implementation-status) for what is verified and what is still pending.
+
 ## Source-confirmed mismatches and remaining concerns
 
 | Priority / issue | Evidence | Consequence and recommended follow-up |

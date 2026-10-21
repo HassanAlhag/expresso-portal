@@ -69,6 +69,14 @@ const InviteSchema = new mongoose.Schema(
       default: null,
     },
 
+    // Set when this invite onboards an approved vendor: on acceptance the new
+    // user is linked to this ProcurementVendor profile. Optional; existing
+    // invites are unaffected.
+    vendorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ProcurementVendor",
+      default: null,
+    },
     // Set when this invite originated from an approved AccessRequest.
     accessRequestId: {
       type: mongoose.Schema.Types.ObjectId,

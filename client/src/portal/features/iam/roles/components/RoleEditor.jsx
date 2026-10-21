@@ -14,18 +14,22 @@ import Button from "../../../../shared/ui/Button";
 import Input from "../../../../shared/ui/Input";
 import Badge from "../../../../shared/ui/Badge";
 import { createRole, updateRole } from "../api";
-import { PERMISSION_CATALOG } from "../../../../config/permissions";
+import { isExternalDeniedKey, usePermissionCatalog } from "../../../../shared/hooks/usePermissionCatalog";
 
-function PermissionRow({ permission, active, onToggle }) {
+function PermissionRow({ permission, active, locked, onToggle }) {
   return (
     <button
       type="button"
+      disabled={locked}
+      title={locked ? "Client and vendor roles cannot hold this permission" : undefined}
       onClick={() => onToggle([permission.key], !active)}
       className={[
         "flex w-full items-start gap-3 rounded-xl border p-3 text-left transition",
-        active
-          ? "border-indigo-200 bg-indigo-50/70 shadow-sm"
-          : "border-slate-200 bg-white hover:border-indigo-100 hover:bg-slate-50",
+        locked
+          ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-60"
+          : active
+            ? "border-indigo-200 bg-indigo-50/70 shadow-sm"
+            : "border-slate-200 bg-white hover:border-indigo-100 hover:bg-slate-50",
       ].join(" ")}
     >
       <span
@@ -47,6 +51,11 @@ function PermissionRow({ permission, active, onToggle }) {
           <code className="rounded-md bg-white/80 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-500">
             {permission.key}
           </code>
+          {locked ? (
+            <Badge tone="neutral" size="xs">
+              Staff roles only
+            </Badge>
+          ) : null}
         </span>
         <span className="mt-1 block text-xs leading-5 text-slate-500">
           {permission.description}
@@ -56,8 +65,10 @@ function PermissionRow({ permission, active, onToggle }) {
   );
 }
 
-function DomainPanel({ domain, active, onToggle }) {
-  const keys = domain.permissions.map((permission) => permission.key);
+function DomainPanel({ domain, active, isLocked, onToggle }) {
+  const keys = domain.permissions
+    .map((permission) => permission.key)
+    .filter((permissionKey) => !isLocked(permissionKey));
   const selectedCount = keys.filter((key) => active.includes(key)).length;
   const allSelected = selectedCount === keys.length;
   const someSelected = selectedCount > 0 && !allSelected;
@@ -82,6 +93,7 @@ function DomainPanel({ domain, active, onToggle }) {
         <button
           type="button"
           onClick={() => onToggle(keys, !allSelected)}
+          disabled={keys.length === 0}
           className="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-black text-slate-700 transition hover:bg-slate-50"
         >
           {allSelected || someSelected ? (
@@ -99,6 +111,7 @@ function DomainPanel({ domain, active, onToggle }) {
             key={permission.key}
             permission={permission}
             active={active.includes(permission.key)}
+            locked={isLocked(permission.key)}
             onToggle={onToggle}
           />
         ))}
@@ -129,10 +142,24 @@ export default function RoleEditor({
   const [query, setQuery] = useState("");
   const [activeDomain, setActiveDomain] = useState("all");
   const [error, setError] = useState("");
+  const {
+    catalog,
+    externalDeniedPrefixes,
+    loading: catalogLoading,
+    error: catalogError,
+  } = usePermissionCatalog();
 
   const allKeys = useMemo(
-    () => PERMISSION_CATALOG.flatMap((domain) => domain.permissions.map((permission) => permission.key)),
-    []
+    () => catalog.flatMap((domain) => domain.permissions.map((permission) => permission.key)),
+    [catalog]
+  );
+
+  // Client/vendor roles can never hold internal-only permissions. The API
+  // refuses them; the editor shows them as locked so the choice is clear.
+  const isLocked = useMemo(
+    () => (permissionKey) =>
+      isInternal === false && isExternalDeniedKey(permissionKey, externalDeniedPrefixes),
+    [isInternal, externalDeniedPrefixes]
   );
 
   useEffect(() => {
@@ -155,7 +182,7 @@ export default function RoleEditor({
   const filteredCatalog = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    return PERMISSION_CATALOG
+    return catalog
       .filter((domain) => activeDomain === "all" || domain.domain === activeDomain)
       .map((domain) => ({
         ...domain,
@@ -171,11 +198,11 @@ export default function RoleEditor({
         }),
       }))
       .filter((domain) => domain.permissions.length > 0);
-  }, [activeDomain, query]);
+  }, [catalog, activeDomain, query]);
 
   const selectedByDomain = useMemo(
     () =>
-      PERMISSION_CATALOG.map((domain) => {
+      catalog.map((domain) => {
         const keys = domain.permissions.map((permission) => permission.key);
         return {
           ...domain,
@@ -183,7 +210,7 @@ export default function RoleEditor({
           total: keys.length,
         };
       }),
-    [permissionSet]
+    [catalog, permissionSet]
   );
 
   const canSave = key.trim() && label.trim() && (audienceLocked || isInternal !== null);
@@ -192,10 +219,17 @@ export default function RoleEditor({
     setPermissions((prev) => {
       const next = new Set(prev);
       keys.forEach((permissionKey) => {
+        if (add && isLocked(permissionKey)) return;
         if (add) next.add(permissionKey);
         else next.delete(permissionKey);
       });
-      return allKeys.filter((permissionKey) => next.has(permissionKey));
+      // Keep catalog order, and never silently drop a key this screen does
+      // not list (previously any toggle dropped keys missing from the copy).
+      const known = new Set(allKeys);
+      return [
+        ...allKeys.filter((permissionKey) => next.has(permissionKey)),
+        ...[...next].filter((permissionKey) => !known.has(permissionKey)),
+      ];
     });
   };
 
@@ -208,7 +242,10 @@ export default function RoleEditor({
         key: key.trim().toLowerCase().replace(/\s+/g, "_"),
         label: label.trim(),
         description: description.trim(),
-        permissions,
+        permissions:
+          isInternal === false
+            ? permissions.filter((permissionKey) => !isExternalDeniedKey(permissionKey, externalDeniedPrefixes))
+            : permissions,
         ...(audienceLocked || isInternal === null ? {} : { isInternal }),
       };
 
@@ -237,7 +274,7 @@ export default function RoleEditor({
         <Button variant="outline" onClick={onClose} disabled={busy}>
           Cancel
         </Button>
-        <Button onClick={save} disabled={!canSave || busy} loading={busy}>
+        <Button onClick={save} disabled={!canSave || busy || catalogLoading || Boolean(catalogError)} loading={busy}>
           {isEdit ? "Save changes" : "Create role"}
         </Button>
       </div>
@@ -449,16 +486,29 @@ export default function RoleEditor({
           </div>
 
           <div className="mt-4 grid max-h-[58vh] gap-3 overflow-y-auto pr-1">
+            {catalogLoading ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-500">
+                Loading permissions…
+              </div>
+            ) : null}
+
+            {catalogError ? (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-extrabold text-rose-700">
+                {catalogError}
+              </div>
+            ) : null}
+
             {filteredCatalog.map((domain) => (
               <DomainPanel
                 key={domain.domain}
                 domain={domain}
                 active={permissions}
+                isLocked={isLocked}
                 onToggle={handleToggle}
               />
             ))}
 
-            {filteredCatalog.length === 0 ? (
+            {!catalogLoading && !catalogError && filteredCatalog.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-500">
                 No permissions match this search.
               </div>

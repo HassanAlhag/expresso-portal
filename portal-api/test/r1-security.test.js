@@ -17,6 +17,8 @@ import Portfolio from "../src/modules/portfolio/portfolio.model.js";
 import Production from "../src/modules/content/productions/production.model.js";
 import DigitalService from "../src/modules/web-content/digitalService.model.js";
 import Solution from "../src/modules/web-content/solution.model.js";
+import { createProject, updateProject, archiveProject } from "../src/modules/projects/project.controller.js";
+import { deleteTicket } from "../src/modules/tickets/ticket.controller.js";
 
 afterEach(restoreAll);
 after(stopApp);
@@ -45,6 +47,41 @@ const grantedRoles = {
 const asActors = () => setupAuth({ users: [clientA, pm, superAdmin], roles: grantedRoles });
 
 // ═══ P0-2 TENANT ISOLATION — PROJECTS ════════════════════════════════════════
+// Since R2, client/vendor roles can no longer hold projects.write,
+// projects.delete or tickets.delete at all (they are stripped at sign-in and
+// refused by the role editor), so an HTTP request from an external user stops
+// at the permission gate. The R1 company boundary inside the controllers is
+// still required as defence in depth, so these tests call the controllers
+// directly with an external user who *does* hold the permission — the
+// misconfiguration the boundary exists for. Internal staff go through HTTP.
+
+/** Invoke a controller with a synthetic request; returns { status, body }. */
+async function runController(handler, { user, params = {}, body = {} }) {
+  const res = {
+    statusCode: 200,
+    body: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload) {
+      this.body = payload;
+      return this;
+    },
+  };
+  await handler({ user, params, body, query: {} }, res);
+  return { status: res.statusCode, body: res.body };
+}
+
+// External user who (wrongly) holds project/ticket write and delete.
+const externalHolder = {
+  id: String(clientA._id),
+  role: "client",
+  clientId: companyA,
+  isInternal: false,
+  permissions: ["projects.read", "projects.write", "projects.delete", "tickets.read", "tickets.write", "tickets.delete"],
+};
+
 function projectCreateStubs() {
   const created = [];
   stub(Project, "create", async (doc) => {
@@ -56,26 +93,23 @@ function projectCreateStubs() {
   return created;
 }
 
-test("P0-2 project create: external user can create for their own company", async () => {
-  asActors();
+test("P0-2 project create: external user can create for their own company (controller boundary)", async () => {
   const created = projectCreateStubs();
-  const r = await call("POST", "/api/projects", { user: clientA, body: { name: "Own", customerId: companyA } });
+  const r = await runController(createProject, { user: externalHolder, body: { name: "Own", customerId: companyA } });
   assert.equal(r.status, 201);
   assert.equal(created.length, 1);
   assert.equal(String(created[0].customerId), companyA);
 });
 
-test("P0-2 project create: cross-company create is rejected and nothing is written", async () => {
-  asActors();
+test("P0-2 project create: cross-company create is rejected and nothing is written (controller boundary)", async () => {
   stub(Project, "create", mustNotWrite("Project.create"));
-  const r = await call("POST", "/api/projects", { user: clientA, body: { name: "Other", customerId: companyB } });
+  const r = await runController(createProject, { user: externalHolder, body: { name: "Other", customerId: companyB } });
   assert.equal(r.status, 403);
 });
 
-test("P0-2 project create: external user cannot create an internal project", async () => {
-  asActors();
+test("P0-2 project create: external user cannot create an internal project (controller boundary)", async () => {
   stub(Project, "create", mustNotWrite("Project.create"));
-  const r = await call("POST", "/api/projects", { user: clientA, body: { name: "Internal", projectMode: "internal" } });
+  const r = await runController(createProject, { user: externalHolder, body: { name: "Internal", projectMode: "internal" } });
   assert.equal(r.status, 403);
 });
 
@@ -96,40 +130,36 @@ function existingProject(customerId) {
   return doc;
 }
 
-test("P0-2 project update: same-company update succeeds", async () => {
-  asActors();
+test("P0-2 project update: same-company update succeeds (controller boundary)", async () => {
   const p = existingProject(companyA);
   let patched = null;
   stub(Project, "findByIdAndUpdate", (_id, patch) => {
     patched = patch;
     return q({ ...p, ...patch });
   });
-  const r = await call("PATCH", `/api/projects/${p._id}`, { user: clientA, body: { name: "Renamed" } });
+  const r = await runController(updateProject, { user: externalHolder, params: { id: String(p._id) }, body: { name: "Renamed" } });
   assert.equal(r.status, 200);
   assert.equal(patched.name, "Renamed");
 });
 
-test("P0-2 project update: another company's project cannot be edited and is left unchanged", async () => {
-  asActors();
+test("P0-2 project update: another company's project cannot be edited and is left unchanged (controller boundary)", async () => {
   const p = existingProject(companyB);
   stub(Project, "findByIdAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
-  const r = await call("PATCH", `/api/projects/${p._id}`, { user: clientA, body: { name: "Hijacked" } });
+  const r = await runController(updateProject, { user: externalHolder, params: { id: String(p._id) }, body: { name: "Hijacked" } });
   assert.equal(r.status, 403);
 });
 
-test("P0-2 project update: external user cannot move their project to another company", async () => {
-  asActors();
+test("P0-2 project update: external user cannot move their project to another company (controller boundary)", async () => {
   const p = existingProject(companyA);
   stub(Project, "findByIdAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
-  const r = await call("PATCH", `/api/projects/${p._id}`, { user: clientA, body: { customerId: companyB } });
+  const r = await runController(updateProject, { user: externalHolder, params: { id: String(p._id) }, body: { customerId: companyB } });
   assert.equal(r.status, 403);
 });
 
-test("P0-2 project update: external user cannot turn their project internal", async () => {
-  asActors();
+test("P0-2 project update: external user cannot turn their project internal (controller boundary)", async () => {
   const p = existingProject(companyA);
   stub(Project, "findByIdAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
-  const r = await call("PATCH", `/api/projects/${p._id}`, { user: clientA, body: { projectMode: "internal" } });
+  const r = await runController(updateProject, { user: externalHolder, params: { id: String(p._id) }, body: { projectMode: "internal" } });
   assert.equal(r.status, 403);
 });
 
@@ -146,24 +176,22 @@ test("P0-2 project update: internal staff can still edit and reassign any projec
   assert.equal(String(patched.customerId), companyA);
 });
 
-test("P0-2 project delete: same-company permanent delete succeeds", async () => {
-  asActors();
+test("P0-2 project delete: same-company permanent delete succeeds (controller boundary)", async () => {
   const p = existingProject(companyA);
   let deleted = null;
   stub(Project, "findByIdAndDelete", (id) => {
     deleted = id;
     return q(p);
   });
-  const r = await call("DELETE", `/api/projects/${p._id}`, { user: clientA });
+  const r = await runController(archiveProject, { user: externalHolder, params: { id: String(p._id) } });
   assert.equal(r.status, 200);
   assert.equal(String(deleted), String(p._id));
 });
 
-test("P0-2 project delete: another company's project is not deleted", async () => {
-  asActors();
+test("P0-2 project delete: another company's project is not deleted (controller boundary)", async () => {
   const p = existingProject(companyB);
   stub(Project, "findByIdAndDelete", mustNotWrite("Project.findByIdAndDelete"));
-  const r = await call("DELETE", `/api/projects/${p._id}`, { user: clientA });
+  const r = await runController(archiveProject, { user: externalHolder, params: { id: String(p._id) } });
   assert.equal(r.status, 403);
 });
 
@@ -180,6 +208,20 @@ test("P0-2 project delete: internal staff and super admin can delete any company
   assert.equal(deletes, 2);
 });
 
+test("P0-2 + R2: over the API, an external user granted project/ticket write or delete is refused before any write", async () => {
+  asActors(); // the client role document grants projects.write/delete and tickets.delete
+  stub(Project, "create", mustNotWrite("Project.create"));
+  stub(Project, "findByIdAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
+  stub(Project, "findByIdAndDelete", mustNotWrite("Project.findByIdAndDelete"));
+  stub(Ticket, "findByIdAndDelete", mustNotWrite("Ticket.findByIdAndDelete"));
+  const p = existingProject(companyA);
+  stub(Ticket, "findById", () => q({ _id: oid(), customerId: companyA }));
+  assert.equal((await call("POST", "/api/projects", { user: clientA, body: { name: "Own", customerId: companyA } })).status, 403);
+  assert.equal((await call("PATCH", `/api/projects/${p._id}`, { user: clientA, body: { name: "x" } })).status, 403);
+  assert.equal((await call("DELETE", `/api/projects/${p._id}`, { user: clientA })).status, 403);
+  assert.equal((await call("DELETE", `/api/tickets/${oid()}`, { user: clientA })).status, 403);
+});
+
 // ═══ P0-2 TENANT ISOLATION — TICKETS ═════════════════════════════════════════
 function existingTicket(customerId, clientId = oid()) {
   const doc = { _id: oid(), customerId, clientId };
@@ -187,24 +229,22 @@ function existingTicket(customerId, clientId = oid()) {
   return doc;
 }
 
-test("P0-2 ticket delete: same-company delete succeeds", async () => {
-  asActors();
+test("P0-2 ticket delete: same-company delete passes the company boundary (controller boundary)", async () => {
   const t = existingTicket(companyA);
   let deleted = 0;
   stub(Ticket, "findByIdAndDelete", async () => {
     deleted += 1;
     return t;
   });
-  const r = await call("DELETE", `/api/tickets/${t._id}`, { user: clientA });
+  const r = await runController(deleteTicket, { user: externalHolder, params: { id: String(t._id) } });
   assert.equal(r.status, 200);
   assert.equal(deleted, 1);
 });
 
-test("P0-2 ticket delete: another company's ticket is not deleted", async () => {
-  asActors();
+test("P0-2 ticket delete: another company's ticket is not deleted (controller boundary)", async () => {
   const t = existingTicket(companyB);
   stub(Ticket, "findByIdAndDelete", mustNotWrite("Ticket.findByIdAndDelete"));
-  const r = await call("DELETE", `/api/tickets/${t._id}`, { user: clientA });
+  const r = await runController(deleteTicket, { user: externalHolder, params: { id: String(t._id) } });
   assert.equal(r.status, 403);
 });
 

@@ -5,12 +5,12 @@
     "backendDomains": 21,
     "portalFeatureAreas": 26,
     "mountedRouters": 44,
-    "apiRoutes": 282,
+    "apiRoutes": 283,
     "models": 44,
     "modelFiles": 44,
     "defaultRoles": 14,
     "permissionKeys": 74,
-    "frontendCatalogKeys": 66
+    "frontendCatalogKeys": 0
   },
   "mounts": [
     {
@@ -4570,7 +4570,7 @@
       "collection": "invites",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/invites/invite.model.js",
-      "line": 100,
+      "line": 108,
       "fields": [
         {
           "path": "email",
@@ -4636,31 +4636,37 @@
           "ref": "Customer"
         },
         {
+          "path": "vendorId",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 75,
+          "ref": "ProcurementVendor"
+        },
+        {
           "path": "accessRequestId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 73,
+          "line": 81,
           "ref": "AccessRequest"
         },
         {
           "path": "acceptedAt",
           "type": "Date",
-          "line": 79
+          "line": 87
         },
         {
           "path": "acceptedByUserId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 84,
+          "line": 92,
           "ref": "User"
         },
         {
           "path": "cancelledAt",
           "type": "Date",
-          "line": 90
+          "line": 98
         }
       ],
       "indexes": [
         {
-          "line": 98,
+          "line": 106,
           "definition": "InviteSchema.index({ email: 1, status: 1 })"
         }
       ]
@@ -10543,7 +10549,7 @@
       "path": "/api/permissions/catalog",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/permissions/permissions.routes.js",
-      "line": 12,
+      "line": 15,
       "globalGuards": [],
       "handlers": [
         {
@@ -10551,7 +10557,7 @@
           "source": "portal-api/src/middleware/auth.js"
         },
         {
-          "label": "(_req, res) => { return res.json({ ok: true, catalog: PERMISSION_CATALOG, allKeys: ALL_PERMISSION_KEYS, defaults: DEFAULT_ROLE_PERMISSIONS, }); }",
+          "label": "(_req, res) => { return res.json({ ok: true, catalog: PERMISSION_CATALOG, allKeys: ALL_PERMISSION_KEYS, defaults: DEFAULT_ROLE_PERMISSIONS, externalDeniedPrefixes: EXTERNAL_DENIED_PREFIXES, }); }",
           "source": "portal-api/src/modules/iam/permissions/permissions.routes.js"
         }
       ]
@@ -10963,7 +10969,7 @@
       "path": "/api/procurement/rfqs",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 22,
+      "line": 23,
       "globalGuards": [],
       "handlers": [
         {
@@ -10971,12 +10977,12 @@
           "source": "portal-api/src/middleware/auth.js"
         },
         {
-          "label": "requireInternalUser",
-          "source": "portal-api/src/utils/accessControl.js"
-        },
-        {
           "label": "requirePermission(\"procurement.read\")",
           "source": "portal-api/src/modules/procurement/rfq.routes.js"
+        },
+        {
+          "label": "requireStaffOrApprovedVendor",
+          "source": "portal-api/src/modules/procurement/vendorAccess.js"
         },
         {
           "label": "listRfqs",
@@ -10989,7 +10995,7 @@
       "path": "/api/procurement/rfqs",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 23,
+      "line": 24,
       "globalGuards": [],
       "handlers": [
         {
@@ -11015,7 +11021,7 @@
       "path": "/api/procurement/rfqs/:id",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 24,
+      "line": 25,
       "globalGuards": [],
       "handlers": [
         {
@@ -11023,12 +11029,12 @@
           "source": "portal-api/src/middleware/auth.js"
         },
         {
-          "label": "requireInternalUser",
-          "source": "portal-api/src/utils/accessControl.js"
-        },
-        {
           "label": "requirePermission(\"procurement.read\")",
           "source": "portal-api/src/modules/procurement/rfq.routes.js"
+        },
+        {
+          "label": "requireStaffOrApprovedVendor",
+          "source": "portal-api/src/modules/procurement/vendorAccess.js"
         },
         {
           "label": "getRfq",
@@ -11041,7 +11047,7 @@
       "path": "/api/procurement/rfqs/:id",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 25,
+      "line": 26,
       "globalGuards": [],
       "handlers": [
         {
@@ -11067,7 +11073,7 @@
       "path": "/api/procurement/rfqs/:id/close",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 27,
+      "line": 28,
       "globalGuards": [],
       "handlers": [
         {
@@ -11093,7 +11099,7 @@
       "path": "/api/procurement/rfqs/:id/matched-vendors",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 32,
+      "line": 33,
       "globalGuards": [],
       "handlers": [
         {
@@ -11119,7 +11125,7 @@
       "path": "/api/procurement/rfqs/:id/publish",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 26,
+      "line": 27,
       "globalGuards": [],
       "handlers": [
         {
@@ -11145,7 +11151,7 @@
       "path": "/api/procurement/rfqs/:id/quotations",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 30,
+      "line": 31,
       "globalGuards": [],
       "handlers": [
         {
@@ -11153,12 +11159,12 @@
           "source": "portal-api/src/middleware/auth.js"
         },
         {
-          "label": "requireInternalUser",
-          "source": "portal-api/src/utils/accessControl.js"
-        },
-        {
           "label": "requirePermission(\"procurement.read\")",
           "source": "portal-api/src/modules/procurement/rfq.routes.js"
+        },
+        {
+          "label": "requireStaffOrApprovedVendor",
+          "source": "portal-api/src/modules/procurement/vendorAccess.js"
         },
         {
           "label": "listQuotations",
@@ -11171,7 +11177,7 @@
       "path": "/api/procurement/rfqs/:id/quotations",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 31,
+      "line": 32,
       "globalGuards": [],
       "handlers": [
         {
@@ -11179,8 +11185,8 @@
           "source": "portal-api/src/middleware/auth.js"
         },
         {
-          "label": "vendor",
-          "source": "portal-api/src/modules/procurement/rfq.routes.js"
+          "label": "requireApprovedVendor",
+          "source": "portal-api/src/modules/procurement/vendorAccess.js"
         },
         {
           "label": "submitQuotation",
@@ -11193,7 +11199,7 @@
       "path": "/api/procurement/rfqs/quotations/:quotationId/status",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 35,
+      "line": 36,
       "globalGuards": [],
       "handlers": [
         {
@@ -12319,7 +12325,7 @@
       "path": "/api/users",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 55,
+      "line": 56,
       "globalGuards": [],
       "handlers": [
         {
@@ -12341,7 +12347,7 @@
       "path": "/api/users",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 56,
+      "line": 57,
       "globalGuards": [],
       "handlers": [
         {
@@ -12363,7 +12369,7 @@
       "path": "/api/users/:id",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 94,
+      "line": 101,
       "globalGuards": [],
       "handlers": [
         {
@@ -12385,7 +12391,7 @@
       "path": "/api/users/:id",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 58,
+      "line": 59,
       "globalGuards": [],
       "handlers": [
         {
@@ -12407,7 +12413,7 @@
       "path": "/api/users/:id",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 59,
+      "line": 66,
       "globalGuards": [],
       "handlers": [
         {
@@ -12447,11 +12453,33 @@
       ]
     },
     {
+      "method": "GET",
+      "path": "/api/users/:id/effective-permissions",
+      "domain": "iam",
+      "file": "portal-api/src/modules/iam/users/user.routes.js",
+      "line": 60,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requirePermission(\"iam.users.read\")",
+          "source": "portal-api/src/modules/iam/users/user.routes.js"
+        },
+        {
+          "label": "getEffectivePermissions",
+          "source": "portal-api/src/modules/iam/users/user.controller.js"
+        }
+      ]
+    },
+    {
       "method": "POST",
       "path": "/api/users/:id/force-logout",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 80,
+      "line": 87,
       "globalGuards": [],
       "handlers": [
         {
@@ -12473,7 +12501,7 @@
       "path": "/api/users/:id/permissions",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 87,
+      "line": 94,
       "globalGuards": [],
       "handlers": [
         {
@@ -12495,7 +12523,7 @@
       "path": "/api/users/:id/reset-password",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 73,
+      "line": 80,
       "globalGuards": [],
       "handlers": [
         {
@@ -12517,7 +12545,7 @@
       "path": "/api/users/:id/status",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 66,
+      "line": 73,
       "globalGuards": [],
       "handlers": [
         {
@@ -12539,7 +12567,7 @@
       "path": "/api/users/me",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 21,
+      "line": 22,
       "globalGuards": [],
       "handlers": [
         {
@@ -12557,7 +12585,7 @@
       "path": "/api/users/me",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 29,
+      "line": 30,
       "globalGuards": [],
       "handlers": [
         {
@@ -12575,7 +12603,7 @@
       "path": "/api/users/me/notifications",
       "domain": "iam",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 38,
+      "line": 39,
       "globalGuards": [],
       "handlers": [
         {
@@ -14484,787 +14512,7 @@
       ]
     }
   },
-  "frontendPermissions": {
-    "catalog": [
-      {
-        "domain": "customers",
-        "label": "Customers",
-        "permissions": [
-          {
-            "key": "customers.read",
-            "label": "View",
-            "description": "View customers and contacts"
-          },
-          {
-            "key": "customers.write",
-            "label": "Edit",
-            "description": "Create and update customers"
-          },
-          {
-            "key": "customers.delete",
-            "label": "Delete",
-            "description": "Permanently delete customer records"
-          }
-        ]
-      },
-      {
-        "domain": "projects",
-        "label": "Projects",
-        "permissions": [
-          {
-            "key": "projects.read",
-            "label": "View",
-            "description": "View projects and milestones"
-          },
-          {
-            "key": "projects.write",
-            "label": "Edit",
-            "description": "Create and update projects"
-          },
-          {
-            "key": "projects.delete",
-            "label": "Delete",
-            "description": "Permanently delete projects"
-          }
-        ]
-      },
-      {
-        "domain": "productions",
-        "label": "Production",
-        "permissions": [
-          {
-            "key": "productions.read",
-            "label": "View",
-            "description": "View production jobs and reels"
-          },
-          {
-            "key": "productions.write",
-            "label": "Edit",
-            "description": "Create and update productions"
-          },
-          {
-            "key": "productions.delete",
-            "label": "Delete",
-            "description": "Permanently delete productions"
-          }
-        ]
-      },
-      {
-        "domain": "jobs",
-        "label": "Jobs",
-        "permissions": [
-          {
-            "key": "jobs.read",
-            "label": "View",
-            "description": "View delivery tasks"
-          },
-          {
-            "key": "jobs.write",
-            "label": "Edit",
-            "description": "Create and update jobs"
-          },
-          {
-            "key": "jobs.delete",
-            "label": "Delete",
-            "description": "Permanently delete jobs"
-          }
-        ]
-      },
-      {
-        "domain": "media",
-        "label": "Media Library",
-        "permissions": [
-          {
-            "key": "media.read",
-            "label": "View",
-            "description": "Browse and view media assets"
-          },
-          {
-            "key": "media.write",
-            "label": "Upload",
-            "description": "Upload and manage media assets"
-          },
-          {
-            "key": "media.delete",
-            "label": "Delete",
-            "description": "Permanently delete media assets"
-          }
-        ]
-      },
-      {
-        "domain": "files",
-        "label": "Files",
-        "permissions": [
-          {
-            "key": "files.read",
-            "label": "View",
-            "description": "View and download files"
-          },
-          {
-            "key": "files.write",
-            "label": "Upload",
-            "description": "Upload and manage files"
-          },
-          {
-            "key": "files.delete",
-            "label": "Delete",
-            "description": "Permanently delete files"
-          }
-        ]
-      },
-      {
-        "domain": "portfolio",
-        "label": "Portfolio",
-        "permissions": [
-          {
-            "key": "portfolio.read",
-            "label": "View",
-            "description": "View portfolio case studies"
-          },
-          {
-            "key": "portfolio.write",
-            "label": "Edit",
-            "description": "Create and update portfolio entries"
-          },
-          {
-            "key": "portfolio.delete",
-            "label": "Delete",
-            "description": "Permanently delete portfolio entries"
-          }
-        ]
-      },
-      {
-        "domain": "services",
-        "label": "Services",
-        "permissions": [
-          {
-            "key": "services.read",
-            "label": "View",
-            "description": "View service catalog"
-          },
-          {
-            "key": "services.write",
-            "label": "Edit",
-            "description": "Create and update services"
-          },
-          {
-            "key": "services.delete",
-            "label": "Delete",
-            "description": "Permanently delete services"
-          }
-        ]
-      },
-      {
-        "domain": "enrollments",
-        "label": "Enrollments",
-        "permissions": [
-          {
-            "key": "enrollments.read",
-            "label": "View",
-            "description": "View client enrollments"
-          },
-          {
-            "key": "enrollments.write",
-            "label": "Edit",
-            "description": "Create and update enrollments"
-          },
-          {
-            "key": "enrollments.delete",
-            "label": "Delete",
-            "description": "Permanently delete enrollments"
-          }
-        ]
-      },
-      {
-        "domain": "billing",
-        "label": "Billing",
-        "permissions": [
-          {
-            "key": "billing.read",
-            "label": "View",
-            "description": "View invoices and payment records"
-          },
-          {
-            "key": "billing.write",
-            "label": "Edit",
-            "description": "Create and manage invoices"
-          },
-          {
-            "key": "billing.delete",
-            "label": "Delete",
-            "description": "Permanently delete billing records"
-          }
-        ]
-      },
-      {
-        "domain": "tickets",
-        "label": "Tickets",
-        "permissions": [
-          {
-            "key": "tickets.read",
-            "label": "View",
-            "description": "View support tickets"
-          },
-          {
-            "key": "tickets.write",
-            "label": "Reply",
-            "description": "Create and reply to tickets"
-          },
-          {
-            "key": "tickets.delete",
-            "label": "Delete",
-            "description": "Permanently delete tickets"
-          }
-        ]
-      },
-      {
-        "domain": "crm",
-        "label": "CRM",
-        "permissions": [
-          {
-            "key": "crm.read",
-            "label": "View",
-            "description": "View leads, deals, accounts, and contacts"
-          },
-          {
-            "key": "crm.write",
-            "label": "Edit",
-            "description": "Create and update CRM records"
-          },
-          {
-            "key": "crm.delete",
-            "label": "Delete",
-            "description": "Permanently delete CRM records"
-          }
-        ]
-      },
-      {
-        "domain": "procurement",
-        "label": "Procurement",
-        "permissions": [
-          {
-            "key": "procurement.read",
-            "label": "View",
-            "description": "View vendors, RFQs, and requests"
-          },
-          {
-            "key": "procurement.write",
-            "label": "Edit",
-            "description": "Create and update procurement records"
-          },
-          {
-            "key": "procurement.delete",
-            "label": "Delete",
-            "description": "Permanently delete procurement records"
-          },
-          {
-            "key": "procurement.approve",
-            "label": "Approve",
-            "description": "Approve vendor applications and RFQs"
-          }
-        ]
-      },
-      {
-        "domain": "hr.staff",
-        "label": "HR — Staff",
-        "permissions": [
-          {
-            "key": "hr.staff.read",
-            "label": "View",
-            "description": "View staff profiles, skills, and scorecards"
-          },
-          {
-            "key": "hr.staff.write",
-            "label": "Edit",
-            "description": "Create and update staff records, skills, and goals"
-          },
-          {
-            "key": "hr.staff.delete",
-            "label": "Delete",
-            "description": "Permanently delete staff records"
-          }
-        ]
-      },
-      {
-        "domain": "hr.expenses",
-        "label": "HR — Expense Claims",
-        "permissions": [
-          {
-            "key": "hr.expenses.read",
-            "label": "View",
-            "description": "View all expense claims"
-          },
-          {
-            "key": "hr.expenses.write",
-            "label": "Submit",
-            "description": "Submit and edit expense claims"
-          },
-          {
-            "key": "hr.expenses.approve",
-            "label": "Approve",
-            "description": "Approve, reject, register, and mark expenses paid"
-          },
-          {
-            "key": "hr.expenses.delete",
-            "label": "Delete",
-            "description": "Permanently delete expense records"
-          }
-        ]
-      },
-      {
-        "domain": "hr.leaves",
-        "label": "HR — Leave Requests",
-        "permissions": [
-          {
-            "key": "hr.leaves.read",
-            "label": "View",
-            "description": "View all leave requests"
-          },
-          {
-            "key": "hr.leaves.write",
-            "label": "Submit",
-            "description": "Submit and edit leave requests"
-          },
-          {
-            "key": "hr.leaves.approve",
-            "label": "Approve",
-            "description": "Approve, reject, and manage leave requests"
-          },
-          {
-            "key": "hr.leaves.delete",
-            "label": "Delete",
-            "description": "Permanently delete leave records"
-          }
-        ]
-      },
-      {
-        "domain": "hr.scorecards",
-        "label": "HR — Scorecards & Skills",
-        "permissions": [
-          {
-            "key": "hr.scorecards.read",
-            "label": "View",
-            "description": "View staff scorecards, skill matrix, and benchmarks"
-          },
-          {
-            "key": "hr.scorecards.write",
-            "label": "Edit",
-            "description": "Add and manage scorecards, skills, and templates"
-          }
-        ]
-      },
-      {
-        "domain": "reports",
-        "label": "Reports",
-        "permissions": [
-          {
-            "key": "reports.read",
-            "label": "View",
-            "description": "View reports and analytics"
-          },
-          {
-            "key": "reports.export",
-            "label": "Export",
-            "description": "Export report data to files"
-          }
-        ]
-      },
-      {
-        "domain": "activity",
-        "label": "Activity & Audit",
-        "permissions": [
-          {
-            "key": "activity.read",
-            "label": "View",
-            "description": "View system audit trail and activity logs"
-          }
-        ]
-      },
-      {
-        "domain": "iam",
-        "label": "IAM — Identity & Access",
-        "permissions": [
-          {
-            "key": "iam.users.read",
-            "label": "View Users",
-            "description": "View portal user accounts"
-          },
-          {
-            "key": "iam.users.write",
-            "label": "Manage Users",
-            "description": "Create, edit, deactivate, and reset passwords"
-          },
-          {
-            "key": "iam.users.delete",
-            "label": "Delete Users",
-            "description": "Permanently delete user accounts"
-          },
-          {
-            "key": "iam.roles.read",
-            "label": "View Roles",
-            "description": "View role definitions"
-          },
-          {
-            "key": "iam.roles.write",
-            "label": "Manage Roles",
-            "description": "Create and edit roles and permission assignments"
-          },
-          {
-            "key": "iam.teams.read",
-            "label": "View Teams",
-            "description": "View teams and departments"
-          },
-          {
-            "key": "iam.teams.write",
-            "label": "Manage Teams",
-            "description": "Create and edit teams"
-          },
-          {
-            "key": "iam.invites.send",
-            "label": "Send Invites",
-            "description": "Invite new users to the portal"
-          }
-        ]
-      },
-      {
-        "domain": "website",
-        "label": "Website Content",
-        "permissions": [
-          {
-            "key": "website.read",
-            "label": "View",
-            "description": "View website content"
-          },
-          {
-            "key": "website.write",
-            "label": "Manage",
-            "description": "Create and publish website content"
-          }
-        ]
-      }
-    ],
-    "defaults": {
-      "super_admin": [
-        "customers.read",
-        "customers.write",
-        "customers.delete",
-        "projects.read",
-        "projects.write",
-        "projects.delete",
-        "productions.read",
-        "productions.write",
-        "productions.delete",
-        "jobs.read",
-        "jobs.write",
-        "jobs.delete",
-        "media.read",
-        "media.write",
-        "media.delete",
-        "files.read",
-        "files.write",
-        "files.delete",
-        "portfolio.read",
-        "portfolio.write",
-        "portfolio.delete",
-        "services.read",
-        "services.write",
-        "services.delete",
-        "enrollments.read",
-        "enrollments.write",
-        "enrollments.delete",
-        "billing.read",
-        "billing.write",
-        "billing.delete",
-        "tickets.read",
-        "tickets.write",
-        "tickets.delete",
-        "crm.read",
-        "crm.write",
-        "crm.delete",
-        "procurement.read",
-        "procurement.write",
-        "procurement.delete",
-        "procurement.approve",
-        "hr.staff.read",
-        "hr.staff.write",
-        "hr.staff.delete",
-        "hr.expenses.read",
-        "hr.expenses.write",
-        "hr.expenses.approve",
-        "hr.expenses.delete",
-        "hr.leaves.read",
-        "hr.leaves.write",
-        "hr.leaves.approve",
-        "hr.leaves.delete",
-        "hr.scorecards.read",
-        "hr.scorecards.write",
-        "reports.read",
-        "reports.export",
-        "activity.read",
-        "iam.users.read",
-        "iam.users.write",
-        "iam.users.delete",
-        "iam.roles.read",
-        "iam.roles.write",
-        "iam.teams.read",
-        "iam.teams.write",
-        "iam.invites.send",
-        "website.read",
-        "website.write"
-      ],
-      "admin": [
-        "customers.read",
-        "customers.write",
-        "customers.delete",
-        "projects.read",
-        "projects.write",
-        "projects.delete",
-        "productions.read",
-        "productions.write",
-        "productions.delete",
-        "jobs.read",
-        "jobs.write",
-        "jobs.delete",
-        "media.read",
-        "media.write",
-        "media.delete",
-        "files.read",
-        "files.write",
-        "files.delete",
-        "portfolio.read",
-        "portfolio.write",
-        "portfolio.delete",
-        "services.read",
-        "services.write",
-        "services.delete",
-        "enrollments.read",
-        "enrollments.write",
-        "enrollments.delete",
-        "billing.read",
-        "billing.write",
-        "billing.delete",
-        "tickets.read",
-        "tickets.write",
-        "tickets.delete",
-        "crm.read",
-        "crm.write",
-        "crm.delete",
-        "procurement.read",
-        "procurement.write",
-        "procurement.delete",
-        "procurement.approve",
-        "hr.staff.read",
-        "hr.staff.write",
-        "hr.staff.delete",
-        "hr.expenses.read",
-        "hr.expenses.write",
-        "hr.expenses.approve",
-        "hr.expenses.delete",
-        "hr.leaves.read",
-        "hr.leaves.write",
-        "hr.leaves.approve",
-        "hr.leaves.delete",
-        "hr.scorecards.read",
-        "hr.scorecards.write",
-        "reports.read",
-        "reports.export",
-        "activity.read",
-        "iam.users.read",
-        "iam.users.write",
-        "iam.roles.read",
-        "iam.roles.write",
-        "iam.teams.read",
-        "iam.teams.write",
-        "iam.invites.send",
-        "website.read",
-        "website.write"
-      ],
-      "operations_manager": [
-        "customers.read",
-        "customers.write",
-        "projects.read",
-        "projects.write",
-        "productions.read",
-        "productions.write",
-        "jobs.read",
-        "jobs.write",
-        "media.read",
-        "media.write",
-        "files.read",
-        "files.write",
-        "portfolio.read",
-        "portfolio.write",
-        "services.read",
-        "services.write",
-        "enrollments.read",
-        "enrollments.write",
-        "billing.read",
-        "tickets.read",
-        "tickets.write",
-        "crm.read",
-        "crm.write",
-        "procurement.read",
-        "reports.read",
-        "activity.read",
-        "iam.users.read",
-        "iam.teams.read",
-        "website.read"
-      ],
-      "finance": [
-        "customers.read",
-        "projects.read",
-        "files.read",
-        "billing.read",
-        "billing.write",
-        "hr.expenses.read",
-        "hr.expenses.write",
-        "hr.expenses.approve",
-        "procurement.read",
-        "reports.read",
-        "reports.export",
-        "activity.read"
-      ],
-      "procurement_manager": [
-        "customers.read",
-        "files.read",
-        "files.write",
-        "tickets.read",
-        "tickets.write",
-        "procurement.read",
-        "procurement.write",
-        "procurement.approve",
-        "billing.read",
-        "reports.read",
-        "activity.read"
-      ],
-      "procurement_officer": [
-        "customers.read",
-        "files.read",
-        "files.write",
-        "tickets.read",
-        "tickets.write",
-        "procurement.read",
-        "procurement.write",
-        "reports.read"
-      ],
-      "project_manager": [
-        "customers.read",
-        "projects.read",
-        "projects.write",
-        "productions.read",
-        "productions.write",
-        "jobs.read",
-        "jobs.write",
-        "media.read",
-        "media.write",
-        "files.read",
-        "files.write",
-        "portfolio.read",
-        "portfolio.write",
-        "services.read",
-        "enrollments.read",
-        "billing.read",
-        "tickets.read",
-        "tickets.write",
-        "crm.read",
-        "reports.read",
-        "activity.read"
-      ],
-      "staff": [
-        "customers.read",
-        "projects.read",
-        "projects.write",
-        "productions.read",
-        "productions.write",
-        "jobs.read",
-        "jobs.write",
-        "media.read",
-        "media.write",
-        "files.read",
-        "files.write",
-        "portfolio.read",
-        "portfolio.write",
-        "services.read",
-        "enrollments.read",
-        "billing.read",
-        "tickets.read",
-        "tickets.write",
-        "crm.read",
-        "crm.write",
-        "procurement.read",
-        "hr.expenses.read",
-        "hr.expenses.write",
-        "hr.leaves.read",
-        "hr.leaves.write",
-        "hr.scorecards.read",
-        "reports.read",
-        "activity.read"
-      ],
-      "hr_management": [
-        "customers.read",
-        "projects.read",
-        "files.read",
-        "hr.staff.read",
-        "hr.staff.write",
-        "hr.expenses.read",
-        "hr.expenses.write",
-        "hr.expenses.approve",
-        "hr.leaves.read",
-        "hr.leaves.write",
-        "hr.leaves.approve",
-        "hr.scorecards.read",
-        "hr.scorecards.write",
-        "reports.read",
-        "activity.read",
-        "iam.users.read",
-        "iam.teams.read"
-      ],
-      "staff_client": [
-        "projects.read",
-        "files.read",
-        "files.write",
-        "billing.read",
-        "tickets.read",
-        "tickets.write",
-        "reports.read"
-      ],
-      "procurement_client": [
-        "procurement.read",
-        "procurement.write",
-        "files.read",
-        "files.write",
-        "billing.read",
-        "tickets.read",
-        "tickets.write",
-        "reports.read"
-      ],
-      "client_admin": [
-        "customers.read",
-        "projects.read",
-        "procurement.read",
-        "procurement.write",
-        "files.read",
-        "files.write",
-        "billing.read",
-        "tickets.read",
-        "tickets.write",
-        "reports.read"
-      ],
-      "client": [
-        "projects.read",
-        "files.read",
-        "files.write",
-        "billing.read",
-        "tickets.read",
-        "tickets.write"
-      ],
-      "vendor": [
-        "procurement.read",
-        "tickets.read",
-        "tickets.write"
-      ]
-    }
-  },
+  "frontendPermissions": null,
   "permissionUsage": {
     "customers.read": {
       "api": [
@@ -15377,6 +14625,10 @@
         {
           "file": "portal-api/src/modules/projects/project.routes.js",
           "line": 91
+        },
+        {
+          "file": "portal-api/src/utils/roleRegistry.js",
+          "line": 60
         }
       ],
       "ui": []
@@ -15386,6 +14638,10 @@
         {
           "file": "portal-api/src/modules/projects/project.routes.js",
           "line": 98
+        },
+        {
+          "file": "portal-api/src/utils/roleRegistry.js",
+          "line": 61
         }
       ],
       "ui": []
@@ -15397,16 +14653,7 @@
           "line": 7
         }
       ],
-      "ui": [
-        {
-          "file": "client/src/portal/app/portalNav.js",
-          "line": 160
-        },
-        {
-          "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 22
-        }
-      ]
+      "ui": []
     },
     "productions.write": {
       "api": [
@@ -15448,6 +14695,10 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
+          "line": 160
+        },
+        {
+          "file": "client/src/portal/app/portalNav.js",
           "line": 178
         },
         {
@@ -15461,6 +14712,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 24
+        },
+        {
+          "file": "client/src/portal/app/ProtectedRoute.jsx",
+          "line": 25
         },
         {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
@@ -15558,7 +14813,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 25
+          "line": 26
         }
       ]
     },
@@ -15610,7 +14865,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 26
+          "line": 27
         }
       ]
     },
@@ -15654,11 +14909,11 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 29
+          "line": 30
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 30
+          "line": 31
         }
       ]
     },
@@ -15710,7 +14965,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 31
+          "line": 32
         }
       ]
     },
@@ -15762,7 +15017,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 32
+          "line": 33
         },
         {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
@@ -15814,7 +15069,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 33
+          "line": 34
         }
       ]
     },
@@ -15886,7 +15141,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 34
+          "line": 35
         },
         {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
@@ -15924,6 +15179,10 @@
         {
           "file": "portal-api/src/modules/tickets/ticket.routes.js",
           "line": 28
+        },
+        {
+          "file": "portal-api/src/utils/roleRegistry.js",
+          "line": 62
         }
       ],
       "ui": []
@@ -16002,7 +15261,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 35
+          "line": 36
         }
       ]
     },
@@ -16104,19 +15363,19 @@
         },
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
-          "line": 22
+          "line": 23
         },
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
-          "line": 24
+          "line": 25
         },
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
-          "line": 30
+          "line": 31
         },
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
-          "line": 32
+          "line": 33
         },
         {
           "file": "portal-api/src/modules/procurement/vendor.routes.js",
@@ -16150,7 +15409,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 37
+          "line": 38
         }
       ]
     },
@@ -16178,11 +15437,11 @@
         },
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
-          "line": 23
+          "line": 24
         },
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
-          "line": 25
+          "line": 26
         },
         {
           "file": "portal-api/src/modules/procurement/vendor.routes.js",
@@ -16225,15 +15484,15 @@
       "api": [
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
-          "line": 26
-        },
-        {
-          "file": "portal-api/src/modules/procurement/rfq.routes.js",
           "line": 27
         },
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
-          "line": 39
+          "line": 28
+        },
+        {
+          "file": "portal-api/src/modules/procurement/rfq.routes.js",
+          "line": 40
         },
         {
           "file": "portal-api/src/modules/procurement/vendor-application.routes.js",
@@ -16263,7 +15522,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 36
+          "line": 37
         },
         {
           "file": "client/src/portal/features/procurement/pages/RFQDetailsPage.jsx",
@@ -16305,11 +15564,11 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 38
+          "line": 39
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 43
+          "line": 46
         }
       ]
     },
@@ -16373,7 +15632,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 39
+          "line": 40
         }
       ]
     },
@@ -16428,7 +15687,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 40
+          "line": 41
         }
       ]
     },
@@ -16467,7 +15726,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 41
+          "line": 42
         }
       ]
     },
@@ -16532,7 +15791,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 42
+          "line": 43
         }
       ]
     },
@@ -16604,6 +15863,10 @@
         {
           "file": "client/src/portal/app/portalNav.js",
           "line": 684
+        },
+        {
+          "file": "client/src/portal/app/ProtectedRoute.jsx",
+          "line": 45
         }
       ]
     },
@@ -16657,7 +15920,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 44
+          "line": 47
         }
       ]
     },
@@ -16687,7 +15950,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 45
+          "line": 48
         }
       ]
     },
@@ -16695,11 +15958,15 @@
       "api": [
         {
           "file": "portal-api/src/modules/iam/users/user.routes.js",
-          "line": 55
+          "line": 56
         },
         {
           "file": "portal-api/src/modules/iam/users/user.routes.js",
-          "line": 58
+          "line": 59
+        },
+        {
+          "file": "portal-api/src/modules/iam/users/user.routes.js",
+          "line": 63
         }
       ],
       "ui": [
@@ -16721,11 +15988,7 @@
       "api": [
         {
           "file": "portal-api/src/modules/iam/users/user.routes.js",
-          "line": 56
-        },
-        {
-          "file": "portal-api/src/modules/iam/users/user.routes.js",
-          "line": 62
+          "line": 57
         },
         {
           "file": "portal-api/src/modules/iam/users/user.routes.js",
@@ -16742,6 +16005,10 @@
         {
           "file": "portal-api/src/modules/iam/users/user.routes.js",
           "line": 90
+        },
+        {
+          "file": "portal-api/src/modules/iam/users/user.routes.js",
+          "line": 97
         }
       ],
       "ui": []
@@ -16750,7 +16017,7 @@
       "api": [
         {
           "file": "portal-api/src/modules/iam/users/user.routes.js",
-          "line": 97
+          "line": 104
         }
       ],
       "ui": []
@@ -16925,7 +16192,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 27
+          "line": 28
         }
       ]
     },
@@ -16952,7 +16219,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 28
+          "line": 29
         }
       ]
     },
@@ -17023,11 +16290,11 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 46
+          "line": 49
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 47
+          "line": 50
         }
       ]
     },
@@ -18296,14 +17563,21 @@
     },
     {
       "file": "client/src/portal/features/iam/users/api.js",
-      "line": 91,
+      "line": 93,
+      "call": "api.get",
+      "url": "`/users/${id}/effective-permissions`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/features/iam/users/api.js",
+      "line": 98,
       "call": "api.patch",
       "url": "`/users/${id}/permissions`",
       "reachable": true
     },
     {
       "file": "client/src/portal/features/iam/users/api.js",
-      "line": 97,
+      "line": 104,
       "call": "api.delete",
       "url": "`/users/${id}`",
       "reachable": true
@@ -19917,6 +19191,7 @@
           "client/src/portal/pages/PortalLogin.jsx",
           "client/src/portal/pages/RequestAccess.jsx",
           "client/src/portal/pages/ResetPassword.jsx",
+          "client/src/portal/shared/hooks/usePermissionCatalog.js",
           "client/src/portal/shared/hooks/usePortalPermissions.js",
           "client/src/portal/shared/hooks/usePortalProfile.js",
           "client/src/portal/shared/ui/ActionMenu.jsx",

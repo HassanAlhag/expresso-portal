@@ -1,10 +1,10 @@
 # API endpoint index
 
-[API map](API-MAP.md) · [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · Baseline `58b8f86c` plus Stage R1 security fixes.
+[API map](API-MAP.md) · [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · Baseline `58b8f86c` plus Stage R1 and R2 changes.
 
-All **282** explicit method/path registrations, grouped by business domain. Generated from [source-inventory.json](source-inventory.json); regenerate rather than edit by hand.
+All **283** explicit method/path registrations, grouped by business domain. Generated from [source-inventory.json](source-inventory.json); regenerate rather than edit by hand.
 
-- **Guard** = middleware on the route: `auth` (valid session), a permission key, `internal-only` (staff), `super_admin`, `role vendor`. **public** means no session is required; **public, optional sign-in** means anonymous callers get published/active records only, while signed-in CMS users with the right permission also see drafts (Stage R1, P0-1). Controllers add tenant, ownership and state checks that are not shown here.
+- **Guard** = middleware on the route: `auth` (valid session), a permission key, `internal-only` (staff), `super_admin`, **staff or approved vendor** / **approved vendor only** (an active vendor profile; R2). **public** means no session is required; **public, optional sign-in** means anonymous callers get published/active records only, while signed-in CMS users with the right permission also see drafts (R1, P0-1). Controllers add tenant, ownership and state checks that are not shown here.
 - **Frontend consumer** = reachable client files with a literal call to this path (best effort; calls built from variables can be missed). `—` means none was found.
 
 ## Admin diagnostics — 1 route
@@ -242,7 +242,7 @@ Models: HeroSlide, SiteSettings.
 | PATCH | `/api/site-settings` | auth · `website.write` | `updateSettings` (settings.controller.js) | portal/features/website/api.js |
 | GET | `/api/site-settings/public` | public | `getPublicSettings` (settings.controller.js) | api/siteSettings.js |
 
-## Identity & access (IAM) — 42 routes
+## Identity & access (IAM) — 43 routes
 
 Models: AccessRequest, Audit, Invite, Role, Team, User.
 
@@ -283,6 +283,7 @@ Models: AccessRequest, Audit, Invite, Role, Team, User.
 | GET | `/api/users/:id` | auth · `iam.users.read` | `getUser` (user.controller.js) | portal/features/iam/users/api.js<br>portal/features/settings/pages/SettingsPage.jsx |
 | PATCH | `/api/users/:id` | auth · `iam.users.write` | `updateUser` (user.controller.js) | portal/features/iam/users/api.js<br>portal/features/profile/pages/ProfilePage.jsx<br>portal/features/settings/pages/SettingsPage.jsx |
 | GET | `/api/users/:id/activity` | auth · `activity.read` | `inline handler (see source)` (audit.routes.js) | portal/features/hr/pages/StaffDetailsPage.jsx<br>portal/features/iam/users/api.js |
+| GET | `/api/users/:id/effective-permissions` | auth · `iam.users.read` | `getEffectivePermissions` (user.controller.js) | portal/features/iam/users/api.js |
 | POST | `/api/users/:id/force-logout` | auth · `iam.users.write` | `forceLogoutUser` (user.controller.js) | portal/features/iam/users/api.js |
 | PATCH | `/api/users/:id/permissions` | auth · `iam.users.write` | `updateUserPermissions` (user.controller.js) | portal/features/iam/users/api.js |
 | POST | `/api/users/:id/reset-password` | auth · `iam.users.write` | `adminResetPassword` (user.controller.js) | portal/features/iam/users/api.js |
@@ -340,15 +341,15 @@ Models: ProcurementCategory, ProcurementRequest, ProcurementVendor, Quotation, R
 | PATCH | `/api/procurement/requests/:id` | auth · `procurement.write` | `updateRequest` (request.controller.js) | portal/features/procurement/api.js |
 | POST | `/api/procurement/requests/:id/create-rfq` | auth · `procurement.write` | `createRfqFromRequest` (rfq.controller.js) | portal/features/procurement/api.js |
 | GET | `/api/procurement/requests/stats` | auth · `procurement.read` | `getDashboardStats` (request.controller.js) | portal/features/procurement/api.js<br>portal/features/reports/pages/ReportsPage.jsx |
-| GET | `/api/procurement/rfqs` | auth · internal-only · `procurement.read` | `listRfqs` (rfq.controller.js) | portal/features/procurement/api.js |
+| GET | `/api/procurement/rfqs` | auth · `procurement.read` · staff or approved vendor | `listRfqs` (rfq.controller.js) | portal/features/procurement/api.js |
 | POST | `/api/procurement/rfqs` | auth · internal-only · `procurement.write` | `createRfq` (rfq.controller.js) | portal/features/procurement/api.js |
-| GET | `/api/procurement/rfqs/:id` | auth · internal-only · `procurement.read` | `getRfq` (rfq.controller.js) | portal/features/procurement/api.js |
+| GET | `/api/procurement/rfqs/:id` | auth · `procurement.read` · staff or approved vendor | `getRfq` (rfq.controller.js) | portal/features/procurement/api.js |
 | PATCH | `/api/procurement/rfqs/:id` | auth · internal-only · `procurement.write` | `updateRfq` (rfq.controller.js) | portal/features/procurement/api.js |
 | PATCH | `/api/procurement/rfqs/:id/close` | auth · internal-only · `procurement.approve` | `closeRfq` (rfq.controller.js) | portal/features/procurement/api.js |
 | GET | `/api/procurement/rfqs/:id/matched-vendors` | auth · internal-only · `procurement.read` | `getMatchedVendors` (rfq.controller.js) | portal/features/procurement/api.js |
 | PATCH | `/api/procurement/rfqs/:id/publish` | auth · internal-only · `procurement.approve` | `publishRfq` (rfq.controller.js) | portal/features/procurement/api.js |
-| GET | `/api/procurement/rfqs/:id/quotations` | auth · internal-only · `procurement.read` | `listQuotations` (rfq.controller.js) | portal/features/procurement/api.js |
-| POST | `/api/procurement/rfqs/:id/quotations` | auth · role vendor | `submitQuotation` (rfq.controller.js) | portal/features/procurement/api.js |
+| GET | `/api/procurement/rfqs/:id/quotations` | auth · `procurement.read` · staff or approved vendor | `listQuotations` (rfq.controller.js) | portal/features/procurement/api.js |
+| POST | `/api/procurement/rfqs/:id/quotations` | auth · approved vendor only | `submitQuotation` (rfq.controller.js) | portal/features/procurement/api.js |
 | PATCH | `/api/procurement/rfqs/quotations/:quotationId/status` | auth · internal-only · `procurement.approve` | `updateQuotationStatus` (rfq.controller.js) | portal/features/procurement/api.js |
 | GET | `/api/procurement/vendors` | auth · internal-only · `procurement.read` | `listVendors` (vendor.controller.js) | portal/features/procurement/api.js |
 | POST | `/api/procurement/vendors` | auth · internal-only · `procurement.write` | `createVendor` (vendor.controller.js) | portal/features/procurement/api.js |
