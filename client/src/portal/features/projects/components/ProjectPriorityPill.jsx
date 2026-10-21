@@ -1,23 +1,17 @@
 import React from "react";
+import { Flag } from "lucide-react";
+import { PRIORITY_TONE, priorityLabel } from "../format";
 
-function toneForPriority(priority) {
-  if (priority === "urgent") return "border-rose-200 bg-rose-50 text-rose-800";
-  if (priority === "high")
-    return "border-orange-200 bg-orange-50 text-orange-800";
-  if (priority === "medium")
-    return "border-indigo-200 bg-indigo-50 text-indigo-800";
-  return "border-slate-200 bg-slate-50 text-slate-700";
-}
-
+// Priority is secondary to status: plain text with a flag, coloured only for
+// high and urgent.
 export default function ProjectPriorityPill({ priority }) {
+  const p = priority || "medium";
+  const tone = PRIORITY_TONE[p];
   return (
-    <span
-      className={[
-        "inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold",
-        toneForPriority(priority),
-      ].join(" ")}
-    >
-      {String(priority || "medium").toUpperCase()}
+    <span className="px-priority" data-tone={tone === "idle" ? undefined : tone}>
+      <Flag size={13} aria-hidden="true" />
+      {priorityLabel(p)}
+      <span className="sr-only"> priority</span>
     </span>
   );
 }

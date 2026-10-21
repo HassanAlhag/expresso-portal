@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import Button from "../../../shared/ui/Button";
-import { Building2 } from "lucide-react";
+import { Building2, ChevronDown } from "lucide-react";
 import { listCustomers } from "../../customers/api";
 
 export default function CustomerSelect({ value, onChange }) {
@@ -8,6 +8,9 @@ export default function CustomerSelect({ value, onChange }) {
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const id = useId();
+  const triggerRef = useRef(null);
+  const searchRef = useRef(null);
 
   const load = async (query) => {
     setLoading(true);
@@ -32,76 +35,87 @@ export default function CustomerSelect({ value, onChange }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, open]);
 
-  return (
-    <div className="relative">
-      <div className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-        CLIENT
-      </div>
+  useEffect(() => {
+    if (open) searchRef.current?.focus();
+  }, [open]);
 
+  const close = () => {
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  // Client picker (PUI-2 styling). The trigger reports its expanded state,
+  // the search box is labelled, and Escape closes the list.
+  return (
+    <div className="px-field px-picker" onKeyDown={(e) => {
+      if (e.key === "Escape" && open) {
+        e.stopPropagation();
+        close();
+      }
+    }}>
+      <span className="px-label" id={`${id}-l`}>
+        Client <span aria-hidden="true">*</span>
+      </span>
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setOpen((s) => !s)}
-        className="mt-2 h-11 w-full rounded-2xl border border-black/10 bg-white px-4 text-left text-sm shadow-sm outline-none transition hover:bg-black/[0.02]"
+        className="px-picker-trigger"
+        aria-labelledby={`${id}-l ${id}-v`}
+        aria-expanded={open}
+        aria-controls={open ? `${id}-p` : undefined}
+        onClick={() => setOpen((v) => !v)}
       >
-        {value ? (
-          <div className="min-w-0">
-            <div className="truncate font-extrabold text-slate-900">
-              {value.companyName || "Client"}
-            </div>
-            <div className="truncate text-xs text-slate-500">
-              {value.contactName || value.primaryEmail || ""}
-            </div>
-          </div>
-        ) : (
-          <span className="text-slate-500">Search and select…</span>
-        )}
+        <span id={`${id}-v`} style={{ minWidth: 0 }}>
+          {value ? (
+            <>
+              <b>{value.companyName || "Client"}</b>
+              <small>{value.contactName || value.primaryEmail || ""}</small>
+            </>
+          ) : (
+            <span className="px-muted">Search and select a client</span>
+          )}
+        </span>
+        <ChevronDown size={16} aria-hidden="true" />
       </button>
 
       {open ? (
-        <div className="absolute z-[9999] mt-2 w-full overflow-hidden rounded-2xl border border-black/10 bg-white shadow-xl">
-          <div className="border-b border-black/10 p-3">
-            <div className="flex items-center gap-2">
-              <Building2 size={16} className="text-slate-500" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search company name…"
-                className="h-10 w-full rounded-xl border border-black/10 px-3 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
-            </div>
+        <div className="px-picker-panel" id={`${id}-p`}>
+          <div className="px-picker-search">
+            <Building2 size={16} aria-hidden="true" />
+            <input
+              ref={searchRef}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search company name"
+              aria-label="Search clients"
+              autoComplete="off"
+            />
           </div>
-
-          <div className="max-h-[260px] overflow-y-auto">
+          <ul className="px-picker-list" aria-label="Clients" aria-busy={loading || undefined}>
             {loading ? (
-              <div className="p-4 text-sm text-slate-500">Loading…</div>
+              <li className="px-picker-note" role="status">Loading clients…</li>
             ) : items.length === 0 ? (
-              <div className="p-4 text-sm text-slate-500">
-                No clients found.
-              </div>
+              <li className="px-picker-note">No clients found.</li>
             ) : (
               items.map((c) => (
-                <button
-                  key={c._id}
-                  type="button"
-                  onClick={() => {
-                    onChange(c);
-                    setOpen(false);
-                  }}
-                  className="w-full border-b border-black/5 px-4 py-3 text-left hover:bg-black/[0.03]"
-                >
-                  <div className="text-sm font-extrabold text-slate-900">
-                    {c.companyName}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {c.contactName || c.primaryEmail || ""}
-                  </div>
-                </button>
+                <li key={c._id}>
+                  <button
+                    type="button"
+                    aria-pressed={value?._id === c._id}
+                    onClick={() => {
+                      onChange(c);
+                      close();
+                    }}
+                  >
+                    <b>{c.companyName}</b>
+                    <small>{c.contactName || c.primaryEmail || ""}</small>
+                  </button>
+                </li>
               ))
             )}
-          </div>
-
-          <div className="flex justify-end bg-slate-50 p-2">
-            <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
+          </ul>
+          <div className="px-picker-foot">
+            <Button variant="outline" size="sm" onClick={close}>
               Close
             </Button>
           </div>

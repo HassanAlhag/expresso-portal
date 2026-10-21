@@ -1,203 +1,191 @@
 import React from "react";
-import Button from "../../../shared/ui/Button";
+import { Link } from "react-router-dom";
+import { Archive, ExternalLink, FolderKanban, SearchX, Plus, Building2 } from "lucide-react";
+import Panel from "../../../shared/ui/Panel";
+import SortHeader from "../../../shared/ui/SortHeader";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import Pagination from "../../../shared/ui/Pagination";
 import EmptyState from "../../../shared/ui/EmptyState";
-import Skeleton from "../../../shared/ui/Skeleton";
-import Badge from "../../../shared/ui/Badge";
-import {
-  BriefcaseBusiness,
-  CalendarDays,
-  FileClock,
-  FolderKanban,
-  Settings2,
-  UserRound,
-} from "lucide-react";
+import ErrorState from "../../../shared/ui/ErrorState";
+import RowActions from "../../../shared/ui/RowActions";
+import Button from "../../../shared/ui/Button";
 import ProjectStatusPill from "./ProjectStatusPill";
 import ProjectPriorityPill from "./ProjectPriorityPill";
+import { customerOf, dueInfo, formatDate, formatMoney, initials, projectSubline } from "../format";
 
-function humanize(value) {
-  return String(value || "-").replaceAll("_", " ");
-}
 
-function getModeIcon(mode) {
-  if (mode === "internal") return Settings2;
-  if (mode === "pre_contract") return FileClock;
-  return BriefcaseBusiness;
-}
-
-function getModeTone(mode) {
-  if (mode === "internal") return "warning";
-  if (mode === "pre_contract") return "danger";
-  if (mode === "contracted") return "success";
-  return "info";
-}
-
-function formatDate(value) {
-  if (!value) return "-";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "-";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function formatMoney(currency, amount) {
-  if (amount === null || amount === undefined || amount === "") return "-";
-  return `${currency || "AED"} ${Number(amount).toLocaleString()}`;
-}
-
-function TableSkeleton() {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-black/10 bg-white">
-      <div className="grid gap-2 p-5">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-12 w-full rounded-xl" />
-        ))}
-      </div>
-    </div>
-  );
-}
-
+// Projects table (PUI-2). Desktop: one efficient table with sortable
+// headers. Tablet drops owner and budget. Mobile turns each row into a
+// stacked record (px-table--stack) instead of squeezing the table sideways.
 export default function ProjectList({
   items = [],
-  meta,
+  meta = { page: 1, pages: 1, total: 0, limit: 12 },
   loading,
   error,
-  onOpen,
+  onRetry,
+  sort,
+  onSort,
+  onPage,
+  filtered,
+  onClearFilters,
   onCreate,
-  onPrev,
-  onNext,
+  onOpen,
+  canArchive,
+  onArchive,
+  canOpenClient,
+  showBudget = true,
+  toolbar,
+  resultBar,
 }) {
-  if (loading) return <TableSkeleton />;
+  const body = () => {
+    if (loading) return <SkeletonRows rows={6} cols={showBudget ? 7 : 6} label="Loading projects" />;
+    return items.map((p) => {
+      const due = dueInfo(p);
+      const owner = p.ownerUserId?.fullName;
+      const client = customerOf(p);
+      const actions = [
+        { key: "open", label: "Open project", icon: ExternalLink, onSelect: () => onOpen(p) },
+        canOpenClient && client?._id
+          ? { key: "client", label: "Open client", icon: Building2, onSelect: () => onOpen(p, `/portal/customers/${client._id}`) }
+          : null,
+        canArchive && p.status !== "archived" ? { key: "sep", separator: true } : null,
+        canArchive && p.status !== "archived"
+          ? { key: "archive", label: "Archive project", icon: Archive, onSelect: () => onArchive(p) }
+          : null,
+      ];
+      return (
+        <tr
+          key={p._id}
+          data-clickable="true"
+          onClick={(e) => {
+            if (e.target.closest("a, button, [role='menu']")) return;
+            onOpen(p);
+          }}
+        >
+          <td className="px-primary">
+            <div className="px-cell-main">
+              <Link to={`/portal/projects/${p._id}`}>{p.name || "Untitled project"}</Link>
+              <span>{projectSubline(p)}</span>
+            </div>
+          </td>
+          <td data-label="Status">
+            <span>
+              <ProjectStatusPill status={p.status} />
+            </span>
+          </td>
+          <td data-label="Priority">
+            <ProjectPriorityPill priority={p.priority} />
+          </td>
+          <td data-label="Owner" className="px-hide-tab">
+            {owner ? (
+              <span className="px-person">
+                <i aria-hidden="true">{initials(owner)}</i>
+                {owner}
+              </span>
+            ) : (
+              <span className="px-muted">Unassigned</span>
+            )}
+          </td>
+          <td data-label="Due">
+            {p.endDate ? (
+              <span className="px-due">
+                <span className="px-num">{formatDate(p.endDate)}</span>
+                {due ? <small data-tone={due.tone || undefined}>{due.text}</small> : null}
+              </span>
+            ) : (
+              <span className="px-muted">No due date</span>
+            )}
+          </td>
+          {showBudget ? (
+            <td data-label="Budget" className="px-num px-hide-lg px-hide-sm">
+              {formatMoney(p.budget, p.currency) || <span className="px-muted">—</span>}
+            </td>
+          ) : null}
+          <td className="px-actions-cell">
+            <RowActions label={p.name || "project"} actions={actions} />
+          </td>
+        </tr>
+      );
+    });
+  };
 
+  let content;
   if (error) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-extrabold text-red-700">
-        {error}
-      </div>
+    content = (
+      <ErrorState
+        title="Projects didn't load"
+        message={typeof error === "string" ? error : undefined}
+        onRetry={onRetry}
+      />
     );
-  }
-
-  if (!items.length) {
-    return (
+  } else if (!loading && !items.length) {
+    content = filtered ? (
+      <EmptyState
+        icon={SearchX}
+        title="No projects match these filters"
+        message="Try a different search, or clear the filters to see every project you can access."
+        action={
+          <Button variant="outline" onClick={onClearFilters}>
+            Clear filters
+          </Button>
+        }
+      />
+    ) : (
       <EmptyState
         icon={FolderKanban}
         title="No projects yet"
-        message="Create a project for client work, custom work, pre-contract work, or internal initiatives."
-        actionLabel="New project"
-        onAction={onCreate}
+        message="Projects hold client work, custom requests, pre-contract work and internal initiatives."
+        action={
+          onCreate ? (
+            <Button onClick={onCreate}>
+              <Plus size={14} aria-hidden="true" />
+              New project
+            </Button>
+          ) : null
+        }
       />
+    );
+  } else {
+    content = (
+      <>
+        <div className="px-table-wrap">
+          <table className="px-table px-table--stack" aria-busy={loading || undefined} aria-label="Projects">
+            <thead>
+              <tr>
+                <SortHeader label="Project" field="name" sort={sort} onSort={onSort} />
+                <SortHeader label="Status" field="status" sort={sort} onSort={onSort} />
+                <th scope="col">Priority</th>
+                <th scope="col" className="px-hide-tab">Owner</th>
+                <th scope="col">Due</th>
+                {showBudget ? <th scope="col" className="px-num px-hide-lg px-hide-sm">Budget</th> : null}
+                <th scope="col">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>{body()}</tbody>
+          </table>
+        </div>
+        {!loading && meta.total ? (
+          <Pagination
+            page={meta.page}
+            pages={meta.pages}
+            total={meta.total}
+            limit={meta.limit || 12}
+            onPage={onPage}
+            noun={meta.total === 1 ? "project" : "projects"}
+            label="Projects pages"
+          />
+        ) : null}
+      </>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-black/10 bg-white">
-      <div className="overflow-x-auto">
-        <table className="min-w-[1040px] w-full border-collapse text-left">
-          <thead className="bg-slate-50">
-            <tr className="border-b border-black/10 text-[10.5px] font-black uppercase tracking-[0.18em] text-slate-400">
-              <th className="px-5 py-3">Project</th>
-              <th className="px-5 py-3">Client / Mode</th>
-              <th className="px-5 py-3">Status</th>
-              <th className="px-5 py-3">Owner</th>
-              <th className="px-5 py-3">Timeline</th>
-              <th className="px-5 py-3 text-right">Budget</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/[0.06]">
-            {items.map((p) => {
-              const isInternal = p.projectMode === "internal";
-              const ModeIcon = getModeIcon(p.projectMode);
-              const clientName = isInternal
-                ? "Internal project"
-                : p.customerId?.companyName || p.customerId?.contactName || "-";
-
-              return (
-                <tr
-                  key={p._id}
-                  onClick={() => onOpen?.(p)}
-                  className="cursor-pointer transition hover:bg-slate-50/70"
-                >
-                  <td className="px-5 py-4">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="max-w-[320px] truncate text-sm font-black text-slate-900">
-                          {p.name}
-                        </span>
-                        {p.code ? (
-                          <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-500">
-                            {p.code}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                        <Badge tone="neutral" size="xs">{humanize(p.type)}</Badge>
-                        {p.source ? <Badge tone="neutral" size="xs">{humanize(p.source)}</Badge> : null}
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-4">
-                    <div className="text-sm font-semibold text-slate-800">{clientName}</div>
-                    <Badge tone={getModeTone(p.projectMode)} size="xs" className="mt-1">
-                      <ModeIcon size={11} className="mr-1" />
-                      {humanize(p.projectMode)}
-                    </Badge>
-                  </td>
-
-                  <td className="px-5 py-4">
-                    <div className="flex flex-col items-start gap-1.5">
-                      <ProjectStatusPill status={p.status} />
-                      <ProjectPriorityPill priority={p.priority} />
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2 text-sm text-slate-700">
-                      <UserRound size={14} className="text-slate-300" />
-                      <span className="max-w-[170px] truncate">
-                        {p.ownerUserId?.fullName || p.team || "-"}
-                      </span>
-                    </div>
-                    {p.team && p.ownerUserId?.fullName ? (
-                      <div className="mt-1 text-xs text-slate-400">{p.team}</div>
-                    ) : null}
-                  </td>
-
-                  <td className="px-5 py-4">
-                    <div className="grid gap-1 text-xs text-slate-500">
-                      <span className="inline-flex items-center gap-1">
-                        <CalendarDays size={12} className="text-slate-300" />
-                        Start: <span className="font-semibold text-slate-700">{formatDate(p.startDate)}</span>
-                      </span>
-                      <span>
-                        Launch: <span className="font-semibold text-slate-700">{formatDate(p.targetLaunchDate || p.endDate)}</span>
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-4 text-right text-sm font-bold text-slate-700">
-                    {formatMoney(p.currency, p.budget)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-black/10 bg-slate-50/60 px-4 py-3">
-        <div className="text-xs text-slate-500">
-          Page <span className="font-extrabold">{meta.page}</span> of{" "}
-          <span className="font-extrabold">{meta.pages}</span> · {meta.total} total
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onPrev} disabled={meta.page <= 1}>
-            Prev
-          </Button>
-          <Button variant="outline" size="sm" onClick={onNext} disabled={meta.page >= meta.pages}>
-            Next
-          </Button>
-        </div>
-      </div>
-    </div>
+    <Panel flush bare label="Project list" className="px-list-panel">
+      {toolbar}
+      {resultBar}
+      {content}
+    </Panel>
   );
 }

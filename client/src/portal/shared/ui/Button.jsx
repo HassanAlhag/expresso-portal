@@ -12,7 +12,7 @@ const VARIANTS = {
 };
 const SIZES = { sm: "px-btn--sm", md: "", lg: "px-btn--lg" };
 
-export default function Button({
+const Button = React.forwardRef(function Button({
   children,
   variant = "primary",
   size = "md",
@@ -21,9 +21,10 @@ export default function Button({
   loading,
   type = "button",
   ...props
-}) {
+}, ref) {
   return (
     <button
+      ref={ref}
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
@@ -36,4 +37,6 @@ export default function Button({
       {children}
     </button>
   );
-}
+});
+
+export default Button;

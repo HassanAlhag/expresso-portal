@@ -1,14 +1,20 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Activity, Archive, Building2, ClipboardList, FileText, Layers, Wallet } from "lucide-react";
 
-import Card from "../../../shared/ui/Card";
 import { useToast } from "../../../shared/ui/Toast";
-import Skeleton from "../../../shared/ui/Skeleton";
+import { usePageCrumbs } from "../../../layouts/ShellContext";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ErrorState from "../../../shared/ui/ErrorState";
+import Alert from "../../../shared/ui/Alert";
+import Button from "../../../shared/ui/Button";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
+import TabBar, { TabPanel } from "../../../shared/ui/TabBar";
 
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import { getProject, listProjects, archiveProject, updateProject } from "../api";
 import { PROJECT_TABS } from "../constants";
-
+import { customerOf } from "../format";
 import { listJobs, createJob } from "../../jobs/api";
 import NewJobModal from "../../jobs/components/NewJobModal";
 
@@ -28,72 +34,113 @@ function addDays(value, days) {
   return base.toISOString().slice(0, 10);
 }
 
+const NO_CLIENT = "Link a client to this project before creating jobs.";
+
+/** Tabs the signed-in user can use, in order. Overview is always there. */
+export function projectTabsFor(access) {
+  return [
+    { id: PROJECT_TABS.OVERVIEW, label: "Overview", icon: Building2 },
+    access.can("jobs.read") && { id: PROJECT_TABS.JOBS, label: "Jobs", icon: ClipboardList },
+    access.can("jobs.read") && { id: PROJECT_TABS.SCOPE, label: "Scope", icon: Layers },
+    access.can("files.read") && { id: PROJECT_TABS.FILES, label: "Files", icon: FileText },
+    access.can("billing.read") && { id: PROJECT_TABS.BILLING, label: "Billing", icon: Wallet },
+    access.can("jobs.read") && { id: PROJECT_TABS.ACTIVITY, label: "Activity", icon: Activity },
+  ].filter(Boolean);
+}
+
+function useDebounced(value, ms = 300) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
+}
+
 export default function ProjectDetailsPage() {
   const nav = useNavigate();
   const { id } = useParams();
   const toast = useToast();
+  const access = useAccess();
+
+  const canEdit = access.can("projects.write");
+  const canArchive = access.can("projects.delete");
+  const canReadJobs = access.can("jobs.read");
+  const canCreateJobs = access.can("jobs.write");
+  const tabs = useMemo(() => projectTabsFor(access), [access]);
 
   const [tab, setTab] = useState(PROJECT_TABS.OVERVIEW);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [confirmState, setConfirmState] = useState(null);
-
   const [project, setProject] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [busy, setBusy] = useState(false);
 
+  const [jobs, setJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError] = useState("");
-  const [jobs, setJobs] = useState([]);
   const [jobQ, setJobQ] = useState("");
+  const debouncedJobQ = useDebounced(jobQ);
+
   const [newJobOpen, setNewJobOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const [planGenerating, setPlanGenerating] = useState(false);
 
-  const loadProject = async () => {
+  usePageCrumbs(project ? [{ label: "Projects", to: "/portal/projects" }, { label: project.name || "Project" }] : []);
+
+  const loadProject = useCallback(async () => {
     setLoading(true);
-    setError("");
+    setLoadError(null);
     try {
       const res = await getProject(id);
       setProject(res?.item || null);
+      if (!res?.item) setLoadError({ status: 404 });
     } catch (e) {
-      setError(
-        e?.response?.data?.message || e?.message || "Failed to load project"
-      );
+      setLoadError({ status: e?.response?.status, message: e?.response?.data?.message });
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const loadJobs = async () => {
-    if (!project?._id) return;
+  const customer = customerOf(project);
+  const customerId = customer?._id || "";
 
-    const resolvedCustomerId =
-      project?.customerId?._id || project?.customerId || "";
-
+  const loadJobs = useCallback(async () => {
+    if (!project?._id || !canReadJobs) return;
     setJobsLoading(true);
     setJobsError("");
-
     try {
-      const params = {
-        q: jobQ,
-        projectId: project._id,
-        limit: 30,
-        page: 1,
-      };
-
-      if (resolvedCustomerId) {
-        params.customerId = resolvedCustomerId;
-      }
-
+      const params = { q: debouncedJobQ.trim(), projectId: project._id, limit: 30, page: 1 };
+      if (customerId) params.customerId = customerId;
       const res = await listJobs(params);
       setJobs(Array.isArray(res?.items) ? res.items : []);
     } catch (e) {
-      setJobsError(
-        e?.response?.data?.message || e?.message || "Failed to load jobs"
-      );
+      setJobsError(e?.response?.data?.message || "The server didn't respond. Try again.");
     } finally {
       setJobsLoading(false);
     }
+  }, [project?._id, customerId, debouncedJobQ, canReadJobs]);
+
+  useEffect(() => {
+    loadProject();
+  }, [loadProject]);
+
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
+
+  // Keep the selected tab valid for this user.
+  useEffect(() => {
+    if (!tabs.some((t) => t.id === tab)) setTab(PROJECT_TABS.OVERVIEW);
+  }, [tabs, tab]);
+
+  const createBlockedReason = customerId ? "" : NO_CLIENT;
+  const openNewJob = () => {
+    if (!customerId) {
+      toast.warning(NO_CLIENT);
+      return;
+    }
+    setNewJobOpen(true);
   };
 
   const handleEdit = async (payload) => {
@@ -104,89 +151,35 @@ export default function ProjectDetailsPage() {
       setEditOpen(false);
       await loadProject();
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Update failed");
+      toast.error(e?.response?.data?.message || "The changes weren't saved. Try again.");
     } finally {
       setBusy(false);
     }
   };
 
-  const handleArchive = () => {
-    setConfirmState({
-      title: "Archive project",
-      message: `Archive "${project?.name}"? It leaves the active project list but keeps its jobs, invoices, files and history. You can find it under the Archived status filter and restore it by changing its status.`,
-      confirmLabel: "Archive project",
-      onConfirm: async () => {
-        setBusy(true);
-        setConfirmState(null);
-        try {
-          await archiveProject(id);
-          toast.success("Project archived.");
-          nav("/portal/projects");
-        } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Archive failed");
-          setBusy(false);
-        }
-      },
-    });
-  };
-
-  useEffect(() => {
-    loadProject();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  useEffect(() => {
-    if (!project?._id) return;
-    if (tab === PROJECT_TABS.JOBS || tab === PROJECT_TABS.SCOPE) loadJobs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, project?._id]);
-
-  const title = useMemo(() => project?.name || "Project", [project]);
-  const customer = project?.customerId || null;
-  const canCreateJob = Boolean(customer?._id && project?._id);
-
-  const listCustomersForModal = async () => ({
-    items: customer ? [customer] : [],
-  });
-
-  const listProjectsForModal = async ({ q = "", customerId = "" } = {}) => {
-    const targetCustomerId = customerId || customer?._id;
-
-    const res = await listProjects({
-      q,
-      customerId: targetCustomerId,
-      limit: 20,
-      page: 1,
-      sort: "-createdAt",
-    });
-
-    return { items: res?.items || [] };
-  };
-
-  const createJobForModal = async (payload) => {
-    return createJob({
-      ...payload,
-      customerId: customer?._id,
-      projectId: project?._id,
-    });
+  const confirmArchive = async () => {
+    try {
+      await archiveProject(id);
+      toast.success("Project archived. Its jobs, invoices, files and history are kept.");
+      setArchiveOpen(false);
+      nav("/portal/projects");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "The project wasn't archived. Try again.");
+    }
   };
 
   const handleGeneratePlanJobs = async (planJobs = []) => {
-    if (!canCreateJob) {
-      toast.warning("Link a client before generating delivery jobs.");
+    if (!customerId) {
+      toast.warning(NO_CLIENT);
       return;
     }
-    if (!planJobs.length) {
-      toast.info("All planned jobs already exist.");
-      return;
-    }
-
+    if (!planJobs.length) return;
     setPlanGenerating(true);
     setBusy(true);
     try {
       for (const job of planJobs) {
         await createJob({
-          customerId: customer._id,
+          customerId,
           projectId: project._id,
           title: job.title,
           type: job.type || "other",
@@ -196,155 +189,185 @@ export default function ProjectDetailsPage() {
           notes: job.notes || "",
         });
       }
-      toast.success(`${planJobs.length} delivery job${planJobs.length === 1 ? "" : "s"} generated.`);
+      toast.success(`${planJobs.length} job${planJobs.length === 1 ? "" : "s"} created.`);
       await loadJobs();
       setTab(PROJECT_TABS.JOBS);
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to generate jobs.");
+      toast.error(e?.response?.data?.message || "Some jobs weren't created. Check the Jobs tab and try again.");
+      await loadJobs();
     } finally {
       setPlanGenerating(false);
       setBusy(false);
     }
   };
 
-  if (loading) {
+  const listCustomersForModal = async () => ({ items: customer ? [customer] : [] });
+  const listProjectsForModal = async ({ q = "", customerId: cid = "" } = {}) => {
+    const res = await listProjects({ q, customerId: cid || customerId, limit: 20, page: 1, sort: "-createdAt" });
+    return { items: res?.items || [] };
+  };
+  const createJobForModal = async (payload) => createJob({ ...payload, customerId, projectId: project?._id });
+
+  if (loading && !project) return <LoadingState rows={6} label="Loading project" />;
+
+  if (loadError || !project) {
+    const status = loadError?.status;
     return (
-      <Card className="p-6">
-        <div className="grid gap-3">
-          <Skeleton className="h-6 w-72" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-      </Card>
+      <ErrorState
+        title={status === 404 ? "Project not found" : status === 403 ? "You don't have access to this project" : "This project didn't load"}
+        message={
+          status === 404
+            ? "It may have been removed, or the link is wrong."
+            : status === 403
+            ? "Ask an administrator if you need it."
+            : loadError?.message || undefined
+        }
+        onRetry={status === 404 || status === 403 ? undefined : loadProject}
+      />
     );
   }
 
-  if (error) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-extrabold text-red-700">
-        {error}
-      </div>
-    );
-  }
-
-  if (!project) {
-    return (
-      <div className="rounded-2xl border border-black/10 bg-white p-6 text-sm font-extrabold text-slate-700">
-        Project not found.
-      </div>
-    );
-  }
+  const archived = project.status === "archived";
+  const counts = { [PROJECT_TABS.JOBS]: canReadJobs && !jobsLoading && !debouncedJobQ ? jobs.length : undefined };
 
   return (
     <>
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        confirmLabel={confirmState?.confirmLabel}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-
-      <div className="grid gap-5">
+      <div className="px-stack" style={{ gap: 20 }}>
         <ProjectHeader
           project={project}
-          customer={customer}
-          title={title}
-          tab={tab}
-          setTab={setTab}
           busy={busy}
-          onBack={() => nav("/portal/projects")}
+          canOpenClient={access.canOpen("/portal/customers")}
+          onEdit={canEdit ? () => setEditOpen(true) : undefined}
+          onCreateJob={canCreateJobs ? openNewJob : undefined}
+          createJobBlockedReason={createBlockedReason}
           onRefresh={() => {
             loadProject();
-            if (tab === PROJECT_TABS.JOBS) loadJobs();
+            loadJobs();
           }}
-          onEdit={() => setEditOpen(true)}
-          onCreateJob={() => {
-            if (!canCreateJob) {
-              toast.warning(
-                "This project does not have a linked client yet. Link a client before creating jobs."
-              );
-              return;
-            }
-            setNewJobOpen(true);
-          }}
-          onArchive={handleArchive}
+          onArchive={canArchive ? () => setArchiveOpen(true) : undefined}
         />
 
-        {tab === PROJECT_TABS.OVERVIEW ? (
-          <ProjectOverviewTab project={project} customer={customer} />
+        {archived ? (
+          <Alert
+            tone="info"
+            icon={Archive}
+            title="This project is archived"
+            action={
+              canEdit ? (
+                <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
+                  Change status
+                </Button>
+              ) : null
+            }
+          >
+            It's hidden from the default project list. Its jobs, invoices, files and history are kept.
+            {canEdit ? " To bring it back, change its status." : ""}
+          </Alert>
         ) : null}
 
-        {tab === PROJECT_TABS.SCOPE ? (
-          <ProjectScopeTab
-            project={project}
-            customer={customer}
-            jobs={jobs}
-            loading={jobsLoading}
-            error={jobsError}
-            busy={busy}
-            generating={planGenerating}
-            onCreateJob={() => {
-              if (!canCreateJob) {
-                toast.warning("This project does not have a linked client yet. Link a client before creating jobs.");
-                return;
-              }
-              setNewJobOpen(true);
-            }}
-            onGeneratePlanJobs={handleGeneratePlanJobs}
+        <div>
+          <TabBar
+            idPrefix="project"
+            label="Project sections"
+            value={tab}
+            onChange={setTab}
+            tabs={tabs.map((t) => ({ ...t, count: counts[t.id] }))}
           />
-        ) : null}
-
-        {tab === PROJECT_TABS.JOBS ? (
-          <ProjectJobsTab
-            loading={jobsLoading}
-            error={jobsError}
-            items={jobs}
-            q={jobQ}
-            setQ={setJobQ}
-            busy={busy}
-            onApply={loadJobs}
-            onCreate={() => {
-              if (!canCreateJob) {
-                toast.warning("This project does not have a linked client yet. Link a client before creating jobs.");
-                return;
-              }
-              setNewJobOpen(true);
-            }}
-            onOpenJob={(job) => nav(`/portal/jobs/${job._id}`)}
-          />
-        ) : null}
-
-        {tab === PROJECT_TABS.FILES ? (
-          <ProjectFilesTab project={project} />
-        ) : null}
-
-        {tab === PROJECT_TABS.BILLING ? <ProjectBillingTab projectId={project._id} customerId={customer?._id} /> : null}
-        {tab === PROJECT_TABS.ACTIVITY ? <ProjectActivityTab projectId={project._id} /> : null}
+          <TabPanel idPrefix="project" id={tab} className="px-tabpanel--spaced">
+            {tab === PROJECT_TABS.OVERVIEW ? (
+              <ProjectOverviewTab
+                project={project}
+                jobs={jobs}
+                jobsLoading={jobsLoading}
+                showJobs={canReadJobs}
+                onShowJobs={() => setTab(PROJECT_TABS.JOBS)}
+                canOpenClient={access.canOpen("/portal/customers")}
+                isInternal={access.isInternal}
+              />
+            ) : null}
+            {tab === PROJECT_TABS.JOBS ? (
+              <ProjectJobsTab
+                loading={jobsLoading}
+                error={jobsError}
+                items={jobs}
+                q={jobQ}
+                setQ={setJobQ}
+                onRetry={loadJobs}
+                busy={busy}
+                onCreate={canCreateJobs ? openNewJob : undefined}
+                createBlockedReason={createBlockedReason}
+              />
+            ) : null}
+            {tab === PROJECT_TABS.SCOPE ? (
+              <ProjectScopeTab
+                project={project}
+                customer={customer}
+                jobs={jobs}
+                loading={jobsLoading}
+                error={jobsError}
+                onRetry={loadJobs}
+                busy={busy}
+                generating={planGenerating}
+                canCreateJobs={canCreateJobs}
+                onCreateJob={openNewJob}
+                createBlockedReason={createBlockedReason}
+                onGeneratePlanJobs={handleGeneratePlanJobs}
+              />
+            ) : null}
+            {tab === PROJECT_TABS.FILES ? <ProjectFilesTab project={project} canUpload={access.can("files.write")} /> : null}
+            {tab === PROJECT_TABS.BILLING ? (
+              <ProjectBillingTab projectId={project._id} canOpenBilling={access.canOpen("/portal/billing")} />
+            ) : null}
+            {tab === PROJECT_TABS.ACTIVITY ? <ProjectActivityTab projectId={project._id} /> : null}
+          </TabPanel>
+        </div>
       </div>
 
-      <NewJobModal
-        open={newJobOpen}
-        onClose={() => setNewJobOpen(false)}
-        listCustomers={listCustomersForModal}
-        listProjects={listProjectsForModal}
-        createJob={createJobForModal}
-        initialCustomer={customer}
-        initialProject={project}
-        initialEnrollment={null}
-        lockCustomer={true}
-        lockProject={true}
-      />
+      <ConfirmDialog
+        open={archiveOpen}
+        title="Archive this project?"
+        icon={Archive}
+        confirmLabel="Archive project"
+        onConfirm={confirmArchive}
+        onClose={() => setArchiveOpen(false)}
+        details={[
+          "Its jobs, invoices, files and history are kept. Nothing is deleted.",
+          "It leaves the default project list. Choose the Archived status filter to find it.",
+          "Someone who can edit projects can bring it back by changing its status.",
+        ]}
+      >
+        {`"${project.name || "This project"}" will be archived.`}
+      </ConfirmDialog>
 
-      <ProjectFormModal
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        onSubmit={handleEdit}
-        busy={busy}
-        initialCustomer={customer}
-        initialProject={project}
-      />
+      {canCreateJobs ? (
+        <NewJobModal
+          open={newJobOpen}
+          onClose={() => setNewJobOpen(false)}
+          listCustomers={listCustomersForModal}
+          listProjects={listProjectsForModal}
+          createJob={async (payload) => {
+            const res = await createJobForModal(payload);
+            loadJobs();
+            return res;
+          }}
+          initialCustomer={customer}
+          initialProject={project}
+          initialEnrollment={null}
+          lockCustomer={true}
+          lockProject={true}
+        />
+      ) : null}
+
+      {canEdit ? (
+        <ProjectFormModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          onSubmit={handleEdit}
+          busy={busy}
+          initialCustomer={customer}
+          initialProject={project}
+        />
+      ) : null}
     </>
   );
 }

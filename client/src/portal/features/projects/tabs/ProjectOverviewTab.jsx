@@ -1,164 +1,184 @@
 import React from "react";
-import Card from "../../../shared/ui/Card";
+import { Link } from "react-router-dom";
+import { ClipboardList } from "lucide-react";
+import Panel from "../../../shared/ui/Panel";
+import KeyValue from "../../../shared/ui/KeyValue";
 import Badge from "../../../shared/ui/Badge";
+import {
+  JOB_STATUS_TONE,
+  MODE_LABEL,
+  SOURCE_LABEL,
+  customerOf,
+  dueInfo,
+  formatDate,
+  formatMoney,
+  humanize,
+  upcomingJobs,
+} from "../format";
 
-function InfoItem({ label, value }) {
-  return (
-    <div>
-      <div className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 text-sm text-slate-800">{value || "—"}</div>
-    </div>
-  );
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  try {
-    return new Date(value).toLocaleDateString();
-  } catch {
-    return "—";
-  }
-}
-
-function formatMoney(currency, amount) {
-  if (amount === null || amount === undefined || amount === "") return "—";
-  return `${currency || "AED"} ${amount}`;
-}
-
-function humanize(value) {
-  return String(value || "—").replaceAll("_", " ");
-}
-
-export default function ProjectOverviewTab({ project, customer }) {
+// Overview (PUI-2): what the project is, what is coming up, and the facts
+// people look for (dates, owner, client). Only fields the API returns.
+// Internal notes and the internal budget are staff information. The API does
+// not send them to client users (PUI-2 decision); `isInternal` keeps them out
+// of the client layout as well.
+export default function ProjectOverviewTab({ project, jobs, jobsLoading, showJobs, onShowJobs, canOpenClient, isInternal: viewerIsInternal = true }) {
+  const customer = customerOf(project);
   const isInternal = project?.projectMode === "internal";
+  const due = dueInfo(project);
   const tags = Array.isArray(project?.tags) ? project.tags : [];
+  const next = upcomingJobs(jobs || []);
 
   return (
-    <div className="grid gap-4">
-      <Card className="p-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="neutral">{humanize(project?.projectMode)}</Badge>
-          <Badge tone="neutral">{humanize(project?.source)}</Badge>
-          <Badge tone="neutral">{humanize(project?.type)}</Badge>
-          <Badge tone="neutral">{humanize(project?.status)}</Badge>
-          <Badge tone="neutral">{humanize(project?.priority)}</Badge>
-        </div>
+    <div className="px-grid px-cols-detail">
+      <div className="px-stack">
+        <Panel title="About this project">
+          {project?.description ? (
+            <p className="px-prose">{project.description}</p>
+          ) : (
+            <p className="px-muted" style={{ margin: 0 }}>No description yet.</p>
+          )}
+        </Panel>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          <InfoItem label="PROJECT NAME" value={project?.name} />
-          <InfoItem label="CODE" value={project?.code} />
-          <InfoItem label="TEAM" value={project?.team} />
-          <InfoItem label="OWNER" value={project?.ownerUserId?.fullName} />
+        {showJobs ? (
+          <Panel
+            title="Coming up"
+            sub="Open jobs with a due date, soonest first"
+            flush
+            action={
+              <button type="button" className="px-link" onClick={onShowJobs}>
+                All jobs
+              </button>
+            }
+          >
+            {jobsLoading ? (
+              <p className="px-muted" style={{ padding: "8px 20px 16px", margin: 0 }} role="status">
+                Loading jobs…
+              </p>
+            ) : next.length ? (
+              <ul className="px-list">
+                {next.map((j) => {
+                  const d = dueInfo({ endDate: j.dueDate, status: "active" });
+                  return (
+                    <li key={j._id}>
+                      <div style={{ minWidth: 0 }}>
+                        <div className="px-t">
+                          <Link to={`/portal/jobs/${j._id}`}>{j.title || "Untitled job"}</Link>
+                        </div>
+                        <div className="px-s">{humanize(j.type, "Job")}</div>
+                      </div>
+                      <div className="px-r">
+                        <Badge tone={JOB_STATUS_TONE[j.status] || "neutral"} dot>
+                          {humanize(j.status)}
+                        </Badge>
+                        <span data-tone={d?.tone || undefined}>{formatDate(j.dueDate, { year: false })}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="px-inline-empty">
+                <ClipboardList size={18} aria-hidden="true" />
+                <span>No open jobs with a due date.</span>
+              </div>
+            )}
+          </Panel>
+        ) : null}
 
-          <InfoItem
-            label="BUDGET"
-            value={formatMoney(project?.currency, project?.budget)}
+        <Panel title="Details">
+          <KeyValue
+            items={[
+              { label: "Type", value: humanize(project?.type) },
+              { label: "Mode", value: MODE_LABEL[project?.projectMode] || humanize(project?.projectMode) },
+              { label: "Source", value: SOURCE_LABEL[project?.source] || humanize(project?.source) },
+              { label: "Team", value: project?.team },
+              {
+                label: "Related service",
+                value: project?.enrollmentId?.serviceTemplateId?.name || (project?.enrollmentId ? "Linked" : "None"),
+              },
+              {
+                label: "Tags",
+                value: tags.length ? (
+                  <span style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {tags.map((t) => (
+                      <Badge key={t}>{t}</Badge>
+                    ))}
+                  </span>
+                ) : null,
+              },
+              { label: "Created", value: formatDate(project?.createdAt) },
+            ]}
           />
-          <InfoItem label="START DATE" value={formatDate(project?.startDate)} />
-          <InfoItem label="DUE DATE" value={formatDate(project?.endDate)} />
-          <InfoItem
-            label="TARGET LAUNCH"
-            value={formatDate(project?.targetLaunchDate)}
-          />
-        </div>
-      </Card>
+        </Panel>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="p-6">
-          <div className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500">
-            PROJECT CONTEXT
-          </div>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <InfoItem label="MODE" value={humanize(project?.projectMode)} />
-            <InfoItem label="SOURCE" value={humanize(project?.source)} />
-            <InfoItem label="TYPE" value={humanize(project?.type)} />
-            <InfoItem label="STATUS" value={humanize(project?.status)} />
-            <InfoItem label="PRIORITY" value={humanize(project?.priority)} />
-            <InfoItem
-              label="RELATED SERVICE"
-              value={
-                project?.enrollmentId?.serviceTemplateId?.name ||
-                (project?.enrollmentId ? "Related" : "None")
-              }
-            />
-          </div>
-
-          <div className="mt-5">
-            <div className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500">
-              TAGS
-            </div>
-
-            <div className="mt-2 flex flex-wrap gap-2">
-              {tags.length ? (
-                tags.map((tag) => (
-                  <Badge key={tag} tone="neutral">
-                    {tag}
-                  </Badge>
-                ))
-              ) : (
-                <div className="text-sm text-slate-600">No tags yet</div>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500">
-            {isInternal ? "OWNER / INTERNAL CONTEXT" : "CLIENT"}
-          </div>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <InfoItem
-              label={isInternal ? "INTERNAL PROJECT" : "COMPANY"}
-              value={isInternal ? "Yes" : customer?.companyName}
-            />
-            <InfoItem
-              label={isInternal ? "OWNER" : "CONTACT"}
-              value={
-                isInternal
-                  ? project?.ownerUserId?.fullName || "—"
-                  : customer?.contactName
-              }
-            />
-            <InfoItem
-              label={isInternal ? "OWNER EMAIL" : "EMAIL"}
-              value={
-                isInternal
-                  ? project?.ownerUserId?.email || "—"
-                  : customer?.primaryEmail
-              }
-            />
-            <InfoItem label="PHONE" value={customer?.phone} />
-          </div>
-
-          {!customer && !isInternal ? (
-            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              This project currently has no loaded customer details.
-            </div>
-          ) : null}
-        </Card>
+        {viewerIsInternal && project?.notes ? (
+          <Panel title="Internal notes">
+            <p className="px-prose">{project.notes}</p>
+          </Panel>
+        ) : null}
       </div>
 
-      <Card className="p-6">
-        <div className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500">
-          DESCRIPTION
-        </div>
-        <div className="mt-2 whitespace-pre-wrap text-sm text-slate-700">
-          {project?.description || "—"}
-        </div>
-      </Card>
+      <div className="px-stack">
+        <Panel title="Schedule">
+          <KeyValue
+            className="px-kv--side"
+            items={[
+              { label: "Start", value: formatDate(project?.startDate) },
+              {
+                label: "Due",
+                value: project?.endDate ? (
+                  <span className="px-due">
+                    {formatDate(project.endDate)}
+                    {due ? <small data-tone={due.tone || undefined}>{due.text}</small> : null}
+                  </span>
+                ) : null,
+              },
+              { label: "Target launch", value: formatDate(project?.targetLaunchDate) },
+              { label: "Budget", value: formatMoney(project?.budget, project?.currency), hidden: !viewerIsInternal || project?.budget == null },
+            ]}
+          />
+        </Panel>
 
-      <Card className="p-6">
-        <div className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500">
-          INTERNAL NOTES
-        </div>
-        <div className="mt-2 whitespace-pre-wrap text-sm text-slate-700">
-          {project?.notes || "—"}
-        </div>
-      </Card>
+        <Panel title="People">
+          <KeyValue
+            className="px-kv--side"
+            items={[
+              { label: "Owner", value: project?.ownerUserId?.fullName || "Unassigned" },
+              { label: "Owner email", value: project?.ownerUserId?.email, hidden: !project?.ownerUserId?.email },
+              { label: "Team", value: project?.team },
+            ]}
+          />
+        </Panel>
+
+        {!isInternal ? (
+          <Panel
+            title="Client"
+            action={
+              canOpenClient && customer?._id ? (
+                <Link className="px-link" to={`/portal/customers/${customer._id}`}>
+                  Open client
+                </Link>
+              ) : null
+            }
+          >
+            {customer ? (
+              <KeyValue
+                className="px-kv--side"
+                items={[
+                  { label: "Company", value: customer.companyName },
+                  { label: "Contact", value: customer.contactName },
+                  { label: "Email", value: customer.primaryEmail },
+                  { label: "Phone", value: customer.phone },
+                ]}
+              />
+            ) : (
+              <p className="px-muted" style={{ margin: 0 }}>
+                No client is linked to this project yet. Jobs can only be created once a client is linked.
+              </p>
+            )}
+          </Panel>
+        ) : null}
+      </div>
     </div>
   );
 }

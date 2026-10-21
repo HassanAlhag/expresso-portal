@@ -130,8 +130,26 @@ function isVendorRfqView(role, p) {
 
 export function isAllowed(role, pathname) {
   const r = String(role || "").toLowerCase();
+  // Pre-existing: the route guard also lets the `admin` role through, while
+  // the API bypasses checks for super_admin only. Recorded as a deferred
+  // finding (PUI-2 review); unchanged here so R2 route behaviour is not
+  // altered. New UI decisions use isAllowedByPermissions below.
   if (r === "super_admin" || r === "admin") return true;
+  return checkRoute(r, pathname);
+}
 
+/**
+ * The route rule from the user's effective permissions, with the same
+ * bypass as the API (super_admin only). Used for links and actions a page
+ * offers (PUI-2), so `admin` is never treated as unrestricted by role name.
+ */
+export function isAllowedByPermissions(role, pathname) {
+  const r = String(role || "").toLowerCase();
+  if (r === "super_admin") return true;
+  return checkRoute(r, pathname);
+}
+
+function checkRoute(r, pathname) {
   const p = pathname.replace(/\/$/, "");
   if (p === "/portal") return true;
   if (p === "/portal/profile" || p === "/portal/settings") return true;

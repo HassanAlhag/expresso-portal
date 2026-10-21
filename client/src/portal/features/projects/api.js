@@ -26,3 +26,10 @@ export async function archiveProject(id) {
   const { data } = await api.delete(`${BASE}/${id}`);
   return data;
 }
+
+// Counts by status, type and priority for the projects the user may see
+// (tenant-scoped on the server; includes archived projects).
+export async function getProjectStats() {
+  const { data } = await api.get(`${BASE}/stats`);
+  return data;
+}

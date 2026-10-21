@@ -35,6 +35,15 @@ Status words used here: **Implemented** = code changed in the working tree · **
 
 Deferred from R3 by the plan's own timing: **P2-2** (CRM conversions, after Stage 4), **P2-6** (settings read without write, after Stage 4) and the **P2-7 pipeline** (Stage 5). P1-2 is a P1 item and was not part of this P2 stage.
 
+### PUI-2 review findings (21 Oct 2026; not yet committed or deployed)
+
+| Finding | Status | Automated tests | Still pending |
+|---|---|---|---|
+| Client users received a project's internal notes and internal budget (`GET /api/projects`, `GET /api/projects/:id`) | **Implemented** — by decision, client users never receive `notes` or `budget`: both project queries exclude them for non-internal users (`project.controller.js`, `CLIENT_HIDDEN_PROJECT_FIELDS`, projection `{ notes: 0, budget: 0 }`); a client's project search no longer matches inside notes; staff responses and company isolation unchanged. Client commercial information comes from client-facing billing. The portal also keeps both out of the client layout | **Verified** — `test/pui2-client-project-fields.test.js` (6 project tests; the 3 exposure tests fail against the previous code, the staff and isolation tests pass on both) and client tests for the client project view and list | — |
+| Job detail (`GET /api/jobs/:id`) includes the project budget | **No change needed** — `jobs.*` is externally denied (R2), so only internal users can read jobs | — | — |
+| UI treated the `admin` role as unrestricted; the API bypasses checks for `super_admin` only | **Implemented for PUI-1/PUI-2 code** — `useAccess` (dashboard and Projects decisions and links), the shell's ticket action and the client dashboard links now use effective permissions; new `isAllowedByPermissions` applies the route rules without the role-name bypass. Server privileges unchanged | **Verified** — `useAccess.test.js`, staff dashboard and shell tests with a limited `admin` | **Deferred under P3-5 (Stage 4):** the pre-existing route guard `ProtectedRoute.jsx` `isAllowed` (role-name bypass for `admin`) and the navigation filter `portalNav.js` `getNavSectionsByRole` / its permission check (`ROLES.ADMIN` bypass) still let `admin` through by name. Changing them alters page access for every module, so it waits for the P3-5 work |
+| Client invoice list ignores `projectId` | **Confirmed not a security issue** — `GET /api/billing/invoices` always limits clients to their own company (a client without a company gets an empty list) and `GET /api/billing/invoices/:id` returns 403 for another company's invoice | **Verified** — 2 tests in `pui2-client-project-fields.test.js` | **Later API consistency item:** honour `projectId` for client users. Until then the project Billing tab filters the client's own invoices to the project |
+
 ### Stage R1 — P0 security (committed in `b2958e76`; not yet deployed)
 
 | ID | Implemented | Automated tests | Still pending |
@@ -512,7 +521,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 
 | | |
 |---|---|
-| **Affected** | Many pages with write and delete buttons; `client/src/portal/shared/ui/Can.jsx` (exists, unreachable); `ProtectedRoute.jsx` L118–120 (`super_admin`/`admin` always allowed); `client/src/portal/shared/hooks/usePortalPermissions.js` (reads localStorage once) |
+| **Affected** | Many pages with write and delete buttons; `client/src/portal/shared/ui/Can.jsx` (exists, unreachable); `ProtectedRoute.jsx` `isAllowed` (`super_admin`/`admin` always allowed); `portalNav.js` `getNavSectionsByRole` and its permission check (`ROLES.ADMIN` bypass); `client/src/portal/shared/hooks/usePortalPermissions.js` (reads localStorage once). Since PUI-2, the Staff Dashboard, Projects and shell actions use `useAccess` / `isAllowedByPermissions`, which follow effective permissions |
 | **Current** | Read-only users see Save and Delete buttons and get 403. Admins pass page gates even if their stored role was restricted. Permission changes reach the browser only after the next login or `/auth/me` |
 | **Expected** | The UI reflects effective permissions and refreshes them |
 | **Impact** | Confusing UX. Not a security hole, because the API enforces |

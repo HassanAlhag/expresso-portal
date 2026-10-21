@@ -7,6 +7,21 @@ import {
   requireOwnClient,
 } from "../../utils/accessControl.js";
 
+// Internal project fields (PUI-2 decision, 21 Oct 2026). Client users never
+// receive internal notes or the internal budget; their commercial view comes
+// from client-facing billing. Excluded at the query, so the fields are not
+// read for them at all. Staff responses are unchanged.
+export const CLIENT_HIDDEN_PROJECT_FIELDS = ["notes", "budget"];
+// Object form gives Mongoose an unambiguous exclusion: { notes: 0, budget: 0 }.
+export const CLIENT_PROJECT_PROJECTION = Object.freeze(
+  Object.fromEntries(CLIENT_HIDDEN_PROJECT_FIELDS.map((f) => [f, 0]))
+);
+
+/** Applies the client projection to a project query for non-internal users. */
+function forViewer(query, req) {
+  return canSeeAllTenantRecords(req) ? query : query.select({ ...CLIENT_PROJECT_PROJECTION });
+}
+
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -109,12 +124,15 @@ export async function listProjects(req, res) {
       filter.source = String(source).trim();
     }
 
+    const internal = canSeeAllTenantRecords(req);
+
     if (q.trim()) {
       const rx = new RegExp(escapeRegex(q.trim()), "i");
+      // Clients can't search internal notes (they would reveal their content).
       filter.$or = [
         { name: rx },
         { code: rx },
-        { notes: rx },
+        ...(internal ? [{ notes: rx }] : []),
         { description: rx },
         { team: rx },
         { tags: rx },
@@ -123,7 +141,7 @@ export async function listProjects(req, res) {
 
     const [total, items] = await Promise.all([
       Project.countDocuments(filter),
-      Project.find(filter)
+      forViewer(Project.find(filter), req)
         .sort(safeSort(sort))
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
@@ -158,7 +176,7 @@ export async function getProjectById(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
-    const item = await Project.findById(id)
+    const item = await forViewer(Project.findById(id), req)
       .populate("customerId", "companyName contactName primaryEmail phone")
       .populate("ownerUserId", "fullName email")
       .populate({

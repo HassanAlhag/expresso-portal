@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Button from "../../../shared/ui/Button";
-import Input from "../../../shared/ui/Input";
+import IconButton from "../../../shared/ui/IconButton";
+import TextField from "../../../shared/ui/TextField";
+import SelectField from "../../../shared/ui/SelectField";
 import CustomerSelect from "./CustomerSelect";
-import { BRAND } from "../constants";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, X } from "lucide-react";
 
 const PROJECT_MODE_OPTIONS = [
   { value: "custom", label: "Custom" },
@@ -45,28 +47,6 @@ const PROJECT_PRIORITY_OPTIONS = [
   { value: "high", label: "High" },
   { value: "urgent", label: "Urgent" },
 ];
-
-function SelectField({ label, value, onChange, options, disabled = false }) {
-  return (
-    <label className="grid gap-2">
-      <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-        {label}
-      </span>
-      <select
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        className="h-11 rounded-2xl border border-black/10 bg-white px-4 text-sm shadow-sm outline-none transition focus:ring-4 focus:ring-black/5 disabled:bg-slate-50 disabled:text-slate-500"
-      >
-        {options.map((o) => (
-          <option key={`${o.value}-${o.label}`} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
 
 function parseTags(value) {
   return String(value || "")
@@ -172,230 +152,217 @@ export default function ProjectFormModal({
     return true;
   }, [name, isInternal, customer]);
 
+  const titleId = useId();
+  const dialogRef = useRef(null);
+  const firstRef = useRef(null);
+  const returnRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    returnRef.current = document.activeElement;
+    const t = setTimeout(() => firstRef.current?.focus(), 0);
+    return () => {
+      clearTimeout(t);
+      const el = returnRef.current;
+      if (el && el.isConnected && typeof el.focus === "function") el.focus();
+    };
+  }, [open]);
+
+  // An archived project keeps "Archived" selectable so the form shows its
+  // real status; choosing another status brings it back.
+  const statusOptions = useMemo(
+    () =>
+      initialProject?.status === "archived"
+        ? [{ value: "archived", label: "Archived" }, ...PROJECT_STATUS_OPTIONS]
+        : PROJECT_STATUS_OPTIONS,
+    [initialProject?.status]
+  );
+
   if (!open) return null;
 
-  return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
-      onMouseDown={() => onClose?.()}
-    >
-      <div
-        className="flex w-full flex-col overflow-hidden rounded-t-3xl border border-black/10 bg-white shadow-2xl sm:w-[min(980px,96vw)] sm:rounded-3xl"
-        style={{ maxHeight: "calc(100dvh - env(safe-area-inset-top, 20px) - 20px)" }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        {/* Sticky header */}
-        <div className="flex-shrink-0 border-b border-black/10 p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="text-xl font-black text-slate-900 sm:text-2xl">
-                {isEdit ? "Edit Project" : "New Project"}
-              </div>
-              <div className="mt-1 text-sm text-slate-600">
-                {isEdit
-                  ? "Update the project details below."
-                  : "Use projects for separate or larger client work. Service contract work stays under enrollments."}
-              </div>
-            </div>
+  const close = () => {
+    if (!busy) onClose?.();
+  };
 
-            <button
-              type="button"
-              className="h-11 w-11 flex-shrink-0 rounded-full border border-black/10 bg-white hover:bg-black/[0.03]"
-              onClick={() => onClose?.()}
-              title="Close"
-            >
-              ✕
-            </button>
+  const onKeyDown = (e) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      close();
+      return;
+    }
+    if (e.key !== "Tab") return;
+    const nodes = [
+      ...(dialogRef.current?.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ) || []),
+    ];
+    if (!nodes.length) return;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
+  const submit = () =>
+    onSubmit?.({
+      customerId: isInternal ? null : customer?._id || null,
+      name: name.trim(),
+      code: code.trim(),
+      projectMode,
+      source,
+      type,
+      status,
+      priority,
+      team: team.trim(),
+      currency: currency.trim() || "AED",
+      budget: budget === "" ? null : Number(budget),
+      startDate: startDate || null,
+      endDate: endDate || null,
+      targetLaunchDate: targetLaunchDate || null,
+      tags: parseTags(tags),
+      description: description.trim(),
+      notes: notes.trim(),
+    });
+
+  const dialog = (
+    <div className="px-dialog-scrim px-form-scrim" onMouseDown={close}>
+      <div
+        ref={dialogRef}
+        className="px-dialog px-form-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onMouseDown={(e) => e.stopPropagation()}
+        onKeyDown={onKeyDown}
+      >
+        <div className="px-form-head">
+          <div>
+            <h2 id={titleId}>{isEdit ? "Edit project" : "New project"}</h2>
+            <p>
+              {isEdit
+                ? "Update the project details."
+                : "Use projects for separate or larger client work. Service contract work stays under enrollments."}
+            </p>
           </div>
+          <IconButton label="Close" onClick={close} disabled={busy}>
+            <X size={18} aria-hidden="true" />
+          </IconButton>
         </div>
 
-        {/* Scrollable body */}
-        <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="grid gap-4 p-5 sm:p-6">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <SelectField
-              label="PROJECT MODE"
-              value={projectMode}
-              onChange={(e) => setProjectMode(e.target.value)}
-              options={PROJECT_MODE_OPTIONS}
-            />
-
-            <SelectField
-              label="SOURCE"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              options={PROJECT_SOURCE_OPTIONS}
-              disabled={isInternal}
-            />
-          </div>
-
-          {!isInternal ? (
-            <CustomerSelect value={customer} onChange={setCustomer} />
-          ) : (
-            <div className="rounded-2xl border border-dashed border-black/10 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              This is an internal project. No customer is required.
+        <form
+          className="px-form-body"
+          id={`${titleId}-form`}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (canSubmit && !busy) submit();
+          }}
+        >
+          <fieldset className="px-form-section">
+            <legend>Who it's for</legend>
+            <div className="px-form-grid px-form-grid--2">
+              <SelectField label="Project mode" value={projectMode} onChange={setProjectMode} options={PROJECT_MODE_OPTIONS} />
+              <SelectField label="Source" value={source} onChange={setSource} options={PROJECT_SOURCE_OPTIONS} disabled={isInternal} />
             </div>
-          )}
+            {!isInternal ? (
+              <CustomerSelect value={customer} onChange={setCustomer} />
+            ) : (
+              <p className="px-hint" style={{ margin: 0 }}>This is an internal project, so no client is needed.</p>
+            )}
+          </fieldset>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Input
-              label="PROJECT NAME"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Sah Launch Campaign — Q2 2026"
-            />
+          <fieldset className="px-form-section">
+            <legend>Project</legend>
+            <div className="px-form-grid px-form-grid--2">
+              <TextField
+                ref={firstRef}
+                label="Project name"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Launch campaign, Q2 2026"
+                hint="At least 3 characters."
+              />
+              <TextField label="Code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Optional short code" />
+            </div>
+            <div className="px-form-grid px-form-grid--3">
+              <SelectField label="Type" value={type} onChange={setType} options={PROJECT_TYPE_OPTIONS} />
+              <SelectField label="Status" value={status} onChange={setStatus} options={statusOptions} />
+              <SelectField label="Priority" value={priority} onChange={setPriority} options={PROJECT_PRIORITY_OPTIONS} />
+            </div>
+            <div className="px-form-grid px-form-grid--2">
+              <TextField label="Team" value={team} onChange={(e) => setTeam(e.target.value)} placeholder="e.g. Development" />
+              <TextField
+                label="Tags"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="branding, proposal"
+                hint="Separate tags with commas."
+              />
+            </div>
+          </fieldset>
 
-            <Input
-              label="CODE"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Optional short code"
-            />
-          </div>
+          <fieldset className="px-form-section">
+            <legend>Dates and budget</legend>
+            <div className="px-form-grid px-form-grid--3">
+              <TextField label="Start date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <TextField label="Due date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              <TextField
+                label="Target launch"
+                type="date"
+                value={targetLaunchDate}
+                onChange={(e) => setTargetLaunchDate(e.target.value)}
+              />
+            </div>
+            <div className="px-form-grid px-form-grid--2">
+              <TextField label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder="AED" />
+              <TextField
+                label="Budget"
+                inputMode="decimal"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                placeholder="e.g. 25000"
+              />
+            </div>
+          </fieldset>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <SelectField
-              label="TYPE"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              options={PROJECT_TYPE_OPTIONS}
-            />
-
-            <SelectField
-              label="STATUS"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              options={PROJECT_STATUS_OPTIONS}
-            />
-
-            <SelectField
-              label="PRIORITY"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              options={PROJECT_PRIORITY_OPTIONS}
-            />
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-4">
-            <Input
-              label="TEAM"
-              value={team}
-              onChange={(e) => setTeam(e.target.value)}
-              placeholder="e.g. Development"
-            />
-
-            <Input
-              label="CURRENCY"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              placeholder="AED"
-            />
-
-            <Input
-              label="BUDGET"
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              placeholder="e.g. 25000"
-            />
-
-            <Input
-              label="TAGS"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="branding, urgent, proposal"
-            />
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Input
-              label="START DATE"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-
-            <Input
-              label="DUE DATE"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-
-            <Input
-              label="TARGET LAUNCH"
-              type="date"
-              value={targetLaunchDate}
-              onChange={(e) => setTargetLaunchDate(e.target.value)}
-            />
-          </div>
-
-          <label className="grid gap-2">
-            <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-              DESCRIPTION
-            </span>
-            <textarea
+          <fieldset className="px-form-section">
+            <legend>Notes</legend>
+            <TextField
+              label="Description"
+              multiline
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:ring-4 focus:ring-black/5"
               placeholder="What is this project about?"
             />
-          </label>
-
-          <label className="grid gap-2">
-            <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-              INTERNAL NOTES
-            </span>
-            <textarea
+            <TextField
+              label="Internal notes"
+              multiline
               rows={4}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:ring-4 focus:ring-black/5"
-              placeholder="Contract notes, payment terms, key decisions, links..."
+              placeholder="Contract notes, payment terms, key decisions, links"
             />
-          </label>
-        </div>
-        </div>
+          </fieldset>
+        </form>
 
-        {/* Sticky footer */}
-        <div
-          className="flex flex-shrink-0 items-center justify-end gap-2 border-t border-black/10 bg-white px-5 py-4 sm:px-6"
-          style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
-        >
-          <Button variant="outline" onClick={() => onClose?.()} disabled={busy}>
+        <div className="px-dialog-foot">
+          <Button variant="outline" onClick={close} disabled={busy}>
             Cancel
           </Button>
-
-          <Button
-            disabled={!canSubmit || busy}
-            style={{ backgroundColor: BRAND }}
-            onClick={() =>
-              onSubmit?.({
-                customerId: isInternal ? null : customer?._id || null,
-                name: name.trim(),
-                code: code.trim(),
-                projectMode,
-                source,
-                type,
-                status,
-                priority,
-                team: team.trim(),
-                currency: currency.trim() || "AED",
-                budget: budget === "" ? null : Number(budget),
-                startDate: startDate || null,
-                endDate: endDate || null,
-                targetLaunchDate: targetLaunchDate || null,
-                tags: parseTags(tags),
-                description: description.trim(),
-                notes: notes.trim(),
-              })
-            }
-          >
-            {isEdit ? <Pencil size={16} /> : <Plus size={16} />}
+          <Button type="submit" form={`${titleId}-form`} disabled={!canSubmit} loading={busy}>
+            {isEdit ? <Pencil size={15} aria-hidden="true" /> : <Plus size={15} aria-hidden="true" />}
             {isEdit ? "Save changes" : "Create project"}
           </Button>
         </div>
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(dialog, document.body) : dialog;
 }

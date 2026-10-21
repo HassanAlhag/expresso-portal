@@ -1,11 +1,11 @@
-import React, { useMemo } from "react";
-import Card from "../../../shared/ui/Card";
+import React, { useMemo, useState } from "react";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Skeleton from "../../../shared/ui/Skeleton";
 import Badge from "../../../shared/ui/Badge";
-import EmptyState from "../../../shared/ui/EmptyState";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
 import {
-  CheckCircle2,
   ClipboardList,
   Globe2,
   Plus,
@@ -146,157 +146,141 @@ function titleKey(value) {
   return normalize(value).replace(/\s+/g, " ");
 }
 
-function PhaseCard({ phase, existingTitles }) {
+function PhasePanel({ phase, index, existingTitles }) {
   const jobs = phase.jobs || [];
-  const completedCount = jobs.filter((job) => existingTitles.has(titleKey(job.title))).length;
-
+  const done = jobs.filter((job) => existingTitles.has(titleKey(job.title))).length;
+  const complete = done === jobs.length && jobs.length > 0;
   return (
-    <Card className="p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-black text-slate-900">{phase.title}</h3>
-            <Badge tone={completedCount === jobs.length && jobs.length ? "success" : "neutral"}>
-              {completedCount}/{jobs.length} jobs
-            </Badge>
-          </div>
-          <p className="mt-2 text-sm text-slate-600">{phase.outcome}</p>
-        </div>
-      </div>
-
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
-            <tr>
-              <th className="px-3 py-2">Job</th>
-              <th className="px-3 py-2">Type</th>
-              <th className="px-3 py-2">Due offset</th>
-              <th className="px-3 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {jobs.map((job) => {
-              const exists = existingTitles.has(titleKey(job.title));
-              return (
-                <tr key={job.title}>
-                  <td className="px-3 py-2 font-semibold text-slate-800">{job.title}</td>
-                  <td className="px-3 py-2 capitalize text-slate-500">{job.type || "other"}</td>
-                  <td className="px-3 py-2 text-slate-500">Day {job.dueDays || 0}</td>
-                  <td className="px-3 py-2">
+    <Panel
+      title={`${index + 1}. ${phase.title}`}
+      sub={phase.outcome}
+      flush
+      action={
+        <Badge tone={complete ? "ok" : done ? "info" : "neutral"} dot>
+          {done} of {jobs.length} jobs created
+        </Badge>
+      }
+    >
+      <table className="px-table px-table--stack" aria-label={`${phase.title} jobs`}>
+        <thead>
+          <tr>
+            <th scope="col">Planned job</th>
+            <th scope="col">Type</th>
+            <th scope="col">Due</th>
+            <th scope="col">In project</th>
+          </tr>
+        </thead>
+        <tbody>
+          {jobs.map((job) => {
+            const exists = existingTitles.has(titleKey(job.title));
+            return (
+              <tr key={job.title}>
+                <td className="px-primary">
+                  <div className="px-cell-main">
+                    <b>{job.title}</b>
+                  </div>
+                </td>
+                <td data-label="Type">{String(job.type || "other").replaceAll("_", " ")}</td>
+                <td data-label="Due" className="px-num">
+                  Day {job.dueDays || 0}
+                </td>
+                <td data-label="In project">
+                  <span>
                     {exists ? (
-                      <Badge tone="success" size="xs">
-                        <CheckCircle2 size={11} className="mr-1" />
+                      <Badge tone="ok" dot>
                         Created
                       </Badge>
                     ) : (
-                      <Badge tone="neutral" size="xs">Missing</Badge>
+                      <Badge tone="outline">Not yet</Badge>
                     )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </Card>
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </Panel>
   );
 }
 
+// Scope (PUI-2): a suggested delivery plan for the project type, compared
+// with the jobs that already exist. Generating creates only the missing
+// jobs, after a confirmation. Offered only to users who can create jobs.
 export default function ProjectScopeTab({
   project,
   customer,
   jobs = [],
   loading,
   error,
+  onRetry,
   busy,
   generating,
+  canCreateJobs,
   onCreateJob,
+  createBlockedReason,
   onGeneratePlanJobs,
 }) {
+  const [confirming, setConfirming] = useState(false);
   const plan = useMemo(() => resolvePlan(project), [project]);
-
   const plannedJobs = useMemo(() => flattenPhaseJobs(plan.phases), [plan]);
-  const existingTitles = useMemo(
-    () => new Set((jobs || []).map((job) => titleKey(job.title))),
-    [jobs]
-  );
+  const existingTitles = useMemo(() => new Set((jobs || []).map((job) => titleKey(job.title))), [jobs]);
   const missingJobs = plannedJobs.filter((job) => !existingTitles.has(titleKey(job.title)));
   const PlanIcon = plan.Icon || ClipboardList;
-  const canGenerate = Boolean(customer?._id && project?._id && missingJobs.length);
+  const canGenerate = Boolean(canCreateJobs && customer?._id && project?._id && missingJobs.length);
 
-  if (loading) {
-    return (
-      <div className="grid gap-4">
-        <Skeleton className="h-28 rounded-2xl" />
-        <Skeleton className="h-44 rounded-2xl" />
-        <Skeleton className="h-44 rounded-2xl" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-extrabold text-red-700">
-        {error}
-      </div>
-    );
-  }
-
-  if (!plan.phases.length) {
-    return (
-      <EmptyState
-        icon={ClipboardList}
-        title="No scope plan yet"
-        message="Create jobs manually or generate a project plan for this separate work."
-        actionLabel={customer?._id ? "Create Job" : undefined}
-        onAction={customer?._id ? onCreateJob : undefined}
-      />
-    );
-  }
+  if (loading) return <LoadingState rows={5} label="Loading the delivery plan" />;
+  if (error) return <ErrorState title="The plan didn't load" message={error} onRetry={onRetry} />;
 
   return (
-    <div className="grid gap-4">
-      <Card className="p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex min-w-0 gap-4">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
-              <PlanIcon size={20} />
-            </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-base font-black text-slate-900">{plan.title}</h2>
-                <Badge tone="info">{String(project?.type || "delivery").replaceAll("_", " ")}</Badge>
-                <Badge tone="neutral">Project plan</Badge>
-              </div>
-              <p className="mt-1 text-sm text-slate-600">{plan.subtitle}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Badge tone="neutral">{plan.phases.length} phases</Badge>
-                <Badge tone={missingJobs.length ? "warning" : "success"}>
-                  {missingJobs.length} missing jobs
-                </Badge>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <Button variant="outline" onClick={onCreateJob} disabled={busy || !customer?._id}>
-              <Plus size={15} />
-              Create job
-            </Button>
-            <Button
-              onClick={() => onGeneratePlanJobs?.(missingJobs)}
-              disabled={busy || generating || !canGenerate}
-            >
-              <Sparkles size={15} />
-              {generating ? "Generating..." : missingJobs.length ? "Generate missing jobs" : "Plan complete"}
-            </Button>
+    <div className="px-stack">
+      <section className="px-panel px-plan-head" aria-labelledby="px-plan-title">
+        <span className="px-plan-icon" aria-hidden="true">
+          <PlanIcon size={20} />
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <h2 id="px-plan-title">{plan.title}</h2>
+          <p>{plan.subtitle}</p>
+          <div className="px-plan-meta">
+            <Badge>{plan.phases.length} phases</Badge>
+            <Badge tone={missingJobs.length ? "warn" : "ok"} dot>
+              {missingJobs.length ? `${missingJobs.length} planned jobs not created yet` : "Every planned job exists"}
+            </Badge>
           </div>
         </div>
-      </Card>
+        {canCreateJobs ? (
+          <div className="px-plan-actions">
+            <Button variant="outline" onClick={onCreateJob} disabled={busy || Boolean(createBlockedReason)} title={createBlockedReason || undefined}>
+              <Plus size={15} aria-hidden="true" />
+              Create job
+            </Button>
+            <Button onClick={() => setConfirming(true)} disabled={busy || generating || !canGenerate} loading={generating}>
+              <Sparkles size={15} aria-hidden="true" />
+              {missingJobs.length ? "Create missing jobs" : "Plan complete"}
+            </Button>
+          </div>
+        ) : null}
+      </section>
 
-      {plan.phases.map((phase) => (
-        <PhaseCard key={phase.title} phase={phase} existingTitles={existingTitles} />
+      {plan.phases.map((phase, i) => (
+        <PhasePanel key={phase.title} phase={phase} index={i} existingTitles={existingTitles} />
       ))}
+
+      <ConfirmDialog
+        open={confirming}
+        tone="info"
+        icon={Sparkles}
+        title={`Create ${missingJobs.length} job${missingJobs.length === 1 ? "" : "s"}?`}
+        confirmLabel={`Create ${missingJobs.length} job${missingJobs.length === 1 ? "" : "s"}`}
+        onClose={() => setConfirming(false)}
+        onConfirm={async () => {
+          setConfirming(false);
+          await onGeneratePlanJobs?.(missingJobs);
+        }}
+        details={missingJobs.slice(0, 6).map((j) => j.title).concat(missingJobs.length > 6 ? [`and ${missingJobs.length - 6} more`] : [])}
+      >
+        These planned jobs will be added to the project as briefs, with due dates counted from the project start date.
+      </ConfirmDialog>
     </div>
   );
 }

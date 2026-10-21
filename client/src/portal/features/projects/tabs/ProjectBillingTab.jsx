@@ -1,138 +1,136 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Card from "../../../shared/ui/Card";
-import Skeleton from "../../../shared/ui/Skeleton";
+import { Link } from "react-router-dom";
+import { Wallet } from "lucide-react";
+import Panel from "../../../shared/ui/Panel";
+import Badge from "../../../shared/ui/Badge";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
 import EmptyState from "../../../shared/ui/EmptyState";
-import Button from "../../../shared/ui/Button";
+import ErrorState from "../../../shared/ui/ErrorState";
 import { listInvoices } from "../../billing/api";
-import { Wallet, ArrowRight, RefreshCw, CheckCircle2, Clock, AlertTriangle, XCircle } from "lucide-react";
+import { formatDate, formatMoney } from "../format";
 
-const STATUS_META = {
-  paid:    { cls: "bg-emerald-50 text-emerald-700",  icon: CheckCircle2 },
-  sent:    { cls: "bg-indigo-50 text-indigo-700",    icon: Clock },
-  draft:   { cls: "bg-slate-100 text-slate-600",     icon: Clock },
-  overdue: { cls: "bg-rose-50 text-rose-700",        icon: AlertTriangle },
-  void:    { cls: "bg-slate-100 text-slate-400",     icon: XCircle },
-};
+const INVOICE_TONE = { paid: "ok", sent: "info", overdue: "bad", draft: "outline", void: "idle" };
 
-function fmtMoney(amount, currency = "AED") {
-  if (amount == null) return "—";
-  return new Intl.NumberFormat("en-AE", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
-}
+const idOf = (v) => (v && typeof v === "object" ? v._id : v);
 
-export default function ProjectBillingTab({ projectId, customerId }) {
-  const nav = useNavigate();
+// Billing for this project (PUI-2). Only rendered for users with
+// billing.read; the API enforces the same and scopes clients to their own
+// company. Invoices are also filtered to this project here, because the API
+// ignores projectId for client users.
+export default function ProjectBillingTab({ projectId, canOpenBilling }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError("");
+    setError(false);
     try {
-      const params = { limit: 50, page: 1 };
-      if (projectId) params.projectId = projectId;
-      else if (customerId) params.customerId = customerId;
-      const res = await listInvoices(params);
-      setItems(Array.isArray(res?.items) ? res.items : []);
+      const res = await listInvoices({ projectId, limit: 50, page: 1 });
+      const all = Array.isArray(res?.items) ? res.items : [];
+      setItems(all.filter((i) => String(idOf(i.projectId) || "") === String(projectId)));
     } catch {
-      setError("Failed to load invoices.");
+      setError(true);
     } finally {
       setLoading(false);
     }
-  }, [projectId, customerId]);
+  }, [projectId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const total = items.reduce((s, i) => s + (i.amount || i.total || 0), 0);
-  const paid = items.filter((i) => i.status === "paid").reduce((s, i) => s + (i.amount || i.total || 0), 0);
-  const outstanding = items.filter((i) => ["sent", "overdue"].includes(i.status)).reduce((s, i) => s + (i.amount || i.total || 0), 0);
+  const live = items.filter((i) => i.status !== "void");
+  const currency = live[0]?.currency || "AED";
+  const sum = (list, f) => list.reduce((s, i) => s + Number(f(i) || 0), 0);
+  const invoiced = sum(live, (i) => i.total);
+  const collected = sum(live, (i) => i.amountPaid);
+  const outstanding = sum(live.filter((i) => ["sent", "overdue"].includes(i.status)), (i) => i.balance);
+  const overdue = sum(live.filter((i) => i.status === "overdue"), (i) => i.balance);
+
+  const action = canOpenBilling ? (
+    <Link className="px-link" to="/portal/billing">
+      All billing
+    </Link>
+  ) : null;
+
+  if (error) return <ErrorState title="Invoices didn't load" onRetry={load} />;
 
   return (
-    <div className="grid gap-4">
-      {/* Summary strip */}
-      {!loading && items.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Total invoiced", value: fmtMoney(total), cls: "text-slate-900" },
-            { label: "Collected",      value: fmtMoney(paid),  cls: "text-emerald-700" },
-            { label: "Outstanding",    value: fmtMoney(outstanding), cls: "text-rose-600" },
-          ].map(({ label, value, cls }) => (
-            <div key={label} className="rounded-[20px] border border-black/[0.07] bg-white p-4 shadow-sm">
-              <div className="text-[10.5px] font-extrabold uppercase tracking-[0.18em] text-slate-500">{label}</div>
-              <div className={`mt-1.5 text-xl font-black ${cls}`}>{value}</div>
+    <div className="px-stack">
+      {!loading && live.length ? (
+        <Panel title="Billing summary" sub="Invoices linked to this project, excluding void">
+          <div className="px-figs" style={{ "--px-fig-n": 3 }}>
+            <div className="px-fig">
+              <span>Invoiced</span>
+              <b>{formatMoney(invoiced, currency)}</b>
             </div>
-          ))}
-        </div>
-      )}
-
-      <Card className="overflow-hidden p-0">
-        <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4">
-          <div className="text-sm font-black text-slate-900">Invoices</div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={load} disabled={loading}>
-              <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
-            </Button>
-            <Button onClick={() => nav("/portal/billing")}>
-              <Wallet size={13} /> View all billing
-            </Button>
+            <div className="px-fig">
+              <span>Collected</span>
+              <b data-tone="ok">{formatMoney(collected, currency)}</b>
+            </div>
+            <div className="px-fig">
+              <span>Outstanding</span>
+              <b data-tone={overdue ? "bad" : undefined}>{formatMoney(outstanding, currency)}</b>
+              {overdue ? <span className="px-m-note" data-tone="bad">{formatMoney(overdue, currency)} overdue</span> : null}
+            </div>
           </div>
-        </div>
+        </Panel>
+      ) : null}
 
-        {loading ? (
-          <div className="grid gap-2 p-4">
-            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-2xl" />)}
-          </div>
-        ) : error ? (
-          <div className="p-4 text-sm font-semibold text-rose-700">{error}</div>
-        ) : items.length === 0 ? (
-          <EmptyState
-            icon={Wallet}
-            title="No invoices for this project"
-            message="Invoices linked to this project will appear here."
-            actionLabel="Go to billing"
-            onAction={() => nav("/portal/billing")}
-          />
-        ) : (
-          <div className="divide-y divide-black/[0.05]">
-            {items.map((inv) => {
-              const meta = STATUS_META[inv.status] || STATUS_META.draft;
-              const Icon = meta.icon;
-              return (
-                <button
-                  key={inv._id}
-                  type="button"
-                  onClick={() => nav(`/portal/billing/${inv._id}`)}
-                  className="flex w-full items-center gap-4 px-5 py-4 text-left transition hover:bg-slate-50/60"
-                >
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-black/[0.07] bg-slate-50">
-                    <Icon size={14} className="text-slate-500" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-bold text-slate-900">
-                      {inv.invoiceNumber || inv.title || `Invoice`}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                      <span className={`rounded-full px-2 py-0.5 text-[9.5px] font-bold ${meta.cls}`}>
-                        {inv.status}
+      {!loading && !items.length ? (
+        <EmptyState icon={Wallet} title="No invoices for this project" message="Invoices linked to this project will appear here." />
+      ) : (
+        <Panel title="Invoices" flush action={action}>
+          <table className="px-table px-table--stack" aria-label="Project invoices" aria-busy={loading || undefined}>
+            <thead>
+              <tr>
+                <th scope="col">Invoice</th>
+                <th scope="col">Status</th>
+                <th scope="col">Due</th>
+                <th scope="col" className="px-num">Total</th>
+                <th scope="col" className="px-num">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <SkeletonRows rows={3} cols={5} label="Loading invoices" />
+              ) : (
+                items.map((inv) => (
+                  <tr key={inv._id}>
+                    <td className="px-primary">
+                      <div className="px-cell-main">
+                        {canOpenBilling ? (
+                          <Link to={`/portal/billing/${inv._id}`}>{inv.number || "Draft invoice"}</Link>
+                        ) : (
+                          <b>{inv.number || "Draft invoice"}</b>
+                        )}
+                        <span>{inv.issuedAt ? `Issued ${formatDate(inv.issuedAt)}` : "Not issued"}</span>
+                      </div>
+                    </td>
+                    <td data-label="Status">
+                      <span>
+                        <Badge tone={INVOICE_TONE[inv.status] || "neutral"} dot={inv.status !== "draft"}>
+                          {inv.status || "draft"}
+                        </Badge>
                       </span>
-                      {inv.dueDate && (
-                        <span className="text-[10px] text-slate-400">
-                          Due {new Date(inv.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0 text-sm font-black text-slate-900">
-                    {fmtMoney(inv.amount || inv.total, inv.currency)}
-                  </div>
-                  <ArrowRight size={14} className="flex-shrink-0 text-slate-300" />
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </Card>
+                    </td>
+                    <td data-label="Due" className="px-num">
+                      {formatDate(inv.dueDate) || <span className="px-muted">—</span>}
+                    </td>
+                    <td data-label="Total" className="px-num">
+                      {formatMoney(inv.total, inv.currency)}
+                    </td>
+                    <td data-label="Balance" className="px-num">
+                      {formatMoney(inv.balance, inv.currency)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </Panel>
+      )}
     </div>
   );
 }

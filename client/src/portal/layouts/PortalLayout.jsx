@@ -121,8 +121,9 @@ export default function PortalLayout() {
   );
   const workspace = getWorkspaceKind(user);
   const permissions = user?.permissions || [];
-  const isAdmin = ["super_admin", "admin"].includes(String(user?.role || "").toLowerCase());
-  const canOpenTickets = isAdmin || permissions.includes("tickets.read");
+  // Same rule as the API: super_admin, or the effective tickets.read permission.
+  const isSuperAdmin = String(user?.role || "").toLowerCase() === "super_admin";
+  const canOpenTickets = isSuperAdmin || permissions.includes("tickets.read");
 
   return (
     <ShellProvider>

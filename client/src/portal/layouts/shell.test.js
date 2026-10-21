@@ -220,6 +220,11 @@ describe("shell", () => {
     expect(screen.queryByRole("link", { name: /New ticket/ })).toBe(null);
   });
 
+  test("the admin role needs tickets.read like everyone else (API rule)", async () => {
+    await renderShell({ ...staffUser, role: "admin", permissions: ["projects.read"] });
+    expect(screen.queryByRole("link", { name: /New ticket/ })).toBe(null);
+  });
+
   test("workspace lens is set on the shell for clients and vendors", async () => {
     const { container, unmount } = await renderShell({ fullName: "Omar Saleh", role: "client", isInternal: false, permissions: ["projects.read", "tickets.read"] });
     expect(container.querySelector(".portal-app").getAttribute("data-workspace")).toBe("client");
