@@ -1,22 +1,24 @@
+// JS mirror of the legacy portal colour aliases in portalTheme.css
+// (normalised to the approved palette in PUI-1).
 export const portalTheme = {
-  brand:       "#6f7fd9",
-  brandHover:  "#5e6ec7",
-  brandMuted:  "rgba(111, 127, 217, 0.09)",
-  brandBorder: "rgba(111, 127, 217, 0.22)",
+  brand:       "#5562a8",
+  brandHover:  "#444f8a",
+  brandMuted:  "rgba(85, 98, 168, 0.09)",
+  brandBorder: "rgba(85, 98, 168, 0.22)",
 
-  bg:      "#f1f5f9",
+  bg:      "#f7f7fa",
   surface: "#ffffff",
 
-  border:     "#e2e8f0",
-  borderSoft: "#f1f5f9",
+  border:     "#e4e2e8",
+  borderSoft: "#f0eff3",
 
-  ink:      "#0f172a",
-  inkSoft:  "rgba(15, 23, 42, 0.72)",
-  inkMuted: "rgba(15, 23, 42, 0.52)",
-  inkFaint: "rgba(15, 23, 42, 0.36)",
+  ink:      "#15121f",
+  inkSoft:  "rgba(21, 18, 31, 0.74)",
+  inkMuted: "rgba(21, 18, 31, 0.6)",
+  inkFaint: "rgba(21, 18, 31, 0.42)",
 
-  success: "#10b981",
-  warning: "#f59e0b",
-  danger:  "#ef4444",
-  info:    "#3b82f6",
+  success: "#2f7d5b",
+  warning: "#9a5300",
+  danger:  "#b2383b",
+  info:    "#5562a8",
 };

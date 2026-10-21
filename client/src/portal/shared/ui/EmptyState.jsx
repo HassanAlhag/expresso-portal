@@ -1,39 +1,27 @@
 import React from "react";
 import Button from "./Button";
 
+// Empty states say what is missing and invite the next action.
 export default function EmptyState({
   icon: Icon,
-  title = "No data found",
-  message = "There is nothing to show here yet.",
+  title = "Nothing here yet",
+  message = "",
   actionLabel,
   onAction,
+  action,
   className = "",
 }) {
   return (
-    <div
-      className={[
-        "flex min-h-[260px] flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-8 text-center",
-        className,
-      ].join(" ")}
-    >
+    <div className={["px-surface px-state", className].filter(Boolean).join(" ")}>
       {Icon ? (
-        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm">
+        <div className="px-glyph" aria-hidden="true">
           <Icon size={24} />
         </div>
       ) : null}
-
-      <h3 className="text-lg font-black text-slate-900">{title}</h3>
-
-      {message ? (
-        <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-          {message}
-        </p>
-      ) : null}
-
-      {actionLabel && onAction ? (
-        <div className="mt-6">
-          <Button onClick={onAction}>{actionLabel}</Button>
-        </div>
+      <h3>{title}</h3>
+      {message ? <p>{message}</p> : null}
+      {action || (actionLabel && onAction) ? (
+        <div className="px-btns">{action || <Button onClick={onAction}>{actionLabel}</Button>}</div>
       ) : null}
     </div>
   );

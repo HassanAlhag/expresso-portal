@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 
 import Skeleton from "../../../shared/ui/Skeleton";
+import Briefing from "../../../shared/ui/Briefing";
 import { listJobs } from "../../jobs/api";
 import { getTicketStats, listTickets } from "../../tickets/api";
 import { listCustomers } from "../../customers/api";
@@ -55,6 +56,33 @@ function fmtDate() {
     day: "numeric",
   });
 }
+
+function readPortalUser() {
+  try {
+    return JSON.parse(localStorage.getItem("portal_user") || "{}") || {};
+  } catch {
+    return {};
+  }
+}
+
+function firstName() {
+  const n = String(readPortalUser().fullName || "").trim();
+  return n ? n.split(/\s+/)[0] : "";
+}
+
+// UI gating only (the API and ProtectedRoute still decide): super_admin and
+// admin see everything, as in the navigation filter.
+function useCan() {
+  return useMemo(() => {
+    const u = readPortalUser();
+    const role = String(u.role || "").toLowerCase();
+    const set = new Set(Array.isArray(u.permissions) ? u.permissions : []);
+    return (perm) => role === "super_admin" || role === "admin" || set.has(perm);
+  }, []);
+}
+
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const countOf = (n, word) => (n ? plural(n, word) : `No ${word}s`);
 
 function fmtMoney(n, currency = "AED") {
   if (!n) return "0";
@@ -462,6 +490,7 @@ function EmptyRows({ icon: Icon, message }) {
 /* ─── client dashboard ──────────────────────────────────────────────── */
 
 function ClientDashboard({ nav }) {
+  const can = useCan();
   const me = useMemo(() => {
     try { return JSON.parse(localStorage.getItem("portal_user") || "{}"); }
     catch { return {}; }
@@ -533,41 +562,25 @@ function ClientDashboard({ nav }) {
 
   return (
     <div className="grid gap-5">
-      {/* Hero banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-slate-900 px-7 py-6 text-white shadow-[0_8px_32px_rgba(15,23,42,0.16)]">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full blur-3xl" style={{ backgroundColor: "#6f7fd9", opacity: 0.22 }} />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(111,127,217,0.5) 50%, transparent)" }} />
-        <div className="relative z-10">
-          <p className="text-[12px] font-medium tracking-wide text-white/45">{fmtDate()}</p>
-          <h1 className="mt-1 text-2xl font-black tracking-tight">{greeting()}</h1>
-          <p className="mt-1 text-[13px] text-white/55">
-            {loading ? "Loading workspace…" : `${openTickets.length} open ticket${openTickets.length !== 1 ? "s" : ""} · ${postsAwaitingApproval} post${postsAwaitingApproval !== 1 ? "s" : ""} pending approval`}
-          </p>
-
-          {/* #21 Quick Action Buttons */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" onClick={() => nav("/portal/content-calendar")}
-              className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/[0.14]">
-              <CalendarDays size={14} /> View Calendar
-            </button>
-            {postsAwaitingApproval > 0 && (
-              <button type="button" onClick={() => nav("/portal/content-calendar")}
-                className="flex items-center gap-2 rounded-xl border border-orange-400/40 bg-orange-500/20 px-4 py-2 text-[13px] font-semibold text-orange-200 transition hover:bg-orange-500/30">
-                <CheckCircle2 size={14} /> Approve Posts
-                <span className="ml-0.5 rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-black text-white">{postsAwaitingApproval}</span>
-              </button>
-            )}
-            <button type="button" onClick={() => nav("/portal/files")}
-              className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/[0.14]">
-              <UploadCloud size={14} /> Upload Asset
-            </button>
-            <button type="button" onClick={() => nav("/portal/messages")}
-              className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/[0.14]">
-              <MessageCircle size={14} /> Message Agency
-            </button>
-          </div>
-        </div>
-      </div>
+      <Briefing
+        when={fmtDate()}
+        links={[
+          can("jobs.read") && postsAwaitingApproval > 0 && { label: plural(postsAwaitingApproval, "post") + " to approve", icon: CheckCircle2, to: "/portal/content-calendar" },
+          can("jobs.read") && { label: "View calendar", icon: CalendarDays, to: "/portal/content-calendar" },
+          can("files.read") && { label: "Upload asset", icon: UploadCloud, to: "/portal/files" },
+          can("messaging.read") && { label: "Message your team", icon: MessageCircle, to: "/portal/messages" },
+        ].filter(Boolean)}
+      >
+        {greeting()}{firstName() ? `, ${firstName()}` : ""}.{" "}
+        {loading ? (
+          "Loading your workspace…"
+        ) : (
+          <>
+            You have <strong>{countOf(openTickets.length, "open request").replace(/^No/, "no")}</strong>
+            {postsAwaitingApproval > 0 ? <> and <strong>{plural(postsAwaitingApproval, "post")}</strong> waiting for your approval</> : null}.
+          </>
+        )}
+      </Briefing>
 
       {/* KPI tiles */}
       {loading ? (
@@ -764,32 +777,21 @@ function VendorDashboard({ nav }) {
 
   return (
     <div className="grid gap-5">
-      <div className="relative overflow-hidden rounded-2xl bg-slate-900 px-7 py-6 text-white shadow-[0_8px_32px_rgba(15,23,42,0.16)]">
-        <div
-          className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full blur-3xl"
-          style={{ backgroundColor: "#6f7fd9", opacity: 0.22 }}
-        />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-px"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(111,127,217,0.5) 50%, transparent)",
-          }}
-        />
-        <div className="relative z-10">
-          <p className="text-[12px] font-medium tracking-wide text-white/45">
-            {fmtDate()}
-          </p>
-          <h1 className="mt-1 text-2xl font-black tracking-tight">
-            {greeting()}
-          </h1>
-          <p className="mt-1 text-[13px] text-white/55">
-            {loading
-              ? "Loading workspace…"
-              : `${openRfqs.length} open RFQ${openRfqs.length !== 1 ? "s" : ""} · ${rfqs.length} total`}
-          </p>
-        </div>
-      </div>
+      <Briefing
+        when={fmtDate()}
+        links={[{ label: "Open RFQs", count: loading ? null : openRfqs.length, to: "/portal/procurement/rfqs" }]}
+      >
+        {greeting()}{firstName() ? `, ${firstName()}` : ""}.{" "}
+        {loading ? (
+          "Loading your RFQs…"
+        ) : openRfqs.length ? (
+          <>
+            <strong>{plural(openRfqs.length, "RFQ")}</strong> in your approved categories {openRfqs.length === 1 ? "is" : "are"} open for quotation.
+          </>
+        ) : (
+          "No RFQs in your categories are open right now."
+        )}
+      </Briefing>
 
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -883,6 +885,7 @@ function VendorDashboard({ nav }) {
 /* ─── page ──────────────────────────────────────────────────────────── */
 
 export default function DashboardPage() {
+  const can = useCan();
   const nav = useNavigate();
   const role = getPortalRole();
   const isExternalClient = ["client", "staff_client", "procurement_client", "client_admin"].includes(role);
@@ -1111,60 +1114,23 @@ export default function DashboardPage() {
 
   return (
     <div className="grid gap-5">
-      {/* ── 1. Greeting banner ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-slate-900 px-7 py-6 text-white shadow-[0_8px_32px_rgba(15,23,42,0.16)]">
-        <div
-          className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full blur-3xl"
-          style={{ backgroundColor: "#6f7fd9", opacity: 0.22 }}
-        />
-        <div
-          className="pointer-events-none absolute -left-10 bottom-0 h-32 w-48 rounded-full blur-3xl"
-          style={{ backgroundColor: "#6f7fd9", opacity: 0.08 }}
-        />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-px"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(111,127,217,0.5) 50%, transparent)",
-          }}
-        />
-
-        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[12px] font-medium tracking-wide text-white/45">
-              {fmtDate()}
-            </p>
-            <h1 className="mt-1 text-2xl font-black tracking-tight">
-              {greeting()}
-            </h1>
-            <p className="mt-1 text-[13px] text-white/55">
-              {loading
-                ? "Loading workspace…"
-                : `${approvals.length} approval${
-                    approvals.length !== 1 ? "s" : ""
-                  } waiting · ${openTickets.length} open ticket${
-                    openTickets.length !== 1 ? "s" : ""
-                  } · AED ${fmtMoney(pipelineValue)} in pipeline`}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => nav("/portal/crm/deals")}
-              className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-white/[0.12]"
-            >
-              CRM Deals
-            </button>
-            <button
-              type="button"
-              onClick={() => nav("/portal/tickets")}
-              className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-white/[0.12]"
-            >
-              New ticket
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* ── 1. Briefing ── */}
+      <Briefing
+        when={fmtDate()}
+        links={[
+          can("crm.read") && { label: "CRM deals", to: "/portal/crm/deals" },
+          can("tickets.read") && { label: plural(openTickets.length, "open ticket"), to: "/portal/tickets" },
+        ].filter(Boolean)}
+      >
+        {greeting()}{firstName() ? `, ${firstName()}` : ""}.{" "}
+        {loading ? (
+          "Loading your workspace…"
+        ) : (
+          <>
+            <strong>{countOf(approvals.length, "approval")}</strong> waiting, {plural(openTickets.length, "open ticket")} and AED {fmtMoney(pipelineValue)} in the pipeline.
+          </>
+        )}
+      </Briefing>
 
       {/* ── 2. KPI row ── */}
       {loading ? (

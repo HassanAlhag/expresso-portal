@@ -1,61 +1,66 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { me } from "../shared/api/auth.api";
 import Topbar from "./Topbar";
 import Sidebar from "./Sidebar";
-import { getNavSectionsByRole } from "../app/portalNav";
+import { ShellProvider } from "./ShellContext";
+import { getNavSectionsByRole, getWorkspaceKind } from "../app/portalNav";
 
-const SIDEBAR_OPEN = 256;
-const SIDEBAR_CLOSED = 68;
-const MOBILE_BP = 768;
+// Application shell (PUI-1): dark sidebar with permission-filtered groups,
+// top bar with page context, and a balanced page column. Desktop sidebar
+// collapses to an icon rail; at 960 px and below it becomes a drawer.
+const DRAWER_QUERY = "(max-width: 960px)";
+const COLLAPSE_KEY = "portal_nav_collapsed";
 
 function readStoredUser() {
   try {
-    const raw = localStorage.getItem("portal_user");
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(localStorage.getItem("portal_user") || "null");
     return parsed && typeof parsed === "object" ? parsed : null;
   } catch {
     return null;
   }
 }
 
-function isMobileViewport() {
-  return typeof window !== "undefined" && window.innerWidth < MOBILE_BP;
+function readCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function useMediaQuery(query) {
+  const get = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia(query).matches : false);
+  const [matches, setMatches] = useState(get);
+  useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia(query);
+    const onChange = () => setMatches(mq.matches);
+    onChange();
+    mq.addEventListener ? mq.addEventListener("change", onChange) : mq.addListener(onChange);
+    return () => (mq.removeEventListener ? mq.removeEventListener("change", onChange) : mq.removeListener(onChange));
+  }, [query]);
+  return matches;
 }
 
 export default function PortalLayout() {
   const nav = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(() => readStoredUser());
-  const [isMobile, setIsMobile] = useState(() => isMobileViewport());
-  const [sidebarOpen, setSidebarOpen] = useState(() => !isMobileViewport());
-
-  const sidebarW = sidebarOpen ? SIDEBAR_OPEN : SIDEBAR_CLOSED;
-
-  useEffect(() => {
-    const onResize = () => {
-      const mobile = isMobileViewport();
-      setIsMobile(mobile);
-      if (mobile) setSidebarOpen(false);
-    };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+  const [collapsed, setCollapsed] = useState(() => readCollapsed());
+  const [navOpen, setNavOpen] = useState(false);
+  const isDrawer = useMediaQuery(DRAWER_QUERY);
+  const menuButtonRef = useRef(null);
 
   useEffect(() => {
     const run = async () => {
       try {
         const res = await me();
         const userData = res?.user || null;
-
         setUser(userData);
-
         if (userData) {
           localStorage.setItem("portal_user", JSON.stringify(userData));
-          localStorage.setItem(
-            "portal_permissions",
-            JSON.stringify(userData.permissions || [])
-          );
+          localStorage.setItem("portal_permissions", JSON.stringify(userData.permissions || []));
         }
       } catch {
         localStorage.removeItem("portal_token");
@@ -64,9 +69,43 @@ export default function PortalLayout() {
         nav("/portal/login", { replace: true });
       }
     };
-
     run();
   }, [nav]);
+
+  // The drawer closes when the route changes.
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isDrawer) setNavOpen(false);
+  }, [isDrawer]);
+
+  const closeDrawer = useCallback(() => {
+    setNavOpen(false);
+    menuButtonRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") closeDrawer();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [navOpen, closeDrawer]);
+
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      const next = !v;
+      try {
+        localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+      } catch {
+        /* per-viewer convenience only */
+      }
+      return next;
+    });
+  };
 
   const onLogout = () => {
     localStorage.removeItem("portal_token");
@@ -80,52 +119,57 @@ export default function PortalLayout() {
     () => getNavSectionsByRole(user?.role, user?.permissions || []),
     [user?.role, user?.permissions]
   );
-
-  const closeMobileSidebar = useCallback(() => {
-    if (isMobile) setSidebarOpen(false);
-  }, [isMobile]);
+  const workspace = getWorkspaceKind(user);
+  const permissions = user?.permissions || [];
+  const isAdmin = ["super_admin", "admin"].includes(String(user?.role || "").toLowerCase());
+  const canOpenTickets = isAdmin || permissions.includes("tickets.read");
 
   return (
-    <div className="portal-app portal-shell">
-      <div className="portal-topbar">
-        <Topbar
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={() => setSidebarOpen((v) => !v)}
-          onNewTicket={() => nav("/portal/tickets")}
-        />
-      </div>
-
-      <div className="portal-body">
-        {/* Mobile backdrop — dims content behind open drawer */}
-        {isMobile && sidebarOpen && (
-          <div
-            className="portal-mobile-backdrop"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
-        <aside
-          className={[
-            "portal-sidebar",
-            isMobile && sidebarOpen ? "portal-sidebar--mobile-open" : "",
-          ].filter(Boolean).join(" ")}
-          style={isMobile ? undefined : { width: sidebarW }}
+    <ShellProvider>
+      <div className="portal-app" data-workspace={workspace}>
+        <a href="#px-main" className="px-skip">
+          Skip to content
+        </a>
+        <div
+          className="px-shell"
+          data-collapsed={String(collapsed && !isDrawer)}
+          data-nav-open={String(isDrawer && navOpen)}
         >
           <Sidebar
-            sidebarOpen={isMobile ? true : sidebarOpen}
+            id="px-sidebar"
             navSections={navSections}
+            workspace={workspace}
             user={user}
-            onLogout={onLogout}
-            onNavClick={closeMobileSidebar}
+            collapsed={collapsed && !isDrawer}
+            onToggleCollapsed={toggleCollapsed}
+            isDrawer={isDrawer}
+            drawerOpen={navOpen}
+            onCloseDrawer={closeDrawer}
           />
-        </aside>
-
-        <main className="portal-main">
-          <div className="portal-section">
-            <Outlet />
+          {isDrawer && navOpen ? <div className="px-scrim" aria-hidden="true" onClick={closeDrawer} /> : null}
+          <div className="px-main">
+            <Topbar
+              user={user}
+              workspace={workspace}
+              navSections={navSections}
+              menuButtonRef={menuButtonRef}
+              navOpen={navOpen}
+              onOpenNav={() => setNavOpen(true)}
+              onLogout={onLogout}
+              contextAction={
+                canOpenTickets
+                  ? { label: workspace === "client" ? "Get help" : "New ticket", to: "/portal/tickets" }
+                  : null
+              }
+            />
+            <div className="px-scroll" id="px-scroll">
+              <main id="px-main" className="px-page" tabIndex={-1}>
+                <Outlet />
+              </main>
+            </div>
           </div>
-        </main>
+        </div>
       </div>
-    </div>
+    </ShellProvider>
   );
 }

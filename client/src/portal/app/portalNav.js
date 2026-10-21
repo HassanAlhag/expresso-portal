@@ -588,7 +588,7 @@ const ITEMS = {
 
 const ADMIN_SECTIONS = [
   {
-    title: "Main",
+    title: "Workspace",
     Icon: LayoutDashboard,
     items: [ITEMS.dashboard, ITEMS.clients, ITEMS.projects],
   },
@@ -1119,4 +1119,50 @@ export function getPageMeta(pathname) {
     subtitle: "Workspace",
     Icon: LayoutDashboard,
   };
+}
+
+/* ── PUI-1 shell helpers ──────────────────────────────────────────────── */
+
+const CLIENT_WORKSPACE_ROLES = new Set(["client", "staff_client", "procurement_client", "client_admin"]);
+
+/**
+ * Which workspace lens the shell shows: "staff", "client" or "vendor".
+ * Presentation only — what a user can open is still decided by the
+ * navigation filter above, ProtectedRoute and the API.
+ */
+export function getWorkspaceKind(user) {
+  const r = String(user?.role || "").toLowerCase();
+  if (!r) return "staff";
+  if (r === "vendor") return "vendor";
+  if (CLIENT_WORKSPACE_ROLES.has(r) || user?.isInternal === false) return "client";
+  return "staff";
+}
+
+export const WORKSPACE_LABELS = {
+  staff: { name: "Expresso Digital", sub: "Staff workspace" },
+  client: { name: "Client workspace", sub: "Your projects with Expresso" },
+  vendor: { name: "Vendor workspace", sub: "RFQs and quotations" },
+};
+
+/** Breadcrumbs derived from the route when a page doesn't provide its own. */
+export function getRouteCrumbs(pathname, navSections = []) {
+  const p = pathname || ROUTES.DASHBOARD;
+  if (p === ROUTES.DASHBOARD) return [{ label: getPageMeta(p).label }];
+  let best = null;
+  for (const section of navSections) {
+    for (const item of section.items) {
+      if (item.to === ROUTES.DASHBOARD) continue;
+      if ((p === item.to || p.startsWith(item.to + "/")) && (!best || item.to.length > best.item.to.length)) {
+        best = { section, item };
+      }
+    }
+  }
+  if (best) {
+    const generic = new Set(["Workspace", "Account", best.item.label]);
+    const crumbs = generic.has(best.section.title) ? [] : [{ label: best.section.title }];
+    if (p === best.item.to) crumbs.push({ label: best.item.label });
+    else crumbs.push({ label: best.item.label, to: best.item.to }, { label: "Details" });
+    return crumbs;
+  }
+  return [{ label: getPageMeta(p).label }];
 }

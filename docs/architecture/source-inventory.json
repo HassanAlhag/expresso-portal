@@ -14632,7 +14632,7 @@
         },
         {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 498
+          "line": 527
         }
       ]
     },
@@ -14651,7 +14651,16 @@
           "line": 60
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/projects/pages/ProjectsPage.jsx",
+          "line": 46
+        },
+        {
+          "file": "client/src/portal/features/projects/pages/ProjectsPage.jsx",
+          "line": 48
+        }
+      ]
     },
     "projects.delete": {
       "api": [
@@ -14739,7 +14748,15 @@
         },
         {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 500
+          "line": 529
+        },
+        {
+          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
+          "line": 568
+        },
+        {
+          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
+          "line": 569
         }
       ]
     },
@@ -14886,6 +14903,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 27
+        },
+        {
+          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
+          "line": 570
         }
       ]
     },
@@ -15041,7 +15062,7 @@
         },
         {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 499
+          "line": 528
         }
       ]
     },
@@ -15165,7 +15186,15 @@
         },
         {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 497
+          "line": 526
+        },
+        {
+          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
+          "line": 1122
+        },
+        {
+          "file": "client/src/portal/layouts/PortalLayout.jsx",
+          "line": 125
         }
       ]
     },
@@ -15282,6 +15311,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 36
+        },
+        {
+          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
+          "line": 1121
         }
       ]
     },
@@ -16213,6 +16246,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 28
+        },
+        {
+          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
+          "line": 571
         }
       ]
     },
@@ -18888,10 +18925,12 @@
           "client/src/portal/layouts/Topbar.jsx",
           "client/src/portal/shared/ui/ActionMenu.jsx",
           "client/src/portal/shared/ui/AttachmentPicker.jsx",
+          "client/src/portal/shared/ui/Breadcrumbs.jsx",
           "client/src/portal/shared/ui/Button.jsx",
           "client/src/portal/shared/ui/CommandBar.jsx",
           "client/src/portal/shared/ui/ConfirmModal.jsx",
           "client/src/portal/shared/ui/DetailsShell.jsx",
+          "client/src/portal/shared/ui/ErrorState.jsx",
           "client/src/portal/shared/ui/Modal.jsx",
           "client/src/portal/shared/ui/PromptModal.jsx",
           "client/src/portal/shared/ui/RightDrawer.jsx",
@@ -19204,6 +19243,7 @@
           "client/src/portal/features/website/pages/TechSolutionsPage.jsx",
           "client/src/portal/features/website/pages/WebsiteSettingsPage.jsx",
           "client/src/portal/layouts/PortalLayout.jsx",
+          "client/src/portal/layouts/ShellContext.jsx",
           "client/src/portal/layouts/Sidebar.jsx",
           "client/src/portal/layouts/Topbar.jsx",
           "client/src/portal/pages/AcceptInvite.jsx",
@@ -19217,7 +19257,10 @@
           "client/src/portal/shared/ui/ActionMenu.jsx",
           "client/src/portal/shared/ui/AttachmentPicker.jsx",
           "client/src/portal/shared/ui/AuthCard.jsx",
+          "client/src/portal/shared/ui/Avatar.jsx",
           "client/src/portal/shared/ui/Badge.jsx",
+          "client/src/portal/shared/ui/Breadcrumbs.jsx",
+          "client/src/portal/shared/ui/Briefing.jsx",
           "client/src/portal/shared/ui/Button.jsx",
           "client/src/portal/shared/ui/Card.jsx",
           "client/src/portal/shared/ui/CommandBar.jsx",
@@ -19225,11 +19268,16 @@
           "client/src/portal/shared/ui/DataTable.jsx",
           "client/src/portal/shared/ui/DetailsShell.jsx",
           "client/src/portal/shared/ui/EmptyState.jsx",
+          "client/src/portal/shared/ui/ErrorState.jsx",
           "client/src/portal/shared/ui/FilterBar.jsx",
+          "client/src/portal/shared/ui/IconButton.jsx",
           "client/src/portal/shared/ui/Input.jsx",
           "client/src/portal/shared/ui/ListShell.jsx",
           "client/src/portal/shared/ui/Loader.jsx",
+          "client/src/portal/shared/ui/LoadingState.jsx",
+          "client/src/portal/shared/ui/Menu.jsx",
           "client/src/portal/shared/ui/Modal.jsx",
+          "client/src/portal/shared/ui/PageFrame.jsx",
           "client/src/portal/shared/ui/PageHeader.jsx",
           "client/src/portal/shared/ui/Pill.jsx",
           "client/src/portal/shared/ui/PromptModal.jsx",
@@ -19449,9 +19497,10 @@
           "client/src/portal/pages/RequestAccess.jsx",
           "client/src/portal/pages/ResetPassword.jsx",
           "client/src/portal/shared/ui/AuthCard.jsx",
+          "client/src/portal/shared/ui/Breadcrumbs.jsx",
+          "client/src/portal/shared/ui/Briefing.jsx",
           "client/src/portal/shared/ui/CommandBar.jsx",
-          "client/src/portal/shared/ui/DetailsShell.jsx",
-          "client/src/portal/shared/ui/PageHeader.jsx"
+          "client/src/portal/shared/ui/DetailsShell.jsx"
         ]
       },
       {

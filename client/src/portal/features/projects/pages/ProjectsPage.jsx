@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import PageHeader from "../../../shared/ui/PageHeader";
+import PageFrame from "../../../shared/ui/PageFrame";
+import { usePortalPermissions } from "../../../shared/hooks/usePortalPermissions";
 import { useToast } from "../../../shared/ui/Toast";
 import Button from "../../../shared/ui/Button";
 import StatCard from "../../../shared/ui/StatCard";
@@ -37,6 +38,17 @@ const PROJECT_MODE_OPTIONS = [
 export default function ProjectsPage() {
   const nav = useNavigate();
   const toast = useToast();
+  const { hasPermission } = usePortalPermissions();
+  // UI gating only; the API still enforces projects.write (clients never have it).
+  const canCreate = useMemo(() => {
+    try {
+      const role = String(JSON.parse(localStorage.getItem("portal_user") || "{}").role || "").toLowerCase();
+      return role === "super_admin" || role === "admin" || hasPermission("projects.write");
+    } catch {
+      return hasPermission("projects.write");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
@@ -126,29 +138,26 @@ export default function ProjectsPage() {
 
   return (
     <>
+      <PageFrame
+        title="Projects"
+        description="Client work, custom requests, pre-contract work and internal initiatives. Archived projects are hidden unless you filter for them."
+        breadcrumb={[{ label: "Projects" }]}
+        secondaryActions={
+          <Button variant="outline" onClick={load} disabled={loading || busy}>
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />
+            Refresh
+          </Button>
+        }
+        primaryAction={
+          canCreate ? (
+            <Button onClick={() => setCreateOpen(true)} disabled={busy}>
+              <Plus size={14} aria-hidden="true" />
+              New project
+            </Button>
+          ) : null
+        }
+      >
       <div className="grid gap-4">
-        <PageHeader
-          eyebrow="MAIN"
-          title="Projects"
-          subtitle="Client work, custom requests, pre-contract, and internal initiatives."
-          breadcrumb={[
-            { label: "Portal", to: "/portal" },
-            { label: "Projects" },
-          ]}
-          right={
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={load} disabled={loading || busy}>
-                <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-                Refresh
-              </Button>
-              <Button onClick={() => setCreateOpen(true)} disabled={busy}>
-                <Plus size={14} />
-                New project
-              </Button>
-            </div>
-          }
-        />
-
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard icon={FolderKanban} label="Total"       value={statsData.total}       color="indigo"  />
           <StatCard icon={Users}        label="Active"      value={statsData.active}      color="emerald" />
@@ -176,12 +185,13 @@ export default function ProjectsPage() {
           meta={meta}
           loading={loading}
           error={error}
-          onCreate={() => setCreateOpen(true)}
+          onCreate={canCreate ? () => setCreateOpen(true) : undefined}
           onOpen={(project) => nav(`/portal/projects/${project._id}`)}
           onPrev={() => setPage((p) => Math.max(1, p - 1))}
           onNext={() => setPage((p) => Math.min(meta.pages, p + 1))}
         />
       </div>
+      </PageFrame>
 
       <ProjectFormModal
         open={createOpen}

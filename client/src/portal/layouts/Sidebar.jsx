@@ -1,159 +1,164 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronRight, LogOut } from "lucide-react";
+import { ChevronDown, PanelLeftClose } from "lucide-react";
+import { BrandMark } from "../../brand";
+import { initialsOf } from "../shared/ui/Avatar";
+import { WORKSPACE_LABELS } from "../app/portalNav";
 
-function getInitials(name) {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join("");
+// Sidebar (PUI-1). Items come from getNavSectionsByRole(), i.e. the user's
+// real role and permissions; hiding an item never replaces the route guard.
+const GROUPS_KEY = "portal_nav_closed_groups";
+
+function isActiveItem(item, pathname) {
+  if (item.to === "/portal") return pathname === "/portal" || pathname === "/portal/";
+  return pathname === item.to || pathname.startsWith(item.to + "/");
 }
 
-function findActiveSection(navSections, pathname) {
-  return navSections.find((sec) =>
-    sec.items.some(
-      (item) =>
-        pathname === item.to ||
-        (item.to !== "/portal" && pathname.startsWith(item.to + "/")) ||
-        (item.to !== "/portal" && pathname.startsWith(item.to))
-    )
-  );
-}
-
-export default function Sidebar({ sidebarOpen, navSections = [], user, onLogout, onNavClick }) {
-  const location = useLocation();
-  const [openSection, setOpenSection] = useState(() => {
-    const active = findActiveSection(navSections, location.pathname);
-    return active ? active.title : navSections[0]?.title ?? null;
-  });
-
-  useEffect(() => {
-    const active = findActiveSection(navSections, location.pathname);
-    if (active) setOpenSection(active.title);
-  }, [location.pathname, navSections]);
-
-  function toggle(title) {
-    setOpenSection((prev) => (prev === title ? null : title));
+function readClosedGroups() {
+  try {
+    const v = JSON.parse(localStorage.getItem(GROUPS_KEY) || "null");
+    return Array.isArray(v) ? v : null;
+  } catch {
+    return null;
   }
+}
+
+export default function Sidebar({
+  id,
+  navSections = [],
+  workspace = "staff",
+  user,
+  collapsed,
+  onToggleCollapsed,
+  isDrawer,
+  drawerOpen,
+  onCloseDrawer,
+}) {
+  const { pathname } = useLocation();
+  const navRef = useRef(null);
+  const totalItems = navSections.reduce((n, s) => n + s.items.length, 0);
+  const activeGroup = useMemo(
+    () => navSections.find((s) => s.items.some((i) => isActiveItem(i, pathname)))?.title,
+    [navSections, pathname]
+  );
+
+  // Groups: all open for short menus; for long menus, the first group and
+  // the group holding the current page start open. Choices are remembered.
+  const [closed, setClosed] = useState(() => readClosedGroups());
+  const defaultClosed = useMemo(
+    () => (totalItems <= 16 ? [] : navSections.slice(1).map((s) => s.title)),
+    [navSections, totalItems]
+  );
+  const closedSet = new Set((closed ?? defaultClosed).filter((t) => t !== activeGroup));
+
+  const toggleGroup = (title) => {
+    const next = new Set(closedSet);
+    next.has(title) ? next.delete(title) : next.add(title);
+    const arr = [...next];
+    setClosed(arr);
+    try {
+      localStorage.setItem(GROUPS_KEY, JSON.stringify(arr));
+    } catch {
+      /* per-viewer convenience only */
+    }
+  };
+
+  // Drawer: move focus into the navigation when it opens.
+  useEffect(() => {
+    if (isDrawer && drawerOpen) {
+      const target = navRef.current?.querySelector('[aria-current="page"]') || navRef.current?.querySelector("a");
+      target?.focus();
+    }
+  }, [isDrawer, drawerOpen]);
+
+  const label = WORKSPACE_LABELS[workspace] || WORKSPACE_LABELS.staff;
+  const wsInitials = workspace === "staff" ? "ED" : initialsOf(user?.fullName || user?.name || label.name);
+  const hiddenDrawer = isDrawer && !drawerOpen;
 
   return (
-    <div className="sb-root">
-      <nav className="sb-nav">
-        {navSections.map((sec) =>
-          sidebarOpen ? (
-            <AccordionSection
-              key={sec.title}
-              section={sec}
-              isOpen={openSection === sec.title}
-              onToggle={() => toggle(sec.title)}
-              onNavClick={onNavClick}
-            />
-          ) : (
-            <CollapsedSection key={sec.title} section={sec} onNavClick={onNavClick} />
-          )
-        )}
+    <aside
+      id={id}
+      className="px-side"
+      aria-label="Portal navigation"
+      aria-hidden={hiddenDrawer ? true : undefined}
+      inert={hiddenDrawer ? "" : undefined}
+      role={isDrawer ? "dialog" : undefined}
+      aria-modal={isDrawer && drawerOpen ? true : undefined}
+    >
+      <div className="px-side-head">
+        <BrandMark size={34} tone="lotus" />
+        <div className="px-wordmark">
+          <b>Expresso</b>
+          <span>Digital operating system</span>
+        </div>
+      </div>
+
+      <div className="px-workspace" title={collapsed ? label.name : undefined}>
+        <div className="px-workspace-ava" aria-hidden="true">
+          {wsInitials}
+        </div>
+        <div>
+          <b>{label.name}</b>
+          <span>{label.sub}</span>
+        </div>
+      </div>
+
+      <nav className="px-nav" ref={navRef} aria-label="Main">
+        {navSections.map((section) => {
+          const groupId = `px-group-${section.title.replace(/\W+/g, "-").toLowerCase()}`;
+          const open = collapsed || !closedSet.has(section.title);
+          return (
+            <div className="px-nav-group" key={section.title}>
+              <button
+                type="button"
+                className="px-nav-label"
+                aria-expanded={open}
+                aria-controls={groupId}
+                onClick={() => toggleGroup(section.title)}
+              >
+                {section.title}
+                <ChevronDown size={14} aria-hidden="true" />
+              </button>
+              <ul className="px-nav-list" id={groupId} hidden={!open || undefined}>
+                {section.items.map((item) => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      end={item.end ?? item.to === "/portal"}
+                      className="px-nav-item"
+                      aria-label={collapsed ? item.label : undefined}
+                      onClick={isDrawer ? onCloseDrawer : undefined}
+                    >
+                      <item.Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+                      <span className="px-nav-text">{item.label}</span>
+                      {collapsed ? (
+                        <span className="px-tip" aria-hidden="true">
+                          {item.label}
+                        </span>
+                      ) : null}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
       </nav>
 
-      {user && (
-        <div className="sb-footer">
-          <div className="sb-user">
-            <span className="sb-avatar">
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt="" className="sb-avatar-img" />
-              ) : (
-                getInitials(user.fullName || user.name)
-              )}
-            </span>
-            {sidebarOpen && (
-              <>
-                <div className="sb-user-info">
-                  <span className="sb-user-name">
-                    {user.fullName || user.name || "User"}
-                  </span>
-                  <span className="sb-user-role">
-                    {String(user.role || "").replaceAll("_", " ")}
-                  </span>
-                </div>
-                {onLogout && (
-                  <button className="sb-logout" onClick={onLogout} title="Sign out">
-                    <LogOut size={14} strokeWidth={2} />
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function AccordionSection({ section, isOpen, onToggle, onNavClick }) {
-  const SectionIcon = section.Icon;
-  return (
-    <div className="sb-section">
-      <button
-        type="button"
-        className={`sb-section-header${isOpen ? " sb-section-header--open" : ""}`}
-        onClick={onToggle}
-      >
-        {SectionIcon && (
-          <span className="sb-section-icon">
-            <SectionIcon size={15} strokeWidth={2} />
-          </span>
-        )}
-        <span className="sb-section-label">{section.title}</span>
-        <ChevronRight
-          size={13}
-          strokeWidth={2.2}
-          className={`sb-section-chevron${isOpen ? " sb-section-chevron--open" : ""}`}
-        />
-      </button>
-      <div className={`sb-section-items${isOpen ? " sb-section-items--open" : ""}`}>
-        <ul className="sb-list sb-list--nested">
-          {section.items.map((item) => (
-            <NavItem key={item.to} item={item} collapsed={false} onNavClick={onNavClick} />
-          ))}
-        </ul>
+      <div className="px-side-foot">
+        <button
+          type="button"
+          className="px-collapse"
+          onClick={onToggleCollapsed}
+          aria-pressed={collapsed}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-controls={id}
+        >
+          <PanelLeftClose size={16} aria-hidden="true" />
+          <span>{collapsed ? "Expand" : "Collapse"}</span>
+        </button>
+        <span className="px-ver">Portal</span>
       </div>
-    </div>
-  );
-}
-
-function CollapsedSection({ section, onNavClick }) {
-  return (
-    <div className="sb-section">
-      <hr className="sb-section-divider" />
-      <ul className="sb-list">
-        {section.items.map((item) => (
-          <NavItem key={item.to} item={item} collapsed onNavClick={onNavClick} />
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function NavItem({ item, collapsed, onNavClick }) {
-  const Icon = item.Icon;
-  return (
-    <li>
-      <NavLink
-        to={item.to}
-        end={item.end ?? (item.to === "/portal")}
-        onClick={onNavClick}
-        className={({ isActive }) =>
-          "sb-item" + (isActive ? " sb-item--active" : "")
-        }
-      >
-        <span className="sb-item-icon">
-          <Icon size={17} strokeWidth={1.75} />
-        </span>
-        {!collapsed && <span className="sb-item-label">{item.label}</span>}
-        {collapsed && <span className="sb-tooltip">{item.label}</span>}
-      </NavLink>
-    </li>
+    </aside>
   );
 }
