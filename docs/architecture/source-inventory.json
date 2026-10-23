@@ -10835,7 +10835,7 @@
       "path": "/api/procurement/requests",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/request.routes.js",
-      "line": 23,
+      "line": 24,
       "globalGuards": [],
       "handlers": [
         {
@@ -10857,7 +10857,7 @@
       "path": "/api/procurement/requests",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/request.routes.js",
-      "line": 30,
+      "line": 31,
       "globalGuards": [],
       "handlers": [
         {
@@ -10879,7 +10879,7 @@
       "path": "/api/procurement/requests/:id",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/request.routes.js",
-      "line": 58,
+      "line": 62,
       "globalGuards": [],
       "handlers": [
         {
@@ -10901,7 +10901,7 @@
       "path": "/api/procurement/requests/:id",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/request.routes.js",
-      "line": 44,
+      "line": 48,
       "globalGuards": [],
       "handlers": [
         {
@@ -10923,7 +10923,7 @@
       "path": "/api/procurement/requests/:id",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/request.routes.js",
-      "line": 51,
+      "line": 55,
       "globalGuards": [],
       "handlers": [
         {
@@ -10945,12 +10945,16 @@
       "path": "/api/procurement/requests/:id/create-rfq",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/request.routes.js",
-      "line": 37,
+      "line": 40,
       "globalGuards": [],
       "handlers": [
         {
           "label": "requireAuth",
           "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
         },
         {
           "label": "requirePermission(\"procurement.write\")",
@@ -10967,7 +10971,7 @@
       "path": "/api/procurement/requests/stats",
       "domain": "procurement",
       "file": "portal-api/src/modules/procurement/request.routes.js",
-      "line": 16,
+      "line": 17,
       "globalGuards": [],
       "handlers": [
         {
@@ -14818,6 +14822,10 @@
           "line": 20
         },
         {
+          "file": "client/src/portal/features/hr/staff/staffTabs.js",
+          "line": 8
+        },
+        {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
           "line": 43
         },
@@ -15263,7 +15271,16 @@
           "line": 55
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/billing/pages/BillingPage.jsx",
+          "line": 54
+        },
+        {
+          "file": "client/src/portal/features/billing/pages/InvoiceDetailsPage.jsx",
+          "line": 37
+        }
+      ]
     },
     "billing.delete": {
       "api": [
@@ -15596,15 +15613,15 @@
         },
         {
           "file": "portal-api/src/modules/procurement/request.routes.js",
-          "line": 19
+          "line": 20
         },
         {
           "file": "portal-api/src/modules/procurement/request.routes.js",
-          "line": 26
+          "line": 27
         },
         {
           "file": "portal-api/src/modules/procurement/request.routes.js",
-          "line": 47
+          "line": 51
         },
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
@@ -15678,15 +15695,15 @@
         },
         {
           "file": "portal-api/src/modules/procurement/request.routes.js",
-          "line": 33
+          "line": 34
         },
         {
           "file": "portal-api/src/modules/procurement/request.routes.js",
-          "line": 40
+          "line": 44
         },
         {
           "file": "portal-api/src/modules/procurement/request.routes.js",
-          "line": 54
+          "line": 58
         },
         {
           "file": "portal-api/src/modules/procurement/rfq.routes.js",
@@ -15707,8 +15724,36 @@
       ],
       "ui": [
         {
-          "file": "client/src/portal/features/procurement/pages/RFQDetailsPage.jsx",
-          "line": 789
+          "file": "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
+          "line": 36
+        },
+        {
+          "file": "client/src/portal/features/procurement/components/RfqStaffList.jsx",
+          "line": 37
+        },
+        {
+          "file": "client/src/portal/features/procurement/pages/ProcurementCategoriesPage.jsx",
+          "line": 29
+        },
+        {
+          "file": "client/src/portal/features/procurement/pages/ProcurementRequestDetailsPage.jsx",
+          "line": 33
+        },
+        {
+          "file": "client/src/portal/features/procurement/pages/ProcurementRequestsPage.jsx",
+          "line": 43
+        },
+        {
+          "file": "client/src/portal/features/procurement/pages/ProcurementVendorsPage.jsx",
+          "line": 40
+        },
+        {
+          "file": "client/src/portal/features/procurement/pages/RFQFormPage.jsx",
+          "line": 41
+        },
+        {
+          "file": "client/src/portal/features/procurement/vendor/VendorRFQDetailView.jsx",
+          "line": 792
         }
       ]
     },
@@ -15720,7 +15765,7 @@
         },
         {
           "file": "portal-api/src/modules/procurement/request.routes.js",
-          "line": 61
+          "line": 65
         },
         {
           "file": "portal-api/src/modules/procurement/vendor.routes.js",
@@ -15731,7 +15776,24 @@
           "line": 54
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/procurement/pages/ProcurementCategoriesPage.jsx",
+          "line": 30
+        },
+        {
+          "file": "client/src/portal/features/procurement/pages/ProcurementRequestDetailsPage.jsx",
+          "line": 35
+        },
+        {
+          "file": "client/src/portal/features/procurement/pages/ProcurementRequestsPage.jsx",
+          "line": 44
+        },
+        {
+          "file": "client/src/portal/features/procurement/pages/ProcurementVendorsPage.jsx",
+          "line": 41
+        }
+      ]
     },
     "procurement.approve": {
       "api": [
@@ -15778,8 +15840,20 @@
           "line": 37
         },
         {
-          "file": "client/src/portal/features/procurement/pages/RFQDetailsPage.jsx",
-          "line": 790
+          "file": "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
+          "line": 37
+        },
+        {
+          "file": "client/src/portal/features/procurement/lib/overview.js",
+          "line": 11
+        },
+        {
+          "file": "client/src/portal/features/procurement/pages/VendorApplicationsPage.jsx",
+          "line": 43
+        },
+        {
+          "file": "client/src/portal/features/procurement/vendor/VendorRFQDetailView.jsx",
+          "line": 793
         }
       ]
     },
@@ -15822,6 +15896,18 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 46
+        },
+        {
+          "file": "client/src/portal/features/hr/lib/hrOverview.js",
+          "line": 13
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/KPIGoalsPage.jsx",
+          "line": 38
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/SkillMatrixPage.jsx",
+          "line": 26
         }
       ]
     },
@@ -15848,7 +15934,20 @@
           "line": 46
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/hr/pages/StaffDetailsPage.jsx",
+          "line": 36
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/StaffPage.jsx",
+          "line": 53
+        },
+        {
+          "file": "client/src/portal/features/hr/staff/StaffLearningGoalsTab.jsx",
+          "line": 29
+        }
+      ]
     },
     "hr.staff.delete": {
       "api": [
@@ -15857,7 +15956,16 @@
           "line": 27
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/hr/pages/StaffDetailsPage.jsx",
+          "line": 37
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/StaffPage.jsx",
+          "line": 54
+        }
+      ]
     },
     "hr.expenses.read": {
       "api": [
@@ -15890,6 +15998,14 @@
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
           "line": 26
+        },
+        {
+          "file": "client/src/portal/features/hr/lib/hrOverview.js",
+          "line": 14
+        },
+        {
+          "file": "client/src/portal/features/hr/staff/staffTabs.js",
+          "line": 7
         }
       ]
     },
@@ -15904,7 +16020,16 @@
           "line": 27
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/hr/components/expenseActions.js",
+          "line": 16
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/ExpenseClaimsPage.jsx",
+          "line": 57
+        }
+      ]
     },
     "hr.expenses.approve": {
       "api": [
@@ -15945,6 +16070,34 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 41
+        },
+        {
+          "file": "client/src/portal/features/hr/components/expenseActions.js",
+          "line": 12
+        },
+        {
+          "file": "client/src/portal/features/hr/components/expenseActions.js",
+          "line": 14
+        },
+        {
+          "file": "client/src/portal/features/hr/lib/hrOverview.js",
+          "line": 16
+        },
+        {
+          "file": "client/src/portal/features/hr/lib/hrOverview.js",
+          "line": 62
+        },
+        {
+          "file": "client/src/portal/features/hr/lib/hrOverview.js",
+          "line": 92
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/ExpenseClaimDetailsPage.jsx",
+          "line": 151
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/ExpenseClaimsPage.jsx",
+          "line": 58
         }
       ]
     },
@@ -15955,7 +16108,12 @@
           "line": 28
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/hr/components/expenseActions.js",
+          "line": 17
+        }
+      ]
     },
     "hr.leaves.read": {
       "api": [
@@ -15988,6 +16146,14 @@
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
           "line": 27
+        },
+        {
+          "file": "client/src/portal/features/hr/lib/hrOverview.js",
+          "line": 15
+        },
+        {
+          "file": "client/src/portal/features/hr/staff/staffTabs.js",
+          "line": 6
         }
       ]
     },
@@ -16006,7 +16172,12 @@
           "line": 28
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/hr/pages/LeaveRequestsPage.jsx",
+          "line": 58
+        }
+      ]
     },
     "hr.leaves.approve": {
       "api": [
@@ -16023,7 +16194,24 @@
           "line": 27
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/hr/lib/hrOverview.js",
+          "line": 17
+        },
+        {
+          "file": "client/src/portal/features/hr/lib/hrOverview.js",
+          "line": 63
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/LeaveRequestsPage.jsx",
+          "line": 59
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/LeaveRequestsPage.jsx",
+          "line": 242
+        }
+      ]
     },
     "hr.leaves.delete": {
       "api": [
@@ -16032,7 +16220,12 @@
           "line": 23
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/hr/pages/LeaveRequestsPage.jsx",
+          "line": 60
+        }
+      ]
     },
     "hr.scorecards.read": {
       "api": [
@@ -16053,6 +16246,14 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 43
+        },
+        {
+          "file": "client/src/portal/features/hr/staff/staffTabs.js",
+          "line": 9
+        },
+        {
+          "file": "client/src/portal/features/hr/staff/staffTabs.js",
+          "line": 11
         }
       ]
     },
@@ -16083,7 +16284,16 @@
           "line": 40
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/hr/staff/StaffScorecardTab.jsx",
+          "line": 37
+        },
+        {
+          "file": "client/src/portal/features/hr/staff/StaffSkillsTab.jsx",
+          "line": 26
+        }
+      ]
     },
     "hr.kpi.read": {
       "api": [
@@ -16128,6 +16338,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 45
+        },
+        {
+          "file": "client/src/portal/features/hr/staff/staffTabs.js",
+          "line": 12
         }
       ]
     },
@@ -16170,7 +16384,24 @@
           "line": 42
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/hr/kpi/KpiGoalTable.jsx",
+          "line": 23
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/KPIGoalsPage.jsx",
+          "line": 37
+        },
+        {
+          "file": "client/src/portal/features/hr/pages/KPIIndicatorsPage.jsx",
+          "line": 27
+        },
+        {
+          "file": "client/src/portal/features/hr/staff/StaffKpiTab.jsx",
+          "line": 19
+        }
+      ]
     },
     "reports.read": {
       "api": [],
@@ -16212,6 +16443,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 48
+        },
+        {
+          "file": "client/src/portal/features/hr/staff/staffTabs.js",
+          "line": 13
         }
       ]
     },
@@ -16242,6 +16477,14 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 16
+        },
+        {
+          "file": "client/src/portal/features/hr/components/StaffFormModal.jsx",
+          "line": 42
+        },
+        {
+          "file": "client/src/portal/features/procurement/components/SourcingDialog.jsx",
+          "line": 18
         }
       ]
     },
@@ -16354,6 +16597,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 18
+        },
+        {
+          "file": "client/src/portal/features/hr/components/StaffFormModal.jsx",
+          "line": 41
         }
       ]
     },
@@ -17622,13 +17869,6 @@
       "reachable": true
     },
     {
-      "file": "client/src/portal/features/hr/pages/StaffDetailsPage.jsx",
-      "line": 520,
-      "call": "api.get",
-      "url": "`/users/${userId}/activity?limit=30`",
-      "reachable": true
-    },
-    {
       "file": "client/src/portal/features/iam/access-requests/api.js",
       "line": 14,
       "call": "api.get",
@@ -18857,7 +19097,9 @@
     "client/src/portal/shared/hooks/usePortalProfile.js",
     "client/src/portal/shared/ui/AttachmentPicker.jsx",
     "client/src/portal/shared/ui/Can.jsx",
+    "client/src/portal/shared/ui/DataTable.jsx",
     "client/src/portal/shared/ui/ListShell.jsx",
+    "client/src/portal/shared/ui/StatusPill.jsx",
     "client/src/portal/shared/ui/Table.jsx",
     "client/src/portal/shared/utils/cn.js",
     "client/src/portal/shared/utils/constants.js",
@@ -19001,6 +19243,8 @@
           "client/src/portal/app/portalNav.js",
           "client/src/portal/config/portal.constants.js",
           "client/src/portal/features/activity/pages/ActivityPage.jsx",
+          "client/src/portal/features/billing/components/invoiceActions.js",
+          "client/src/portal/features/billing/components/InvoiceFormDialog.jsx",
           "client/src/portal/features/billing/pages/BillingPage.jsx",
           "client/src/portal/features/billing/pages/InvoiceDetailsPage.jsx",
           "client/src/portal/features/brand-kit/pages/BrandKitPage.jsx",
@@ -19041,8 +19285,16 @@
           "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
           "client/src/portal/features/enrollments/pages/EnrollmentsPage.jsx",
           "client/src/portal/features/files/pages/FilesPage.jsx",
-          "client/src/portal/features/hr/components/ExpenseCategoryBadge.jsx",
+          "client/src/portal/features/hr/components/ExpenseActionDialogs.jsx",
+          "client/src/portal/features/hr/components/expenseActions.js",
+          "client/src/portal/features/hr/components/ExpenseClaimFormModal.jsx",
+          "client/src/portal/features/hr/components/LeaveRequestFormModal.jsx",
           "client/src/portal/features/hr/components/MonthlyExpenseSummary.jsx",
+          "client/src/portal/features/hr/components/StaffFormModal.jsx",
+          "client/src/portal/features/hr/kpi/KpiCheckinDialog.jsx",
+          "client/src/portal/features/hr/kpi/KpiGoalFormDialog.jsx",
+          "client/src/portal/features/hr/kpi/KpiGoalTable.jsx",
+          "client/src/portal/features/hr/kpi/KpiIndicatorFormDialog.jsx",
           "client/src/portal/features/hr/pages/ExpenseClaimDetailsPage.jsx",
           "client/src/portal/features/hr/pages/ExpenseClaimsPage.jsx",
           "client/src/portal/features/hr/pages/HRDashboardPage.jsx",
@@ -19054,6 +19306,13 @@
           "client/src/portal/features/hr/pages/SkillMatrixPage.jsx",
           "client/src/portal/features/hr/pages/StaffDetailsPage.jsx",
           "client/src/portal/features/hr/pages/StaffPage.jsx",
+          "client/src/portal/features/hr/staff/StaffAccountHistory.jsx",
+          "client/src/portal/features/hr/staff/StaffHrRecords.jsx",
+          "client/src/portal/features/hr/staff/StaffKpiTab.jsx",
+          "client/src/portal/features/hr/staff/StaffLearningGoalsTab.jsx",
+          "client/src/portal/features/hr/staff/StaffScorecardTab.jsx",
+          "client/src/portal/features/hr/staff/StaffSkillsTab.jsx",
+          "client/src/portal/features/hr/staff/StaffWorkTab.jsx",
           "client/src/portal/features/iam/access-requests/components/InviteFromRequestModal.jsx",
           "client/src/portal/features/iam/access-requests/pages/AccessRequestsPage.jsx",
           "client/src/portal/features/iam/invites/components/InviteEditor.jsx",
@@ -19086,15 +19345,21 @@
           "client/src/portal/features/messaging/pages/MessagesPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioDetailsPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioPage.jsx",
+          "client/src/portal/features/procurement/components/CategoryFormDialog.jsx",
+          "client/src/portal/features/procurement/components/RequestFormDialog.jsx",
+          "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
+          "client/src/portal/features/procurement/components/RfqStaffList.jsx",
+          "client/src/portal/features/procurement/components/SourcingDialog.jsx",
+          "client/src/portal/features/procurement/components/VendorFormDialog.jsx",
           "client/src/portal/features/procurement/pages/ProcurementCategoriesPage.jsx",
           "client/src/portal/features/procurement/pages/ProcurementDashboardPage.jsx",
           "client/src/portal/features/procurement/pages/ProcurementRequestDetailsPage.jsx",
           "client/src/portal/features/procurement/pages/ProcurementRequestsPage.jsx",
           "client/src/portal/features/procurement/pages/ProcurementVendorsPage.jsx",
-          "client/src/portal/features/procurement/pages/RFQDetailsPage.jsx",
           "client/src/portal/features/procurement/pages/RFQFormPage.jsx",
-          "client/src/portal/features/procurement/pages/RFQsPage.jsx",
           "client/src/portal/features/procurement/pages/VendorApplicationsPage.jsx",
+          "client/src/portal/features/procurement/vendor/VendorRFQDetailView.jsx",
+          "client/src/portal/features/procurement/vendor/VendorRFQsView.jsx",
           "client/src/portal/features/productions/components/ProductionJobFormModal.jsx",
           "client/src/portal/features/productions/components/ProductionToolbar.jsx",
           "client/src/portal/features/productions/components/VideoReviewPanel.jsx",
@@ -19157,6 +19422,7 @@
           "client/src/portal/shared/ui/Modal.jsx",
           "client/src/portal/shared/ui/Pagination.jsx",
           "client/src/portal/shared/ui/PromptModal.jsx",
+          "client/src/portal/shared/ui/RecordPicker.jsx",
           "client/src/portal/shared/ui/RightDrawer.jsx",
           "client/src/portal/shared/ui/RowActions.jsx",
           "client/src/portal/shared/ui/SearchField.jsx",
@@ -19304,6 +19570,7 @@
           "client/src/portal/app/PortalRoutes.jsx",
           "client/src/portal/app/ProtectedRoute.jsx",
           "client/src/portal/features/activity/pages/ActivityPage.jsx",
+          "client/src/portal/features/billing/components/InvoiceFormDialog.jsx",
           "client/src/portal/features/billing/pages/BillingPage.jsx",
           "client/src/portal/features/billing/pages/InvoiceDetailsPage.jsx",
           "client/src/portal/features/brand-kit/pages/BrandKitPage.jsx",
@@ -19345,14 +19612,15 @@
           "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
           "client/src/portal/features/enrollments/pages/EnrollmentsPage.jsx",
           "client/src/portal/features/files/pages/FilesPage.jsx",
-          "client/src/portal/features/hr/components/ExpenseCategoryBadge.jsx",
+          "client/src/portal/features/hr/components/ExpenseActionDialogs.jsx",
           "client/src/portal/features/hr/components/ExpenseClaimFormModal.jsx",
-          "client/src/portal/features/hr/components/ExpenseStatusPill.jsx",
           "client/src/portal/features/hr/components/LeaveRequestFormModal.jsx",
-          "client/src/portal/features/hr/components/LeaveStatusPill.jsx",
           "client/src/portal/features/hr/components/MonthlyExpenseSummary.jsx",
           "client/src/portal/features/hr/components/StaffFormModal.jsx",
-          "client/src/portal/features/hr/components/StaffStatusPill.jsx",
+          "client/src/portal/features/hr/kpi/KpiCheckinDialog.jsx",
+          "client/src/portal/features/hr/kpi/KpiGoalFormDialog.jsx",
+          "client/src/portal/features/hr/kpi/KpiGoalTable.jsx",
+          "client/src/portal/features/hr/kpi/KpiIndicatorFormDialog.jsx",
           "client/src/portal/features/hr/pages/ExpenseClaimDetailsPage.jsx",
           "client/src/portal/features/hr/pages/ExpenseClaimsPage.jsx",
           "client/src/portal/features/hr/pages/HRDashboardPage.jsx",
@@ -19364,6 +19632,14 @@
           "client/src/portal/features/hr/pages/SkillMatrixPage.jsx",
           "client/src/portal/features/hr/pages/StaffDetailsPage.jsx",
           "client/src/portal/features/hr/pages/StaffPage.jsx",
+          "client/src/portal/features/hr/staff/StaffAccountHistory.jsx",
+          "client/src/portal/features/hr/staff/StaffHrRecords.jsx",
+          "client/src/portal/features/hr/staff/StaffKpiTab.jsx",
+          "client/src/portal/features/hr/staff/StaffLearningGoalsTab.jsx",
+          "client/src/portal/features/hr/staff/StaffOverview.jsx",
+          "client/src/portal/features/hr/staff/StaffScorecardTab.jsx",
+          "client/src/portal/features/hr/staff/StaffSkillsTab.jsx",
+          "client/src/portal/features/hr/staff/StaffWorkTab.jsx",
           "client/src/portal/features/iam/access-requests/components/InviteFromRequestModal.jsx",
           "client/src/portal/features/iam/access-requests/pages/AccessRequestsPage.jsx",
           "client/src/portal/features/iam/invites/components/InviteEditor.jsx",
@@ -19401,6 +19677,12 @@
           "client/src/portal/features/messaging/pages/MessagesPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioDetailsPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioPage.jsx",
+          "client/src/portal/features/procurement/components/CategoryFormDialog.jsx",
+          "client/src/portal/features/procurement/components/RequestFormDialog.jsx",
+          "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
+          "client/src/portal/features/procurement/components/RfqStaffList.jsx",
+          "client/src/portal/features/procurement/components/SourcingDialog.jsx",
+          "client/src/portal/features/procurement/components/VendorFormDialog.jsx",
           "client/src/portal/features/procurement/pages/ProcurementCategoriesPage.jsx",
           "client/src/portal/features/procurement/pages/ProcurementDashboardPage.jsx",
           "client/src/portal/features/procurement/pages/ProcurementRequestDetailsPage.jsx",
@@ -19410,6 +19692,8 @@
           "client/src/portal/features/procurement/pages/RFQFormPage.jsx",
           "client/src/portal/features/procurement/pages/RFQsPage.jsx",
           "client/src/portal/features/procurement/pages/VendorApplicationsPage.jsx",
+          "client/src/portal/features/procurement/vendor/VendorRFQDetailView.jsx",
+          "client/src/portal/features/procurement/vendor/VendorRFQsView.jsx",
           "client/src/portal/features/productions/components/ProductionCreateModal.jsx",
           "client/src/portal/features/productions/components/ProductionJobFormModal.jsx",
           "client/src/portal/features/productions/components/ProductionTabs.jsx",
@@ -19513,6 +19797,7 @@
           "client/src/portal/shared/ui/Panel.jsx",
           "client/src/portal/shared/ui/Pill.jsx",
           "client/src/portal/shared/ui/PromptModal.jsx",
+          "client/src/portal/shared/ui/RecordPicker.jsx",
           "client/src/portal/shared/ui/RightDrawer.jsx",
           "client/src/portal/shared/ui/RowActions.jsx",
           "client/src/portal/shared/ui/SearchField.jsx",
@@ -19707,22 +19992,31 @@
           "client/src/portal/features/files/pages/FilesPage.jsx",
           "client/src/portal/features/hr/pages/ExpenseClaimDetailsPage.jsx",
           "client/src/portal/features/hr/pages/ExpenseClaimsPage.jsx",
+          "client/src/portal/features/hr/pages/HRDashboardPage.jsx",
           "client/src/portal/features/hr/pages/KPIDashboardPage.jsx",
+          "client/src/portal/features/hr/pages/KPIGoalsPage.jsx",
+          "client/src/portal/features/hr/pages/KPIIndicatorsPage.jsx",
           "client/src/portal/features/hr/pages/MonthlyExpensesPage.jsx",
+          "client/src/portal/features/hr/pages/SkillMatrixPage.jsx",
           "client/src/portal/features/hr/pages/StaffDetailsPage.jsx",
           "client/src/portal/features/hr/pages/StaffPage.jsx",
+          "client/src/portal/features/hr/staff/StaffHrRecords.jsx",
+          "client/src/portal/features/hr/staff/StaffOverview.jsx",
+          "client/src/portal/features/hr/staff/StaffWorkTab.jsx",
           "client/src/portal/features/iam/users/components/UserTable.jsx",
           "client/src/portal/features/iam/users/pages/UserDetailsPage.jsx",
           "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
           "client/src/portal/features/jobs/pages/JobsPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioDetailsPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioPage.jsx",
+          "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
+          "client/src/portal/features/procurement/components/RfqStaffList.jsx",
           "client/src/portal/features/procurement/pages/ProcurementDashboardPage.jsx",
           "client/src/portal/features/procurement/pages/ProcurementRequestDetailsPage.jsx",
           "client/src/portal/features/procurement/pages/ProcurementRequestsPage.jsx",
-          "client/src/portal/features/procurement/pages/RFQDetailsPage.jsx",
           "client/src/portal/features/procurement/pages/RFQFormPage.jsx",
-          "client/src/portal/features/procurement/pages/RFQsPage.jsx",
+          "client/src/portal/features/procurement/vendor/VendorRFQDetailView.jsx",
+          "client/src/portal/features/procurement/vendor/VendorRFQsView.jsx",
           "client/src/portal/features/productions/pages/ProductionDetailsPage.jsx",
           "client/src/portal/features/productions/pages/ProductionsPage.jsx",
           "client/src/portal/features/projects/components/ProjectHeader.jsx",

@@ -1,71 +1,64 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Plus,
-  RefreshCw,
-  ReceiptText,
-  CheckCircle2,
-  XCircle,
-  ClipboardCheck,
-  Wallet,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ExternalLink, Plus, ReceiptText, RefreshCw, SearchX, X } from "lucide-react";
 
-import PageHeader from "../../../shared/ui/PageHeader";
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Card from "../../../shared/ui/Card";
-import StatCard from "../../../shared/ui/StatCard";
-import FilterBar from "../../../shared/ui/FilterBar";
-import EmptyState from "../../../shared/ui/EmptyState";
-import Skeleton from "../../../shared/ui/Skeleton";
 import Badge from "../../../shared/ui/Badge";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
-import PromptModal from "../../../shared/ui/PromptModal";
+import MetricsStrip from "../../../shared/ui/MetricsStrip";
+import SearchField from "../../../shared/ui/SearchField";
+import SelectField from "../../../shared/ui/SelectField";
+import TextField from "../../../shared/ui/TextField";
+import SortHeader from "../../../shared/ui/SortHeader";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import Pagination from "../../../shared/ui/Pagination";
+import RowActions from "../../../shared/ui/RowActions";
+import EmptyState from "../../../shared/ui/EmptyState";
+import ErrorState from "../../../shared/ui/ErrorState";
 import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import useDebouncedValue from "../../../shared/hooks/useDebouncedValue";
 
+import { listExpenses, getExpenseStats, createExpense, updateExpense } from "../api";
+import { EXPENSE_CATEGORY_OPTIONS, EXPENSE_STATUS_OPTIONS, HR_DEPARTMENT_OPTIONS } from "../constants/hr.constants";
+import { EXPENSE_STATUS_LABEL, EXPENSE_STATUS_TONE, date, expenseCategoryLabel, humanize, isOwnRecord, money, monthLabel } from "../format";
 import ExpenseClaimFormModal from "../components/ExpenseClaimFormModal";
-import ExpenseStatusPill from "../components/ExpenseStatusPill";
+import ExpenseActionDialogs from "../components/ExpenseActionDialogs";
+import { expenseActionsFor } from "../components/expenseActions";
 
-import {
-  listExpenses,
-  getExpenseStats,
-  createExpense,
-  updateExpense,
-  deleteExpense,
-  approveExpense,
-  rejectExpense,
-  registerExpense,
-  markExpensePaid,
-} from "../api";
+const LIMIT = 12;
+const SORT_OPTIONS = [
+  { value: "-createdAt", label: "Newest first" },
+  { value: "createdAt", label: "Oldest first" },
+  { value: "-expenseDate", label: "Expense date, newest" },
+  { value: "expenseDate", label: "Expense date, oldest" },
+  { value: "-amount", label: "Amount, high to low" },
+  { value: "amount", label: "Amount, low to high" },
+  { value: "title", label: "Title, A to Z" },
+];
 
-import {
-  EXPENSE_CATEGORY_OPTIONS,
-  EXPENSE_STATUS_OPTIONS,
-  EXPENSE_DEPARTMENT_OPTIONS,
-  EXPENSE_SORT_OPTIONS,
-} from "../constants/hr.constants";
-
-function money(value, currency = "AED") {
-  return `${currency} ${Number(value || 0).toLocaleString("en-AE", {
-    maximumFractionDigits: 2,
-  })}`;
+export function buildExpenseParams({ q, status, category, department, month, sort, page }) {
+  const p = { q, sort, page, limit: LIMIT };
+  if (status) p.status = status;
+  if (category) p.category = category;
+  if (department) p.department = department;
+  if (month) p.month = month;
+  return p;
 }
 
-function currentMonth() {
-  return new Date().toISOString().slice(0, 7);
-}
-
+// Expense claims (PUI-4). Approvers see every claim and take it through
+// approve, register to a month and mark paid; everyone else sees and manages
+// their own (the API scopes the list, the stats and every action).
 export default function ExpenseClaimsPage() {
   const toast = useToast();
   const nav = useNavigate();
-  const [confirmState, setConfirmState] = useState(null);
-  const [prompt, setPrompt] = useState(null);
-  const [items, setItems] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0 });
+  const access = useAccess();
+  const canWrite = access.can("hr.expenses.write");
+  const approver = access.can("hr.expenses.approve");
 
   const [q, setQ] = useState("");
+  const dq = useDebouncedValue(q);
   const [status, setStatus] = useState("");
   const [category, setCategory] = useState("");
   const [department, setDepartment] = useState("");
@@ -73,511 +66,244 @@ export default function ExpenseClaimsPage() {
   const [sort, setSort] = useState("-createdAt");
   const [page, setPage] = useState(1);
 
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0, limit: LIMIT });
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [error, setError] = useState("");
+  const [stats, setStats] = useState(null);
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [formBusy, setFormBusy] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [action, setAction] = useState(null); // { kind, item }
 
   const load = useCallback(async () => {
     setLoading(true);
-
+    setError("");
     try {
-      const [res, statsRes] = await Promise.all([
-        listExpenses({
-          q,
-          status,
-          category,
-          department,
-          month,
-          sort,
-          page,
-          limit: 20,
-        }),
-        getExpenseStats({ month: month || currentMonth() }),
-      ]);
-
+      const res = await listExpenses(buildExpenseParams({ q: dq.trim(), status, category, department, month, sort, page }));
       setItems(Array.isArray(res?.items) ? res.items : []);
-      setMeta({
-        page: res?.page || 1,
-        pages: res?.pages || 1,
-        total: res?.total || 0,
-      });
-      setStats(statsRes);
+      setMeta({ page: res?.page || page, pages: res?.pages || 1, total: res?.total ?? 0, limit: res?.limit || LIMIT });
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to load expenses");
+      setItems([]);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [q, status, category, department, month, sort, page, toast]);
+  }, [dq, status, category, department, month, sort, page]);
+
+  const loadStats = useCallback(async () => {
+    try {
+      setStats(await getExpenseStats());
+    } catch {
+      setStats(null);
+    }
+  }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
+  useEffect(() => {
+    setPage(1);
+  }, [dq]);
 
-  const handleClear = () => {
+  const set = (setter) => (v) => {
+    setter(v);
+    setPage(1);
+  };
+  const refresh = () => Promise.all([load(), loadStats()]);
+  const filtered = Boolean(dq.trim() || status || category || department || month);
+  const clearFilters = () => {
     setQ("");
     setStatus("");
     setCategory("");
     setDepartment("");
     setMonth("");
-    setSort("-createdAt");
     setPage(1);
   };
 
-  const openCreate = () => {
-    setSelected(null);
-    setModalOpen(true);
+  // Counts only: claims carry their own currency, so summing amounts across
+  // claims could mix currencies.
+  const t = stats?.totals;
+  const metrics = useMemo(() => {
+    if (!t) return [];
+    const toggle = (value) => () => set(setStatus)(status === value ? "" : value);
+    return [
+      { key: "pending", label: approver ? "Waiting for a decision" : "Waiting for approval", value: t.pending || 0, note: approver ? "Submitted claims" : "Your submitted claims", noteTone: t.pending ? "warn" : undefined, onClick: toggle("submitted"), pressed: status === "submitted" },
+      { key: "approved", label: "Approved, not registered", value: t.approved || 0, note: "Next: register to a month", onClick: toggle("approved"), pressed: status === "approved" },
+      { key: "registered", label: "Registered, not paid", value: t.registered || 0, note: "Waiting for payment", onClick: toggle("registered"), pressed: status === "registered" },
+      { key: "paid", label: "Paid", value: t.paid || 0, note: `${t.total || 0} claim${t.total === 1 ? "" : "s"} in all, ${t.rejected || 0} rejected`, onClick: toggle("paid"), pressed: status === "paid" },
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t, status, approver]);
+
+  const openForm = (item = null) => {
+    setEditing(item);
+    setFormError("");
+    setFormOpen(true);
   };
 
-  const openEdit = (item) => {
-    setSelected(item);
-    setModalOpen(true);
-  };
-
-  const handleSave = async (payload) => {
-    setBusy(true);
-
+  const submitForm = async (payload) => {
+    setFormBusy(true);
+    setFormError("");
     try {
-      if (selected?._id) {
-        await updateExpense(selected._id, payload);
-      } else {
-        await createExpense(payload);
-      }
-
-      setModalOpen(false);
-      setSelected(null);
-      await load();
+      if (editing) await updateExpense(editing._id, payload);
+      else await createExpense(payload);
+      toast.success(editing ? "Claim updated." : "Claim submitted.");
+      setFormOpen(false);
+      await refresh();
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Save failed");
+      setFormError(e?.response?.data?.message || "That didn't save. Check the details and try again.");
     } finally {
-      setBusy(false);
+      setFormBusy(false);
     }
   };
 
-  const handleDelete = (item) => {
-    setConfirmState({
-      title: "Delete expense",
-      message: `Delete expense "${item.title}"?`,
-      danger: true,
-      onConfirm: async () => {
-        setBusy(true);
-        try {
-          await deleteExpense(item._id);
-          await load();
-        } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
-        } finally {
-          setBusy(false);
-        }
-        setConfirmState(null);
-      },
-    });
+  const handlers = {
+    confirm: (kind, item) => setAction({ kind, item }),
+    reject: (item) => setAction({ kind: "reject", item }),
+    register: (item) => setAction({ kind: "register", item }),
+    edit: (item) => openForm(item),
   };
 
-  const doAction = async (fn, item, fallbackMessage) => {
-    setBusy(true);
-    try {
-      await fn(item._id);
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || fallbackMessage);
-    } finally {
-      setBusy(false);
-    }
-  };
+  const chips = [
+    dq.trim() && { key: "q", label: `Search: ${dq.trim()}`, clear: () => setQ("") },
+    status && { key: "s", label: EXPENSE_STATUS_LABEL[status], clear: () => set(setStatus)("") },
+    category && { key: "c", label: expenseCategoryLabel(category), clear: () => set(setCategory)("") },
+    department && { key: "d", label: humanize(department), clear: () => set(setDepartment)("") },
+    month && { key: "m", label: `Claimed for ${monthLabel(month)}`, clear: () => set(setMonth)("") },
+  ].filter(Boolean);
 
-  const statCards = useMemo(
-    () => [
-      {
-        label: "Submitted",
-        value: stats?.totals?.pending || 0,
-        icon: ReceiptText,
-        color: "indigo",
-      },
-      {
-        label: "Approved",
-        value: stats?.totals?.approved || 0,
-        icon: CheckCircle2,
-        color: "emerald",
-      },
-      {
-        label: "Registered",
-        value: stats?.totals?.registered || 0,
-        icon: ClipboardCheck,
-        color: "amber",
-      },
-      {
-        label: "This Month",
-        value: money(stats?.currentMonth?.registeredTotal || 0),
-        icon: Wallet,
-        color: "slate",
-      },
-    ],
-    [stats]
-  );
+  let content;
+  if (error) content = <ErrorState title="Expense claims didn't load" message={error} onRetry={load} />;
+  else if (!loading && !items.length)
+    content = filtered ? (
+      <EmptyState icon={SearchX} title="No claims match these filters" message="Try a different search, or clear the filters." action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>} />
+    ) : (
+      <EmptyState
+        icon={ReceiptText}
+        title="No expense claims yet"
+        message={approver ? "Claims submitted by the team appear here for a decision." : "Your expense claims appear here."}
+        action={canWrite ? <Button onClick={() => openForm()}><Plus size={14} aria-hidden="true" />New claim</Button> : null}
+      />
+    );
+  else
+    content = (
+      <>
+        <table className="px-table px-table--stack" aria-label="Expense claims" aria-busy={loading || undefined}>
+          <thead>
+            <tr>
+              <SortHeader label="Claim" field="title" sort={sort} onSort={set(setSort)} />
+              <th scope="col" className="px-hide-tab">Category</th>
+              <SortHeader label="Expense date" field="expenseDate" sort={sort} onSort={set(setSort)} />
+              <SortHeader label="Amount" field="amount" sort={sort} onSort={set(setSort)} align="right" />
+              <th scope="col">Status</th>
+              <th scope="col"><span className="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <SkeletonRows rows={5} cols={6} label="Loading expense claims" />
+            ) : (
+              items.map((item) => {
+                const mine = isOwnRecord(access, item);
+                const actions = [
+                  { key: "open", label: "Open claim", icon: ExternalLink, onSelect: () => nav(`/portal/hr/expenses/${item._id}`) },
+                  ...expenseActionsFor(access, item, handlers),
+                ];
+                const statusNote =
+                  item.status === "rejected"
+                    ? item.rejectionReason
+                    : ["registered", "paid"].includes(item.status) && item.registeredMonth
+                      ? `Registered to ${monthLabel(item.registeredMonth)}`
+                      : "";
+                return (
+                  <tr key={item._id}>
+                    <td className="px-primary">
+                      <div className="px-cell-main">
+                        <Link to={`/portal/hr/expenses/${item._id}`}>{item.title || "Untitled claim"}</Link>
+                        <span>
+                          {item.staffName || "Unnamed"}
+                          {mine ? " (you)" : ""}
+                          {item.department ? `, ${humanize(item.department)}` : ""}
+                        </span>
+                      </div>
+                    </td>
+                    <td data-label="Category" className="px-hide-tab">{expenseCategoryLabel(item.category)}</td>
+                    <td data-label="Expense date" className="px-num">{date(item.expenseDate)}</td>
+                    <td data-label="Amount" className="px-num">{money(item.amount, item.currency)}</td>
+                    <td data-label="Status">
+                      <span>
+                        <Badge tone={EXPENSE_STATUS_TONE[item.status] || "neutral"} dot>{EXPENSE_STATUS_LABEL[item.status] || humanize(item.status)}</Badge>
+                      </span>
+                      {statusNote ? <small className="px-muted" style={{ display: "block", marginTop: 4 }}>{statusNote}</small> : null}
+                    </td>
+                    <td className="px-actions-cell">
+                      <RowActions label={`${item.title || "claim"}`} actions={actions} />
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+        {!loading && meta.total ? <Pagination page={meta.page} pages={meta.pages} total={meta.total} limit={meta.limit} onPage={setPage} noun="claims" label="Expense claim pages" /> : null}
+      </>
+    );
 
   return (
     <>
-      <div className="grid gap-4">
-        <PageHeader
-          eyebrow="HR"
-          title="Expense Claims"
-          subtitle="Staff expenses, approvals, and monthly registration."
-          breadcrumb={[
-            { label: "Portal", to: "/portal" },
-            { label: "HR" },
-            { label: "Expenses" },
-          ]}
-          right={
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={load}
-                disabled={loading || busy}
-              >
-                <RefreshCw
-                  size={15}
-                  className={loading ? "animate-spin" : ""}
-                />
-                Refresh
-              </Button>
-              <Button onClick={openCreate} disabled={busy}>
-                <Plus size={15} />
-                New claim
-              </Button>
-            </div>
-          }
-        />
-
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          {statCards.map((item) => (
-            <StatCard key={item.label} {...item} />
-          ))}
-        </div>
-
-        <FilterBar
-          searchValue={q}
-          onSearchChange={(value) => {
-            setQ(value);
-            setPage(1);
-          }}
-          searchPlaceholder="Search expenses..."
-          filters={[
-            {
-              label: "Status",
-              value: status,
-              onChange: (v) => {
-                setStatus(v);
-                setPage(1);
-              },
-              options: EXPENSE_STATUS_OPTIONS,
-            },
-            {
-              label: "Category",
-              value: category,
-              onChange: (v) => {
-                setCategory(v);
-                setPage(1);
-              },
-              options: EXPENSE_CATEGORY_OPTIONS,
-            },
-            {
-              label: "Department",
-              value: department,
-              onChange: (v) => {
-                setDepartment(v);
-                setPage(1);
-              },
-              options: EXPENSE_DEPARTMENT_OPTIONS,
-            },
-            {
-              label: "Sort",
-              value: sort,
-              onChange: setSort,
-              options: EXPENSE_SORT_OPTIONS,
-            },
-          ]}
-          onClear={handleClear}
-          right={
-            <input
-              type="month"
-              value={month}
-              onChange={(e) => {
-                setMonth(e.target.value);
-                setPage(1);
-              }}
-              className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-            />
-          }
-        />
-
-        {loading ? (
-          <Card className="p-6">
-            <div className="grid gap-3">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          </Card>
-        ) : items.length === 0 ? (
-          <EmptyState
-            icon={ReceiptText}
-            title="No expense claims found"
-            message="Create a new staff expense claim or adjust your filters."
-            actionLabel="New claim"
-            onAction={openCreate}
-          />
-        ) : (
-          <Card>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left">
-                <thead className="bg-slate-50">
-                  <tr className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                    <th className="px-4 py-3 font-black">Expense</th>
-                    <th className="px-4 py-3 font-black">Staff</th>
-                    <th className="px-4 py-3 font-black">Category</th>
-                    <th className="px-4 py-3 font-black">Amount</th>
-                    <th className="px-4 py-3 font-black">Month</th>
-                    <th className="px-4 py-3 font-black">Status</th>
-                    <th className="px-4 py-3 font-black">Actions</th>
-                  </tr>
-                </thead>
-
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {items.map((item) => (
-                    <tr
-                      key={item._id}
-                      className="hover:bg-slate-50/80 cursor-pointer"
-                      onClick={() => nav(`/portal/hr/expenses/${item._id}`)}
-                    >
-                      <td className="px-4 py-4">
-                        <div className="font-black text-slate-900 hover:text-indigo-600">
-                          {item.title}
-                        </div>
-                        <div className="mt-0.5 text-xs text-slate-500">
-                          {item.description || "—"}
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-4 text-sm text-slate-700">
-                        <div className="font-semibold">
-                          {item.staffName || "—"}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {item.department || "—"}
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-4">
-                        <Badge tone="neutral">
-                          {String(item.category || "other").replaceAll(
-                            "_",
-                            " "
-                          )}
-                        </Badge>
-                      </td>
-
-                      <td className="px-4 py-4 text-sm font-black text-slate-900">
-                        {money(item.amount, item.currency)}
-                      </td>
-
-                      <td className="px-4 py-4 text-sm text-slate-600">
-                        {item.claimMonth || "—"}
-                      </td>
-
-                      <td className="px-4 py-4">
-                        <ExpenseStatusPill status={item.status} />
-                      </td>
-
-                      <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex flex-wrap gap-2">
-                          {item.status === "submitted" ? (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={busy}
-                                onClick={() =>
-                                  doAction(
-                                    approveExpense,
-                                    item,
-                                    "Approve failed"
-                                  )
-                                }
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={busy}
-                                onClick={() => setPrompt({
-                                  title: "Reject expense",
-                                  inputLabel: "REJECTION REASON",
-                                  inputPlaceholder: "Why is this being rejected?",
-                                  inputType: "textarea",
-                                  required: false,
-                                  confirmLabel: "Reject",
-                                  onConfirm: async (reason) => {
-                                    setBusy(true);
-                                    try {
-                                      await rejectExpense(item._id, reason);
-                                      await load();
-                                    } catch (e) {
-                                      toast.error(
-                                        e?.response?.data?.message ||
-                                          e?.message ||
-                                          "Reject failed"
-                                      );
-                                    } finally {
-                                      setBusy(false);
-                                      setPrompt(null);
-                                    }
-                                  },
-                                })}
-                              >
-                                <XCircle size={14} />
-                              </Button>
-                            </>
-                          ) : null}
-
-                          {item.status === "approved" ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={busy}
-                              onClick={() => setPrompt({
-                                title: "Register expense",
-                                message: `Register "${item.title}" to a month for accounting.`,
-                                inputLabel: "MONTH",
-                                inputType: "month",
-                                inputDefault: item.claimMonth || currentMonth(),
-                                required: true,
-                                confirmLabel: "Register",
-                                onConfirm: async (m) => {
-                                  setBusy(true);
-                                  try {
-                                    await registerExpense(item._id, m);
-                                    await load();
-                                  } catch (e) {
-                                    toast.error(
-                                      e?.response?.data?.message ||
-                                        e?.message ||
-                                        "Register failed"
-                                    );
-                                  } finally {
-                                    setBusy(false);
-                                    setPrompt(null);
-                                  }
-                                },
-                              })}
-                            >
-                              Register
-                            </Button>
-                          ) : null}
-
-                          {item.status === "registered" ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={busy}
-                              onClick={() =>
-                                doAction(
-                                  markExpensePaid,
-                                  item,
-                                  "Payment update failed"
-                                )
-                              }
-                            >
-                              Mark paid
-                            </Button>
-                          ) : null}
-
-                          {["submitted", "approved", "rejected"].includes(
-                            item.status
-                          ) ? (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={busy}
-                                onClick={() => openEdit(item)}
-                              >
-                                <Pencil size={14} />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={busy}
-                                onClick={() => handleDelete(item)}
-                              >
-                                <Trash2 size={14} />
-                              </Button>
-                            </>
-                          ) : null}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
-                <span className="text-xs text-slate-500">
-                  Page <b>{meta.page}</b> of <b>{meta.pages}</b> · {meta.total}{" "}
-                  total
-                </span>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={meta.page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  >
-                    Prev
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={meta.page >= meta.pages}
-                    onClick={() => setPage((p) => Math.min(meta.pages, p + 1))}
-                  >
-                    Next
-                  </Button>
-                </div>
+      <PageFrame
+        title="Expense claims"
+        description={approver ? "Claims from the team: decisions, monthly registration and payment." : "Your expense claims and where each one stands."}
+        breadcrumb={[{ label: "HR", to: access.canOpen("/portal/hr") ? "/portal/hr" : undefined }, { label: "Expense claims" }]}
+        secondaryActions={
+          <>
+            {approver && access.canOpen("/portal/hr/monthly-expenses") ? (
+              <Button variant="outline" onClick={() => nav("/portal/hr/monthly-expenses")}>Monthly summary</Button>
+            ) : null}
+            <Button variant="outline" onClick={refresh} disabled={loading}>
+              <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />
+              Refresh
+            </Button>
+          </>
+        }
+        primaryAction={canWrite ? <Button onClick={() => openForm()}><Plus size={14} aria-hidden="true" />New claim</Button> : null}
+      >
+        <MetricsStrip label="Expense claim summary" items={metrics} />
+        <Panel flush bare label="Expense claims" className="px-list-panel">
+          <div className="px-toolbar" role="search" aria-label="Filter expense claims">
+            <SearchField label="Search claims" value={q} onChange={setQ} placeholder="Title, name or description" />
+            <SelectField label="Status" value={status} onChange={set(setStatus)} options={[{ value: "", label: "Any status" }, ...EXPENSE_STATUS_OPTIONS.filter((o) => o.value)]} />
+            <SelectField label="Category" value={category} onChange={set(setCategory)} options={[{ value: "", label: "Any category" }, ...EXPENSE_CATEGORY_OPTIONS.filter((o) => o.value)]} />
+            <SelectField label="Department" value={department} onChange={set(setDepartment)} options={[{ value: "", label: "Any department" }, ...HR_DEPARTMENT_OPTIONS.filter((o) => o.value)]} />
+            <TextField label="Claim month" type="month" value={month} onChange={(e) => set(setMonth)(e.target.value)} />
+            <SelectField label="Sort by" value={sort} onChange={set(setSort)} options={SORT_OPTIONS.some((o) => o.value === sort) ? SORT_OPTIONS : [...SORT_OPTIONS, { value: sort, label: "Custom" }]} />
+          </div>
+          <div className="px-result-bar">
+            <span aria-live="polite">{loading ? "Loading expense claims…" : error ? "Expense claims unavailable" : `${meta.total} claim${meta.total === 1 ? "" : "s"}`}</span>
+            {chips.length ? (
+              <div className="px-active-filters">
+                {chips.map((c) => (
+                  <button key={c.key} type="button" className="px-filter-chip" onClick={c.clear} aria-label={`Remove filter ${c.label}`}>
+                    {c.label}
+                    <X size={12} aria-hidden="true" />
+                  </button>
+                ))}
+                <button type="button" className="px-btn px-btn--ghost px-btn--sm" onClick={clearFilters}>Clear all</button>
               </div>
-            </div>
-          </Card>
-        )}
-      </div>
+            ) : null}
+          </div>
+          {content}
+        </Panel>
+      </PageFrame>
 
-      <ExpenseClaimFormModal
-        open={modalOpen}
-        initial={selected}
-        busy={busy}
-        onClose={() => {
-          setModalOpen(false);
-          setSelected(null);
-        }}
-        onSubmit={handleSave}
-      />
-
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-
-      <PromptModal
-        open={!!prompt}
-        {...prompt}
-        onClose={() => setPrompt(null)}
-      />
+      {canWrite ? <ExpenseClaimFormModal open={formOpen} initial={editing} busy={formBusy} error={formError} onClose={() => setFormOpen(false)} onSubmit={submitForm} /> : null}
+      <ExpenseActionDialogs action={action} onClose={() => setAction(null)} onDone={refresh} />
     </>
   );
 }

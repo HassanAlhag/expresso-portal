@@ -1,410 +1,196 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Zap,
-  Activity,
-  RefreshCw,
-} from "lucide-react";
+import { Link } from "react-router-dom";
+import { Activity, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 
-import PageHeader from "../../../shared/ui/PageHeader";
-import Card from "../../../shared/ui/Card";
-import Badge from "../../../shared/ui/Badge";
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Skeleton from "../../../shared/ui/Skeleton";
+import Badge from "../../../shared/ui/Badge";
+import SelectField from "../../../shared/ui/SelectField";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import RowActions from "../../../shared/ui/RowActions";
 import EmptyState from "../../../shared/ui/EmptyState";
-import Modal from "../../../shared/ui/Modal";
-import Input from "../../../shared/ui/Input";
-import Select from "../../../shared/ui/Select";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
 import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
-import {
-  listKPIIndicators,
-  createKPIIndicator,
-  updateKPIIndicator,
-  deleteKPIIndicator,
-} from "../api";
+import { createKPIIndicator, deleteKPIIndicator, listKPIIndicators, updateKPIIndicator } from "../api";
+import { humanize } from "../format";
+import { autoSourceLabel, directionLabel, hasAutoSource } from "../kpi/kpiFormat";
+import KpiIndicatorFormDialog from "../kpi/KpiIndicatorFormDialog";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const CATEGORIES = ["performance", "productivity", "attendance", "financial", "development", "quality", "custom"];
-const DIRECTIONS = ["higher_is_better", "lower_is_better", "on_target"];
-const FREQUENCIES = ["weekly", "monthly", "quarterly", "annual"];
-const AUTO_SOURCES = [
-  { value: "none", label: "None (manual entry)" },
-  { value: "leaves_taken", label: "Leaves Taken (approved days)" },
-  { value: "expenses_total", label: "Expenses Total (approved AED)" },
-  { value: "scorecard_avg", label: "Scorecard Average Rating" },
-  { value: "learning_goals_completed", label: "Learning Goals Completed" },
-];
-
-const CATEGORY_TONE = {
-  performance: "info",
-  productivity: "success",
-  attendance: "warning",
-  financial: "neutral",
-  development: "info",
-  quality: "success",
-  custom: "neutral",
-};
-
-const DIRECTION_LABEL = {
-  higher_is_better: "↑ Higher is better",
-  lower_is_better:  "↓ Lower is better",
-  on_target:        "◎ On target",
-};
-
-const EMPTY_FORM = {
-  name: "",
-  description: "",
-  category: "performance",
-  unit: "count",
-  direction: "higher_is_better",
-  frequency: "monthly",
-  autoSource: "none",
-  isActive: true,
-  order: 0,
-};
-
-// ── Form Modal ─────────────────────────────────────────────────────────────────
-
-function IndicatorFormModal({ open, initial, busy, onClose, onSubmit }) {
-  const [form, setForm] = useState(EMPTY_FORM);
-
-  useEffect(() => {
-    setForm(initial ? { ...EMPTY_FORM, ...initial } : EMPTY_FORM);
-  }, [initial, open]);
-
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit({ ...form, order: Number(form.order) || 0 });
-  };
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={initial ? "Edit KPI Indicator" : "New KPI Indicator"}
-      width="600px"
-      footer={
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
-          <Button form="ind-form" type="submit" loading={busy}>
-            {initial ? "Save Changes" : "Create Indicator"}
-          </Button>
-        </div>
-      }
-    >
-      <form id="ind-form" onSubmit={handleSubmit} className="grid gap-4">
-        <Input
-          label="Name *"
-          value={form.name}
-          onChange={(e) => set("name", e.target.value)}
-          placeholder="e.g. Monthly Sales Calls"
-          required
-        />
-        <Input
-          label="Description"
-          value={form.description}
-          onChange={(e) => set("description", e.target.value)}
-          placeholder="What does this indicator measure?"
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <Select
-            label="Category"
-            value={form.category}
-            onChange={(value) => set("category", value)}
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c} className="capitalize">{c}</option>
-            ))}
-          </Select>
-          <Input
-            label="Unit"
-            value={form.unit}
-            onChange={(e) => set("unit", e.target.value)}
-            placeholder="count, %, AED, days, score…"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Select
-            label="Direction"
-            value={form.direction}
-            onChange={(value) => set("direction", value)}
-          >
-            {DIRECTIONS.map((d) => (
-              <option key={d} value={d}>{DIRECTION_LABEL[d]}</option>
-            ))}
-          </Select>
-          <Select
-            label="Frequency"
-            value={form.frequency}
-            onChange={(value) => set("frequency", value)}
-          >
-            {FREQUENCIES.map((f) => (
-              <option key={f} value={f} className="capitalize">{f}</option>
-            ))}
-          </Select>
-        </div>
-
-        <Select
-          label="Auto Source"
-          value={form.autoSource}
-          onChange={(value) => set("autoSource", value)}
-        >
-          {AUTO_SOURCES.map((s) => (
-            <option key={s.value} value={s.value}>{s.label}</option>
-          ))}
-        </Select>
-
-        {form.autoSource !== "none" && (
-          <div className="flex items-start gap-2 rounded-xl bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
-            <Zap size={14} className="mt-0.5 shrink-0" />
-            <span>This indicator will auto-sync values from system data when goals are synced.</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Sort Order"
-            type="number"
-            value={form.order}
-            onChange={(e) => set("order", e.target.value)}
-            min={0}
-          />
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-700">Status</label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.isActive}
-                onChange={(e) => set("isActive", e.target.checked)}
-                className="rounded"
-              />
-              <span className="text-sm text-slate-600">Active</span>
-            </label>
-          </div>
-        </div>
-      </form>
-    </Modal>
-  );
-}
-
-// ── Main ─────────────────────────────────────────────────────────────────────
-
+// KPI indicators (PUI-4, hr.kpi.read; changes need hr.kpi.write).
 export default function KPIIndicatorsPage() {
   const toast = useToast();
-  const [items, setItems]     = useState([]);
+  const access = useAccess();
+  const canWrite = access.can("hr.kpi.write");
+
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showInactive, setShowInactive] = useState("false");
   const [formOpen, setFormOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [editing, setEditing] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [showInactive, setShowInactive] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [removing, setRemoving] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
-      const res = await listKPIIndicators({
-        limit: 200,
-        ...(showInactive ? { includeInactive: "true" } : {}),
-      });
-      setItems(res?.items || []);
+      const res = await listKPIIndicators(showInactive === "true" ? { includeInactive: "true" } : {});
+      setItems(Array.isArray(res?.items) ? res.items : []);
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to load indicators.");
+      setItems([]);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [showInactive, toast]);
+  }, [showInactive]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const handleCreate = async (payload) => {
+  const openForm = (item = null) => {
+    setEditing(item);
+    setFormError("");
+    setFormOpen(true);
+  };
+
+  const save = async (payload) => {
+    if (busy) return;
     setBusy(true);
+    setFormError("");
     try {
-      await createKPIIndicator(payload);
+      if (editing) await updateKPIIndicator(editing._id, payload);
+      else await createKPIIndicator(payload);
+      toast.success(editing ? "Indicator updated." : "Indicator created.");
       setFormOpen(false);
       await load();
-      toast.success("Indicator created.");
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to create.");
+      setFormError(e?.response?.data?.message || "The indicator wasn't saved. Try again.");
     } finally {
       setBusy(false);
     }
   };
 
-  const handleUpdate = async (payload) => {
-    setBusy(true);
+  const remove = async () => {
     try {
-      await updateKPIIndicator(editTarget._id, payload);
-      setEditTarget(null);
+      await deleteKPIIndicator(removing._id);
+      toast.success("Indicator deleted, with its goals and check-ins.");
+      setRemoving(null);
       await load();
-      toast.success("Indicator updated.");
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to update.");
-    } finally {
-      setBusy(false);
+      toast.error(e?.response?.data?.message || "The indicator wasn't deleted. Try again.");
     }
   };
 
-  const handleDelete = async () => {
-    setBusy(true);
-    try {
-      await deleteKPIIndicator(deleteTarget._id);
-      setDeleteTarget(null);
-      await load();
-      toast.success("Indicator deleted.");
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to delete.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const visible = showInactive ? items : items.filter((i) => i.isActive);
+  let content;
+  if (error) content = <ErrorState title="Indicators didn't load" message={error} onRetry={load} />;
+  else if (!loading && !items.length)
+    content = (
+      <EmptyState
+        icon={Activity}
+        title={showInactive === "true" ? "No indicators yet" : "No active indicators"}
+        message="Indicators define what is measured: a unit, a direction and, optionally, a source to sync from."
+        action={canWrite ? <Button onClick={() => openForm()}><Plus size={14} aria-hidden="true" />New indicator</Button> : null}
+      />
+    );
+  else
+    content = (
+      <table className="px-table px-table--stack" aria-label="KPI indicators" aria-busy={loading || undefined}>
+        <thead>
+          <tr>
+            <th scope="col">Indicator</th>
+            <th scope="col">Category</th>
+            <th scope="col" className="px-hide-tab">Measured as</th>
+            <th scope="col" className="px-hide-tab">Synced from</th>
+            <th scope="col">Status</th>
+            {canWrite ? <th scope="col"><span className="sr-only">Actions</span></th> : null}
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <SkeletonRows rows={5} cols={canWrite ? 6 : 5} label="Loading indicators" />
+          ) : (
+            items.map((ind) => (
+              <tr key={ind._id}>
+                <td className="px-primary">
+                  <div className="px-cell-main">
+                    <b>{ind.name}</b>
+                    {ind.description ? <span>{ind.description}</span> : null}
+                  </div>
+                </td>
+                <td data-label="Category">{humanize(ind.category)}</td>
+                <td data-label="Measured as" className="px-hide-tab">{[ind.unit, directionLabel(ind.direction), humanize(ind.frequency, "")].filter(Boolean).join(", ")}</td>
+                <td data-label="Synced from" className="px-hide-tab">{hasAutoSource(ind) ? autoSourceLabel(ind.autoSource) : "Entered by hand"}</td>
+                <td data-label="Status">
+                  <Badge tone={ind.isActive ? "ok" : "idle"} dot>{ind.isActive ? "Active" : "Inactive"}</Badge>
+                </td>
+                {canWrite ? (
+                  <td className="px-actions-cell">
+                    <RowActions
+                      label={ind.name}
+                      actions={[
+                        { key: "edit", label: "Edit indicator", icon: Pencil, onSelect: () => openForm(ind) },
+                        { key: "sep", separator: true },
+                        { key: "delete", label: "Delete indicator", icon: Trash2, tone: "muted", onSelect: () => setRemoving(ind) },
+                      ]}
+                    />
+                  </td>
+                ) : null}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    );
 
   return (
-    <div className="grid gap-6">
-      <PageHeader
-        eyebrow="HR"
-        title="KPI Indicators"
-        subtitle="Define what to measure — categories, units, and auto-sources"
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "HR", to: "/portal/hr" },
-          { label: "KPI Indicators" },
-        ]}
-        right={
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 shadow-sm">
-              <input
-                type="checkbox"
-                checked={showInactive}
-                onChange={(e) => setShowInactive(e.target.checked)}
-                className="rounded"
-              />
-              Show inactive
-            </label>
+    <>
+      <PageFrame
+        title="KPI indicators"
+        description="What gets measured, in which unit, and whether it syncs from HR data."
+        breadcrumb={[{ label: "HR", to: access.canOpen("/portal/hr") ? "/portal/hr" : undefined }, { label: "KPI", to: "/portal/hr/kpi" }, { label: "Indicators" }]}
+        secondaryActions={
+          <>
+            <Link className="px-btn px-btn--outline" to="/portal/hr/kpi/goals">Goals</Link>
             <Button variant="outline" onClick={load} disabled={loading}>
-              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+              <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />
+              Refresh
             </Button>
-            <Button onClick={() => setFormOpen(true)}>
-              <Plus size={14} />
-              New Indicator
-            </Button>
-          </div>
+          </>
         }
-      />
-
-      <Card className="p-5">
-        {loading ? (
-          <div className="grid gap-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-xl" />
-            ))}
+        primaryAction={canWrite ? <Button onClick={() => openForm()}><Plus size={14} aria-hidden="true" />New indicator</Button> : null}
+      >
+        <Panel flush bare label="Indicators" className="px-list-panel">
+          <div className="px-toolbar" aria-label="Filter indicators">
+            <SelectField label="Show" value={showInactive} onChange={setShowInactive} options={[{ value: "false", label: "Active indicators" }, { value: "true", label: "Active and inactive" }]} />
           </div>
-        ) : visible.length === 0 ? (
-          <EmptyState
-            icon={Activity}
-            title="No KPI indicators yet"
-            message="Create indicators to start tracking performance metrics."
-            actionLabel="New Indicator"
-            onAction={() => setFormOpen(true)}
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  <th className="pb-2 pr-4">Name</th>
-                  <th className="pb-2 pr-4">Category</th>
-                  <th className="pb-2 pr-4">Unit</th>
-                  <th className="pb-2 pr-4">Direction</th>
-                  <th className="pb-2 pr-4">Frequency</th>
-                  <th className="pb-2 pr-4">Auto Source</th>
-                  <th className="pb-2 pr-4">Status</th>
-                  <th className="pb-2" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {visible.map((ind) => (
-                  <tr key={ind._id} className="hover:bg-slate-50/60">
-                    <td className="py-2.5 pr-4">
-                      <span className="font-medium text-slate-800">{ind.name}</span>
-                      {ind.description && (
-                        <div className="text-xs text-slate-400 max-w-xs truncate">{ind.description}</div>
-                      )}
-                    </td>
-                    <td className="py-2.5 pr-4">
-                      <Badge tone={CATEGORY_TONE[ind.category] || "neutral"} className="capitalize">
-                        {ind.category}
-                      </Badge>
-                    </td>
-                    <td className="py-2.5 pr-4 text-slate-500">{ind.unit}</td>
-                    <td className="py-2.5 pr-4 text-slate-500 text-xs">{DIRECTION_LABEL[ind.direction]}</td>
-                    <td className="py-2.5 pr-4 capitalize text-slate-500">{ind.frequency}</td>
-                    <td className="py-2.5 pr-4">
-                      {ind.autoSource !== "none" ? (
-                        <span className="flex items-center gap-1 text-indigo-600 text-xs">
-                          <Zap size={11} />
-                          {AUTO_SOURCES.find((s) => s.value === ind.autoSource)?.label || ind.autoSource}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 text-xs">Manual</span>
-                      )}
-                    </td>
-                    <td className="py-2.5 pr-4">
-                      <Badge tone={ind.isActive ? "success" : "neutral"}>
-                        {ind.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                    <td className="py-2.5">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => setEditTarget(ind)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                        >
-                          <Pencil size={13} />
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(ind)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="px-result-bar">
+            <span aria-live="polite">{loading ? "Loading indicators…" : error ? "Indicators unavailable" : `${items.length} indicator${items.length === 1 ? "" : "s"}`}</span>
           </div>
-        )}
-      </Card>
+          {content}
+        </Panel>
+      </PageFrame>
 
-      <IndicatorFormModal
-        open={formOpen || !!editTarget}
-        initial={editTarget}
-        busy={busy}
-        onClose={() => { setFormOpen(false); setEditTarget(null); }}
-        onSubmit={editTarget ? handleUpdate : handleCreate}
-      />
-
-      <ConfirmModal
-        open={!!deleteTarget}
-        title="Delete Indicator?"
-        message={`Delete "${deleteTarget?.name}"? This will also delete all associated goals and check-ins. This cannot be undone.`}
-        confirmLabel="Delete"
+      {canWrite ? <KpiIndicatorFormDialog open={formOpen} initial={editing} busy={busy} error={formError} onClose={() => setFormOpen(false)} onSubmit={save} /> : null}
+      <ConfirmDialog
+        open={Boolean(removing)}
+        icon={Trash2}
+        tone="bad"
         danger
-        onConfirm={handleDelete}
-        onClose={() => setDeleteTarget(null)}
-      />
-    </div>
+        title="Delete this indicator?"
+        confirmLabel="Delete indicator"
+        details={["Every KPI goal on this indicator, and every check-in on those goals, is deleted too.", "None of it can be restored. To stop using it but keep its goals, set it to Inactive instead."]}
+        onClose={() => setRemoving(null)}
+        onConfirm={remove}
+      >
+        {removing ? `${removing.name}.` : ""}
+      </ConfirmDialog>
+    </>
   );
 }

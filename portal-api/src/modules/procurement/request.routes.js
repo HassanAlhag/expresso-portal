@@ -1,5 +1,6 @@
 import express from "express";
 import { requireAuth, requirePermission } from "../../middleware/auth.js";
+import { requireInternalUser } from "../../utils/accessControl.js";
 import {
   getDashboardStats,
   listRequests,
@@ -34,9 +35,12 @@ router.post(
   createRequest
 );
 
+// Creating an RFQ is staff-only, like every other RFQ write (PUI-4): the RFQ
+// router requires an internal user, and this route reads any request by id.
 router.post(
   "/:id/create-rfq",
   requireAuth,
+  requireInternalUser,
   requirePermission("procurement.write"),
   createRfqFromRequest
 );

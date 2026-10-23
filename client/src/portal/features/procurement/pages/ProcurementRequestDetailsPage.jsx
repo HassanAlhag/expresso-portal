@@ -1,252 +1,59 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import PageHeader from "../../../shared/ui/PageHeader";
-import Card, { CardBody, CardHeader } from "../../../shared/ui/Card";
-import Button from "../../../shared/ui/Button";
-import Input from "../../../shared/ui/Input";
-import Skeleton from "../../../shared/ui/Skeleton";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Ban, Building2, CheckCircle2, FilePlus2, Flag, Hash, Pencil, RefreshCw, Send, Store, Tag, Trash2 } from "lucide-react";
+
 import { useToast } from "../../../shared/ui/Toast";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
-import {
-  getRequest,
-  updateRequest,
-  deleteRequest,
-  listVendors,
-  createRfqFromRequest,
-} from "../api";
-import {
-  ArrowLeft,
-  RefreshCw,
-  Trash2,
-  ChevronRight,
-  Building2,
-  Tag,
-  User,
-  DollarSign,
-  Calendar,
-  Hash,
-  X,
-  Search,
-  Globe,
-  Phone,
-  Mail,
-  FileText,
-} from "lucide-react";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import { usePageCrumbs } from "../../../layouts/ShellContext";
+import Badge from "../../../shared/ui/Badge";
+import Button from "../../../shared/ui/Button";
+import Panel from "../../../shared/ui/Panel";
+import KeyValue from "../../../shared/ui/KeyValue";
+import Timeline from "../../../shared/ui/Timeline";
+import RowActions from "../../../shared/ui/RowActions";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
+import FormDialog from "../../../shared/ui/FormDialog";
+import SelectField from "../../../shared/ui/SelectField";
 
-const BRAND = "#6F7FD9";
+import { createRfqFromRequest, deleteRequest, getRequest, updateRequest } from "../api";
+import { PRIORITY_LABEL, PRIORITY_TONE, REQUEST_STATUSES, REQUEST_STATUS_LABEL, REQUEST_STATUS_TONE, REQUEST_DELETE_DETAILS, REQUEST_TIMELINE, clientName, date, idOf, money, options, requestRef } from "../format";
+import RequestFormDialog from "../components/RequestFormDialog";
+import SourcingDialog from "../components/SourcingDialog";
 
-const STATUS_TONES = {
-  new: "border-slate-200 bg-slate-50 text-slate-700",
-  assessing: "border-amber-200 bg-amber-50 text-amber-700",
-  quoted: "border-blue-200 bg-blue-50 text-blue-700",
-  approved: "border-violet-200 bg-violet-50 text-violet-700",
-  ordered: "border-indigo-200 bg-indigo-50 text-indigo-700",
-  delivered: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  cancelled: "border-rose-200 bg-rose-50 text-rose-700",
-};
-
-const STATUS_ORDER = [
-  "new",
-  "assessing",
-  "quoted",
-  "approved",
-  "ordered",
-  "delivered",
-];
-
-function StatusPill({ value }) {
-  return (
-    <span
-      className={[
-        "inline-flex rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em]",
-        STATUS_TONES[value] || "border-slate-200 bg-slate-50 text-slate-600",
-      ].join(" ")}
-    >
-      {value || "—"}
-    </span>
-  );
-}
-
-function InfoRow({ icon: Icon, label, value }) {
-  return (
-    <div className="flex items-start gap-3 rounded-2xl border border-black/5 bg-white p-4">
-      <div className="mt-0.5 shrink-0 text-slate-400">
-        <Icon size={15} />
-      </div>
-      <div className="min-w-0">
-        <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">
-          {label}
-        </div>
-        <div className="mt-1 text-sm font-semibold text-slate-900 break-words">
-          {value || "—"}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function formatDate(d) {
-  if (!d) return null;
-  return new Date(d).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatBudget(amount, currency = "AED") {
-  if (!amount && amount !== 0) return "—";
-  return `${currency} ${Number(amount).toLocaleString("en-AE", {
-    maximumFractionDigits: 0,
-  })}`;
-}
-
-// ── Vendor Select Modal ───────────────────────────────────────────────────────
-
-function VendorSelectModal({ open, onClose, onSelect, currentVendorId }) {
-  const [vendors, setVendors] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [q, setQ] = useState("");
-
-  useEffect(() => {
-    if (!open) return;
-    let ignore = false;
-    setLoading(true);
-    listVendors({ limit: 200 })
-      .then((res) => {
-        if (!ignore) setVendors(Array.isArray(res?.items) ? res.items : []);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!ignore) setLoading(false);
-      });
-    return () => {
-      ignore = true;
-    };
-  }, [open]);
-
-  const filtered = vendors.filter(
-    (v) =>
-      !q ||
-      [v.name, v.contactPerson, v.email, v.country]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(q.toLowerCase())
-  );
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-          <h2 className="text-base font-black text-slate-900">Select Vendor</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:bg-slate-50"
-          >
-            <X size={15} />
-          </button>
-        </div>
-        <div className="border-b border-slate-100 px-5 py-3">
-          <Input
-            placeholder="Search vendors..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            prefix={<Search size={14} className="text-slate-400" />}
-          />
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {loading ? (
-            <div className="grid gap-2 p-4">
-              {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-14 w-full" />
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="flex min-h-[120px] items-center justify-center text-sm text-slate-400">
-              No vendors found.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-50">
-              {filtered.map((v) => (
-                <button
-                  key={v._id}
-                  type="button"
-                  onClick={() => onSelect(v)}
-                  className={[
-                    "flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left transition hover:bg-slate-50",
-                    v._id === currentVendorId ? "bg-indigo-50" : "",
-                  ].join(" ")}
-                >
-                  <div>
-                    <div className="text-sm font-bold text-slate-900">
-                      {v.name}
-                    </div>
-                    <div className="mt-0.5 text-xs text-slate-500">
-                      {[v.contactPerson, v.country]
-                        .filter(Boolean)
-                        .join(" · ") || "No details"}
-                    </div>
-                  </div>
-                  {v._id === currentVendorId && (
-                    <span className="text-xs font-black text-indigo-600">
-                      Current
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
-
+// Procurement request (PUI-4). Everyone with access reads it; client users
+// can edit their own request's details. Status, sourcing and RFQ creation
+// are staff actions (the API ignores them from client users).
 export default function ProcurementRequestDetailsPage() {
-  const nav = useNavigate();
   const { id } = useParams();
+  const nav = useNavigate();
   const toast = useToast();
+  const access = useAccess();
+  const canWrite = access.can("procurement.write");
+  const staff = access.isInternal && canWrite;
+  const canDelete = access.can("procurement.delete");
 
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [dialog, setDialog] = useState(null); // edit | sourcing | status | cancel | rfq | delete
+  const [nextStatus, setNextStatus] = useState("");
   const [busy, setBusy] = useState(false);
-  const [statusBusy, setStatusBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
+  const running = useRef(false);
 
-  const [vendorModalOpen, setVendorModalOpen] = useState(false);
-  const [confirmState, setConfirmState] = useState(null);
-
-  // Quick edit form state
-  const [editForm, setEditForm] = useState({});
-  const [isDirty, setIsDirty] = useState(false);
+  usePageCrumbs(item ? [{ label: "Procurement", to: "/portal/procurement" }, { label: "Requests", to: "/portal/procurement/requests" }, { label: requestRef(item) || "Request" }] : []);
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError("");
+    setLoadError(null);
     try {
       const res = await getRequest(id);
-      const req = res?.item || res?.request || res;
-      setItem(req);
-      setEditForm({
-        title: req.title || "",
-        description: req.description || "",
-        requirements: req.requirements || "",
-        budget: req.budget ?? "",
-        quotedAmount: req.quotedAmount ?? "",
-        assignedTo: req.assignedTo?.fullName || req.assignedTo || "",
-        proposedDelivery: req.proposedDelivery
-          ? req.proposedDelivery.slice(0, 10)
-          : "",
-      });
-      setIsDirty(false);
+      setItem(res?.item || null);
+      if (!res?.item) setLoadError({ status: 404 });
     } catch (e) {
-      setError(e?.response?.data?.message || "Failed to load request.");
+      setLoadError({ status: e?.response?.status, message: e?.response?.data?.message });
     } finally {
       setLoading(false);
     }
@@ -256,549 +63,222 @@ export default function ProcurementRequestDetailsPage() {
     load();
   }, [load]);
 
-  const handleStatusChange = async (newStatus) => {
-    setStatusBusy(true);
-    try {
-      const res = await updateRequest(id, { status: newStatus });
-      const updated = res?.item || res?.request || res;
-      setItem(updated);
-      toast.success(`Status updated to ${newStatus}.`);
-    } catch (e) {
-      toast.error(e?.response?.data?.message || "Status update failed.");
-    } finally {
-      setStatusBusy(false);
-    }
-  };
+  if (loading && !item) return <LoadingState rows={6} label="Loading request" />;
+  if (loadError || !item) {
+    const s = loadError?.status;
+    return (
+      <ErrorState
+        title={s === 404 ? "Request not found" : s === 403 ? "You don't have access to this request" : "This request didn't load"}
+        message={s === 404 ? "It may have been deleted, or the link is wrong." : s === 403 ? "It belongs to another company." : loadError?.message || undefined}
+        onRetry={s === 404 || s === 403 ? undefined : load}
+      />
+    );
+  }
 
-  const handleCancelRequest = () => {
-    setConfirmState({
-      title: "Cancel Request",
-      message: "Cancel this procurement request?",
-      danger: true,
-      onConfirm: async () => {
-        setStatusBusy(true);
-        try {
-          const res = await updateRequest(id, { status: "cancelled" });
-          const updated = res?.item || res?.request || res;
-          setItem(updated);
-          toast.success("Request cancelled.");
-        } catch (e) {
-          toast.error(e?.response?.data?.message || "Cancel failed.");
-        } finally {
-          setStatusBusy(false);
-          setConfirmState(null);
-        }
-      },
-    });
+  const open = (kind) => {
+    setFormError("");
+    if (kind === "status") setNextStatus(item.status);
+    setDialog(kind);
   };
+  const close = () => setDialog(null);
 
-  const handleDelete = () => {
-    setConfirmState({
-      title: "Delete Request",
-      message: "Permanently delete this request?",
-      danger: true,
-      onConfirm: async () => {
-        setBusy(true);
-        try {
-          await deleteRequest(id);
-          toast.success("Request deleted.");
-          setConfirmState(null);
-          nav("/portal/procurement/requests");
-        } catch (e) {
-          toast.error(e?.response?.data?.message || "Delete failed.");
-          setBusy(false);
-          setConfirmState(null);
-        }
-      },
-    });
-  };
-
-  const handleVendorSelect = async (vendor) => {
-    setVendorModalOpen(false);
+  const guarded = async (fn) => {
+    if (running.current) return;
+    running.current = true;
     setBusy(true);
+    setFormError("");
     try {
-      const res = await updateRequest(id, { vendorId: vendor._id });
-      const updated = res?.item || res?.request || res;
-      setItem(updated);
-      toast.success(`Vendor assigned: ${vendor.name}`);
-    } catch (e) {
-      toast.error(e?.response?.data?.message || "Vendor assignment failed.");
+      await fn();
     } finally {
+      running.current = false;
       setBusy(false);
     }
   };
 
-  const handleCreateRfq = () => {
-    setConfirmState({
-      title: "Create RFQ",
-      message: "Create a draft RFQ from this procurement request?",
-      danger: false,
-      confirmLabel: "Create RFQ",
-      onConfirm: async () => {
-        setBusy(true);
-        try {
-          const res = await createRfqFromRequest(id);
-          const rfq = res?.item;
-          toast.success("Draft RFQ created from request.");
-          setConfirmState(null);
-          if (rfq?._id) {
-            nav(`/portal/procurement/rfqs/${rfq._id}`);
-          } else {
-            nav("/portal/procurement/rfqs");
-          }
-        } catch (e) {
-          const existingRfq = e?.response?.data?.item;
-          if (existingRfq?._id) {
-            toast.error("An RFQ already exists for this request.");
-            setConfirmState(null);
-            nav(`/portal/procurement/rfqs/${existingRfq._id}`);
-            return;
-          }
-          toast.error(e?.response?.data?.message || "Failed to create RFQ.");
-          setConfirmState(null);
-        } finally {
-          setBusy(false);
-        }
-      },
+  const patch = (payload, done) =>
+    guarded(async () => {
+      try {
+        const res = await updateRequest(item._id, payload);
+        if (res?.item) setItem(res.item);
+        else await load();
+        toast.success(done);
+        close();
+      } catch (e) {
+        const msg = e?.response?.data?.message || "That wasn't saved. Try again.";
+        if (["edit", "sourcing", "status"].includes(dialog)) setFormError(msg);
+        else toast.error(msg);
+      }
     });
-  };
 
-  const setEdit = (field) => (e) => {
-    setEditForm((f) => ({ ...f, [field]: e.target.value }));
-    setIsDirty(true);
-  };
+  const createRfq = () =>
+    guarded(async () => {
+      try {
+        const res = await createRfqFromRequest(item._id);
+        toast.success("Draft RFQ created. The request is now Assessing.");
+        close();
+        nav(res?.item?._id ? `/portal/procurement/rfqs/${res.item._id}` : "/portal/procurement/rfqs");
+      } catch (e) {
+        const existing = e?.response?.data?.item;
+        close();
+        if (existing?._id) {
+          toast.info("This request already has an RFQ. Opening it.");
+          nav(`/portal/procurement/rfqs/${existing._id}`);
+        } else toast.error(e?.response?.data?.message || "The RFQ wasn't created. Try again.");
+      }
+    });
 
-  const handleSaveEdit = async () => {
-    setBusy(true);
+  const remove = async () => {
     try {
-      const payload = {
-        title: editForm.title,
-        description: editForm.description,
-        requirements: editForm.requirements,
-        budget: editForm.budget !== "" ? Number(editForm.budget) : undefined,
-        quotedAmount:
-          editForm.quotedAmount !== ""
-            ? Number(editForm.quotedAmount)
-            : undefined,
-        assignedTo: editForm.assignedTo.trim() || undefined,
-        proposedDelivery: editForm.proposedDelivery || undefined,
-      };
-      const res = await updateRequest(id, payload);
-      const updated = res?.item || res?.request || res;
-      setItem(updated);
-      setIsDirty(false);
-      toast.success("Request updated.");
+      await deleteRequest(item._id);
+      toast.success("Request deleted.");
+      nav("/portal/procurement/requests");
     } catch (e) {
-      toast.error(e?.response?.data?.message || "Update failed.");
-    } finally {
-      setBusy(false);
+      toast.error(e?.response?.data?.message || "The request wasn't deleted. Try again.");
     }
   };
 
-  if (loading) {
-    return (
-      <Card className="p-6">
-        <div className="grid gap-4">
-          <Skeleton className="h-8 w-72" />
-          <Skeleton className="h-28 w-full" />
-          <div className="grid gap-3 lg:grid-cols-3">
-            <div className="lg:col-span-2 grid gap-3">
-              <Skeleton className="h-48 w-full" />
-              <Skeleton className="h-32 w-full" />
-            </div>
-            <div className="grid gap-3">
-              <Skeleton className="h-48 w-full" />
-              <Skeleton className="h-32 w-full" />
-            </div>
-          </div>
-        </div>
-      </Card>
-    );
-  }
+  const client = item.customerId && typeof item.customerId === "object" ? item.customerId : null;
+  const vendor = item.vendorId && typeof item.vendorId === "object" ? item.vendorId : null;
+  const tl = item.timeline || {};
+  const history = [
+    { key: "created", icon: Send, content: <>Created{item.createdBy?.fullName ? ` by ${item.createdBy.fullName}` : ""}</>, when: date(item.createdAt), dateTime: item.createdAt },
+    ...REQUEST_TIMELINE.filter((s) => tl[s.field]).map((s) => ({ key: s.status, icon: s.status === "cancelled" ? Ban : CheckCircle2, tone: s.status === "cancelled" ? "idle" : s.status === "delivered" ? "ok" : undefined, content: <>{s.label}</>, when: date(tl[s.field]), dateTime: tl[s.field] })),
+  ].sort((a, b) => new Date(a.dateTime || 0) - new Date(b.dateTime || 0));
 
-  if (error || !item) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-black text-red-700">
-        {error || "Request not found."}
-      </div>
-    );
-  }
-
-  const ref = item.ref || `PR-${item._id?.slice(-4).toUpperCase() || "???"}`;
-  const categoryName = item.categoryId?.name || "—";
-  const customerName =
-    item.customerId?.companyName || item.customerId?.contactName || "—";
-  const vendor = item.vendorId;
-  const canDelete = ["new", "cancelled"].includes(item.status);
-
-  const timelineFields = [
-    { label: "Created", date: item.createdAt },
-    { label: "Assessed", date: item.assessedAt },
-    { label: "Quoted", date: item.quotedAt },
-    { label: "Approved", date: item.approvedAt },
-    { label: "Ordered", date: item.orderedAt },
-    { label: "Delivered", date: item.deliveredAt },
-    { label: "Cancelled", date: item.cancelledAt },
-  ].filter((t) => t.date);
+  const deletable = canDelete && ["new", "cancelled"].includes(item.status);
+  const menu = [
+    { key: "refresh", label: "Refresh", icon: RefreshCw, onSelect: () => load() },
+    staff ? { key: "status", label: "Change status", icon: Flag, onSelect: () => open("status") } : null,
+    staff ? { key: "sourcing", label: "Edit sourcing", icon: Store, onSelect: () => open("sourcing") } : null,
+    staff && item.status !== "cancelled" ? { key: "sep1", separator: true } : null,
+    staff && item.status !== "cancelled" ? { key: "cancel", label: "Cancel request", icon: Ban, tone: "muted", onSelect: () => open("cancel") } : null,
+    deletable ? { key: "delete", label: "Delete request", icon: Trash2, tone: "muted", onSelect: () => open("delete") } : null,
+  ];
 
   return (
-    <div className="grid gap-6">
-      <PageHeader
-        eyebrow="PROCUREMENT"
-        title={item.title || "Untitled Request"}
-        subtitle={`${ref} · ${customerName}`}
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "Procurement", to: "/portal/procurement" },
-          { label: "Requests", to: "/portal/procurement/requests" },
-          { label: ref },
-        ]}
-        right={
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => nav("/portal/procurement/requests")}
-              disabled={busy}
-            >
-              <ArrowLeft size={15} />
-            </Button>
-
-            <Button variant="outline" onClick={load} disabled={busy || loading}>
-              <RefreshCw size={15} />
-            </Button>
-
-            <Button
-              onClick={handleCreateRfq}
-              disabled={busy}
-              style={{ backgroundColor: BRAND }}
-            >
-              <FileText size={15} />
-              Create RFQ
-            </Button>
-
-            {canDelete && (
-              <Button variant="danger" onClick={handleDelete} disabled={busy}>
-                <Trash2 size={15} />
-              </Button>
-            )}
+    <>
+      <div className="px-stack" style={{ gap: 20 }}>
+        <header className="px-record-head">
+          <div className="px-record-id">
+            <div className="px-record-tags">
+              <Badge tone={REQUEST_STATUS_TONE[item.status] || "neutral"} dot>{REQUEST_STATUS_LABEL[item.status] || item.status}</Badge>
+              <Badge tone={PRIORITY_TONE[item.priority] || "neutral"}>{`${PRIORITY_LABEL[item.priority] || "Normal"} priority`}</Badge>
+              <span className="px-code">{requestRef(item)}</span>
+            </div>
+            <h1>{item.title || "Untitled request"}</h1>
+            <ul className="px-record-meta" aria-label="Request summary">
+              {access.isInternal && client ? (
+                <li>
+                  <Building2 size={15} aria-hidden="true" />
+                  {access.canOpen("/portal/customers") ? <Link to={`/portal/customers/${idOf(client)}`}>{clientName(item)}</Link> : clientName(item)}
+                </li>
+              ) : null}
+              {item.categoryId?.name ? (
+                <li>
+                  <Tag size={15} aria-hidden="true" />
+                  {item.categoryId.name}
+                </li>
+              ) : null}
+              <li>
+                <Hash size={15} aria-hidden="true" />
+                Created {date(item.createdAt)}
+              </li>
+            </ul>
           </div>
-        }
-      />
+          <div className="px-record-actions">
+            {canWrite ? (
+              <Button variant="outline" onClick={() => open("edit")}>
+                <Pencil size={15} aria-hidden="true" />
+                Edit
+              </Button>
+            ) : null}
+            {staff && !["cancelled", "delivered"].includes(item.status) ? (
+              <Button onClick={() => open("rfq")}>
+                <FilePlus2 size={15} aria-hidden="true" />
+                Create RFQ
+              </Button>
+            ) : null}
+            <RowActions label={item.title || "request"} actions={menu} />
+          </div>
+        </header>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left: details */}
-        <div className="lg:col-span-2 grid gap-6 self-start">
-          <Card>
-            <CardHeader
-              title="Request Details"
-              right={<StatusPill value={item.status} />}
-            />
-            <CardBody>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <InfoRow icon={Hash} label="REF" value={ref} />
-                <InfoRow icon={Tag} label="CATEGORY" value={categoryName} />
-                <InfoRow
-                  icon={Building2}
-                  label="CUSTOMER"
-                  value={customerName}
-                />
-                <InfoRow
-                  icon={User}
-                  label="PRIORITY"
-                  value={
-                    item.priority
-                      ? item.priority.charAt(0).toUpperCase() +
-                        item.priority.slice(1)
-                      : "—"
-                  }
-                />
-                {(item.budget || item.budget === 0) && (
-                  <InfoRow
-                    icon={DollarSign}
-                    label="BUDGET"
-                    value={formatBudget(item.budget, item.currency)}
-                  />
-                )}
-                {item.quotedAmount && (
-                  <InfoRow
-                    icon={DollarSign}
-                    label="QUOTED AMOUNT"
-                    value={formatBudget(item.quotedAmount, item.currency)}
-                  />
-                )}
-                {item.proposedDelivery && (
-                  <InfoRow
-                    icon={Calendar}
-                    label="PROPOSED DELIVERY"
-                    value={formatDate(item.proposedDelivery)}
-                  />
-                )}
-                {item.createdBy && (
-                  <InfoRow
-                    icon={User}
-                    label="CREATED BY"
-                    value={
-                      item.createdBy?.fullName ||
-                      item.createdBy?.email ||
-                      String(item.createdBy)
-                    }
-                  />
-                )}
-              </div>
-
-              {item.description && (
-                <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <div className="mb-2 text-[11px] font-black tracking-[0.18em] text-slate-500">
-                    DESCRIPTION
-                  </div>
-                  <p className="whitespace-pre-wrap text-sm text-slate-700">
-                    {item.description}
-                  </p>
-                </div>
-              )}
-
-              {item.requirements && (
-                <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <div className="mb-2 text-[11px] font-black tracking-[0.18em] text-slate-500">
-                    REQUIREMENTS
-                  </div>
-                  <p className="whitespace-pre-wrap text-sm text-slate-700">
-                    {item.requirements}
-                  </p>
-                </div>
-              )}
-
-              {item.notes && (
-                <div className="mt-3 rounded-2xl border border-amber-100 bg-amber-50 p-4">
-                  <div className="mb-2 text-[11px] font-black tracking-[0.18em] text-amber-600">
-                    NOTES
-                  </div>
-                  <p className="whitespace-pre-wrap text-sm text-amber-800">
-                    {item.notes}
-                  </p>
-                </div>
-              )}
-            </CardBody>
-          </Card>
-
-          {/* Vendor Assignment */}
-          <Card>
-            <CardHeader
-              title="Vendor Assignment"
-              right={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setVendorModalOpen(true)}
-                  disabled={busy}
-                >
-                  {vendor ? "Change Vendor" : "Assign Vendor"}
-                </Button>
-              }
-            />
-            <CardBody>
-              {vendor ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <InfoRow
-                    icon={Building2}
-                    label="VENDOR NAME"
-                    value={vendor.name}
-                  />
-                  {vendor.contactPerson && (
-                    <InfoRow
-                      icon={User}
-                      label="CONTACT PERSON"
-                      value={vendor.contactPerson}
-                    />
-                  )}
-                  {vendor.phone && (
-                    <InfoRow icon={Phone} label="PHONE" value={vendor.phone} />
-                  )}
-                  {vendor.email && (
-                    <InfoRow icon={Mail} label="EMAIL" value={vendor.email} />
-                  )}
-                  {vendor.website && (
-                    <InfoRow
-                      icon={Globe}
-                      label="WEBSITE"
-                      value={vendor.website}
-                    />
-                  )}
-                </div>
-              ) : (
-                <div className="flex min-h-[80px] items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-400">
-                  No vendor assigned yet.
-                </div>
-              )}
-            </CardBody>
-          </Card>
-        </div>
-
-        {/* Right: workflow, quick edit, timeline */}
-        <div className="grid gap-6 self-start">
-          {/* Status Workflow */}
-          <Card>
-            <CardHeader title="Status Workflow" />
-            <CardBody>
-              <div className="grid gap-2">
-                {STATUS_ORDER.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    disabled={statusBusy || item.status === s}
-                    onClick={() => handleStatusChange(s)}
-                    className={[
-                      "flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-bold transition",
-                      item.status === s
-                        ? "border-slate-900 bg-slate-900 text-white cursor-default"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-400",
-                    ].join(" ")}
-                  >
-                    <span className="capitalize">{s}</span>
-                    {item.status === s ? (
-                      <span className="text-xs font-black opacity-70">
-                        current
-                      </span>
-                    ) : (
-                      <ChevronRight size={14} className="text-slate-400" />
-                    )}
-                  </button>
-                ))}
-
-                {item.status !== "cancelled" && (
-                  <button
-                    type="button"
-                    onClick={handleCancelRequest}
-                    disabled={statusBusy}
-                    className="mt-1 flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-60"
-                  >
-                    Cancel Request
-                    <ChevronRight size={14} className="text-rose-400" />
-                  </button>
-                )}
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* Quick Edit */}
-          <Card>
-            <CardHeader title="Quick Edit" />
-            <CardBody>
-              <div className="grid gap-4">
-                <Input
-                  label="TITLE"
-                  value={editForm.title || ""}
-                  onChange={setEdit("title")}
-                />
-                <label className="grid gap-1.5">
-                  <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
-                    DESCRIPTION
-                  </span>
-                  <textarea
-                    rows={3}
-                    value={editForm.description || ""}
-                    onChange={setEdit("description")}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-                  />
-                </label>
-                <label className="grid gap-1.5">
-                  <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
-                    REQUIREMENTS
-                  </span>
-                  <textarea
-                    rows={3}
-                    value={editForm.requirements || ""}
-                    onChange={setEdit("requirements")}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-                  />
-                </label>
-                <div className="grid gap-4 grid-cols-2">
-                  <Input
-                    label="BUDGET"
-                    type="number"
-                    min="0"
-                    value={editForm.budget ?? ""}
-                    onChange={setEdit("budget")}
-                  />
-                  <Input
-                    label="QUOTED AMOUNT"
-                    type="number"
-                    min="0"
-                    value={editForm.quotedAmount ?? ""}
-                    onChange={setEdit("quotedAmount")}
-                  />
-                </div>
-                <Input
-                  label="ASSIGNED TO"
-                  value={editForm.assignedTo || ""}
-                  onChange={setEdit("assignedTo")}
-                  placeholder="Name or user ID"
-                />
-                <Input
-                  label="PROPOSED DELIVERY"
-                  type="date"
-                  value={editForm.proposedDelivery || ""}
-                  onChange={setEdit("proposedDelivery")}
-                />
-
-                {isDirty && (
-                  <Button
-                    onClick={handleSaveEdit}
-                    disabled={busy}
-                    loading={busy}
-                    style={{ backgroundColor: BRAND }}
-                    className="w-full"
-                  >
-                    Save Changes
-                  </Button>
-                )}
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* Timeline */}
-          {timelineFields.length > 0 && (
-            <Card>
-              <CardHeader title="Timeline" />
-              <CardBody>
-                <div className="grid gap-3">
-                  {timelineFields.map((t) => (
-                    <div
-                      key={t.label}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-                        {t.label}
-                      </div>
-                      <span className="text-xs font-semibold text-slate-500">
-                        {formatDate(t.date)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardBody>
-            </Card>
-          )}
+        <div className="px-grid px-cols-detail">
+          <div className="px-stack">
+            <Panel title="What's needed">
+              <KeyValue
+                items={[
+                  { label: "Description", value: item.description ? <span style={{ whiteSpace: "pre-wrap" }}>{item.description}</span> : "" },
+                  { label: "Requirements", value: item.requirements ? <span style={{ whiteSpace: "pre-wrap" }}>{item.requirements}</span> : "" },
+                  { label: "Budget", value: item.budget ? money(item.budget, item.currency) : "" },
+                ]}
+              />
+            </Panel>
+            <Panel title="History">
+              <Timeline label="Request history" items={history} />
+            </Panel>
+          </div>
+          <div className="px-stack">
+            <Panel title="Sourcing" sub={access.isInternal ? "Internal fields marked below" : undefined} action={staff ? <Button size="sm" variant="outline" onClick={() => open("sourcing")}>Edit</Button> : null}>
+              <KeyValue
+                className="px-kv--side"
+                items={[
+                  { label: "Vendor", value: vendor?.name || (access.isInternal ? "Not chosen" : "") },
+                  { label: "Quoted", value: item.quotedAmount !== null && item.quotedAmount !== undefined ? money(item.quotedAmount, item.currency) : "" },
+                  { label: "Proposed delivery", value: date(item.proposedDelivery) },
+                  { label: "Assigned to (internal)", value: item.assignedTo?.fullName || item.assignedTo?.email || "Nobody", hidden: !access.isInternal },
+                ]}
+              />
+            </Panel>
+            {access.isInternal && item.notes ? (
+              <Panel title="Internal notes" sub="Not shown to the client">
+                <p className="px-prose" style={{ whiteSpace: "pre-wrap" }}>{item.notes}</p>
+              </Panel>
+            ) : null}
+          </div>
         </div>
       </div>
 
-      <VendorSelectModal
-        open={vendorModalOpen}
-        onClose={() => setVendorModalOpen(false)}
-        onSelect={handleVendorSelect}
-        currentVendorId={vendor?._id}
-      />
-
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        confirmLabel={confirmState?.confirmLabel}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-    </div>
+      {canWrite ? <RequestFormDialog open={dialog === "edit"} initial={item} busy={busy} error={formError} onClose={close} onSubmit={(p) => patch(p, "Request updated.")} /> : null}
+      {staff ? (
+        <>
+          <SourcingDialog open={dialog === "sourcing"} request={item} busy={busy} error={formError} onClose={close} onSubmit={(p) => patch(p, "Sourcing details saved.")} />
+          <FormDialog
+            open={dialog === "status"}
+            title="Change status"
+            description="The date of each status is recorded in the request's history. Any status can be set, as before."
+            onClose={close}
+            onSubmit={() => patch({ status: nextStatus }, `Status changed to ${REQUEST_STATUS_LABEL[nextStatus]}.`)}
+            busy={busy}
+            error={formError}
+            canSubmit={nextStatus && nextStatus !== item.status}
+            submitLabel="Change status"
+            submitIcon={Flag}
+          >
+            <fieldset className="px-form-section">
+              <legend>Status</legend>
+              <SelectField label="New status" value={nextStatus} onChange={setNextStatus} options={options(REQUEST_STATUSES, REQUEST_STATUS_LABEL)} />
+            </fieldset>
+          </FormDialog>
+          <ConfirmDialog open={dialog === "cancel"} icon={Ban} tone="warn" title="Cancel this request?" confirmLabel="Cancel request" details={["Its status becomes Cancelled and the date is recorded. The request is kept.", "A cancelled request can be deleted afterwards."]} onClose={close} onConfirm={() => patch({ status: "cancelled" }, "Request cancelled.")}>
+            {`${item.title} (${requestRef(item)}).`}
+          </ConfirmDialog>
+          <ConfirmDialog
+            open={dialog === "rfq"}
+            icon={FilePlus2}
+            tone="info"
+            title="Create an RFQ from this request?"
+            confirmLabel="Create draft RFQ"
+            details={["A draft RFQ is created with the request's title, description, requirements and category, and the next RFQ number.", "The budget stays internal and is not copied into the RFQ.", "The request's status becomes Assessing. Each request can have one RFQ."]}
+            onClose={close}
+            onConfirm={createRfq}
+          >
+            {`${item.title} (${requestRef(item)}).`}
+          </ConfirmDialog>
+        </>
+      ) : null}
+      <ConfirmDialog open={dialog === "delete"} icon={Trash2} tone="bad" danger title="Delete this request?" confirmLabel="Delete request" details={REQUEST_DELETE_DETAILS} onClose={close} onConfirm={remove}>
+        {`${item.title} (${requestRef(item)}).`}
+      </ConfirmDialog>
+    </>
   );
 }

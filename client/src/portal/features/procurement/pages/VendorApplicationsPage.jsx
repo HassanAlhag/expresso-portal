@@ -1,452 +1,319 @@
-import React, { useEffect, useState } from "react";
-import {
-  Building2,
-  Mail,
-  Phone,
-  Globe,
-  MapPin,
-  CheckCircle,
-  XCircle,
-  Clock,
-  RefreshCw,
-  ChevronRight,
-} from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { CheckCircle2, ClipboardList, MailWarning, RefreshCw, SearchX, XCircle } from "lucide-react";
 
-import Card from "../../../shared/ui/Card";
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
 import Badge from "../../../shared/ui/Badge";
-import Skeleton from "../../../shared/ui/Skeleton";
-import PageHeader from "../../../shared/ui/PageHeader";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import MetricsStrip from "../../../shared/ui/MetricsStrip";
+import SearchField from "../../../shared/ui/SearchField";
+import SelectField from "../../../shared/ui/SelectField";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import Pagination from "../../../shared/ui/Pagination";
+import KeyValue from "../../../shared/ui/KeyValue";
+import Alert from "../../../shared/ui/Alert";
+import EmptyState from "../../../shared/ui/EmptyState";
+import ErrorState from "../../../shared/ui/ErrorState";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
+import FormDialog from "../../../shared/ui/FormDialog";
+import TextField from "../../../shared/ui/TextField";
 import { useToast } from "../../../shared/ui/Toast";
-import {
-  listVendorApplications,
-  getVendorApplication,
-  approveVendorApplication,
-  rejectVendorApplication,
-} from "../api";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import useDebouncedValue from "../../../shared/hooks/useDebouncedValue";
 
-const STATUS_TABS = [
-  { value: "", label: "All" },
-  { value: "pending", label: "Pending" },
-  { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
-];
+import { approveVendorApplication, getVendorApplication, listVendorApplications, rejectVendorApplication } from "../api";
+import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL, APPLICATION_STATUS_TONE, date, options, safeUrl } from "../format";
 
-const STATUS_TONE = { pending: "warning", approved: "success", rejected: "danger" };
-const STATUS_ICON = {
-  pending: Clock,
-  approved: CheckCircle,
-  rejected: XCircle,
-};
+const LIMIT = 15;
+const total = (r) => Number(r?.total ?? 0);
 
-// ── Credentials modal shown after approval ────────────────────────────────────
-function InvitationSentModal({ invitation, onClose }) {
-  const expires = invitation?.expiresAt ? new Date(invitation.expiresAt) : null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-3xl border border-black/10 bg-white p-6 shadow-2xl">
-        <div className="mb-1 flex items-center gap-2 text-emerald-600">
-          <CheckCircle size={20} />
-          <span className="font-black text-slate-900">Application Approved</span>
-        </div>
-        <p className="mb-5 text-sm text-slate-500">
-          {invitation?.emailSent
-            ? "An invitation email has been sent to the vendor. They set their own password when they accept it."
-            : "The vendor is approved, but the invitation email could not be sent. Resend it from Users → Invites."}
-        </p>
-
-        <div className="grid gap-3">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div className="text-[11px] font-black uppercase tracking-widest text-slate-400">Invitation sent to</div>
-            <div className="mt-0.5 text-sm font-bold text-slate-900">{invitation?.email}</div>
-          </div>
-          {expires ? (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <div className="text-[11px] font-black uppercase tracking-widest text-slate-400">Link expires</div>
-              <div className="mt-0.5 text-sm font-bold text-slate-900">{expires.toLocaleString()}</div>
-            </div>
-          ) : null}
-        </div>
-
-        <p className="mt-4 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
-          The link works once. No password is created or shown here.
-        </p>
-
-        <Button className="mt-5 w-full" onClick={onClose}>
-          Done
-        </Button>
-      </div>
-    </div>
-  );
+export function buildApplicationParams({ q, status, page }) {
+  const p = { page, limit: LIMIT };
+  if (q) p.q = q;
+  if (status) p.status = status;
+  return p;
 }
 
-// ── Application detail drawer ─────────────────────────────────────────────────
-function ApplicationDrawer({ applicationId, onClose, onApproved, onRejected }) {
+// Vendor applications (PUI-4, internal, procurement.approve). Approving
+// creates the vendor and emails an invitation; rejecting records a reason.
+export default function VendorApplicationsPage() {
   const toast = useToast();
-  const [item, setItem] = useState(null);
+  const access = useAccess();
+  const canDecide = access.can("procurement.approve");
+
+  const [q, setQ] = useState("");
+  const dq = useDebouncedValue(q);
+  const [status, setStatus] = useState("pending");
+  const [page, setPage] = useState(1);
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0, limit: LIMIT });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [counts, setCounts] = useState(null);
+
+  const [selectedId, setSelectedId] = useState(null);
+  const [detail, setDetail] = useState({ status: "idle", item: null });
+  const [invitation, setInvitation] = useState(null);
+  const [dialog, setDialog] = useState(null); // approve | reject
+  const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-  const [showRejectBox, setShowRejectBox] = useState(false);
-  const [confirmState, setConfirmState] = useState(null);
+  const running = useRef(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await listVendorApplications(buildApplicationParams({ q: dq.trim(), status, page }));
+      setItems(Array.isArray(res?.items) ? res.items : []);
+      setMeta({ page: res?.page || page, pages: res?.pages || 1, total: res?.total ?? 0, limit: res?.limit || LIMIT });
+    } catch (e) {
+      setItems([]);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [dq, status, page]);
+
+  const loadCounts = useCallback(async () => {
+    try {
+      const res = await Promise.all(APPLICATION_STATUSES.map((s) => listVendorApplications({ status: s, limit: 1 })));
+      setCounts(Object.fromEntries(APPLICATION_STATUSES.map((s, i) => [s, total(res[i])])));
+    } catch {
+      setCounts(null);
+    }
+  }, []);
+
+  const loadDetail = useCallback(async (id) => {
+    if (!id) return;
+    setDetail({ status: "loading", item: null });
+    try {
+      const res = await getVendorApplication(id);
+      setDetail({ status: res?.item ? "ready" : "failed", item: res?.item || null });
+    } catch {
+      setDetail({ status: "failed", item: null });
+    }
+  }, []);
 
   useEffect(() => {
-    setLoading(true);
-    getVendorApplication(applicationId)
-      .then((d) => setItem(d?.item || null))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [applicationId]);
+    load();
+  }, [load]);
+  useEffect(() => {
+    loadCounts();
+  }, [loadCounts]);
+  useEffect(() => {
+    setPage(1);
+  }, [dq]);
+  useEffect(() => {
+    loadDetail(selectedId);
+  }, [selectedId, loadDetail]);
 
-  const handleApprove = () => {
-    if (!item?._id) return;
-    setConfirmState({
-      title: "Approve Application",
-      message: `Approve "${item.companyName}" and email them an invitation to set up their portal login?`,
-      danger: false,
-      confirmLabel: "Approve & Send Invitation",
-      onConfirm: async () => {
-        setBusy(true);
-        try {
-          const res = await approveVendorApplication(item._id);
-          setConfirmState(null);
-          onApproved(res);
-        } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Approval failed");
-          setConfirmState(null);
-        } finally {
-          setBusy(false);
-        }
-      },
-    });
+  const select = (id) => {
+    setInvitation(null);
+    setSelectedId(id === selectedId ? null : id);
   };
+  const refresh = () => Promise.all([load(), loadCounts(), selectedId ? loadDetail(selectedId) : null]);
 
-  const handleReject = async () => {
-    if (!item?._id) return;
+  const metrics = counts
+    ? APPLICATION_STATUSES.map((s) => ({
+        key: s,
+        label: APPLICATION_STATUS_LABEL[s],
+        value: counts[s],
+        note: s === "pending" ? "Waiting for a decision" : s === "approved" ? "Now vendors" : "With a recorded reason",
+        noteTone: s === "pending" && counts[s] ? "warn" : undefined,
+        onClick: () => { setStatus(status === s ? "" : s); setPage(1); },
+        pressed: status === s,
+      }))
+    : [];
+
+  const guarded = async (fn) => {
+    if (running.current) return;
+    running.current = true;
     setBusy(true);
     try {
-      await rejectVendorApplication(item._id, { reason: rejectReason });
-      onRejected();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Rejection failed");
+      await fn();
     } finally {
+      running.current = false;
       setBusy(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-black/30" onClick={onClose}>
-      <div
-        className="relative flex h-full w-full max-w-lg flex-col overflow-y-auto bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/5 bg-white px-6 py-4">
-          <span className="font-black text-slate-900">Vendor Application</span>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700">
-            <XCircle size={20} />
-          </button>
-        </div>
+  const approve = () =>
+    guarded(async () => {
+      try {
+        const res = await approveVendorApplication(detail.item._id);
+        setInvitation(res?.invitation || { emailSent: false });
+        toast.success("Application approved. The vendor has been created.");
+        setDialog(null);
+        await refresh();
+      } catch (e) {
+        toast.error(e?.response?.data?.message || "The application wasn't approved. Try again.");
+      }
+    });
 
-        <div className="flex-1 p-6">
-          {loading ? (
-            <div className="grid gap-3">
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-64" />
-              <Skeleton className="h-32 w-full" />
-            </div>
-          ) : !item ? (
-            <p className="text-sm text-slate-500">Application not found.</p>
-          ) : (
-            <div className="grid gap-6">
-              {/* Status */}
-              <div className="flex items-center gap-3">
-                <Badge tone={STATUS_TONE[item.status] || "neutral"}>
-                  {item.status?.toUpperCase()}
-                </Badge>
-                <span className="text-xs text-slate-400">
-                  {new Date(item.createdAt).toLocaleDateString()}
-                </span>
-              </div>
+  const reject = () =>
+    guarded(async () => {
+      try {
+        await rejectVendorApplication(detail.item._id, { reason: reason.trim() });
+        toast.success("Application rejected.");
+        setDialog(null);
+        await refresh();
+      } catch (e) {
+        toast.error(e?.response?.data?.message || "The application wasn't rejected. Try again.");
+      }
+    });
 
-              {/* Company info */}
-              <div className="rounded-2xl border border-black/5 bg-slate-50 p-4">
-                <div className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">
-                  Company Details
-                </div>
-                <div className="grid gap-2.5">
-                  <InfoRow icon={Building2} label="Company" value={item.companyName} />
-                  <InfoRow icon={Building2} label="Contact" value={item.contactName} />
-                  <InfoRow icon={Mail} label="Email" value={item.email} />
-                  <InfoRow icon={Phone} label="Phone" value={item.phone || "—"} />
-                  <InfoRow icon={MapPin} label="Country" value={item.country || "—"} />
-                  <InfoRow icon={Globe} label="Website" value={item.website || "—"} />
-                </div>
-              </div>
-
-              {/* Categories */}
-              <div className="rounded-2xl border border-black/5 bg-slate-50 p-4">
-                <div className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">
-                  Selected Categories
-                </div>
-                <div className="grid gap-2">
-                  {(item.categorySelections || []).map((sel, i) => (
-                    <div
-                      key={i}
-                      className="rounded-xl border border-indigo-100 bg-white px-3 py-2 text-xs font-semibold text-slate-800"
-                    >
-                      <span className="text-indigo-600">{sel.mainCategoryId?.name || "—"}</span>
-                      {" › "}
-                      <span>{sel.categoryId?.name || "—"}</span>
-                      {" › "}
-                      <span className="text-slate-500">{sel.subcategoryId?.name || "—"}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Approved by */}
-              {item.status === "approved" && item.approvedBy && (
-                <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                  Approved by {item.approvedBy?.fullName} on{" "}
-                  {new Date(item.approvedAt).toLocaleDateString()}
-                </div>
-              )}
-
-              {item.status === "rejected" && item.rejectionReason && (
-                <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  Rejection reason: {item.rejectionReason}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        {item?.status === "pending" && (
-          <div className="sticky bottom-0 border-t border-black/5 bg-white p-5">
-            {showRejectBox ? (
-              <div className="grid gap-3">
-                <textarea
-                  rows={3}
-                  placeholder="Reason for rejection (optional)…"
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100"
-                />
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setShowRejectBox(false)} disabled={busy} className="flex-1">
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleReject}
-                    disabled={busy}
-                    className="flex-1 border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                    variant="outline"
-                  >
-                    Confirm Reject
-                  </Button>
-                </div>
-              </div>
+  const a = detail.item;
+  const site = safeUrl(a?.website);
+  let content;
+  if (error) content = <ErrorState title="Applications didn't load" message={error} onRetry={load} />;
+  else if (!loading && !items.length)
+    content = dq.trim() || status ? (
+      <EmptyState icon={SearchX} title={`No ${status ? APPLICATION_STATUS_LABEL[status].toLowerCase() : ""} applications${dq.trim() ? " match" : ""}`} action={<Button variant="outline" onClick={() => { setQ(""); setStatus(""); setPage(1); }}>Show all applications</Button>} />
+    ) : (
+      <EmptyState icon={ClipboardList} title="No vendor applications yet" message="Applications from the public vendor sign-up form appear here." />
+    );
+  else
+    content = (
+      <>
+        <table className="px-table px-table--stack" aria-label="Vendor applications" aria-busy={loading || undefined}>
+          <thead>
+            <tr>
+              <th scope="col">Company</th>
+              <th scope="col" className="px-hide-tab">Country</th>
+              <th scope="col" className="px-hide-tab">Applied</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <SkeletonRows rows={5} cols={4} label="Loading applications" />
             ) : (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowRejectBox(true)}
-                  disabled={busy}
-                  className="flex-1"
-                >
-                  <XCircle size={15} />
-                  Reject
-                </Button>
-                <Button onClick={handleApprove} disabled={busy} className="flex-1">
-                  <CheckCircle size={15} />
-                  {busy ? "Approving…" : "Approve & Create Login"}
-                </Button>
-              </div>
+              items.map((it) => (
+                <tr key={it._id}>
+                  <td className="px-primary">
+                    <div className="px-cell-main">
+                      <button type="button" aria-pressed={selectedId === it._id} onClick={() => select(it._id)}>{it.companyName}</button>
+                      <span>{[it.contactName, it.email].filter(Boolean).join(", ")}</span>
+                    </div>
+                  </td>
+                  <td data-label="Country" className="px-hide-tab">{it.country || "—"}</td>
+                  <td data-label="Applied" className="px-num px-hide-tab">{date(it.createdAt)}</td>
+                  <td data-label="Status">
+                    <Badge tone={APPLICATION_STATUS_TONE[it.status] || "neutral"} dot>{APPLICATION_STATUS_LABEL[it.status] || it.status}</Badge>
+                  </td>
+                </tr>
+              ))
             )}
-          </div>
-        )}
-      </div>
-
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        confirmLabel={confirmState?.confirmLabel}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-    </div>
-  );
-}
-
-function InfoRow({ icon: Icon, label, value }) {
-  return (
-    <div className="flex items-start gap-2">
-      <Icon size={13} className="mt-0.5 shrink-0 text-slate-400" />
-      <div>
-        <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">{label}</div>
-        <div className="text-sm font-semibold text-slate-800">{value}</div>
-      </div>
-    </div>
-  );
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
-export default function VendorApplicationsPage() {
-  const [statusFilter, setStatusFilter] = useState("");
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
-
-  const [selectedId, setSelectedId] = useState(null);
-  const [invitation, setInvitation] = useState(null);
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await listVendorApplications({ status: statusFilter, limit: 50 });
-      setItems(Array.isArray(res?.items) ? res.items : []);
-      setTotal(res?.total || 0);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
-
-  const handleApproved = (res) => {
-    setSelectedId(null);
-    setInvitation(res?.invitation || null);
-    load();
-  };
-
-  const handleRejected = () => {
-    setSelectedId(null);
-    load();
-  };
+          </tbody>
+        </table>
+        {!loading && meta.total ? <Pagination page={meta.page} pages={meta.pages} total={meta.total} limit={meta.limit} onPage={setPage} noun="applications" label="Application pages" /> : null}
+      </>
+    );
 
   return (
-    <div className="grid gap-6">
-      <PageHeader
-        eyebrow="Procurement"
-        title="Vendor Applications"
-        subtitle="Review and approve vendor self-registration requests."
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "Procurement", to: "/portal/procurement" },
-          { label: "Vendor Applications" },
-        ]}
-        right={
-          <Button variant="outline" onClick={load} disabled={loading}>
-            <RefreshCw size={15} />
+    <>
+      <PageFrame
+        title="Vendor applications"
+        description="Companies that applied to become Expresso vendors through the public sign-up form."
+        breadcrumb={[{ label: "Procurement", to: access.canOpen("/portal/procurement") ? "/portal/procurement" : undefined }, { label: "Vendor applications" }]}
+        secondaryActions={
+          <Button variant="outline" onClick={refresh} disabled={loading}>
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />
             Refresh
           </Button>
         }
-      />
+      >
+        <MetricsStrip label="Application summary" items={metrics} />
+        <div className={selectedId ? "px-grid px-cols-detail" : undefined}>
+          <Panel flush bare label="Applications" className="px-list-panel">
+            <div className="px-toolbar" role="search" aria-label="Filter applications">
+              <SearchField label="Search applications" value={q} onChange={setQ} placeholder="Company, contact, email or country" />
+              <SelectField label="Status" value={status} onChange={(v) => { setStatus(v); setPage(1); }} options={[{ value: "", label: "Any status" }, ...options(APPLICATION_STATUSES, APPLICATION_STATUS_LABEL)]} />
+            </div>
+            <div className="px-result-bar">
+              <span aria-live="polite">{loading ? "Loading applications…" : error ? "Applications unavailable" : `${meta.total} application${meta.total === 1 ? "" : "s"}. Choose one to review it.`}</span>
+            </div>
+            {content}
+          </Panel>
 
-      {/* Status tabs */}
-      <div className="flex flex-wrap gap-2">
-        {STATUS_TABS.map((t) => (
-          <button
-            key={t.value}
-            type="button"
-            onClick={() => setStatusFilter(t.value)}
-            className={`rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-wide transition ${
-              statusFilter === t.value
-                ? "bg-slate-900 text-white"
-                : "border border-black/10 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-        <span className="ml-auto text-xs text-slate-400 self-center">{total} total</span>
-      </div>
-
-      {/* List */}
-      <Card className="overflow-hidden p-0">
-        {loading ? (
-          <div className="grid gap-3 p-5">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-16 w-full" />
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-500">
-            No applications found.
-          </div>
-        ) : (
-          <div className="divide-y divide-black/5">
-            {items.map((item) => {
-              const StatusIcon = STATUS_ICON[item.status] || Clock;
-              return (
-                <button
-                  key={item._id}
-                  type="button"
-                  onClick={() => setSelectedId(item._id)}
-                  className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-4 px-5 py-4 text-left transition hover:bg-black/[0.02]"
-                >
-                  <div className={`grid h-9 w-9 place-items-center rounded-xl ${
-                    item.status === "approved"
-                      ? "bg-emerald-50 text-emerald-500"
-                      : item.status === "rejected"
-                      ? "bg-red-50 text-red-400"
-                      : "bg-amber-50 text-amber-500"
-                  }`}>
-                    <StatusIcon size={16} />
+          {selectedId ? (
+            <Panel title={a?.companyName || "Application"} sub={a ? `Applied ${date(a.createdAt)}` : undefined} action={<Button size="sm" variant="ghost" onClick={() => select(selectedId)}>Close</Button>}>
+              {detail.status === "failed" ? (
+                <ErrorState title="This application didn't load" onRetry={() => loadDetail(selectedId)} />
+              ) : detail.status !== "ready" || !a ? (
+                <LoadingState rows={4} label="Loading application" />
+              ) : (
+                <div className="px-stack">
+                  {invitation ? (
+                    <Alert tone={invitation.emailSent ? "info" : "warn"} icon={invitation.emailSent ? CheckCircle2 : MailWarning} title={invitation.emailSent ? "Invitation sent" : "The invitation email wasn't sent"}>
+                      {invitation.emailSent
+                        ? `${invitation.email || "The vendor"} can set their own password from the link${invitation.expiresAt ? ` until ${date(invitation.expiresAt)}` : ""}. It works once; no password is created or shown here.`
+                        : "The vendor is approved. Resend the invitation from Users, Invites."}
+                    </Alert>
+                  ) : null}
+                  <Badge tone={APPLICATION_STATUS_TONE[a.status] || "neutral"} dot>{APPLICATION_STATUS_LABEL[a.status] || a.status}</Badge>
+                  <KeyValue
+                    className="px-kv--side"
+                    items={[
+                      { label: "Contact", value: a.contactName },
+                      { label: "Email", value: a.email ? <a href={`mailto:${a.email}`}>{a.email}</a> : "" },
+                      { label: "Phone", value: a.phone },
+                      { label: "Country", value: a.country },
+                      { label: "Website", value: site ? <a href={site} target="_blank" rel="noopener noreferrer">{a.website}</a> : a.website },
+                      { label: "Approved", value: a.approvedAt ? `${date(a.approvedAt)}${a.approvedBy?.fullName ? ` by ${a.approvedBy.fullName}` : ""}` : "", hidden: a.status !== "approved" },
+                      { label: "Rejection reason", value: a.rejectionReason || "None given", hidden: a.status !== "rejected" },
+                    ]}
+                  />
+                  <div>
+                    <div className="px-muted" style={{ fontSize: 12.5, marginBottom: 6 }}>Categories applied for</div>
+                    {(a.categorySelections || []).length ? (
+                      <ul className="px-list">
+                        {a.categorySelections.map((sel, i) => (
+                          <li key={i} style={{ padding: "8px 0" }}>
+                            <span>{[sel.mainCategoryId?.name, sel.categoryId?.name, sel.subcategoryId?.name].filter(Boolean).join(" › ") || "Category removed"}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <span className="px-muted">None recorded.</span>
+                    )}
                   </div>
-
-                  <div className="min-w-0">
-                    <div className="truncate font-black text-slate-900">{item.companyName}</div>
-                    <div className="truncate text-xs text-slate-500">
-                      {item.contactName} · {item.email}
+                  {canDecide && a.status === "pending" ? (
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <Button onClick={() => setDialog("approve")}><CheckCircle2 size={14} aria-hidden="true" />Approve</Button>
+                      <Button variant="outline" onClick={() => { setReason(""); setDialog("reject"); }}><XCircle size={14} aria-hidden="true" />Reject</Button>
                     </div>
-                  </div>
+                  ) : null}
+                </div>
+              )}
+            </Panel>
+          ) : null}
+        </div>
+      </PageFrame>
 
-                  <div className="hidden sm:block">
-                    <Badge tone={STATUS_TONE[item.status] || "neutral"}>
-                      {item.status?.toUpperCase()}
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </span>
-                    <ChevronRight size={14} className="text-slate-300" />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </Card>
-
-      {/* Drawer */}
-      {selectedId && (
-        <ApplicationDrawer
-          applicationId={selectedId}
-          onClose={() => setSelectedId(null)}
-          onApproved={handleApproved}
-          onRejected={handleRejected}
-        />
-      )}
-
-      {/* Invitation confirmation */}
-      {invitation && (
-        <InvitationSentModal
-          invitation={invitation}
-          onClose={() => setInvitation(null)}
-        />
-      )}
-    </div>
+      {canDecide && a ? (
+        <>
+          <ConfirmDialog
+            open={dialog === "approve"}
+            icon={CheckCircle2}
+            tone="info"
+            title="Approve this application?"
+            confirmLabel="Approve and send invitation"
+            details={["A vendor is created with the categories applied for.", `An invitation to set up a portal login is emailed to ${a.email}.`]}
+            onClose={() => setDialog(null)}
+            onConfirm={approve}
+          >
+            {`${a.companyName}, ${a.contactName}.`}
+          </ConfirmDialog>
+          <FormDialog open={dialog === "reject"} title="Reject this application?" description={`${a.companyName}, ${a.contactName}.`} onClose={() => setDialog(null)} onSubmit={reject} busy={busy} submitLabel="Reject application" submitIcon={XCircle}>
+            <fieldset className="px-form-section">
+              <legend>Reason</legend>
+              <TextField label="Why it's being rejected" multiline rows={3} value={reason} onChange={(e) => setReason(e.target.value)} hint="Optional. Recorded on the application." />
+            </fieldset>
+          </FormDialog>
+        </>
+      ) : null}
+    </>
   );
 }

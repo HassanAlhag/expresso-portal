@@ -1,294 +1,130 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  RefreshCw,
-  Users,
-  ReceiptText,
-  CalendarDays,
-  Wallet,
-  CheckCircle2,
-  Clock,
-} from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardCheck, ReceiptText, RefreshCw } from "lucide-react";
 
-import PageHeader from "../../../shared/ui/PageHeader";
-import { useToast } from "../../../shared/ui/Toast";
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Card from "../../../shared/ui/Card";
-import StatCard from "../../../shared/ui/StatCard";
-import Skeleton from "../../../shared/ui/Skeleton";
-import EmptyState from "../../../shared/ui/EmptyState";
-import Badge from "../../../shared/ui/Badge";
+import MetricsStrip from "../../../shared/ui/MetricsStrip";
+import AttentionList from "../../../shared/ui/AttentionList";
+import Alert from "../../../shared/ui/Alert";
+import LoadingState from "../../../shared/ui/LoadingState";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
-import {
-  getStaffStats,
-  getExpenseStats,
-  getMonthlyExpenses,
-  listExpenses,
-  listLeaves,
-} from "../api";
+import { loadHrOverview, deriveHrOverview } from "../lib/hrOverview";
+import { humanize } from "../format";
 
-import ExpenseStatusPill from "../components/ExpenseStatusPill";
-import LeaveStatusPill from "../components/LeaveStatusPill";
+const KIND_ICON = { leave: CalendarDays, expense: ReceiptText, register: ClipboardCheck };
 
-function money(value) {
-  return `AED ${Number(value || 0).toLocaleString("en-AE", {
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-function currentMonth() {
-  return new Date().toISOString().slice(0, 7);
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-
-  return new Date(value).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
+// HR overview (PUI-4): the team at a glance and the decisions waiting.
 export default function HRDashboardPage() {
-  const toast = useToast();
-  const [staffStats, setStaffStats] = useState(null);
-  const [expenseStats, setExpenseStats] = useState(null);
-  const [monthly, setMonthly] = useState([]);
-  const [recentExpenses, setRecentExpenses] = useState([]);
-  const [recentLeaves, setRecentLeaves] = useState([]);
+  const access = useAccess();
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
-
     try {
-      const [staffRes, expenseRes, monthlyRes, expensesRes, leavesRes] =
-        await Promise.all([
-          getStaffStats(),
-          getExpenseStats({ month: currentMonth() }),
-          getMonthlyExpenses(),
-          listExpenses({ limit: 5, page: 1, sort: "-createdAt" }),
-          listLeaves({ limit: 5, page: 1, sort: "-createdAt" }),
-        ]);
-
-      setStaffStats(staffRes);
-      setExpenseStats(expenseRes);
-      setMonthly(Array.isArray(monthlyRes?.items) ? monthlyRes.items : []);
-      setRecentExpenses(
-        Array.isArray(expensesRes?.items) ? expensesRes.items : []
-      );
-      setRecentLeaves(Array.isArray(leavesRes?.items) ? leavesRes.items : []);
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to load HR dashboard");
+      setData(await loadHrOverview(access));
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [access.user?._id, access.role]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const statCards = useMemo(
-    () => [
-      {
-        label: "Active Staff",
-        value: staffStats?.totals?.active || 0,
-        icon: Users,
-        color: "indigo",
-      },
-      {
-        label: "Pending Expenses",
-        value: expenseStats?.totals?.pending || 0,
-        icon: ReceiptText,
-        color: "amber",
-      },
-      {
-        label: "Registered This Month",
-        value: money(expenseStats?.currentMonth?.registeredTotal || 0),
-        icon: Wallet,
-        color: "emerald",
-      },
-      {
-        label: "Approved Waiting Register",
-        value: expenseStats?.totals?.approved || 0,
-        icon: CheckCircle2,
-        color: "slate",
-      },
-    ],
-    [staffStats, expenseStats]
-  );
+  const view = data ? deriveHrOverview(data, access) : null;
+  const links = [
+    access.canOpen("/portal/hr/staff") && { to: "/portal/hr/staff", label: "Staff" },
+    access.canOpen("/portal/hr/leaves") && { to: "/portal/hr/leaves", label: "Leave" },
+    access.canOpen("/portal/hr/expenses") && { to: "/portal/hr/expenses", label: "Expense claims" },
+    access.canOpen("/portal/hr/monthly-expenses") && { to: "/portal/hr/monthly-expenses", label: "Monthly expenses" },
+  ].filter(Boolean);
+  const maxDept = Math.max(1, ...(view?.byDepartment || []).map((d) => d.count || 0));
 
   return (
-    <div className="grid gap-4">
-      <PageHeader
-        eyebrow="HR"
-        title="HR Dashboard"
-        subtitle="Staff, expenses, approvals, and monthly HR operations overview."
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "HR" },
-          { label: "Dashboard" },
-        ]}
-        right={
-          <Button variant="outline" onClick={load} disabled={loading}>
-            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-            Refresh
-          </Button>
-        }
-      />
-
-      {loading ? (
-        <>
-          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-24 w-full rounded-xl" />
-            ))}
-          </div>
-
-          <Card className="p-6">
-            <Skeleton className="h-64 w-full" />
-          </Card>
-        </>
+    <PageFrame
+      title="HR"
+      description="The team, and the leave and expense decisions waiting on you."
+      breadcrumb={[{ label: "HR" }]}
+      secondaryActions={
+        <Button variant="outline" onClick={load} disabled={loading}>
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />
+          Refresh
+        </Button>
+      }
+    >
+      {!view ? (
+        <LoadingState rows={6} label="Loading the HR overview" />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            {statCards.map((item) => (
-              <StatCard key={item.label} {...item} />
-            ))}
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-2">
-            <Card>
-              <div className="border-b border-slate-100 px-5 py-4">
-                <div className="text-sm font-black text-slate-900">
-                  Recent Expense Claims
-                </div>
-                <div className="mt-1 text-xs text-slate-500">
-                  Latest submitted or updated staff expenses.
-                </div>
-              </div>
-
-              {recentExpenses.length === 0 ? (
-                <EmptyState
-                  icon={ReceiptText}
-                  title="No expenses yet"
-                  message="Expense claims will appear here."
-                />
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {recentExpenses.map((item) => (
-                    <div
-                      key={item._id}
-                      className="flex items-center justify-between gap-3 px-5 py-4"
-                    >
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-black text-slate-900">
-                          {item.title}
-                        </div>
-                        <div className="mt-0.5 text-xs text-slate-500">
-                          {item.staffName || "—"} · {item.claimMonth || "—"}
-                        </div>
-                      </div>
-
-                      <div className="flex shrink-0 items-center gap-2">
-                        <Badge tone="neutral">{money(item.amount)}</Badge>
-                        <ExpenseStatusPill status={item.status} />
-                      </div>
+          {view.failed.length ? (
+            <Alert tone="warn" icon={AlertTriangle} title="Some HR figures didn't load" action={<Button size="sm" variant="outline" onClick={load}>Try again</Button>}>
+              Figures that didn't load show a dash instead of a number.
+            </Alert>
+          ) : null}
+          <MetricsStrip label="HR summary" items={view.metrics} />
+          <div className="px-grid px-cols-main">
+            <div className="px-stack">
+              {view.canDecideAny ? (
+                <Panel title="Needs your decision" sub="Leave first, then expense claims, oldest first" flush>
+                  {view.queueFailed ? (
+                    <div className="px-inline-empty">
+                      <AlertTriangle size={18} aria-hidden="true" />
+                      <span>The approval queue didn't load. Try again.</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-
-            <Card>
-              <div className="border-b border-slate-100 px-5 py-4">
-                <div className="text-sm font-black text-slate-900">
-                  Recent Leave Requests
-                </div>
-                <div className="mt-1 text-xs text-slate-500">
-                  Latest staff leave submissions.
-                </div>
-              </div>
-
-              {recentLeaves.length === 0 ? (
-                <EmptyState
-                  icon={CalendarDays}
-                  title="No leave requests yet"
-                  message="Leave requests will appear here."
-                />
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {recentLeaves.map((item) => (
-                    <div
-                      key={item._id}
-                      className="flex items-center justify-between gap-3 px-5 py-4"
-                    >
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-black text-slate-900">
-                          {item.staffName}
+                  ) : (
+                    <AttentionList
+                      items={view.attention.map((a) => ({ ...a, icon: KIND_ICON[a.kind] }))}
+                      empty={
+                        <div className="px-inline-empty">
+                          <CheckCircle2 size={18} aria-hidden="true" />
+                          <span>No leave requests or expense claims are waiting for you.</span>
                         </div>
-                        <div className="mt-0.5 text-xs text-slate-500">
-                          {formatDate(item.startDate)} →{" "}
-                          {formatDate(item.endDate)}
-                        </div>
-                      </div>
-
-                      <div className="flex shrink-0 items-center gap-2">
-                        <Badge tone="neutral">
-                          <Clock size={12} />
-                          {item.days || 1}d
-                        </Badge>
-                        <LeaveStatusPill status={item.status} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          </div>
-
-          <Card>
-            <div className="border-b border-slate-100 px-5 py-4">
-              <div className="text-sm font-black text-slate-900">
-                Monthly Expense Register
-              </div>
-              <div className="mt-1 text-xs text-slate-500">
-                Registered company expenses by month.
-              </div>
+                      }
+                    />
+                  )}
+                </Panel>
+              ) : null}
             </div>
-
-            {monthly.length === 0 ? (
-              <EmptyState
-                icon={Wallet}
-                title="No monthly expenses registered"
-                message="Approved claims will appear here after monthly registration."
-              />
-            ) : (
-              <div className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-3">
-                {monthly.slice(0, 6).map((item) => (
-                  <div
-                    key={item.month}
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                  >
-                    <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-                      {item.month}
-                    </div>
-
-                    <div className="mt-2 text-2xl font-black text-slate-900">
-                      {money(item.total)}
-                    </div>
-
-                    <div className="mt-2 text-xs text-slate-500">
-                      {item.count} registered claim{item.count === 1 ? "" : "s"}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
+            <div className="px-stack">
+              {view.byDepartment.length ? (
+                <Panel title="Staff by department" sub={`${view.staffTotal} staff records, every status`} flush>
+                  <ul className="px-list">
+                    {view.byDepartment.map((d) => (
+                      <li key={d.department}>
+                        <div style={{ minWidth: 0, display: "grid", gap: 6 }}>
+                          <div className="px-t">{humanize(d.department)}</div>
+                          <div className="px-bar" aria-hidden="true">
+                            <i style={{ width: `${Math.round(((d.count || 0) / maxDept) * 100)}%` }} />
+                          </div>
+                        </div>
+                        <div className="px-r">
+                          <b>{d.count || 0}</b>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
+              ) : null}
+              {links.length ? (
+                <Panel title="Go to" flush>
+                  <ul className="px-list">
+                    {links.map((l) => (
+                      <li key={l.to}>
+                        <Link className="px-link" to={l.to}>{l.label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
+              ) : null}
+            </div>
+          </div>
         </>
       )}
-    </div>
+    </PageFrame>
   );
 }

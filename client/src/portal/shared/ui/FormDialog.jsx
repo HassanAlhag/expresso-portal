@@ -12,6 +12,8 @@ const FOCUSABLE =
 // Tab inside, closes with Escape or the backdrop (not while saving), returns
 // focus to what opened it, and submits with Enter. On phones it becomes a
 // bottom sheet. ConfirmDialog stays the pattern for yes/no decisions.
+// A second submit while an async onSubmit is still running is ignored
+// (PUI-4), so a fast double click or Enter can't send a form twice.
 export default function FormDialog({
   open,
   title,
@@ -29,6 +31,7 @@ export default function FormDialog({
   const id = useId();
   const dialogRef = useRef(null);
   const returnRef = useRef(null);
+  const submitting = useRef(false);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -97,9 +100,15 @@ export default function FormDialog({
           id={`${id}-f`}
           className="px-form-body"
           noValidate
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            if (canSubmit && !busy) onSubmit?.();
+            if (!canSubmit || busy || submitting.current) return;
+            submitting.current = true;
+            try {
+              await onSubmit?.();
+            } finally {
+              submitting.current = false;
+            }
           }}
         >
           {error ? (

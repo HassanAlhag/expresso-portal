@@ -1,361 +1,143 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Target,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  BarChart2,
-  RefreshCw,
-  Users,
-  Building2,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
 
-import PageHeader from "../../../shared/ui/PageHeader";
-import Card from "../../../shared/ui/Card";
-import StatCard from "../../../shared/ui/StatCard";
-import Badge from "../../../shared/ui/Badge";
-import Skeleton from "../../../shared/ui/Skeleton";
-import EmptyState from "../../../shared/ui/EmptyState";
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import { useToast } from "../../../shared/ui/Toast";
+import MetricsStrip from "../../../shared/ui/MetricsStrip";
+import AttentionList from "../../../shared/ui/AttentionList";
+import TextField from "../../../shared/ui/TextField";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ErrorState from "../../../shared/ui/ErrorState";
+import EmptyState from "../../../shared/ui/EmptyState";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import useDebouncedValue from "../../../shared/hooks/useDebouncedValue";
 
 import { getKPIDashboard } from "../api";
+import { humanize } from "../format";
+import { goalOwner, kpiStatusLabel, pct } from "../kpi/kpiFormat";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const PERIOD_OPTIONS = [
-  { value: "", label: "All Periods" },
-  ...Array.from({ length: 6 }, (_, i) => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - i);
-    const val = d.toISOString().slice(0, 7);
-    return {
-      value: val,
-      label: d.toLocaleDateString("en-GB", { month: "long", year: "numeric" }),
-    };
-  }),
-];
-
-const STATUS_TONE = {
-  active: "info",
-  completed: "success",
-  at_risk: "warning",
-  missed: "error",
-  cancelled: "neutral",
-};
-
-const STATUS_ICON = {
-  active: TrendingUp,
-  completed: CheckCircle2,
-  at_risk: AlertTriangle,
-  missed: XCircle,
-  cancelled: XCircle,
-};
-
-function ProgressBar({ pct, status }) {
-  const color =
-    status === "completed" ? "bg-emerald-500" :
-    status === "at_risk"   ? "bg-amber-400" :
-    status === "missed"    ? "bg-rose-500" :
-    "bg-indigo-500";
+function Breakdown({ rows, total }) {
   return (
-    <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-100">
-      <div
-        className={`absolute inset-y-0 left-0 rounded-full transition-all ${color}`}
-        style={{ width: `${Math.min(pct || 0, 100)}%` }}
-      />
-    </div>
+    <ul className="px-list">
+      {rows.map((r) => (
+        <li key={r._id || "none"}>
+          <div style={{ minWidth: 0, display: "grid", gap: 6 }}>
+            <div className="px-t">{humanize(r._id || "unassigned")}</div>
+            <div className="px-bar" aria-hidden="true">
+              <i style={{ width: `${total ? Math.round(((r.total || 0) / total) * 100) : 0}%` }} />
+            </div>
+          </div>
+          <div className="px-r">
+            <b>{r.total || 0}</b>
+            <span>{`${r.completed || 0} completed, ${r.atRisk || 0} at risk, ${pct(r.avgProgress)} average`}</span>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
 
-function CategoryBar({ label, count, total }) {
-  const pct = total ? Math.round((count / total) * 100) : 0;
-  return (
-    <div className="grid gap-1">
-      <div className="flex items-center justify-between text-xs">
-        <span className="capitalize font-medium text-slate-700">{label}</span>
-        <span className="text-slate-400">{count} goals</span>
-      </div>
-      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-indigo-400 transition-all"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-// ── Main ─────────────────────────────────────────────────────────────────────
-
+// KPI overview (PUI-4, hr.kpi.read). Every figure comes from the KPI
+// dashboard endpoint, which counts all goals for the period.
 export default function KPIDashboardPage() {
-  const toast = useToast();
-  const [data, setData]       = useState(null);
+  const access = useAccess();
+  const [period, setPeriod] = useState(() => new Date().toISOString().slice(0, 7));
+  const dPeriod = useDebouncedValue(period);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod]   = useState(() => new Date().toISOString().slice(0, 7));
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
-      const res = await getKPIDashboard(period ? { period } : {});
-      setData(res);
+      setData(await getKPIDashboard(dPeriod.trim() ? { period: dPeriod.trim() } : {}));
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to load KPI dashboard.");
+      setData(null);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [period, toast]);
+  }, [dPeriod]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const stats  = data?.stats  || {};
-  const cats   = data?.byCategory   || [];
-  const depts  = data?.byDepartment || [];
-  const atRisk = data?.topAtRisk    || [];
-  const goals  = data?.allGoals     || [];
+  const s = data?.stats;
+  const metrics = s
+    ? [
+        { key: "total", label: "Goals", value: s.total || 0, note: `${s.active || 0} active, ${s.cancelled || 0} cancelled`, to: "/portal/hr/kpi/goals" },
+        { key: "done", label: "Completed", value: s.completed || 0 },
+        { key: "risk", label: "At risk", value: s.atRisk || 0, note: `${s.missed || 0} missed`, noteTone: s.atRisk || s.missed ? "warn" : undefined },
+        { key: "avg", label: "Average progress", value: pct(s.avgProgress), note: "Goals with a value, not cancelled" },
+      ]
+    : [];
+  const attention = (data?.topAtRisk || []).map((g) => ({
+    key: g._id,
+    tone: g.status === "at_risk" ? "warn" : "info",
+    icon: AlertTriangle,
+    title: `${g.indicatorId?.name || "Goal"}: ${pct(g.progressPct)}`,
+    sub: `${goalOwner(g)}, ${g.period}, ${kpiStatusLabel(g.status)}${g.status === "active" ? " and under 40%" : ""}`,
+    to: "/portal/hr/kpi/goals",
+    actionLabel: "Open goals",
+  }));
 
   return (
-    <div className="grid gap-6">
-      <PageHeader
-        eyebrow="HR"
-        title="KPI Dashboard"
-        subtitle="Performance indicators across teams and departments"
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "HR", to: "/portal/hr" },
-          { label: "KPI Dashboard" },
-        ]}
-        right={
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            >
-              {PERIOD_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-            <Button variant="outline" onClick={load} disabled={loading}>
-              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-              Refresh
-            </Button>
-            <Link
-              to="/portal/hr/kpi/indicators"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition hover:bg-slate-50"
-            >
-              Indicators
-            </Link>
-            <Link
-              to="/portal/hr/kpi/goals"
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-indigo-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700"
-            >
-              Goals
-            </Link>
-          </div>
-        }
-      />
-
-      {/* Stat cards */}
-      {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-2xl" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Total Goals"
-            value={stats.total ?? 0}
-            icon={Target}
-            color="indigo"
-          />
-          <StatCard
-            label="Completed"
-            value={stats.completed ?? 0}
-            icon={CheckCircle2}
-            color="emerald"
-          />
-          <StatCard
-            label="At Risk"
-            value={stats.atRisk ?? 0}
-            icon={AlertTriangle}
-            color="amber"
-          />
-          <StatCard
-            label="Avg Progress"
-            value={`${Math.round(stats.avgProgress ?? 0)}%`}
-            icon={BarChart2}
-            color="blue"
-          />
-        </div>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* By Category */}
-        <Card className="p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <BarChart2 size={16} className="text-indigo-500" />
-            <h3 className="font-semibold text-slate-800">By Category</h3>
-          </div>
-          {loading ? (
-            <div className="grid gap-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-6 rounded-lg" />
-              ))}
-            </div>
-          ) : cats.length === 0 ? (
-            <p className="text-sm text-slate-400">No data.</p>
-          ) : (
-            <div className="grid gap-3">
-              {cats.map((c) => (
-                <CategoryBar key={c._id} label={c._id} count={c.total} total={stats.total} />
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* By Department */}
-        <Card className="p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <Building2 size={16} className="text-indigo-500" />
-            <h3 className="font-semibold text-slate-800">By Department</h3>
-          </div>
-          {loading ? (
-            <div className="grid gap-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-6 rounded-lg" />
-              ))}
-            </div>
-          ) : depts.length === 0 ? (
-            <p className="text-sm text-slate-400">No data.</p>
-          ) : (
-            <div className="grid gap-3">
-              {depts.map((d) => (
-                <CategoryBar key={d._id || "none"} label={d._id || "Unassigned"} count={d.total} total={stats.total} />
-              ))}
-            </div>
-          )}
-        </Card>
+    <PageFrame
+      title="KPI"
+      description="How the period's goals are tracking, and the ones falling behind."
+      breadcrumb={[{ label: "HR", to: access.canOpen("/portal/hr") ? "/portal/hr" : undefined }, { label: "KPI" }]}
+      secondaryActions={
+        <>
+          <Link className="px-btn px-btn--outline" to="/portal/hr/kpi/indicators">Indicators</Link>
+          <Link className="px-btn px-btn--outline" to="/portal/hr/kpi/goals">Goals</Link>
+          <Button variant="outline" onClick={load} disabled={loading}>
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />
+            Refresh
+          </Button>
+        </>
+      }
+    >
+      <div className="px-toolbar" aria-label="Choose a period">
+        <TextField label="Period" value={period} onChange={(e) => setPeriod(e.target.value)} placeholder="2026-05, 2026-Q2 or 2026" hint="Leave empty for every period." />
       </div>
-
-      {/* Top at-risk */}
-      {!loading && atRisk.length > 0 && (
-        <Card className="p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <AlertTriangle size={16} className="text-amber-500" />
-            <h3 className="font-semibold text-slate-800">Goals Needing Attention</h3>
-          </div>
-          <div className="grid gap-3">
-            {atRisk.map((g) => {
-              const ind = g.indicatorId || {};
-              const staff = g.staffId || {};
-              return (
-                <div key={g._id} className="flex items-center gap-4 rounded-xl bg-slate-50 px-4 py-3">
-                  <div className="flex-1 grid gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-slate-800">{ind.name || "—"}</span>
-                      <Badge tone={STATUS_TONE[g.status] || "neutral"}>{g.status}</Badge>
+      {error ? (
+        <ErrorState title="The KPI overview didn't load" message={error} onRetry={load} />
+      ) : !data ? (
+        <LoadingState rows={6} label="Loading the KPI overview" />
+      ) : !s?.total ? (
+        <EmptyState title={dPeriod.trim() ? `No KPI goals for ${dPeriod.trim()}` : "No KPI goals yet"} message="Create indicators, then set goals on them." />
+      ) : (
+        <>
+          <MetricsStrip label="KPI summary" items={metrics} />
+          <div className="px-grid px-cols-main">
+            <div className="px-stack">
+              <Panel title="Falling behind" sub="At risk, or active and under 40%, lowest first" flush>
+                <AttentionList
+                  items={attention}
+                  empty={
+                    <div className="px-inline-empty">
+                      <CheckCircle2 size={18} aria-hidden="true" />
+                      <span>No goals are at risk or under 40%.</span>
                     </div>
-                    {staff.fullName && (
-                      <span className="text-xs text-slate-400 flex items-center gap-1">
-                        <Users size={10} /> {staff.fullName}
-                        {staff.department && ` · ${staff.department}`}
-                      </span>
-                    )}
-                    <ProgressBar pct={g.progressPct} status={g.status} />
-                  </div>
-                  <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">
-                    {Math.round(g.progressPct || 0)}%
-                  </span>
-                </div>
-              );
-            })}
+                  }
+                />
+              </Panel>
+            </div>
+            <div className="px-stack">
+              <Panel title="By department" flush>
+                <Breakdown rows={data.byDepartment || []} total={s.total} />
+              </Panel>
+              <Panel title="By category" flush>
+                <Breakdown rows={data.byCategory || []} total={s.total} />
+              </Panel>
+            </div>
           </div>
-        </Card>
+        </>
       )}
-
-      {/* All goals table */}
-      <Card className="p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <Target size={16} className="text-indigo-500" />
-          <h3 className="font-semibold text-slate-800">All Goals</h3>
-          <span className="ml-auto text-xs text-slate-400">{stats.total ?? 0} total</span>
-        </div>
-        {loading ? (
-          <div className="grid gap-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 rounded-xl" />
-            ))}
-          </div>
-        ) : goals.length === 0 ? (
-          <EmptyState
-            icon={Target}
-            title="No KPI goals yet"
-            message="Create indicators and assign goals to staff or departments."
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  <th className="pb-2 pr-4">Indicator</th>
-                  <th className="pb-2 pr-4">Scope</th>
-                  <th className="pb-2 pr-4">Period</th>
-                  <th className="pb-2 pr-4">Progress</th>
-                  <th className="pb-2 pr-4">Status</th>
-                  <th className="pb-2">Target</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {goals.map((g) => {
-                  const ind = g.indicatorId || {};
-                  const st  = g.staffId || {};
-                  const Icon = STATUS_ICON[g.status] || Target;
-                  return (
-                    <tr key={g._id} className="hover:bg-slate-50/60">
-                      <td className="py-2.5 pr-4">
-                        <span className="font-medium text-slate-800">{ind.name || "—"}</span>
-                        {ind.category && (
-                          <span className="ml-1.5 text-xs text-slate-400 capitalize">{ind.category}</span>
-                        )}
-                        {st.fullName && (
-                          <div className="text-xs text-slate-400 mt-0.5">{st.fullName}</div>
-                        )}
-                      </td>
-                      <td className="py-2.5 pr-4">
-                        <Badge tone="neutral" className="capitalize">{g.scope}</Badge>
-                        {g.department && <div className="text-xs text-slate-400 mt-0.5">{g.department}</div>}
-                      </td>
-                      <td className="py-2.5 pr-4 text-slate-500 tabular-nums">{g.period}</td>
-                      <td className="py-2.5 pr-4 w-32">
-                        <div className="flex items-center gap-2">
-                          <ProgressBar pct={g.progressPct} status={g.status} />
-                          <span className="text-xs text-slate-500 w-8 text-right tabular-nums">
-                            {Math.round(g.progressPct || 0)}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-2.5 pr-4">
-                        <Badge tone={STATUS_TONE[g.status] || "neutral"}>
-                          <Icon size={11} className="inline mr-0.5" />
-                          {g.status?.replace("_", " ")}
-                        </Badge>
-                      </td>
-                      <td className="py-2.5 text-slate-500 tabular-nums">
-                        {g.currentValue ?? "—"} / {g.targetValue} {ind.unit || ""}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-    </div>
+    </PageFrame>
   );
 }

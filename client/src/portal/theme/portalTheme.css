@@ -466,6 +466,8 @@ a.px-metric:focus-visible, button.px-metric:focus-visible { outline: 2px solid v
 .px-list { list-style: none; margin: 0; padding: 0; }
 .px-list > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 20px; border-top: 1px solid var(--px-line); min-width: 0; }
 .px-list > li:first-child { border-top: 0; }
+.px-table .px-subrow > td { background: var(--px-surface-2); }
+.px-subrow .px-list > li { padding-left: 0; padding-right: 0; }
 .px-list .px-t { font-weight: 600; font-size: 14px; color: var(--px-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .px-list .px-t a, .px-list .px-t button { color: inherit; text-decoration: none; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-align: left; }
 .px-list .px-t a:hover, .px-list .px-t button:hover { color: var(--px-lotus-600); text-decoration: underline; }
@@ -512,6 +514,8 @@ table.px-table td.px-actions-cell { width: 1%; white-space: nowrap; text-align: 
 .px-cell-main { display: grid; gap: 2px; min-width: 0; }
 .px-cell-main b, .px-cell-main a { font-weight: 600; color: var(--px-ink); text-decoration: none; overflow-wrap: anywhere; }
 .px-cell-main a:hover { color: var(--px-lotus-600); text-decoration: underline; }
+.px-cell-main button { font: inherit; font-weight: 600; color: var(--px-ink); background: none; border: 0; padding: 0; text-align: left; cursor: pointer; }
+.px-cell-main button:hover, .px-cell-main button[aria-pressed="true"] { color: var(--px-lotus-600); text-decoration: underline; }
 .px-cell-main span { font-size: 13px; color: var(--px-muted); }
 .px-person { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; color: var(--px-ink-2); }
 .px-person i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 600; font-size: 11px; background: var(--px-lotus-100); color: var(--px-lotus-700); flex: none; }
@@ -564,6 +568,7 @@ table.px-table td.px-actions-cell { width: 1%; white-space: nowrap; text-align: 
 .px-bar > i { display: block; height: 100%; border-radius: inherit; background: var(--px-lotus-600); }
 .px-bar[data-tone="ok"] > i { background: var(--px-ok); }
 .px-bar[data-tone="bad"] > i { background: var(--px-bad); }
+.px-bar[data-tone="warn"] > i { background: var(--px-warn); }
 .px-stackbar { display: flex; height: 10px; border-radius: 99px; overflow: hidden; gap: 2px; background: var(--px-surface-2); }
 .px-stackbar i { display: block; height: 100%; }
 .px-legend { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px 16px; font-size: 13px; color: var(--px-ink-2); }
@@ -1065,3 +1070,54 @@ textarea.px-input { height: auto; padding: 9px 12px; line-height: 1.5; resize: v
   /* Phones: stage columns stack (no sideways carousel). */
   .px-board { grid-auto-flow: row; grid-auto-columns: auto; overflow: visible; }
 }
+
+/* ============================================================
+   PUI-4: invoice lines and totals, picker footer spacing.
+   ============================================================ */
+.px-picker-foot { gap: 8px; }
+.px-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: line; }
+.px-line { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) 90px 140px 120px auto; gap: 10px; align-items: end; padding-bottom: 10px; border-bottom: 1px dashed var(--px-line); }
+.px-line-amount { height: 38px; display: flex; align-items: center; justify-content: flex-end; font-weight: 600; color: var(--px-ink); }
+.px-totals { display: grid; grid-template-columns: auto auto; justify-content: end; gap: 6px 24px; margin: 4px 0 0; font-size: 14px; }
+.px-totals dt { color: var(--px-muted); text-align: right; }
+.px-totals dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; color: var(--px-ink); }
+.px-totals .px-total { font-weight: 600; font-size: 16px; color: var(--px-ink); padding-top: 6px; border-top: 1px solid var(--px-line); }
+.px-totals--panel { padding: 12px 20px 18px; border-top: 1px solid var(--px-line); }
+@media (max-width: 960px) {
+  .px-line { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .px-line > :first-child, .px-line > :nth-child(2) { grid-column: 1 / -1; }
+  .px-line-amount { justify-content: flex-start; }
+}
+@media (max-width: 640px) {
+  .px-totals--panel { padding-inline: 16px; }
+  .px-totals { justify-content: stretch; grid-template-columns: minmax(0, 1fr) auto; }
+}
+@media print {
+  .px-side, .px-top, .px-record-actions, .px-skip { display: none !important; }
+  .px-shell { display: block !important; height: auto !important; }
+  .px-scroll { overflow: visible !important; }
+}
+
+/* Skill matrix (PUI-4): a true two-way grid, so it scrolls sideways inside
+   its panel with the name column pinned, rather than stacking. */
+.px-matrix-scroll { overflow-x: auto; }
+.px-matrix-scroll:focus-visible { outline: 2px solid var(--px-lotus-600); outline-offset: -2px; }
+.px-matrix { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 13px; }
+.px-matrix th, .px-matrix td { padding: 9px 12px; border-bottom: 1px solid var(--px-line); text-align: center; white-space: nowrap; }
+.px-matrix thead th { font-size: 11.5px; font-weight: 600; color: var(--px-ink-2); }
+.px-matrix th[scope="row"], .px-matrix thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--px-surface); text-align: left; min-width: 170px; }
+.px-matrix th[scope="row"] small { display: block; font-weight: 400; color: var(--px-muted); }
+.px-matrix .px-lvl { display: inline-grid; place-items: center; width: 24px; height: 22px; border-radius: 6px; font-weight: 600; font-size: 11px; background: var(--px-surface-2); color: var(--px-ink-2); }
+.px-matrix .px-lvl[data-level="intermediate"] { background: color-mix(in srgb, var(--px-info) 16%, transparent); color: var(--px-info); }
+.px-matrix .px-lvl[data-level="advanced"] { background: color-mix(in srgb, var(--px-warn) 18%, transparent); color: var(--px-warn); }
+.px-matrix .px-lvl[data-level="expert"] { background: color-mix(in srgb, var(--px-ok) 18%, transparent); color: var(--px-ok); }
+
+/* Review rating (PUI-4): five stars, filled up to the rating. */
+.px-rating { display: inline-flex; gap: 1px; color: var(--px-line); }
+.px-rating svg[data-on] { color: var(--px-warn); fill: currentColor; }
+
+/* Checklist (PUI-4): a scrollable list of checkboxes inside a form section,
+   for choosing several records (a vendor's categories). */
+.px-checklist { display: grid; gap: 0; max-height: 260px; overflow-y: auto; border: 1px solid var(--px-line); border-radius: 10px; padding: 4px 12px; }
+.px-checklist .px-check { height: auto; min-height: 34px; white-space: normal; }
+.px-checklist .px-check small { color: var(--px-muted); }

@@ -1,25 +1,17 @@
 import React, { useEffect, useState } from "react";
-import Modal from "../../../shared/ui/Modal";
-import Button from "../../../shared/ui/Button";
-import Input from "../../../shared/ui/Input";
-import Select from "../../../shared/ui/Select";
-import SmartSelect from "../../../shared/ui/SmartSelect";
-import {
-  HR_DEPARTMENT_OPTIONS,
-  STAFF_EMPLOYMENT_TYPE_OPTIONS,
-  STAFF_STATUS_OPTIONS,
-} from "../constants/hr.constants";
+import { Pencil, UserPlus } from "lucide-react";
+import FormDialog from "../../../shared/ui/FormDialog";
+import TextField from "../../../shared/ui/TextField";
+import SelectField from "../../../shared/ui/SelectField";
+import RecordPicker from "../../../shared/ui/RecordPicker";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import { HR_DEPARTMENT_OPTIONS, STAFF_EMPLOYMENT_TYPE_OPTIONS, STAFF_STATUS_OPTIONS } from "../constants/hr.constants";
 import { listStaff } from "../api";
 import { listTeams } from "../../iam/teams/api";
 import { listUsers } from "../../iam/users/api";
+import { idOf } from "../format";
 
-const CURRENCY_OPTIONS = [
-  { value: "AED", label: "AED" },
-  { value: "USD", label: "USD" },
-  { value: "EUR", label: "EUR" },
-  { value: "GBP", label: "GBP" },
-  { value: "SAR", label: "SAR" },
-];
+const CURRENCY_OPTIONS = ["AED", "USD", "EUR", "GBP", "SAR"].map((c) => ({ value: c, label: c }));
 
 const EMPTY = {
   fullName: "",
@@ -39,282 +31,134 @@ const EMPTY = {
   emergencyContactPhone: "",
   notes: "",
 };
+const ref = (v) => (v && typeof v === "object" ? v : null);
 
-export default function StaffFormModal({
-  open,
-  initial,
-  busy,
-  onClose,
-  onSubmit,
-}) {
+// Staff record form (PUI-4): the same fields as before, on the shared form
+// dialog. The team and portal-user pickers need IAM read access; without it
+// they are shown read-only and left out of the save, so nothing is cleared.
+export default function StaffFormModal({ open, initial, busy, error, onClose, onSubmit }) {
+  const access = useAccess();
+  const canTeams = access.can("iam.teams.read");
+  const canUsers = access.can("iam.users.read");
   const [form, setForm] = useState(EMPTY);
   const isEdit = Boolean(initial?._id);
 
   useEffect(() => {
     if (!open) return;
-
-    if (initial) {
-      setForm({
-        ...EMPTY,
-        ...initial,
-        joiningDate: initial.joiningDate
-          ? new Date(initial.joiningDate).toISOString().slice(0, 10)
-          : "",
-        monthlySalary: initial.monthlySalary ?? "",
-        managerStaffId: initial.managerStaffId || null,
-        teamId: initial.teamId || null,
-        linkedUserId: initial.linkedUserId || null,
-      });
-    } else {
-      setForm(EMPTY);
-    }
+    setForm(
+      initial
+        ? {
+            ...EMPTY,
+            ...Object.fromEntries(Object.keys(EMPTY).map((k) => [k, initial[k] ?? EMPTY[k]])),
+            joiningDate: initial.joiningDate ? new Date(initial.joiningDate).toISOString().slice(0, 10) : "",
+            monthlySalary: initial.monthlySalary ?? "",
+            managerStaffId: ref(initial.managerStaffId),
+            teamId: ref(initial.teamId),
+            linkedUserId: ref(initial.linkedUserId),
+          }
+        : EMPTY
+    );
   }, [open, initial]);
 
-  const set = (key) => (valueOrEvent) => {
-    const value = valueOrEvent?.target
-      ? valueOrEvent.target.value
-      : valueOrEvent;
-    setForm((current) => ({ ...current, [key]: value }));
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v?.target ? v.target.value : v }));
+
+  const submit = () => {
+    const payload = {
+      ...form,
+      fullName: form.fullName.trim(),
+      managerStaffId: idOf(form.managerStaffId) || null,
+      teamId: idOf(form.teamId) || null,
+      linkedUserId: idOf(form.linkedUserId) || null,
+      monthlySalary: form.monthlySalary === "" || form.monthlySalary === null ? null : Number(form.monthlySalary),
+    };
+    if (!canTeams) delete payload.teamId;
+    if (!canUsers) delete payload.linkedUserId;
+    onSubmit?.(payload);
   };
 
-  const canSubmit = form.fullName.trim().length >= 2;
-
-  const footer = (
-    <div className="flex justify-end gap-2">
-      <Button variant="outline" onClick={onClose} disabled={busy}>
-        Cancel
-      </Button>
-      <Button
-        onClick={() =>
-          onSubmit({
-            ...form,
-            managerStaffId: form.managerStaffId?._id || null,
-            teamId: form.teamId?._id || null,
-            linkedUserId: form.linkedUserId?._id || null,
-            monthlySalary:
-              form.monthlySalary === "" || form.monthlySalary === null
-                ? null
-                : Number(form.monthlySalary),
-          })
-        }
-        disabled={busy || !canSubmit}
-      >
-        {busy ? "Saving..." : isEdit ? "Save changes" : "Create staff"}
-      </Button>
-    </div>
-  );
-
   return (
-    <Modal
+    <FormDialog
       open={open}
+      title={isEdit ? "Edit staff record" : "New staff record"}
+      description="The employee's HR record. Only people with HR staff access can see it."
       onClose={onClose}
-      title={isEdit ? "Edit staff member" : "New staff member"}
-      subtitle="Manage employee profile and HR information."
-      width="860px"
-      footer={footer}
+      onSubmit={submit}
+      busy={busy}
+      error={error}
+      canSubmit={form.fullName.trim().length >= 2}
+      submitLabel={isEdit ? "Save changes" : "Create record"}
+      submitIcon={isEdit ? Pencil : UserPlus}
     >
-      <div className="grid gap-4">
-        {/* Row 1: Full Name */}
-        <Input
-          label="FULL NAME"
-          value={form.fullName}
-          onChange={set("fullName")}
-          placeholder="Staff full name"
-        />
-
-        {/* Row 2: Email / Phone */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label="EMAIL"
-            type="email"
-            value={form.email}
-            onChange={set("email")}
-            placeholder="name@company.com"
-          />
-
-          <Input
-            label="PHONE"
-            value={form.phone}
-            onChange={set("phone")}
-            placeholder="+971..."
-          />
+      <fieldset className="px-form-section">
+        <legend>Person</legend>
+        <TextField label="Full name" required value={form.fullName} onChange={set("fullName")} hint="At least 2 characters." />
+        <div className="px-form-grid px-form-grid--2">
+          <TextField label="Email" type="email" value={form.email} onChange={set("email")} />
+          <TextField label="Phone" value={form.phone} onChange={set("phone")} />
         </div>
-
-        {/* Row 3: Job Title / Department */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label="JOB TITLE"
-            value={form.jobTitle}
-            onChange={set("jobTitle")}
-            placeholder="Social Media Manager"
-          />
-
-          <label className="grid gap-1.5">
-            <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
-              DEPARTMENT
-            </span>
-            <Select
-              value={form.department}
-              onChange={set("department")}
-              options={HR_DEPARTMENT_OPTIONS.filter((x) => x.value)}
-            />
-          </label>
+      </fieldset>
+      <fieldset className="px-form-section">
+        <legend>Role</legend>
+        <div className="px-form-grid px-form-grid--2">
+          <TextField label="Job title" value={form.jobTitle} onChange={set("jobTitle")} />
+          <SelectField label="Department" value={form.department} onChange={set("department")} options={HR_DEPARTMENT_OPTIONS.filter((o) => o.value)} />
+          <SelectField label="Employment" value={form.employmentType} onChange={set("employmentType")} options={STAFF_EMPLOYMENT_TYPE_OPTIONS.filter((o) => o.value)} />
+          <SelectField label="Status" value={form.status} onChange={set("status")} options={STAFF_STATUS_OPTIONS.filter((o) => o.value)} />
+          <TextField label="Joining date" type="date" value={form.joiningDate} onChange={set("joiningDate")} />
         </div>
-
-        {/* Row 4: Employment Type / Joining Date / Status */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <label className="grid gap-1.5">
-            <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
-              EMPLOYMENT TYPE
-            </span>
-            <Select
-              value={form.employmentType}
-              onChange={set("employmentType")}
-              options={STAFF_EMPLOYMENT_TYPE_OPTIONS.filter((x) => x.value)}
-            />
-          </label>
-
-          <Input
-            label="JOINING DATE"
-            type="date"
-            value={form.joiningDate}
-            onChange={set("joiningDate")}
-          />
-
-          <label className="grid gap-1.5">
-            <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
-              STATUS
-            </span>
-            <Select
-              value={form.status}
-              onChange={set("status")}
-              options={STAFF_STATUS_OPTIONS.filter((x) => x.value)}
-            />
-          </label>
-        </div>
-
-        {/* Row 5: Manager (full width SmartSelect) */}
-        <SmartSelect
-          label="MANAGER"
+        <RecordPicker
+          label="Manager"
           value={form.managerStaffId}
           onChange={set("managerStaffId")}
-          loadOptions={({ q, limit }) =>
-            listStaff({ q, limit }).then((r) => ({ items: r.items || [] }))
-          }
-          renderValue={(s) => (
-            <span className="font-extrabold text-slate-900">{s.fullName}</span>
-          )}
-          renderOption={(s) => (
-            <div>
-              <div className="font-extrabold text-slate-900 text-sm">
-                {s.fullName}
-              </div>
-              <div className="text-xs text-slate-500">
-                {s.jobTitle || s.department}
-              </div>
-            </div>
-          )}
-          placeholder="Search staff…"
+          load={(q) => listStaff({ q, limit: 20 }).then((r) => (r?.items || []).filter((s) => s._id !== initial?._id))}
+          getLabel={(s) => s?.fullName || "Staff member"}
+          getSub={(s) => [s?.jobTitle, s?.department].filter(Boolean).join(", ")}
+          searchLabel="Search staff"
         />
-
-        {/* Row 6: Team / Linked Portal User */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <SmartSelect
-            label="TEAM"
-            value={form.teamId}
-            onChange={set("teamId")}
-            loadOptions={({ q, limit }) =>
-              listTeams({ q, limit, isActive: "true" }).then((r) => ({
-                items: r.items || [],
-              }))
-            }
-            getKey={(t) => t._id}
-            renderValue={(t) => (
-              <span className="font-extrabold text-slate-900">{t.label}</span>
-            )}
-            renderOption={(t) => (
-              <div className="font-extrabold text-slate-900 text-sm">
-                {t.label}
-              </div>
-            )}
-            placeholder="Select team…"
-          />
-
-          <SmartSelect
-            label="LINKED PORTAL USER"
-            value={form.linkedUserId}
-            onChange={set("linkedUserId")}
-            loadOptions={({ q, limit }) =>
-              listUsers({ q, limit }).then((r) => ({ items: r.users || r.items || [] }))
-            }
-            renderValue={(u) => (
-              <span className="font-extrabold text-slate-900">{u.fullName}</span>
-            )}
-            renderOption={(u) => (
-              <div>
-                <div className="font-extrabold text-slate-900 text-sm">
-                  {u.fullName}
-                </div>
-                <div className="text-xs text-slate-500">{u.email}</div>
-              </div>
-            )}
-            placeholder="Link portal user (optional)…"
-          />
-        </div>
-
-        {/* Row 7: Monthly Salary / Currency */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label="MONTHLY SALARY"
-            type="number"
-            value={form.monthlySalary}
-            onChange={set("monthlySalary")}
-            placeholder="Optional"
-          />
-
-          <label className="grid gap-1.5">
-            <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
-              CURRENCY
-            </span>
-            <Select
-              value={form.currency}
-              onChange={set("currency")}
-              options={CURRENCY_OPTIONS}
+        <div className="px-form-grid px-form-grid--2">
+          {canTeams ? (
+            <RecordPicker
+              label="Team"
+              value={form.teamId}
+              onChange={set("teamId")}
+              load={(q) => listTeams({ q, limit: 20, isActive: "true" }).then((r) => r?.items || r?.teams || [])}
+              getLabel={(t) => t?.label || t?.key || "Team"}
+              searchLabel="Search teams"
             />
-          </label>
+          ) : (
+            <TextField label="Team" value={form.teamId?.label || "Not set"} readOnly hint="Changing it needs access to teams." />
+          )}
+          {canUsers ? (
+            <RecordPicker
+              label="Portal user"
+              value={form.linkedUserId}
+              onChange={set("linkedUserId")}
+              load={(q) => listUsers({ q, limit: 20 }).then((r) => r?.users || r?.items || [])}
+              getLabel={(u) => u?.fullName || u?.email || "User"}
+              getSub={(u) => u?.email}
+              searchLabel="Search users"
+              hint="The portal account this record belongs to."
+            />
+          ) : (
+            <TextField label="Portal user" value={form.linkedUserId?.fullName || form.linkedUserId?.email || "Not linked"} readOnly hint="Changing it needs access to users." />
+          )}
         </div>
-
-        {/* Row 8: Emergency Contact Name / Phone */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label="EMERGENCY CONTACT NAME"
-            value={form.emergencyContactName}
-            onChange={set("emergencyContactName")}
-            placeholder="Optional"
-          />
-
-          <Input
-            label="EMERGENCY CONTACT PHONE"
-            value={form.emergencyContactPhone}
-            onChange={set("emergencyContactPhone")}
-            placeholder="Optional"
-          />
+      </fieldset>
+      <fieldset className="px-form-section">
+        <legend>Pay</legend>
+        <div className="px-form-grid px-form-grid--2">
+          <TextField label="Monthly salary" type="number" min="0" inputMode="decimal" value={String(form.monthlySalary ?? "")} onChange={set("monthlySalary")} />
+          <SelectField label="Currency" value={form.currency} onChange={set("currency")} options={CURRENCY_OPTIONS.some((o) => o.value === form.currency) ? CURRENCY_OPTIONS : [...CURRENCY_OPTIONS, { value: form.currency, label: form.currency }]} />
         </div>
-
-        {/* Row 9: Notes */}
-        <label className="grid gap-2">
-          <span className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500">
-            NOTES
-          </span>
-          <textarea
-            value={form.notes}
-            onChange={(e) => set("notes")(e.target.value)}
-            rows={3}
-            placeholder="Internal HR notes..."
-            className="resize-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-          />
-        </label>
-      </div>
-    </Modal>
+      </fieldset>
+      <fieldset className="px-form-section">
+        <legend>Emergency contact and notes</legend>
+        <div className="px-form-grid px-form-grid--2">
+          <TextField label="Emergency contact" value={form.emergencyContactName} onChange={set("emergencyContactName")} />
+          <TextField label="Emergency phone" value={form.emergencyContactPhone} onChange={set("emergencyContactPhone")} />
+        </div>
+        <TextField label="Notes" multiline rows={3} value={form.notes} onChange={set("notes")} />
+      </fieldset>
+    </FormDialog>
   );
 }

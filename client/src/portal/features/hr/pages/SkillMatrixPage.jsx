@@ -1,166 +1,137 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Grid3x3 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Grid3x3, Lock, RefreshCw } from "lucide-react";
 
-import Card from "../../../shared/ui/Card";
-import Badge from "../../../shared/ui/Badge";
-import Skeleton from "../../../shared/ui/Skeleton";
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
+import Button from "../../../shared/ui/Button";
+import SelectField from "../../../shared/ui/SelectField";
+import SearchField from "../../../shared/ui/SearchField";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ErrorState from "../../../shared/ui/ErrorState";
 import EmptyState from "../../../shared/ui/EmptyState";
-import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
-import { listStaff } from "../api";
+import { HR_DEPARTMENT_OPTIONS } from "../constants/hr.constants";
+import { loadAllStaff } from "../lib/loadAllStaff";
 
 const LEVELS = ["beginner", "intermediate", "advanced", "expert"];
+const LEVEL_ABBR = { beginner: "B", intermediate: "I", advanced: "A", expert: "E" };
+const LEVEL_LABEL = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced", expert: "Expert" };
 
-const LEVEL_TONE = {
-  beginner: "neutral",
-  intermediate: "info",
-  advanced: "warning",
-  expert: "success",
-};
-
-const LEVEL_ABBR = {
-  beginner: "B",
-  intermediate: "I",
-  advanced: "A",
-  expert: "E",
-};
-
-const DEPT_OPTIONS = [
-  { value: "", label: "All Departments" },
-  { value: "engineering", label: "Engineering" },
-  { value: "design", label: "Design" },
-  { value: "marketing", label: "Marketing" },
-  { value: "sales", label: "Sales" },
-  { value: "hr", label: "HR" },
-  { value: "finance", label: "Finance" },
-  { value: "operations", label: "Operations" },
-  { value: "other", label: "Other" },
-];
-
+// Skill matrix (PUI-4): who has which skill, at what level, from the skills
+// on each staff record. Reading staff records needs hr.staff.read.
 export default function SkillMatrixPage() {
-  const toast = useToast();
-  const [loading, setLoading] = useState(true);
-  const [staff, setStaff]     = useState([]);
-  const [dept, setDept]       = useState("");
+  const access = useAccess();
+  const canStaff = access.can("hr.staff.read");
+  const [department, setDepartment] = useState("");
+  const [skillQ, setSkillQ] = useState("");
+  const [state, setState] = useState({ status: canStaff ? "loading" : "idle", items: [], complete: true });
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
+    if (!canStaff) return undefined;
     let cancelled = false;
-    (async () => {
-      setLoading(true);
-      try {
-        const params = { limit: 100 };
-        if (dept) params.department = dept;
-        const res = await listStaff(params);
-        if (!cancelled) setStaff(res?.items || []);
-      } catch (e) {
-        if (!cancelled) toast.error(e?.response?.data?.message || e?.message || "Failed to load staff.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dept]);
+    setState((s) => ({ ...s, status: "loading" }));
+    loadAllStaff(department ? { department, sort: "fullName" } : { sort: "fullName" })
+      .then((r) => !cancelled && setState({ status: "ready", items: r.items, complete: r.complete }))
+      .catch(() => !cancelled && setState({ status: "failed", items: [], complete: true }));
+    return () => {
+      cancelled = true;
+    };
+  }, [department, canStaff, reload]);
 
-  const allSkills = useMemo(() => {
+  const withSkills = useMemo(() => state.items.filter((s) => (s.skills || []).length), [state.items]);
+  const skills = useMemo(() => {
     const set = new Set();
-    staff.forEach((s) => (s.skills || []).forEach((sk) => set.add(sk.name)));
-    return [...set].sort((a, b) => a.localeCompare(b));
-  }, [staff]);
+    withSkills.forEach((s) => s.skills.forEach((k) => k?.name && set.add(k.name)));
+    const q = skillQ.trim().toLowerCase();
+    return [...set].filter((n) => !q || n.toLowerCase().includes(q)).sort((a, b) => a.localeCompare(b));
+  }, [withSkills, skillQ]);
+  const rows = useMemo(() => (skillQ.trim() ? withSkills.filter((s) => s.skills.some((k) => skills.includes(k.name))) : withSkills), [withSkills, skills, skillQ]);
 
-  const staffWithSkills = useMemo(
-    () => staff.filter((s) => (s.skills || []).length > 0),
-    [staff]
-  );
-
-  return (
-    <div className="grid gap-4">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-base font-extrabold tracking-tight text-slate-900">Skill Matrix</h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            {staffWithSkills.length} staff · {allSkills.length} unique skill{allSkills.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-        <select
-          value={dept}
-          onChange={(e) => setDept(e.target.value)}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-        >
-          {DEPT_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
-
-      {loading ? (
-        <div className="grid gap-3">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-xl" />)}
-        </div>
-      ) : staffWithSkills.length === 0 ? (
-        <EmptyState icon={Grid3x3} title="No skills data" message="Add skills to staff profiles to see the matrix." />
-      ) : (
-        <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="sticky left-0 z-10 bg-white px-4 py-3 text-left text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400 min-w-[160px]">
-                    Staff
+  let content;
+  if (!canStaff)
+    content = <EmptyState icon={Lock} title="The skill matrix needs access to staff records" message="It is built from each staff record's skills. Ask an administrator for HR staff access if you need it." />;
+  else if (state.status === "failed") content = <ErrorState title="Staff skills didn't load" onRetry={() => setReload((n) => n + 1)} />;
+  else if (state.status === "loading") content = <LoadingState rows={5} label="Loading the skill matrix" />;
+  else if (!rows.length)
+    content = <EmptyState icon={Grid3x3} title={skillQ.trim() ? "No skills match that search" : "No skills recorded yet"} message="Skills are added on each staff record, in its Skills tab." />;
+  else
+    content = (
+      <div className="px-matrix-scroll" role="region" aria-label="Skill matrix, scrolls sideways" tabIndex={0}>
+        <table className="px-matrix">
+          <caption className="sr-only">Skill level for each person and skill</caption>
+          <thead>
+            <tr>
+              <th scope="col">Person</th>
+              {skills.map((k) => (
+                <th scope="col" key={k}>{k}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((s) => {
+              const map = Object.fromEntries(s.skills.map((k) => [k.name, k.level]));
+              return (
+                <tr key={s._id}>
+                  <th scope="row">
+                    <Link to={`/portal/hr/staff/${s._id}`}>{s.fullName}</Link>
+                    {s.jobTitle ? <small>{s.jobTitle}</small> : null}
                   </th>
-                  {allSkills.map((skill) => (
-                    <th key={skill} className="px-3 py-3 text-center text-[11px] font-extrabold uppercase tracking-[0.14em] text-slate-400 whitespace-nowrap min-w-[90px]">
-                      {skill}
-                    </th>
+                  {skills.map((k) => (
+                    <td key={k}>
+                      {map[k] ? (
+                        <span className="px-lvl" data-level={map[k]} title={LEVEL_LABEL[map[k]] || map[k]}>
+                          {LEVEL_ABBR[map[k]] || String(map[k])[0]?.toUpperCase()}
+                          <span className="sr-only">{`, ${LEVEL_LABEL[map[k]] || map[k]}`}</span>
+                        </span>
+                      ) : (
+                        <span aria-label="None">—</span>
+                      )}
+                    </td>
                   ))}
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {staffWithSkills.map((s) => {
-                  const skillMap = {};
-                  (s.skills || []).forEach((sk) => { skillMap[sk.name] = sk.level; });
-                  return (
-                    <tr key={s._id} className="hover:bg-slate-50">
-                      <td className="sticky left-0 z-10 bg-white px-4 py-3 font-semibold text-slate-800 hover:bg-slate-50">
-                        <div className="truncate max-w-[150px]">{s.fullName}</div>
-                        {s.jobTitle && <div className="truncate text-[11px] text-slate-400">{s.jobTitle}</div>}
-                      </td>
-                      {allSkills.map((skill) => {
-                        const level = skillMap[skill];
-                        return (
-                          <td key={skill} className="px-3 py-3 text-center">
-                            {level ? (
-                              <span title={level}>
-                                <Badge tone={LEVEL_TONE[level] || "neutral"} className="text-[11px]">
-                                  {LEVEL_ABBR[level] || level[0].toUpperCase()}
-                                </Badge>
-                              </span>
-                            ) : (
-                              <span className="text-slate-200">—</span>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
 
-          {/* Legend */}
-          <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 px-4 py-3">
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Level:</span>
-            {LEVELS.map((l) => (
-              <span key={l} className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                <Badge tone={LEVEL_TONE[l]}>{LEVEL_ABBR[l]}</Badge>
-                {l}
+  return (
+    <PageFrame
+      title="Skill matrix"
+      description="Skills recorded on staff records, by person and level."
+      breadcrumb={[{ label: "HR", to: access.canOpen("/portal/hr") ? "/portal/hr" : undefined }, { label: "Skills" }]}
+      secondaryActions={
+        canStaff ? (
+          <Button variant="outline" onClick={() => setReload((n) => n + 1)} disabled={state.status === "loading"}>
+            <RefreshCw size={14} className={state.status === "loading" ? "animate-spin" : ""} aria-hidden="true" />
+            Refresh
+          </Button>
+        ) : null
+      }
+    >
+      <Panel flush bare label="Skill matrix" className="px-list-panel">
+        {canStaff ? (
+          <>
+            <div className="px-toolbar" role="search" aria-label="Filter the skill matrix">
+              <SearchField label="Find a skill" value={skillQ} onChange={setSkillQ} placeholder="Skill name" />
+              <SelectField label="Department" value={department} onChange={setDepartment} options={[{ value: "", label: "Any department" }, ...HR_DEPARTMENT_OPTIONS.filter((o) => o.value)]} />
+            </div>
+            <div className="px-result-bar">
+              <span aria-live="polite">
+                {state.status === "ready"
+                  ? `${rows.length} ${rows.length === 1 ? "person" : "people"}, ${skills.length} skill${skills.length === 1 ? "" : "s"}${state.complete ? "" : " (first 1,000 staff records only)"}`
+                  : ""}
               </span>
-            ))}
-          </div>
-        </Card>
-      )}
-    </div>
+              <span className="px-muted">{LEVELS.map((l) => `${LEVEL_ABBR[l]} ${LEVEL_LABEL[l]}`).join(" · ")}</span>
+            </div>
+          </>
+        ) : null}
+        {content}
+      </Panel>
+    </PageFrame>
   );
 }

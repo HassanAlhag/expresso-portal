@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from "react";
-import Modal from "../../../shared/ui/Modal";
-import Button from "../../../shared/ui/Button";
-import Input from "../../../shared/ui/Input";
-import Select from "../../../shared/ui/Select";
-import {
-  EXPENSE_CATEGORY_OPTIONS,
-  EXPENSE_DEPARTMENT_OPTIONS,
-} from "../constants/hr.constants";
+import { Pencil, ReceiptText } from "lucide-react";
+import FormDialog from "../../../shared/ui/FormDialog";
+import TextField from "../../../shared/ui/TextField";
+import SelectField from "../../../shared/ui/SelectField";
+import { readPortalUser } from "../../../shared/hooks/useAccess";
+import { EXPENSE_CATEGORY_OPTIONS, EXPENSE_DEPARTMENT_OPTIONS } from "../constants/hr.constants";
 
-const EMPTY = {
+const empty = () => ({
   title: "",
-  staffName: "",
-  department: "Marketing",
+  staffName: readPortalUser().fullName || "",
+  department: "marketing",
   category: "other",
   amount: "",
   currency: "AED",
@@ -20,168 +18,72 @@ const EMPTY = {
   description: "",
   receiptUrl: "",
   notes: "",
-};
+});
 
-export default function ExpenseClaimFormModal({
-  open,
-  initial,
-  busy,
-  onClose,
-  onSubmit,
-}) {
-  const [form, setForm] = useState(EMPTY);
+// Only the form's own fields are sent. A loaded claim also carries populated
+// references (staffUserId, approvedBy...) that the API would read as invalid
+// ids and clear, which would detach the claim from its owner.
+const FIELDS = Object.keys(empty());
+const pickFields = (form) => Object.fromEntries(FIELDS.map((k) => [k, form[k]]));
 
+// Expense claim form (PUI-4): same fields as before, on the shared form dialog.
+export default function ExpenseClaimFormModal({ open, initial, busy, error, onClose, onSubmit }) {
+  const [form, setForm] = useState(empty);
   const isEdit = Boolean(initial?._id);
 
   useEffect(() => {
     if (!open) return;
-
-    if (initial) {
-      setForm({
-        ...EMPTY,
-        ...initial,
-        expenseDate: initial.expenseDate
-          ? new Date(initial.expenseDate).toISOString().slice(0, 10)
-          : EMPTY.expenseDate,
-        amount: initial.amount || "",
-      });
-    } else {
-      setForm(EMPTY);
-    }
+    setForm(
+      initial
+        ? {
+            ...empty(),
+            ...initial,
+            expenseDate: initial.expenseDate ? new Date(initial.expenseDate).toISOString().slice(0, 10) : empty().expenseDate,
+            amount: initial.amount ?? "",
+          }
+        : empty()
+    );
   }, [open, initial]);
 
-  const set = (key) => (valueOrEvent) => {
-    const value = valueOrEvent?.target
-      ? valueOrEvent.target.value
-      : valueOrEvent;
-    setForm((current) => ({ ...current, [key]: value }));
-  };
-
-  const canSubmit =
-    form.title.trim().length >= 3 &&
-    form.staffName.trim().length >= 2 &&
-    Number(form.amount || 0) > 0;
-
-  const footer = (
-    <div className="flex justify-end gap-2">
-      <Button variant="outline" onClick={onClose} disabled={busy}>
-        Cancel
-      </Button>
-      <Button
-        onClick={() =>
-          onSubmit({
-            ...form,
-            amount: Number(form.amount || 0),
-          })
-        }
-        disabled={busy || !canSubmit}
-      >
-        {busy ? "Saving..." : isEdit ? "Save changes" : "Create claim"}
-      </Button>
-    </div>
-  );
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v?.target ? v.target.value : v }));
 
   return (
-    <Modal
+    <FormDialog
       open={open}
-      onClose={onClose}
       title={isEdit ? "Edit expense claim" : "New expense claim"}
-      subtitle="Submit staff expenses for approval and monthly registration."
-      width="760px"
-      footer={footer}
+      description={isEdit ? "Claims can't be changed once registered or paid." : "The claim is submitted for approval."}
+      onClose={onClose}
+      onSubmit={() => onSubmit?.({ ...pickFields(form), title: form.title.trim(), staffName: form.staffName.trim(), amount: Number(form.amount || 0) })}
+      busy={busy}
+      error={error}
+      canSubmit={form.title.trim().length >= 3 && form.staffName.trim().length >= 2 && Number(form.amount || 0) > 0}
+      submitLabel={isEdit ? "Save changes" : "Submit claim"}
+      submitIcon={isEdit ? Pencil : ReceiptText}
     >
-      <div className="grid gap-4">
-        <Input
-          label="EXPENSE TITLE"
-          value={form.title}
-          onChange={set("title")}
-          placeholder="Taxi to client meeting"
-        />
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <Input
-            label="STAFF NAME"
-            value={form.staffName}
-            onChange={set("staffName")}
-            placeholder="Staff member name"
-          />
-
-          <Select
-            label="DEPARTMENT"
-            value={form.department}
-            onChange={set("department")}
-            options={EXPENSE_DEPARTMENT_OPTIONS.filter((x) => x.value)}
-          />
+      <fieldset className="px-form-section">
+        <legend>Claim</legend>
+        <TextField label="What was it for" required value={form.title} onChange={set("title")} hint="At least 3 characters." />
+        <div className="px-form-grid px-form-grid--2">
+          <TextField label="Staff name" required value={form.staffName} onChange={set("staffName")} />
+          <SelectField label="Department" value={form.department} onChange={set("department")} options={EXPENSE_DEPARTMENT_OPTIONS.filter((o) => o.value)} />
+          <SelectField label="Category" value={form.category} onChange={set("category")} options={EXPENSE_CATEGORY_OPTIONS.filter((o) => o.value)} />
+          <TextField label="Expense date" type="date" value={form.expenseDate} onChange={set("expenseDate")} />
         </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <Select
-            label="CATEGORY"
-            value={form.category}
-            onChange={set("category")}
-            options={EXPENSE_CATEGORY_OPTIONS.filter((x) => x.value)}
-          />
-
-          <Input
-            label="AMOUNT"
-            type="number"
-            min="0"
-            value={form.amount}
-            onChange={set("amount")}
-            placeholder="0.00"
-          />
+      </fieldset>
+      <fieldset className="px-form-section">
+        <legend>Amount</legend>
+        <div className="px-form-grid px-form-grid--3">
+          <TextField label="Amount" type="number" min="0" inputMode="decimal" required value={String(form.amount)} onChange={set("amount")} />
+          <TextField label="Currency" value={form.currency} onChange={set("currency")} />
+          <TextField label="Claim month" type="month" value={form.claimMonth} onChange={set("claimMonth")} />
         </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <Input
-            label="CURRENCY"
-            value={form.currency}
-            onChange={set("currency")}
-            placeholder="AED"
-          />
-
-          <Input
-            label="EXPENSE DATE"
-            type="date"
-            value={form.expenseDate}
-            onChange={set("expenseDate")}
-          />
-
-          <Input
-            label="CLAIM MONTH"
-            type="month"
-            value={form.claimMonth}
-            onChange={set("claimMonth")}
-          />
-        </div>
-
-        <label className="grid gap-2">
-          <span className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500">
-            DESCRIPTION
-          </span>
-          <textarea
-            value={form.description}
-            onChange={(e) => set("description")(e.target.value)}
-            rows={4}
-            placeholder="Add context, meeting name, reason, or notes..."
-            className="resize-none rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-          />
-        </label>
-
-        <Input
-          label="RECEIPT URL"
-          value={form.receiptUrl}
-          onChange={set("receiptUrl")}
-          placeholder="Optional receipt link"
-        />
-
-        <Input
-          label="INTERNAL NOTES"
-          value={form.notes}
-          onChange={set("notes")}
-          placeholder="Optional notes"
-        />
-      </div>
-    </Modal>
+      </fieldset>
+      <fieldset className="px-form-section">
+        <legend>Details</legend>
+        <TextField label="Description" multiline rows={3} value={form.description} onChange={set("description")} />
+        <TextField label="Receipt link" value={form.receiptUrl} onChange={set("receiptUrl")} placeholder="Optional" />
+        <TextField label="Notes" multiline rows={2} value={form.notes} onChange={set("notes")} hint="Seen by HR, approvers and the person claiming." />
+      </fieldset>
+    </FormDialog>
   );
 }

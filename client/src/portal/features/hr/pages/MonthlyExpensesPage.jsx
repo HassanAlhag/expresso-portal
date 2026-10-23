@@ -1,200 +1,208 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { RefreshCw, CalendarDays, Wallet } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CalendarDays, RefreshCw } from "lucide-react";
 
-import PageHeader from "../../../shared/ui/PageHeader";
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Card from "../../../shared/ui/Card";
+import Badge from "../../../shared/ui/Badge";
+import MetricsStrip from "../../../shared/ui/MetricsStrip";
+import SelectField from "../../../shared/ui/SelectField";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import RowActions from "../../../shared/ui/RowActions";
 import EmptyState from "../../../shared/ui/EmptyState";
-import Skeleton from "../../../shared/ui/Skeleton";
+import ErrorState from "../../../shared/ui/ErrorState";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
-import { getMonthlyExpenses } from "../api";
-import { useToast } from "../../../shared/ui/Toast";
+import { getMonthlyExpenses, getMonthlyExpenseDetails } from "../api";
+import { EXPENSE_STATUS_LABEL, EXPENSE_STATUS_TONE, date, expenseCategoryLabel, monthLabel } from "../format";
+import ExpenseActionDialogs from "../components/ExpenseActionDialogs";
+import { expenseActionsFor } from "../components/expenseActions";
 
-function money(value) {
-  return `AED ${Number(value || 0).toLocaleString("en-AE", {
-    maximumFractionDigits: 2,
-  })}`;
-}
+// Claims carry their own currency and the API adds amounts as recorded, so
+// these totals are shown as plain figures rather than in one currency.
+const amount = (v) => Number(v || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const currentYear = new Date().getFullYear();
-const YEAR_OPTIONS = [currentYear, currentYear - 1, currentYear - 2].map(
-  (y) => y.toString()
-);
-
+// Monthly expense summary (PUI-4, hr.expenses.approve). Registered claims
+// grouped by the month they were registered to, with each month's claims.
 export default function MonthlyExpensesPage() {
-  const toast = useToast();
-  const nav = useNavigate();
-  const [items, setItems] = useState([]);
+  const access = useAccess();
+  const [months, setMonths] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [year, setYear] = useState(currentYear.toString());
+  const [error, setError] = useState("");
+  const [year, setYear] = useState(String(new Date().getFullYear()));
+  const [selected, setSelected] = useState("");
+  const [detail, setDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
+  const [action, setAction] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-
+    setError("");
     try {
       const res = await getMonthlyExpenses();
-      setItems(Array.isArray(res?.items) ? res.items : []);
+      setMonths(Array.isArray(res?.items) ? res.items : []);
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to load monthly expenses");
+      setMonths([]);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
+
+  const loadDetail = useCallback(async (month) => {
+    if (!month) return;
+    setDetailLoading(true);
+    setDetailError("");
+    try {
+      setDetail(await getMonthlyExpenseDetails(month));
+    } catch (e) {
+      setDetail(null);
+      setDetailError(e?.response?.data?.message || "This month's claims didn't load.");
+    } finally {
+      setDetailLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+  useEffect(() => {
+    loadDetail(selected);
+  }, [selected, loadDetail]);
 
-  const filteredItems = useMemo(
-    () => items.filter((item) => String(item.month || "").startsWith(year)),
-    [items, year]
-  );
+  // Every year that has registered claims, plus the current one.
+  const years = useMemo(() => {
+    const set = new Set([String(new Date().getFullYear()), ...months.map((m) => String(m.month || "").slice(0, 4)).filter(Boolean)]);
+    return [...set].sort().reverse();
+  }, [months]);
+  const rows = useMemo(() => months.filter((m) => String(m.month || "").startsWith(year)), [months, year]);
+  const sum = (k) => rows.reduce((s, r) => s + Number(r[k] || 0), 0);
 
-  const grandTotal = filteredItems.reduce((sum, i) => sum + (i.total || 0), 0);
+  const metrics = error || loading
+    ? []
+    : [
+        { key: "total", label: `Registered in ${year}`, value: amount(sum("total")), note: `${rows.length} month${rows.length === 1 ? "" : "s"}` },
+        { key: "paid", label: "Paid", value: amount(sum("paid")) },
+        { key: "unpaid", label: "Not paid yet", value: amount(sum("unpaid")), noteTone: sum("unpaid") ? "warn" : undefined, note: sum("unpaid") ? "Registered, waiting for payment" : "Nothing outstanding" },
+        { key: "count", label: "Claims", value: sum("count"), note: "Registered or paid" },
+      ];
+
+  const refresh = async () => {
+    await load();
+    if (selected) await loadDetail(selected);
+  };
+
+  let content;
+  if (error) content = <ErrorState title="Monthly expenses didn't load" message={error} onRetry={load} />;
+  else if (!loading && !rows.length)
+    content = <EmptyState icon={CalendarDays} title={`No registered claims in ${year}`} message="Approved claims appear here once they're registered to a month." />;
+  else
+    content = (
+      <table className="px-table px-table--stack" aria-label={`Registered expenses by month, ${year}`} aria-busy={loading || undefined}>
+        <thead>
+          <tr>
+            <th scope="col">Month</th>
+            <th scope="col" className="px-num">Claims</th>
+            <th scope="col" className="px-num">Registered</th>
+            <th scope="col" className="px-num">Paid</th>
+            <th scope="col" className="px-num">Not paid</th>
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <SkeletonRows rows={4} cols={5} label="Loading monthly expenses" />
+          ) : (
+            rows.map((m) => (
+              <tr key={m.month}>
+                <td className="px-primary">
+                  <div className="px-cell-main">
+                    <button type="button" aria-pressed={selected === m.month} onClick={() => setSelected(selected === m.month ? "" : m.month)}>
+                      {monthLabel(m.month)}
+                    </button>
+                    <span>{selected === m.month ? "Showing its claims below" : "Show its claims"}</span>
+                  </div>
+                </td>
+                <td data-label="Claims" className="px-num">{m.count || 0}</td>
+                <td data-label="Registered" className="px-num">{amount(m.total)}</td>
+                <td data-label="Paid" className="px-num">{amount(m.paid)}</td>
+                <td data-label="Not paid" className="px-num">{amount(m.unpaid)}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    );
+
+  const claims = Array.isArray(detail?.items) ? detail.items : [];
 
   return (
-    <div className="grid gap-4">
-      <PageHeader
-        eyebrow="HR"
-        title="Monthly Expenses"
-        subtitle="Registered company expenses grouped by month."
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "HR" },
-          { label: "Monthly Expenses" },
-        ]}
-        right={
-          <div className="flex items-center gap-2">
-            <select
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-            >
-              {YEAR_OPTIONS.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-            <Button variant="outline" onClick={load} disabled={loading}>
-              <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-              Refresh
-            </Button>
-          </div>
+    <>
+      <PageFrame
+        title="Monthly expenses"
+        description="Registered expense claims, by the month they were registered to. Amounts are added as recorded, without currency conversion."
+        breadcrumb={[{ label: "HR", to: access.canOpen("/portal/hr") ? "/portal/hr" : undefined }, { label: "Expense claims", to: "/portal/hr/expenses" }, { label: "Monthly" }]}
+        secondaryActions={
+          <Button variant="outline" onClick={refresh} disabled={loading}>
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />
+            Refresh
+          </Button>
         }
-      />
-
-      {loading ? (
-        <Card className="p-6">
-          <div className="grid gap-3">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
-            ))}
+      >
+        <MetricsStrip label={`Expense summary for ${year}`} items={metrics} />
+        <Panel flush bare label="Months" className="px-list-panel">
+          <div className="px-toolbar" aria-label="Choose a year">
+            <SelectField label="Year" value={year} onChange={(v) => { setYear(v); setSelected(""); }} options={years.map((y) => ({ value: y, label: y }))} />
           </div>
-        </Card>
-      ) : filteredItems.length === 0 ? (
-        <EmptyState
-          icon={CalendarDays}
-          title="No registered monthly expenses"
-          message="Approved expense claims will appear here after they are registered."
-        />
-      ) : (
-        <>
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            <Wallet size={15} className="text-indigo-500" />
-            <span>
-              Total registered:{" "}
-              <span className="font-black text-slate-900">{money(grandTotal)}</span>{" "}
-              across{" "}
-              <span className="font-black text-slate-900">{filteredItems.length}</span>{" "}
-              month{filteredItems.length !== 1 ? "s" : ""}
-            </span>
-          </div>
+          {content}
+        </Panel>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredItems.map((item) => (
-              <Card key={item.month} className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                      Month
-                    </div>
-                    <div className="mt-1 text-2xl font-black text-slate-900">
-                      {item.month}
-                    </div>
-                  </div>
-
-                  <div className="grid h-11 w-11 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                    <Wallet size={20} />
-                  </div>
-                </div>
-
-                <div className="mt-5 grid gap-3">
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="text-xs font-bold text-slate-500">
-                      Total Registered
-                    </div>
-                    <div className="mt-1 text-xl font-black text-slate-900">
-                      {money(item.total)}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="rounded-xl border border-slate-200 bg-white p-3">
-                      <div className="text-xs text-slate-500">Claims</div>
-                      <div className="text-lg font-black text-slate-900">
-                        {item.count}
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                      <div className="text-xs text-emerald-700">Paid</div>
-                      <div className="text-sm font-black text-emerald-800">
-                        {money(item.paid)}
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                      <div className="text-xs text-amber-700">Unpaid</div>
-                      <div className="text-sm font-black text-amber-800">
-                        {money(item.unpaid)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {item.categories && Object.keys(item.categories).length > 0 && (
-                    <div className="rounded-xl border border-slate-200 bg-white p-3">
-                      <div className="mb-2 text-xs font-bold text-slate-500">
-                        By Category
-                      </div>
-                      <div className="grid gap-1">
-                        {Object.entries(item.categories).map(([cat, val]) => (
-                          <div key={cat} className="flex items-center justify-between text-xs">
-                            <span className="capitalize text-slate-600">
-                              {String(cat).replaceAll("_", " ")}
-                            </span>
-                            <span className="font-black text-slate-900">
-                              {money(val)}
-                            </span>
+        {selected ? (
+          <Panel title={`Claims registered to ${monthLabel(selected)}`} sub={detail?.summary ? `${detail.summary.count || 0} claims, ${amount(detail.summary.unpaid)} not paid yet` : undefined} flush>
+            {detailError ? (
+              <ErrorState title="This month's claims didn't load" message={detailError} onRetry={() => loadDetail(selected)} />
+            ) : (
+              <table className="px-table px-table--stack" aria-label={`Claims registered to ${monthLabel(selected)}`} aria-busy={detailLoading || undefined}>
+                <thead>
+                  <tr>
+                    <th scope="col">Claim</th>
+                    <th scope="col" className="px-hide-tab">Category</th>
+                    <th scope="col" className="px-num">Amount</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"><span className="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detailLoading ? (
+                    <SkeletonRows rows={3} cols={5} label="Loading claims" />
+                  ) : (
+                    claims.map((c) => (
+                      <tr key={c._id}>
+                        <td className="px-primary">
+                          <div className="px-cell-main">
+                            <Link to={`/portal/hr/expenses/${c._id}`}>{c.title || "Untitled claim"}</Link>
+                            <span>{[c.staffName, date(c.expenseDate)].filter(Boolean).join(", ")}</span>
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                        </td>
+                        <td data-label="Category" className="px-hide-tab">{expenseCategoryLabel(c.category)}</td>
+                        <td data-label="Amount" className="px-num">{`${c.currency || "AED"} ${amount(c.amount)}`}</td>
+                        <td data-label="Status">
+                          <Badge tone={EXPENSE_STATUS_TONE[c.status] || "neutral"} dot>{EXPENSE_STATUS_LABEL[c.status] || c.status}</Badge>
+                        </td>
+                        <td className="px-actions-cell">
+                          <RowActions label={c.title || "claim"} actions={expenseActionsFor(access, c, { confirm: (kind, item) => setAction({ kind, item }), reject: () => {}, register: () => {}, edit: () => {} }).filter((a) => a.key === "paid")} />
+                        </td>
+                      </tr>
+                    ))
                   )}
-                </div>
-
-                <button
-                  onClick={() => nav(`/portal/hr/expenses?month=${item.month}`)}
-                  className="mt-3 text-xs font-extrabold text-indigo-600 hover:text-indigo-700"
-                >
-                  View expenses →
-                </button>
-              </Card>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+                </tbody>
+              </table>
+            )}
+          </Panel>
+        ) : null}
+      </PageFrame>
+      <ExpenseActionDialogs action={action} onClose={() => setAction(null)} onDone={refresh} />
+    </>
   );
 }

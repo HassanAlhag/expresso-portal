@@ -1,494 +1,251 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  XCircle,
-  ClipboardCheck,
-  Wallet,
-  Pencil,
-  Trash2,
-  ExternalLink,
-  ReceiptText,
-  CalendarDays,
-  User,
-  Building2,
-  FileText,
-  RefreshCw,
-} from "lucide-react";
+import { CalendarDays, CheckCircle2, ClipboardCheck, ExternalLink, FileText, ReceiptText, RefreshCw, Send, UserRound, Wallet, XCircle } from "lucide-react";
 
-import PageHeader from "../../../shared/ui/PageHeader";
-import Card from "../../../shared/ui/Card";
-import Button from "../../../shared/ui/Button";
-import Skeleton from "../../../shared/ui/Skeleton";
-import Badge from "../../../shared/ui/Badge";
-import EmptyState from "../../../shared/ui/EmptyState";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
-import PromptModal from "../../../shared/ui/PromptModal";
 import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import { usePageCrumbs } from "../../../layouts/ShellContext";
+import Badge from "../../../shared/ui/Badge";
+import Button from "../../../shared/ui/Button";
+import Panel from "../../../shared/ui/Panel";
+import KeyValue from "../../../shared/ui/KeyValue";
+import Timeline from "../../../shared/ui/Timeline";
+import Alert from "../../../shared/ui/Alert";
+import RowActions from "../../../shared/ui/RowActions";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ErrorState from "../../../shared/ui/ErrorState";
 
+import { getExpense, updateExpense } from "../api";
+import { EXPENSE_STATUS_LABEL, EXPENSE_STATUS_TONE, date, expenseCategoryLabel, humanize, isOwnRecord, money, monthLabel } from "../format";
 import ExpenseClaimFormModal from "../components/ExpenseClaimFormModal";
-import ExpenseStatusPill from "../components/ExpenseStatusPill";
-import ExpenseCategoryBadge from "../components/ExpenseCategoryBadge";
+import ExpenseActionDialogs from "../components/ExpenseActionDialogs";
+import { expenseActionsFor } from "../components/expenseActions";
 
-import {
-  approveExpense,
-  deleteExpense,
-  getExpense,
-  markExpensePaid,
-  registerExpense,
-  rejectExpense,
-  updateExpense,
-} from "../api";
+const person = (u) => (u && typeof u === "object" ? u.fullName || u.email || "" : "");
+// Only web links open from the page; anything else is shown as text.
+const safeUrl = (u) => (/^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : "");
 
-function money(value, currency = "AED") {
-  return `${currency} ${Number(value || 0).toLocaleString("en-AE", {
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-
-  return new Date(value).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatDateTime(value) {
-  if (!value) return "—";
-
-  return new Date(value).toLocaleString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function InfoBox({ icon: Icon, label, value, children }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="flex items-start gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-50 text-slate-500">
-          <Icon size={17} />
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
-            {label}
-          </div>
-          <div className="mt-1 text-sm font-black text-slate-900">
-            {children || value || "—"}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+// Expense claim detail (PUI-4). The API returns a claim only to approvers and
+// to the person it belongs to; actions follow the same rules as the list.
 export default function ExpenseClaimDetailsPage() {
   const { id } = useParams();
   const nav = useNavigate();
   const toast = useToast();
-  const [confirmState, setConfirmState] = useState(null);
-  const [prompt, setPrompt] = useState(null);
+  const access = useAccess();
 
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [formBusy, setFormBusy] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [action, setAction] = useState(null);
+
+  usePageCrumbs(item ? [{ label: "Expense claims", to: "/portal/hr/expenses" }, { label: item.title || "Claim" }] : []);
 
   const load = useCallback(async () => {
     setLoading(true);
-
+    setLoadError(null);
     try {
       const res = await getExpense(id);
       setItem(res?.item || null);
+      if (!res?.item) setLoadError({ status: 404 });
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Failed to load expense");
-      setItem(null);
+      setLoadError({ status: e?.response?.status, message: e?.response?.data?.message });
     } finally {
       setLoading(false);
     }
-  }, [id, toast]);
+  }, [id]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const save = async (payload) => {
-    if (!item?._id) return;
-
-    setBusy(true);
-
-    try {
-      await updateExpense(item._id, payload);
-      setEditOpen(false);
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Save failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const remove = () => {
-    if (!item?._id) return;
-    setConfirmState({
-      title: "Delete expense",
-      message: `Delete expense "${item.title}"?`,
-      danger: true,
-      onConfirm: async () => {
-        setBusy(true);
-        try {
-          await deleteExpense(item._id);
-          nav("/portal/hr/expenses");
-        } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
-        } finally {
-          setBusy(false);
-        }
-        setConfirmState(null);
-      },
-    });
-  };
-
-  const doAction = async (fn, fallbackMessage) => {
-    if (!item?._id) return;
-
-    setBusy(true);
-
-    try {
-      await fn(item._id);
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || fallbackMessage);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const reject = () => {
-    if (!item?._id) return;
-    setPrompt({
-      title: "Reject expense",
-      inputLabel: "REJECTION REASON",
-      inputPlaceholder: "Why is this being rejected?",
-      inputType: "textarea",
-      required: false,
-      confirmLabel: "Reject",
-      onConfirm: async (reason) => {
-        setBusy(true);
-        try {
-          await rejectExpense(item._id, reason);
-          await load();
-        } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Reject failed");
-        } finally {
-          setBusy(false);
-          setPrompt(null);
-        }
-      },
-    });
-  };
-
-  const register = () => {
-    if (!item?._id) return;
-    setPrompt({
-      title: "Register expense",
-      message: `Register "${item.title}" to a month for accounting.`,
-      inputLabel: "MONTH",
-      inputType: "month",
-      inputDefault: item.claimMonth || new Date().toISOString().slice(0, 7),
-      required: true,
-      confirmLabel: "Register",
-      onConfirm: async (m) => {
-        setBusy(true);
-        try {
-          await registerExpense(item._id, m);
-          await load();
-        } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Register failed");
-        } finally {
-          setBusy(false);
-          setPrompt(null);
-        }
-      },
-    });
-  };
-
-  if (loading) {
+  if (loading && !item) return <LoadingState rows={6} label="Loading expense claim" />;
+  if (loadError || !item) {
+    const s = loadError?.status;
     return (
-      <div className="grid gap-4">
-        <Skeleton className="h-24 w-full rounded-xl" />
-        <Skeleton className="h-96 w-full rounded-xl" />
-      </div>
-    );
-  }
-
-  if (!item) {
-    return (
-      <EmptyState
-        icon={ReceiptText}
-        title="Expense not found"
-        message="The expense claim may have been deleted or the link is incorrect."
-        actionLabel="Back to expenses"
-        onAction={() => nav("/portal/hr/expenses")}
+      <ErrorState
+        title={s === 404 ? "Expense claim not found" : s === 403 ? "You don't have access to this claim" : "This claim didn't load"}
+        message={s === 404 ? "It may have been deleted, or it isn't one you can see." : s === 403 ? "Ask an administrator if you need it." : loadError?.message || undefined}
+        onRetry={s === 404 || s === 403 ? undefined : load}
       />
     );
   }
 
-  const canEdit = ["submitted", "approved", "rejected"].includes(item.status);
-  const canDelete = ["submitted", "approved", "rejected"].includes(item.status);
+  const mine = isOwnRecord(access, item);
+  const actions = expenseActionsFor(access, item, {
+    confirm: (kind) => setAction({ kind, item }),
+    reject: () => setAction({ kind: "reject", item }),
+    register: () => setAction({ kind: "register", item }),
+    edit: () => {
+      setFormError("");
+      setEditOpen(true);
+    },
+  });
+  // The next step in the workflow goes on a button; everything else in the menu.
+  const primaryKey = ["approve", "register", "paid"].find((k) => actions.some((a) => a.key === k));
+  const primary = actions.find((a) => a.key === primaryKey);
+  const menu = [
+    { key: "refresh", label: "Refresh", icon: RefreshCw, onSelect: () => load() },
+    ...actions.filter((a) => a.key !== primaryKey && a.key !== "edit"),
+  ];
+  const edit = actions.find((a) => a.key === "edit");
+  const receipt = safeUrl(item.receiptUrl);
+
+  const history = [
+    { key: "submitted", icon: Send, content: <>Submitted{item.staffName ? ` for ${item.staffName}` : ""}</>, when: date(item.createdAt), dateTime: item.createdAt },
+    item.approvedAt ? { key: "approved", icon: CheckCircle2, tone: "ok", content: <>Approved{person(item.approvedBy) ? ` by ${person(item.approvedBy)}` : ""}</>, when: date(item.approvedAt), dateTime: item.approvedAt } : null,
+    item.status === "rejected" ? { key: "rejected", icon: XCircle, tone: "bad", content: <>Rejected{item.rejectionReason ? `: ${item.rejectionReason}` : ""}</> } : null,
+    item.registeredAt ? { key: "registered", icon: ClipboardCheck, tone: "info", content: <>Registered to {monthLabel(item.registeredMonth)}{person(item.registeredBy) ? ` by ${person(item.registeredBy)}` : ""}</>, when: date(item.registeredAt), dateTime: item.registeredAt } : null,
+    item.paidAt ? { key: "paid", icon: Wallet, tone: "ok", content: <>Paid</>, when: date(item.paidAt), dateTime: item.paidAt } : null,
+  ].filter(Boolean);
 
   return (
     <>
-      <div className="grid gap-4">
-        <PageHeader
-          eyebrow="HR"
-          title={item.title || "Expense Claim"}
-          subtitle="Expense claim details, approval status, and monthly registration."
-          breadcrumb={[
-            { label: "Portal", to: "/portal" },
-            { label: "HR" },
-            { label: "Expenses", to: "/portal/hr/expenses" },
-            { label: item.title || "Expense" },
-          ]}
-          right={
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => nav("/portal/hr/expenses")}
-              >
-                <ArrowLeft size={15} />
-                Back
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={load}
-                disabled={loading || busy}
-              >
-                <RefreshCw size={15} />
-                Refresh
-              </Button>
-
-              {canEdit ? (
-                <Button
-                  variant="outline"
-                  onClick={() => setEditOpen(true)}
-                  disabled={busy}
-                >
-                  <Pencil size={15} />
-                  Edit
-                </Button>
-              ) : null}
+      <div className="px-stack" style={{ gap: 20 }}>
+        <header className="px-record-head">
+          <div className="px-record-id">
+            <div className="px-record-tags">
+              <Badge tone={EXPENSE_STATUS_TONE[item.status] || "neutral"} dot>{EXPENSE_STATUS_LABEL[item.status] || humanize(item.status)}</Badge>
+              <span className="px-code">{expenseCategoryLabel(item.category)}</span>
             </div>
-          }
-        />
-
-        <Card className="p-5">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <ExpenseStatusPill status={item.status} />
-                <ExpenseCategoryBadge category={item.category} />
-
-                <Badge
-                  tone={item.paymentStatus === "paid" ? "success" : "warning"}
-                >
-                  {item.paymentStatus || "unpaid"}
-                </Badge>
-              </div>
-
-              <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900">
+            <h1>{item.title || "Untitled claim"}</h1>
+            <ul className="px-record-meta" aria-label="Claim summary">
+              <li>
+                <UserRound size={15} aria-hidden="true" />
+                {item.staffName || "Unnamed"}
+                {mine ? " (you)" : ""}
+              </li>
+              <li>
+                <CalendarDays size={15} aria-hidden="true" />
+                Spent {date(item.expenseDate)}
+              </li>
+              <li>
+                <ReceiptText size={15} aria-hidden="true" />
                 {money(item.amount, item.currency)}
-              </h1>
-
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                {item.description || "No description provided."}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {item.status === "submitted" ? (
-                <>
-                  <Button
-                    variant="outline"
-                    disabled={busy}
-                    onClick={() => doAction(approveExpense, "Approve failed")}
-                  >
-                    <CheckCircle2 size={15} />
-                    Approve
-                  </Button>
-
-                  <Button variant="outline" disabled={busy} onClick={reject}>
-                    <XCircle size={15} />
-                    Reject
-                  </Button>
-                </>
-              ) : null}
-
-              {item.status === "approved" ? (
-                <Button variant="outline" disabled={busy} onClick={register}>
-                  <ClipboardCheck size={15} />
-                  Register
-                </Button>
-              ) : null}
-
-              {item.status === "registered" ? (
-                <Button
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() =>
-                    doAction(markExpensePaid, "Payment update failed")
-                  }
-                >
-                  <Wallet size={15} />
-                  Mark Paid
-                </Button>
-              ) : null}
-
-              {canDelete ? (
-                <Button variant="outline" disabled={busy} onClick={remove}>
-                  <Trash2 size={15} />
-                  Delete
-                </Button>
-              ) : null}
-            </div>
+              </li>
+            </ul>
           </div>
-        </Card>
+          <div className="px-record-actions">
+            {edit ? (
+              <Button variant="outline" onClick={edit.onSelect}>
+                <edit.icon size={15} aria-hidden="true" />
+                Edit
+              </Button>
+            ) : null}
+            {primary ? (
+              <Button onClick={primary.onSelect}>
+                <primary.icon size={15} aria-hidden="true" />
+                {primary.label}
+              </Button>
+            ) : null}
+            <RowActions label={item.title || "claim"} actions={menu} />
+          </div>
+        </header>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <InfoBox icon={User} label="Staff" value={item.staffName} />
-          <InfoBox
-            icon={Building2}
-            label="Department"
-            value={item.department}
-          />
-          <InfoBox icon={CalendarDays} label="Expense Date">
-            {formatDate(item.expenseDate)}
-          </InfoBox>
+        {item.status === "rejected" ? (
+          <Alert tone="bad" icon={XCircle} title="This claim was rejected">
+            {item.rejectionReason || "No reason was given."}
+          </Alert>
+        ) : item.status === "submitted" && mine && access.can("hr.expenses.approve") && access.role !== "super_admin" ? (
+          <Alert tone="info" title="This is your own claim">
+            Someone else with approval rights needs to decide on it.
+          </Alert>
+        ) : null}
 
-          <InfoBox
-            icon={CalendarDays}
-            label="Claim Month"
-            value={item.claimMonth}
-          />
-          <InfoBox
-            icon={ClipboardCheck}
-            label="Registered Month"
-            value={item.registeredMonth}
-          />
-          <InfoBox icon={Wallet} label="Amount">
-            {money(item.amount, item.currency)}
-          </InfoBox>
-        </div>
+        <div className="px-grid px-cols-detail">
+          <div className="px-stack">
+            <Panel title="Claim">
+              <KeyValue
+                items={[
+                  { label: "Amount", value: money(item.amount, item.currency) },
+                  { label: "Category", value: expenseCategoryLabel(item.category) },
+                  { label: "Expense date", value: date(item.expenseDate) },
+                  { label: "Claim month", value: monthLabel(item.claimMonth) },
+                  { label: "Description", value: item.description },
+                ]}
+              />
+            </Panel>
+            <Panel title="History">
+              <Timeline label="Claim history" items={history} />
+            </Panel>
+            {item.notes ? (
+              <Panel title="Notes">
+                <p className="px-prose">{item.notes}</p>
+              </Panel>
+            ) : null}
+          </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Card className="overflow-hidden">
-            <div className="border-b border-slate-100 px-5 py-4">
-              <div className="text-sm font-black text-slate-900">
-                Approval & Registration
-              </div>
-              <div className="mt-1 text-xs text-slate-500">
-                Timeline of approval and monthly registration.
-              </div>
-            </div>
-
-            <div className="grid gap-3 p-5">
-              <InfoBox icon={CheckCircle2} label="Approved By">
-                {item.approvedBy?.fullName || item.approvedBy?.email || "—"}
-              </InfoBox>
-
-              <InfoBox icon={CalendarDays} label="Approved At">
-                {formatDateTime(item.approvedAt)}
-              </InfoBox>
-
-              <InfoBox icon={ClipboardCheck} label="Registered By">
-                {item.registeredBy?.fullName || item.registeredBy?.email || "—"}
-              </InfoBox>
-
-              <InfoBox icon={CalendarDays} label="Registered At">
-                {formatDateTime(item.registeredAt)}
-              </InfoBox>
-
-              {item.rejectionReason ? (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
-                  Rejection reason: {item.rejectionReason}
-                </div>
-              ) : null}
-            </div>
-          </Card>
-
-          <Card className="overflow-hidden">
-            <div className="border-b border-slate-100 px-5 py-4">
-              <div className="text-sm font-black text-slate-900">
-                Receipt & Notes
-              </div>
-              <div className="mt-1 text-xs text-slate-500">
-                Supporting documents and internal notes.
-              </div>
-            </div>
-
-            <div className="grid gap-4 p-5">
-              {item.receiptUrl ? (
-                <a
-                  href={item.receiptUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-black text-slate-900 transition hover:bg-slate-100"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <FileText size={16} />
-                    Open receipt
-                  </span>
-                  <ExternalLink size={15} />
+          <div className="px-stack">
+            <Panel title="Payment">
+              <KeyValue
+                className="px-kv--side"
+                items={[
+                  { label: "Payment", value: item.paymentStatus === "paid" ? "Paid" : ["registered"].includes(item.status) ? "Not paid yet" : "Not registered yet" },
+                  { label: "Registered to", value: monthLabel(item.registeredMonth), hidden: !item.registeredMonth },
+                  { label: "Paid on", value: date(item.paidAt), hidden: !item.paidAt },
+                ]}
+              />
+            </Panel>
+            <Panel title="Details">
+              <KeyValue
+                className="px-kv--side"
+                items={[
+                  { label: "Staff", value: item.staffName },
+                  { label: "Email", value: item.staffUserId?.email, hidden: !item.staffUserId?.email },
+                  { label: "Department", value: humanize(item.department, "") },
+                  { label: "Approved by", value: person(item.approvedBy), hidden: !item.approvedBy },
+                  { label: "Registered by", value: person(item.registeredBy), hidden: !item.registeredBy },
+                ]}
+              />
+            </Panel>
+            <Panel title="Receipt">
+              {receipt ? (
+                <a className="px-btn px-btn--outline px-btn--sm" href={receipt} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink size={14} aria-hidden="true" />
+                  Open receipt
                 </a>
+              ) : item.receiptUrl ? (
+                <p className="px-muted" style={{ margin: 0, wordBreak: "break-all" }}>{item.receiptUrl}</p>
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">
-                  No receipt attached.
+                <div className="px-inline-empty">
+                  <FileText size={18} aria-hidden="true" />
+                  <span>No receipt attached.</span>
                 </div>
               )}
-
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
-                  Notes
-                </div>
-                <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-                  {item.notes || "No notes."}
-                </div>
-              </div>
-            </div>
-          </Card>
+            </Panel>
+          </div>
         </div>
       </div>
 
-      <ExpenseClaimFormModal
-        open={editOpen}
-        initial={item}
-        busy={busy}
-        onClose={() => setEditOpen(false)}
-        onSubmit={save}
-      />
-
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-
-      <PromptModal
-        open={!!prompt}
-        {...prompt}
-        onClose={() => setPrompt(null)}
+      {edit ? (
+        <ExpenseClaimFormModal
+          open={editOpen}
+          initial={item}
+          busy={formBusy}
+          error={formError}
+          onClose={() => setEditOpen(false)}
+          onSubmit={async (payload) => {
+            setFormBusy(true);
+            setFormError("");
+            try {
+              await updateExpense(item._id, payload);
+              toast.success("Claim updated.");
+              setEditOpen(false);
+              await load();
+            } catch (e) {
+              setFormError(e?.response?.data?.message || "That didn't save. Check the details and try again.");
+            } finally {
+              setFormBusy(false);
+            }
+          }}
+        />
+      ) : null}
+      <ExpenseActionDialogs
+        action={action}
+        onClose={() => setAction(null)}
+        onDone={(kind) => (kind === "delete" ? nav("/portal/hr/expenses") : load())}
       />
     </>
   );

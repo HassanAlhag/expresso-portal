@@ -1,579 +1,213 @@
-import React, { useEffect, useState } from "react";
-import PageHeader from "../../../shared/ui/PageHeader";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { FolderTree, Pencil, Plus, Power, RefreshCw, SearchX, Trash2 } from "lucide-react";
+
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Input from "../../../shared/ui/Input";
+import Badge from "../../../shared/ui/Badge";
+import SearchField from "../../../shared/ui/SearchField";
+import SelectField from "../../../shared/ui/SelectField";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import RowActions from "../../../shared/ui/RowActions";
 import EmptyState from "../../../shared/ui/EmptyState";
-import DataTable from "../../../shared/ui/DataTable";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
 import { useToast } from "../../../shared/ui/Toast";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
-import {
-  listCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from "../api";
-import { Tag, Plus, RefreshCw, Pencil, Trash2, X } from "lucide-react";
-import MediaPickerModal from "../../media-library/components/MediaPickerModal";
-import { getAssetUrl } from "../../../shared/utils/assetUrl";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
-const BRAND = "#6F7FD9";
+import { createCategory, deleteCategory, listCategories, updateCategory } from "../api";
+import CategoryFormDialog from "../components/CategoryFormDialog";
 
-const ICON_META = {
-  software: { label: "Software Licensing", color: "#6366f1" },
-  erp: { label: "ERP Solution", color: "#0ea5e9" },
-  crm: { label: "CRM Solution", color: "#10b981" },
-  queue: { label: "Queue Management", color: "#f59e0b" },
-  iot: { label: "IoT Solutions", color: "#8b5cf6" },
-  vas: { label: "VAS Solutions", color: "#ec4899" },
-  cloud: { label: "Cloud Services", color: "#14b8a6" },
-  hosting: { label: "Web Hosting & Domains", color: "#3b82f6" },
-  datacenter: { label: "Data Center", color: "#64748b" },
-  consultation: { label: "IT Consultation", color: "#d97706" },
-  networking: { label: "Networking Hardware", color: "#7c3aed" },
-  hardware: { label: "Data Center Hardware", color: "#0f172a" },
-};
+const LEVEL_LABEL = { 1: "Main", 2: "Category", 3: "Subcategory" };
 
-function IconBadge({ iconKey }) {
-  const meta = ICON_META[iconKey];
-  if (!meta) {
-    return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
-        <Tag size={16} className="text-slate-400" />
-      </div>
-    );
-  }
-  return (
-    <div
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-black text-white"
-      style={{ backgroundColor: meta.color }}
-      title={meta.label}
-    >
-      {(iconKey || "").slice(0, 2).toUpperCase()}
-    </div>
-  );
-}
-
-// ── Category Modal ─────────────────────────────────────────────────────────────
-
-const EMPTY_FORM = {
-  name: "",
-  subtitle: "",
-  description: "",
-  icon: "software",
-  order: "",
-  isActive: true,
-  heroImageUrl: "",
-  heroImageMediaId: null,
-};
-
-function CategoryModal({ open, onClose, onSubmit, busy, initial }) {
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [pickerOpen, setPickerOpen] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-    setForm(
-      initial
-        ? {
-            name: initial.name || "",
-            subtitle: initial.subtitle || "",
-            description: initial.description || "",
-            icon: initial.icon || "software",
-            order: initial.order ?? "",
-            isActive: initial.isActive !== false,
-            heroImageUrl: initial.heroImageUrl || "",
-            heroImageMediaId: initial.heroImageMediaId || null,
-          }
-        : EMPTY_FORM
-    );
-  }, [open, initial]);
-
-  const set = (field) => (e) =>
-    setForm((f) => ({ ...f, [field]: e.target.value }));
-  const setCheck = (field) => (e) =>
-    setForm((f) => ({ ...f, [field]: e.target.checked }));
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!form.name.trim()) return;
-    onSubmit({
-      ...form,
-      order: form.order !== "" ? Number(form.order) : undefined,
-    });
-  };
-
-  if (!open) return null;
-
-  const isEdit = Boolean(initial);
-  const selectedMeta = ICON_META[form.icon];
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <div>
-            <h2 className="text-lg font-black text-slate-900">
-              {isEdit ? "Edit Category" : "New Category"}
-            </h2>
-            <p className="mt-0.5 text-sm text-slate-500">
-              {isEdit
-                ? "Update category details."
-                : "Add a new procurement category."}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:bg-slate-50 disabled:opacity-50"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6">
-          <form
-            id="category-form"
-            onSubmit={handleSubmit}
-            className="grid gap-5"
-          >
-            <Input
-              label="NAME *"
-              value={form.name}
-              onChange={set("name")}
-              placeholder="Category name"
-              required
-            />
-            <Input
-              label="SUBTITLE"
-              value={form.subtitle}
-              onChange={set("subtitle")}
-              placeholder="Short tagline"
-            />
-
-            <label className="grid gap-1.5">
-              <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
-                DESCRIPTION
-              </span>
-              <textarea
-                rows={3}
-                value={form.description}
-                onChange={set("description")}
-                placeholder="Optional description..."
-                className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-              />
-            </label>
-            <div className="grid gap-2">
-              <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
-                HERO IMAGE
-              </span>
-
-              {form.heroImageUrl ? (
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                  <img
-                    src={getAssetUrl(form.heroImageUrl)}
-                    alt="Category hero"
-                    className="h-40 w-full object-cover"
-                  />
-                  <div className="flex items-center justify-between gap-2 p-3">
-                    <span className="truncate text-xs text-slate-500">
-                      {form.heroImageUrl}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setForm((f) => ({
-                          ...f,
-                          heroImageUrl: "",
-                          heroImageMediaId: null,
-                        }))
-                      }
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
-                  <p className="text-sm font-bold text-slate-700">
-                    No hero image selected
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    This image will be used on the detail page hero.
-                  </p>
-                </div>
-              )}
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setPickerOpen(true)}
-              >
-                Choose Image
-              </Button>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-1.5">
-                <span className="text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
-                  ICON
-                </span>
-                <select
-                  value={form.icon}
-                  onChange={set("icon")}
-                  className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
-                >
-                  {Object.entries(ICON_META).map(([key, meta]) => (
-                    <option key={key} value={key}>
-                      {meta.label} ({key})
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <Input
-                label="DISPLAY ORDER"
-                type="number"
-                min="0"
-                value={form.order}
-                onChange={set("order")}
-                placeholder="e.g. 1"
-              />
-            </div>
-
-            {selectedMeta && (
-              <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-                <IconBadge iconKey={form.icon} />
-                <div>
-                  <div className="text-sm font-bold text-slate-900">
-                    {selectedMeta.label}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    Key: {form.icon} · Color: {selectedMeta.color}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <input
-                type="checkbox"
-                checked={form.isActive}
-                onChange={setCheck("isActive")}
-                className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-              />
-              <span className="text-sm font-semibold text-slate-700">
-                Active category
-              </span>
-            </label>
-          </form>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-6 py-4">
-          <Button variant="outline" onClick={onClose} disabled={busy}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            form="category-form"
-            disabled={busy || !form.name.trim()}
-            loading={busy}
-            style={{ backgroundColor: BRAND }}
-          >
-            {isEdit ? "Save Changes" : "Create Category"}
-          </Button>
-
-          <MediaPickerModal
-            open={pickerOpen}
-            onClose={() => setPickerOpen(false)}
-            onSelect={(asset) => {
-              setForm((f) => ({
-                ...f,
-                heroImageUrl: asset?.url || asset?.path || "",
-                heroImageMediaId: asset?._id || asset?.id || null,
-              }));
-              setPickerOpen(false);
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
-
+// Procurement categories (PUI-4, internal, procurement.read; changes need
+// procurement.write, deleting needs procurement.delete). The API returns
+// every category, so search and filters work on the complete set.
 export default function ProcurementCategoriesPage() {
   const toast = useToast();
+  const access = useAccess();
+  const canWrite = access.can("procurement.write");
+  const canDelete = access.can("procurement.delete");
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const [level, setLevel] = useState("");
+  const [active, setActive] = useState("");
   const [editing, setEditing] = useState(null);
-  const [confirmState, setConfirmState] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [pending, setPending] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await listCategories({ limit: 200, sort: "order" });
+      const res = await listCategories();
       setItems(Array.isArray(res?.items) ? res.items : []);
     } catch (e) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.message ||
-        "Failed to load categories.";
-      setError(msg);
-      toast.error(msg);
+      setItems([]);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
-  const handleSubmit = async (payload) => {
+  const byId = useMemo(() => Object.fromEntries(items.map((c) => [String(c._id), c])), [items]);
+  const path = (c) => {
+    const parts = [];
+    let p = c.parentId ? byId[String(c.parentId?._id || c.parentId)] : null;
+    while (p && parts.length < 3) {
+      parts.unshift(p.name);
+      p = p.parentId ? byId[String(p.parentId?._id || p.parentId)] : null;
+    }
+    return parts.join(" › ");
+  };
+  const rows = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    return items.filter((c) => (!t || [c.name, c.code, c.subtitle].filter(Boolean).join(" ").toLowerCase().includes(t)) && (!level || String(c.level || 1) === level) && (!active || String(c.isActive !== false) === active));
+  }, [items, q, level, active]);
+
+  const save = async (payload) => {
+    if (busy) return;
     setBusy(true);
+    setFormError("");
     try {
-      if (editing) {
-        await updateCategory(editing._id, payload);
-        toast.success("Category updated.");
-      } else {
-        await createCategory(payload);
-        toast.success("Category created.");
-      }
-      setModalOpen(false);
+      if (editing?._id) await updateCategory(editing._id, payload);
+      else await createCategory(payload);
+      toast.success(editing?._id ? "Category updated." : "Category created.");
       setEditing(null);
       await load();
     } catch (e) {
-      toast.error(
-        e?.response?.data?.message || e?.message || "Operation failed."
-      );
+      setFormError(e?.response?.data?.message || "The category wasn't saved. Try again.");
     } finally {
       setBusy(false);
     }
   };
 
-  const handleToggleActive = async (cat) => {
+  const runPending = async () => {
+    const { kind, item } = pending;
     try {
-      await updateCategory(cat._id, { isActive: !cat.isActive });
-      setItems((prev) =>
-        prev.map((c) =>
-          c._id === cat._id ? { ...c, isActive: !c.isActive } : c
-        )
-      );
-      toast.success(
-        cat.isActive ? "Category deactivated." : "Category activated."
-      );
+      if (kind === "toggle") await updateCategory(item._id, { isActive: item.isActive === false });
+      else await deleteCategory(item._id);
+      toast.success(kind === "delete" ? "Category deleted." : item.isActive === false ? "Category activated." : "Category deactivated.");
+      setPending(null);
+      await load();
     } catch (e) {
-      toast.error(e?.response?.data?.message || "Toggle failed.");
+      toast.error(e?.response?.data?.message || "That didn't work. Try again.");
     }
   };
 
-  const handleDelete = (cat) => {
-    setConfirmState({
-      title: "Delete Category",
-      message: `Delete category "${cat.name}"?`,
-      danger: true,
-      onConfirm: async () => {
-        setBusy(true);
-        try {
-          await deleteCategory(cat._id);
-          setItems((prev) => prev.filter((c) => c._id !== cat._id));
-          toast.success("Category deleted.");
-        } catch (e) {
-          toast.error(e?.response?.data?.message || "Delete failed.");
-        } finally {
-          setBusy(false);
-          setConfirmState(null);
-        }
-      },
-    });
-  };
-
-  const columns = [
-    {
-      key: "order",
-      label: "#",
-      align: "center",
-      render: (row, i) => (
-        <span className="text-xs font-black text-slate-400">
-          {row.order ?? i + 1}
-        </span>
-      ),
-    },
-    {
-      key: "name",
-      label: "CATEGORY",
-      render: (row) => (
-        <div className="flex items-center gap-3">
-          {row.heroImageUrl ? (
-            <img
-              src={getAssetUrl(row.heroImageUrl)}
-              alt={row.name}
-              className="h-10 w-10 shrink-0 rounded-xl object-cover"
-            />
+  let content;
+  if (error) content = <ErrorState title="Categories didn't load" message={error} onRetry={load} />;
+  else if (!loading && !rows.length)
+    content = items.length ? (
+      <EmptyState icon={SearchX} title="No categories match" action={<Button variant="outline" onClick={() => { setQ(""); setLevel(""); setActive(""); }}>Clear filters</Button>} />
+    ) : (
+      <EmptyState icon={FolderTree} title="No categories yet" action={canWrite ? <Button onClick={() => { setFormError(""); setEditing({}); }}><Plus size={14} aria-hidden="true" />New category</Button> : null} />
+    );
+  else
+    content = (
+      <table className="px-table px-table--stack" aria-label="Categories" aria-busy={loading || undefined}>
+        <thead>
+          <tr>
+            <th scope="col">Category</th>
+            <th scope="col">Level</th>
+            <th scope="col" className="px-num px-hide-tab">Order</th>
+            <th scope="col">Status</th>
+            {canWrite || canDelete ? <th scope="col"><span className="sr-only">Actions</span></th> : null}
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <SkeletonRows rows={6} cols={5} label="Loading categories" />
           ) : (
-            <IconBadge iconKey={row.icon} />
+            rows.map((c) => (
+              <tr key={c._id}>
+                <td className="px-primary">
+                  <div className="px-cell-main">
+                    <b>{c.name}</b>
+                    <span>{[c.code, path(c), c.subtitle].filter(Boolean).join(", ") || "Top level"}</span>
+                  </div>
+                </td>
+                <td data-label="Level">{LEVEL_LABEL[c.level] || "Main"}</td>
+                <td data-label="Order" className="px-num px-hide-tab">{c.order ?? 0}</td>
+                <td data-label="Status">
+                  <Badge tone={c.isActive === false ? "idle" : "ok"} dot>{c.isActive === false ? "Inactive" : "Active"}</Badge>
+                </td>
+                {canWrite || canDelete ? (
+                  <td className="px-actions-cell">
+                    <RowActions
+                      label={c.name}
+                      actions={[
+                        canWrite ? { key: "edit", label: "Edit category", icon: Pencil, onSelect: () => { setFormError(""); setEditing(c); } } : null,
+                        canWrite ? { key: "toggle", label: c.isActive === false ? "Activate" : "Deactivate", icon: Power, onSelect: () => setPending({ kind: "toggle", item: c }) } : null,
+                        canDelete ? { key: "sep", separator: true } : null,
+                        canDelete ? { key: "delete", label: "Delete category", icon: Trash2, tone: "muted", onSelect: () => setPending({ kind: "delete", item: c }) } : null,
+                      ]}
+                    />
+                  </td>
+                ) : null}
+              </tr>
+            ))
           )}
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-black text-slate-900">
-                {row.name}
-              </span>
-              {ICON_META[row.icon] && (
-                <span className="text-xs font-bold text-slate-400">
-                  ({row.icon})
-                </span>
-              )}
-            </div>
-            {row.subtitle && (
-              <div className="mt-0.5 truncate text-xs text-slate-500">
-                {row.subtitle}
-              </div>
-            )}
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "isActive",
-      label: "STATUS",
-      render: (row) => (
-        <button
-          type="button"
-          onClick={() => handleToggleActive(row)}
-          className={[
-            "rounded-full border px-3 py-1 text-xs font-bold transition",
-            row.isActive !== false
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-              : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100",
-          ].join(" ")}
-        >
-          {row.isActive !== false ? "Active" : "Inactive"}
-        </button>
-      ),
-    },
-    {
-      key: "actions",
-      label: "ACTIONS",
-      align: "right",
-      stopPropagation: true,
-      render: (row) => (
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setEditing(row);
-              setModalOpen(true);
-            }}
-            disabled={busy}
-          >
-            <Pencil size={13} />
-            Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleDelete(row)}
-            disabled={busy}
-            className="border-rose-200 text-rose-600 hover:bg-rose-50"
-          >
-            <Trash2 size={13} />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+        </tbody>
+      </table>
+    );
 
+  const p = pending?.item;
   return (
-    <div className="grid gap-4">
-      <PageHeader
-        eyebrow="PROCUREMENT"
+    <>
+      <PageFrame
         title="Categories"
-        subtitle="Manage procurement categories for organizing requests."
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "Procurement", to: "/portal/procurement" },
-          { label: "Categories" },
-        ]}
-        right={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={load} disabled={loading || busy}>
-              <RefreshCw size={15} />
-              Refresh
-            </Button>
-            <Button
-              onClick={() => {
-                setEditing(null);
-                setModalOpen(true);
-              }}
-              style={{ backgroundColor: BRAND }}
-              disabled={busy}
-            >
-              <Plus size={15} />
-              New Category
-            </Button>
+        description="What Expresso sources, from main areas down to subcategories. Vendors and RFQs are matched on them."
+        breadcrumb={[{ label: "Procurement", to: access.canOpen("/portal/procurement") ? "/portal/procurement" : undefined }, { label: "Categories" }]}
+        secondaryActions={
+          <Button variant="outline" onClick={load} disabled={loading}>
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />
+            Refresh
+          </Button>
+        }
+        primaryAction={canWrite ? <Button onClick={() => { setFormError(""); setEditing({}); }}><Plus size={14} aria-hidden="true" />New category</Button> : null}
+      >
+        <Panel flush bare label="Categories" className="px-list-panel">
+          <div className="px-toolbar" role="search" aria-label="Filter categories">
+            <SearchField label="Search categories" value={q} onChange={setQ} placeholder="Name, code or subtitle" />
+            <SelectField label="Level" value={level} onChange={setLevel} options={[{ value: "", label: "Any level" }, { value: "1", label: "Main" }, { value: "2", label: "Category" }, { value: "3", label: "Subcategory" }]} />
+            <SelectField label="Status" value={active} onChange={setActive} options={[{ value: "", label: "Any status" }, { value: "true", label: "Active" }, { value: "false", label: "Inactive" }]} />
           </div>
+          <div className="px-result-bar">
+            <span aria-live="polite">{loading ? "Loading categories…" : error ? "Categories unavailable" : `${rows.length} of ${items.length} categor${items.length === 1 ? "y" : "ies"}`}</span>
+          </div>
+          {content}
+        </Panel>
+      </PageFrame>
+
+      {canWrite ? <CategoryFormDialog open={Boolean(editing)} initial={editing?._id ? editing : null} busy={busy} error={formError} onClose={() => setEditing(null)} onSubmit={save} /> : null}
+      <ConfirmDialog
+        open={Boolean(pending)}
+        icon={pending?.kind === "delete" ? Trash2 : Power}
+        tone={pending?.kind === "delete" ? "bad" : "warn"}
+        danger={pending?.kind === "delete"}
+        title={pending?.kind === "delete" ? "Delete this category?" : p?.isActive === false ? "Activate this category?" : "Deactivate this category?"}
+        confirmLabel={pending?.kind === "delete" ? "Delete category" : p?.isActive === false ? "Activate" : "Deactivate"}
+        details={
+          pending?.kind === "delete"
+            ? ["The category is deleted permanently. One used by a procurement request can't be deleted.", "Vendors, RFQs, vendor applications and subcategories that point to it are not updated. To retire a category, deactivate it instead."]
+            : p?.isActive === false
+              ? ["It shows on the public site and in category pickers again."]
+              : ["It is hidden from the public site and from category pickers. Records that use it keep it."]
         }
-      />
-
-      {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">
-          {error}
-        </div>
-      )}
-
-      <DataTable
-        columns={columns}
-        rows={items}
-        loading={loading}
-        title="All Categories"
-        hint={
-          loading
-            ? "Loading…"
-            : `${items.length} categor${items.length === 1 ? "y" : "ies"}`
-        }
-        empty={
-          <EmptyState
-            icon={Tag}
-            title="No categories yet"
-            message="Create your first procurement category to organize requests."
-            actionLabel="New Category"
-            onAction={() => {
-              setEditing(null);
-              setModalOpen(true);
-            }}
-          />
-        }
-      />
-
-      <CategoryModal
-        open={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditing(null);
-        }}
-        onSubmit={handleSubmit}
-        busy={busy}
-        initial={editing}
-      />
-
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-    </div>
+        onClose={() => setPending(null)}
+        onConfirm={runPending}
+      >
+        {p ? `${p.name}.` : ""}
+      </ConfirmDialog>
+    </>
   );
 }

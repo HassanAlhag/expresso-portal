@@ -80,12 +80,11 @@ export async function createRfqFromRequest(req, res) {
       return res.status(503).json({ ok: false, message: RFQ_ALLOCATION_FAILED });
     }
 
+    // The description is shown to matched vendors once published, so the
+    // request's internal budget is not copied into it (PUI-4).
     const descriptionParts = [
       request.description,
       request.requirements ? `Requirements:\n${request.requirements}` : "",
-      request.budget || request.budget === 0
-        ? `Estimated Budget: ${request.currency || "AED"} ${request.budget}`
-        : "",
     ].filter(Boolean);
 
     const rfq = await RFQ.create({
