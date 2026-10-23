@@ -1,252 +1,306 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Activity, ArrowRightCircle, Building2, CircleCheck, Mail, Pencil, Phone, RefreshCw, Trash2, UserRound } from "lucide-react";
 
-import Card from "../../../shared/ui/Card";
-import Button from "../../../shared/ui/Button";
-import Input from "../../../shared/ui/Input";
-import Skeleton from "../../../shared/ui/Skeleton";
-import PageHeader from "../../../shared/ui/PageHeader";
-import SegmentTabs from "../../../shared/ui/SegmentTabs";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import { useToast } from "../../../shared/ui/Toast";
-
-import { ArrowLeft, RefreshCw, Pencil, Trash2, ArrowRightCircle } from "lucide-react";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import { usePageCrumbs } from "../../../layouts/ShellContext";
+import Badge from "../../../shared/ui/Badge";
+import Button from "../../../shared/ui/Button";
+import Panel from "../../../shared/ui/Panel";
+import KeyValue from "../../../shared/ui/KeyValue";
+import Alert from "../../../shared/ui/Alert";
+import RowActions from "../../../shared/ui/RowActions";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
+import FormDialog from "../../../shared/ui/FormDialog";
+import TextField from "../../../shared/ui/TextField";
+import TabBar, { TabPanel } from "../../../shared/ui/TabBar";
 
 import { getLead, updateLead, deleteLead, convertLeadToDeal } from "../api";
+import { LEAD_STATUS_LABEL, LEAD_STATUS_TONE, DEAL_STAGE_LABEL, leadSourceLabel, money, normalizeStage, ownerName } from "../format";
+import { LEAD_CONVERSION_DETAILS, conversionError } from "../lib/convert";
+import { formatDate } from "../../projects/format";
 import LeadFormModal from "../components/LeadFormModal";
-import LeadOverviewTab from "../tabs/LeadOverviewTab";
-import LeadActivitiesTab from "../tabs/LeadActivitiesTab";
+import CrmActivityPanel from "../components/CrmActivityPanel";
 
 const TABS = [
-  { value: "overview",   label: "Overview"   },
-  { value: "activities", label: "Activities" },
+  { id: "overview", label: "Overview", icon: UserRound },
+  { id: "activity", label: "Activity", icon: Activity },
 ];
 
+// Lead detail (PUI-3).
 export default function LeadDetailsPage() {
-  const nav = useNavigate();
   const { id } = useParams();
+  const nav = useNavigate();
   const toast = useToast();
+  const access = useAccess();
+  const canWrite = access.can("crm.write");
+  const canDelete = access.can("crm.delete");
 
-  const [tab, setTab] = useState("overview");
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [tab, setTab] = useState("overview");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
+  // A ref, not state: two clicks in the same frame must not convert twice
+  // (the endpoint's own duplicate check is not race-proof; remediation P2-2).
+  const converting = useRef(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [confirmState, setConfirmState] = useState(null);
+  const [convertOpen, setConvertOpen] = useState(false);
   const [convertTitle, setConvertTitle] = useState("");
   const [convertValue, setConvertValue] = useState("");
+  const [convertError, setConvertError] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const load = async () => {
+  usePageCrumbs(item ? [{ label: "CRM", to: "/portal/crm" }, { label: "Leads", to: "/portal/crm/leads" }, { label: item.fullName || "Lead" }] : []);
+
+  const load = useCallback(async () => {
     setLoading(true);
-    setError("");
+    setLoadError(null);
     try {
       const res = await getLead(id);
-      const lead = res?.item || res?.lead || null;
-      setItem(lead);
-      setConvertTitle(
-        lead?.companyName
-          ? `${lead.companyName} Opportunity`
-          : `${lead?.fullName || "Lead"} Opportunity`
-      );
+      setItem(res?.item || null);
+      if (!res?.item) setLoadError({ status: 404 });
     } catch (e) {
-      setError(e?.response?.data?.message || e?.message || "Failed to load lead");
+      setLoadError({ status: e?.response?.status, message: e?.response?.data?.message });
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [load]);
 
-  const canConvert = useMemo(
-    () => String(item?.status || "").toLowerCase() === "qualified",
-    [item]
-  );
+  const converted = item?.status === "converted";
+  const deal = item?.convertedDealId && typeof item.convertedDealId === "object" ? item.convertedDealId : null;
+  const defaultTitle = useMemo(() => (item ? `${item.companyName || item.fullName} opportunity` : ""), [item]);
 
-  const handleEdit = async (payload) => {
-    if (!item?._id) return;
+  if (loading && !item) return <LoadingState rows={6} label="Loading lead" />;
+  if (loadError || !item) {
+    const status = loadError?.status;
+    return (
+      <ErrorState
+        title={status === 404 ? "Lead not found" : status === 403 ? "You don't have access to the CRM" : "This lead didn't load"}
+        message={status === 404 ? "It may have been deleted, or the link is wrong." : loadError?.message || undefined}
+        onRetry={status === 404 || status === 403 ? undefined : load}
+      />
+    );
+  }
+
+  const openConvert = () => {
+    setConvertTitle(defaultTitle);
+    setConvertValue("");
+    setConvertError("");
+    setConvertOpen(true);
+  };
+
+  const convert = async () => {
+    if (busy || converting.current) return;
+    converting.current = true;
     setBusy(true);
+    setConvertError("");
     try {
-      await updateLead(item._id, payload);
-      setEditOpen(false);
-      await load();
+      const res = await convertLeadToDeal(item._id, { title: convertTitle.trim(), value: convertValue ? Number(convertValue) : 0 });
+      toast.success("Lead converted. The new deal is open.");
+      setConvertOpen(false);
+      const dealId = res?.item?._id;
+      if (dealId) nav(`/portal/crm/deals/${dealId}`);
+      else await load();
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Update failed");
+      setConvertError(conversionError(e, "lead"));
     } finally {
+      converting.current = false;
       setBusy(false);
     }
   };
 
-  const handleDelete = () => {
-    setConfirmState({
-      title: "Delete lead",
-      message: `Delete "${item?.fullName}"? This cannot be undone.`,
-      danger: true,
-      onConfirm: async () => {
-        setBusy(true);
-        try {
-          await deleteLead(item._id);
-          toast.success("Lead deleted.");
-          nav("/portal/crm/leads");
-        } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
-          setBusy(false);
-        }
-        setConfirmState(null);
-      },
-    });
-  };
-
-  const handleConvert = async () => {
-    if (!item?._id) return;
-    setBusy(true);
-    try {
-      const res = await convertLeadToDeal(item._id, {
-        title: convertTitle,
-        value: convertValue ? Number(convertValue) : 0,
-      });
-      const dealId = res?.deal?._id || res?.item?._id;
-      if (dealId) {
-        nav(`/portal/crm/deals/${dealId}`);
-      } else {
-        await load();
-        toast.success("Lead converted successfully.");
-      }
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Convert failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card className="p-6">
-        <div className="grid gap-3">
-          <Skeleton className="h-7 w-72" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-40 w-full" />
-        </div>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-black text-red-700">
-        {error}
-      </div>
-    );
-  }
-
-  if (!item) {
-    return (
-      <Card className="p-6">
-        <div className="text-sm font-black text-slate-700">Lead not found.</div>
-      </Card>
-    );
-  }
+  const more = [
+    { key: "refresh", label: "Refresh", icon: RefreshCw, onSelect: load },
+    canDelete ? { key: "sep", separator: true } : null,
+    canDelete ? { key: "delete", label: "Delete lead", icon: Trash2, tone: "muted", onSelect: () => setDeleteOpen(true) } : null,
+  ];
 
   return (
-    <div className="grid gap-5">
-      <PageHeader
-        eyebrow="CRM"
-        title={item.fullName || "Lead"}
-        subtitle="Lead details, qualification, and conversion."
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "CRM", to: "/portal/crm" },
-          { label: "Leads", to: "/portal/crm/leads" },
-          { label: item.fullName || "Lead" },
-        ]}
-        right={
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" onClick={() => nav("/portal/crm/leads")} disabled={busy}>
-              <ArrowLeft size={16} />
-              Back
-            </Button>
-            <Button variant="outline" onClick={load} disabled={busy}>
-              <RefreshCw size={16} />
-              Refresh
-            </Button>
-            <Button variant="outline" onClick={() => setEditOpen(true)} disabled={busy}>
-              <Pencil size={16} />
-              Edit
-            </Button>
-            <Button variant="outline" onClick={handleDelete} disabled={busy}>
-              <Trash2 size={16} />
-            </Button>
+    <>
+      <div className="px-stack" style={{ gap: 20 }}>
+        <header className="px-record-head">
+          <div className="px-record-id">
+            <div className="px-record-tags">
+              <Badge tone={LEAD_STATUS_TONE[item.status] || "neutral"} dot>
+                {LEAD_STATUS_LABEL[item.status] || item.status || "New"}
+              </Badge>
+              <span className="px-code">Lead from {leadSourceLabel(item.source)}</span>
+            </div>
+            <h1>{item.fullName || "Unnamed lead"}</h1>
+            <ul className="px-record-meta" aria-label="Lead contact">
+              <li>
+                <Building2 size={15} aria-hidden="true" />
+                {item.companyName || "No company"}
+              </li>
+              {item.email ? (
+                <li>
+                  <Mail size={15} aria-hidden="true" />
+                  <a href={`mailto:${item.email}`}>{item.email}</a>
+                </li>
+              ) : null}
+              {item.phone ? (
+                <li>
+                  <Phone size={15} aria-hidden="true" />
+                  {item.phone}
+                </li>
+              ) : null}
+            </ul>
           </div>
-        }
-      />
-
-      <SegmentTabs tabs={TABS} value={tab} onChange={setTab} />
-
-      {tab === "overview" && (
-        <>
-          <LeadOverviewTab lead={item} />
-
-          <Card className="p-5">
-            <div className="text-sm font-black text-slate-900">Convert to deal</div>
-            <div className="mt-1 text-sm text-slate-600">
-              Best practice: only convert qualified leads.
-            </div>
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              <Input
-                label="Deal title"
-                value={convertTitle}
-                onChange={(e) => setConvertTitle(e.target.value)}
-                placeholder="Opportunity title"
-              />
-              <Input
-                label="Estimated value"
-                type="number"
-                value={convertValue}
-                onChange={(e) => setConvertValue(e.target.value)}
-                placeholder="0"
-              />
-            </div>
-            <div className="mt-4 flex items-center gap-3">
-              <Button
-                onClick={handleConvert}
-                disabled={busy || !canConvert}
-              >
-                <ArrowRightCircle size={15} />
+          <div className="px-record-actions">
+            {canWrite ? (
+              <Button variant="outline" onClick={() => setEditOpen(true)} disabled={busy}>
+                <Pencil size={15} aria-hidden="true" />
+                Edit
+              </Button>
+            ) : null}
+            {canWrite && !converted ? (
+              <Button onClick={openConvert} disabled={busy}>
+                <ArrowRightCircle size={15} aria-hidden="true" />
                 Convert to deal
               </Button>
-              {!canConvert && (
-                <span className="text-xs font-semibold text-amber-700">
-                  Lead must be in Qualified status before conversion.
-                </span>
-              )}
-            </div>
-          </Card>
+            ) : null}
+            <RowActions label={item.fullName || "lead"} actions={more} />
+          </div>
+        </header>
+
+        {converted ? (
+          <Alert
+            tone="info"
+            icon={CircleCheck}
+            title="This lead has been converted"
+            action={deal?._id ? <Link className="px-btn px-btn--sm" to={`/portal/crm/deals/${deal._id}`}>Open deal</Link> : null}
+          >
+            {deal
+              ? `Deal: ${deal.title || "Untitled"}, ${DEAL_STAGE_LABEL[normalizeStage(deal.stage)] || deal.stage}${deal.value ? `, ${money(deal.value, deal.currency)}` : ""}.`
+              : "Its deal is no longer available."}
+            {item.convertedAt ? ` Converted ${formatDate(item.convertedAt)}.` : ""}
+          </Alert>
+        ) : null}
+
+        <div>
+          <TabBar idPrefix="lead" label="Lead sections" value={tab} onChange={setTab} tabs={TABS} />
+          <TabPanel idPrefix="lead" id={tab} className="px-tabpanel--spaced">
+            {tab === "overview" ? (
+              <div className="px-grid px-cols-detail">
+                <div className="px-stack">
+                  <Panel title="Interest">
+                    <KeyValue
+                      items={[
+                        { label: "Service", value: item.service },
+                        { label: "Source", value: leadSourceLabel(item.source) },
+                        { label: "Company", value: item.companyName },
+                      ]}
+                    />
+                  </Panel>
+                  <Panel title="Notes" sub="Internal">
+                    {item.notes ? <p className="px-prose">{item.notes}</p> : <p className="px-muted" style={{ margin: 0 }}>No notes yet.</p>}
+                  </Panel>
+                </div>
+                <div className="px-stack">
+                  <Panel title="Ownership">
+                    <KeyValue
+                      className="px-kv--side"
+                      items={[
+                        { label: "Owner", value: ownerName(item) || "Unassigned" },
+                        { label: "Created", value: formatDate(item.createdAt) },
+                        { label: "Updated", value: formatDate(item.updatedAt) },
+                        {
+                          label: "Account",
+                          value: item.convertedToAccountId?._id ? <Link to={`/portal/crm/accounts/${item.convertedToAccountId._id}`}>{item.convertedToAccountId.name || "Account"}</Link> : null,
+                          hidden: !item.convertedToAccountId,
+                        },
+                      ]}
+                    />
+                  </Panel>
+                </div>
+              </div>
+            ) : null}
+            {tab === "activity" ? <CrmActivityPanel entityType="lead" entityId={item._id} canWrite={canWrite} canDelete={canDelete} /> : null}
+          </TabPanel>
+        </div>
+      </div>
+
+      {canWrite ? (
+        <>
+          <LeadFormModal
+            open={editOpen}
+            mode="edit"
+            initial={item}
+            busy={busy}
+            onClose={() => setEditOpen(false)}
+            onSubmit={async (payload) => {
+              setBusy(true);
+              try {
+                await updateLead(item._id, payload);
+                toast.success("Lead updated.");
+                setEditOpen(false);
+                await load();
+              } catch (e) {
+                toast.error(e?.response?.data?.message || "The changes weren't saved. Try again.");
+              } finally {
+                setBusy(false);
+              }
+            }}
+          />
+          <FormDialog
+            open={convertOpen}
+            title="Convert this lead to a deal?"
+            description={`${item.fullName}${item.companyName ? `, ${item.companyName}` : ""}`}
+            onClose={() => setConvertOpen(false)}
+            onSubmit={convert}
+            busy={busy}
+            canSubmit={Boolean(convertTitle.trim())}
+            submitLabel="Convert to deal"
+            submitIcon={ArrowRightCircle}
+            error={convertError}
+          >
+            <fieldset className="px-form-section">
+              <legend>The new deal</legend>
+              <div className="px-form-grid px-form-grid--2">
+                <TextField label="Deal title" required value={convertTitle} onChange={(e) => setConvertTitle(e.target.value)} />
+                <TextField label="Value (AED)" inputMode="decimal" value={convertValue} onChange={(e) => setConvertValue(e.target.value)} hint="Optional." />
+              </div>
+              <ul className="px-hint" style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 4, fontSize: 13.5, listStyle: "disc" }}>
+                {LEAD_CONVERSION_DETAILS.map((d) => (
+                  <li key={d}>{d}</li>
+                ))}
+              </ul>
+            </fieldset>
+          </FormDialog>
         </>
-      )}
+      ) : null}
 
-      {tab === "activities" && <LeadActivitiesTab lead={item} />}
-
-      <LeadFormModal
-        open={editOpen}
-        mode="edit"
-        initial={item}
-        onClose={() => setEditOpen(false)}
-        onSubmit={handleEdit}
-        busy={busy}
-      />
-
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-    </div>
+      {canDelete ? (
+        <ConfirmDialog
+          open={deleteOpen}
+          icon={Trash2}
+          tone="bad"
+          danger
+          title="Delete this lead permanently?"
+          confirmLabel="Delete lead"
+          onClose={() => setDeleteOpen(false)}
+          onConfirm={async () => {
+            try {
+              await deleteLead(item._id);
+              toast.success("Lead deleted.");
+              nav("/portal/crm/leads");
+            } catch (e) {
+              toast.error(e?.response?.data?.message || "The lead wasn't deleted. Try again.");
+            }
+          }}
+          details={["The lead is erased and can't be restored.", "Deals, accounts, contacts and activities created from it are not deleted."]}
+        >
+          {item.fullName}
+        </ConfirmDialog>
+      ) : null}
+    </>
   );
 }

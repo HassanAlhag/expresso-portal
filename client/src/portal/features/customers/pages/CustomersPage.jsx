@@ -1,522 +1,394 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Building2, ExternalLink, KeyRound, Pencil, Plus, Power, RefreshCw, SearchX, X } from "lucide-react";
 
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Skeleton from "../../../shared/ui/Skeleton";
-import EmptyState from "../../../shared/ui/EmptyState";
-import PageHeader from "../../../shared/ui/PageHeader";
-import StatCard from "../../../shared/ui/StatCard";
-import FilterBar from "../../../shared/ui/FilterBar";
 import Badge from "../../../shared/ui/Badge";
+import MetricsStrip from "../../../shared/ui/MetricsStrip";
+import SearchField from "../../../shared/ui/SearchField";
+import SelectField from "../../../shared/ui/SelectField";
+import SortHeader from "../../../shared/ui/SortHeader";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import Pagination from "../../../shared/ui/Pagination";
+import RowActions from "../../../shared/ui/RowActions";
+import EmptyState from "../../../shared/ui/EmptyState";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
 import { useToast } from "../../../shared/ui/Toast";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import useDebouncedValue from "../../../shared/hooks/useDebouncedValue";
 
-import {
-  Plus,
-  RefreshCw,
-  Building2,
-  UserPlus,
-  Trash2,
-  ChevronRight,
-  Briefcase,
-  ShoppingCart,
-  Layers,
-} from "lucide-react";
-import {
-  listCustomers,
-  createCustomer,
-  updateCustomer,
-  deleteCustomer,
-  createCustomerLogin,
-} from "../api";
-
+import { listCustomers, createCustomer, updateCustomer, createCustomerLogin } from "../api";
+import { DEPARTMENT_LABEL, clientInitials, departmentOf, logoSrc } from "../format";
 import CustomerFormModal from "../components/CustomerFormModal";
-import { getAssetUrl } from "../../../shared/utils/assetUrl";
-
 import CreateLoginModal from "../components/CreateLoginModal";
 
-const DEPT_OPTIONS = [
-  { value: "", label: "All departments" },
-  { value: "digital_agency", label: "Digital Agency" },
-  { value: "procurement", label: "Procurement" },
-  { value: "both", label: "Both" },
-];
-
-const DEPT_META = {
-  digital_agency: {
-    label: "Digital Agency",
-    icon: Briefcase,
-    classes: "border-indigo-200 bg-indigo-50 text-indigo-700",
-  },
-  procurement: {
-    label: "Procurement",
-    icon: ShoppingCart,
-    classes: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  },
-  both: {
-    label: "Digital & Procurement",
-    icon: Layers,
-    classes: "border-violet-200 bg-violet-50 text-violet-700",
-  },
-};
-
+const LIMIT = 12;
 const STATUS_OPTIONS = [
-  { value: "", label: "All status" },
+  { value: "", label: "Active and inactive" },
   { value: "true", label: "Active" },
   { value: "false", label: "Inactive" },
 ];
-
+const DEPT_OPTIONS = [{ value: "", label: "Any department" }, ...Object.entries(DEPARTMENT_LABEL).map(([value, label]) => ({ value, label }))];
 const SORT_OPTIONS = [
-  { value: "-createdAt", label: "Newest" },
-  { value: "companyName", label: "Company A → Z" },
-  { value: "-companyName", label: "Company Z → A" },
-  { value: "contactName", label: "Contact A → Z" },
-  { value: "-contactName", label: "Contact Z → A" },
+  { value: "-createdAt", label: "Newest first" },
+  { value: "createdAt", label: "Oldest first" },
+  { value: "companyName", label: "Company, A to Z" },
+  { value: "-companyName", label: "Company, Z to A" },
+  { value: "contactName", label: "Contact, A to Z" },
+  { value: "-updatedAt", label: "Recently updated" },
 ];
 
+export function buildClientParams({ q, isActive, department, sort, page }) {
+  const p = { q, sort, page, limit: LIMIT };
+  if (isActive !== "") p.isActive = isActive;
+  if (department) p.department = department;
+  return p;
+}
+
+// Global counts from the list endpoint's totals (one-row requests), so the
+// summary never reflects only the current page.
+async function loadClientCounts() {
+  const total = (params) => listCustomers({ ...params, limit: 1, page: 1 }).then((r) => Number(r?.total || 0));
+  const [active, inactive, agency, procurement, both] = await Promise.all([
+    total({ isActive: "true" }),
+    total({ isActive: "false" }),
+    total({ department: "digital_agency" }),
+    total({ department: "procurement" }),
+    total({ department: "both" }),
+  ]);
+  return { active, inactive, agency, procurement, both };
+}
+
+// Clients (PUI-3): staff list of client accounts. Client portal users who can
+// read their own company see just that record, without staff actions.
 export default function CustomersPage() {
   const nav = useNavigate();
   const toast = useToast();
+  const access = useAccess();
+  const canWrite = access.can("customers.write");
 
   const [q, setQ] = useState("");
+  const dq = useDebouncedValue(q);
   const [isActive, setIsActive] = useState("");
-  const [dept, setDept] = useState("");
+  const [department, setDepartment] = useState("");
   const [sort, setSort] = useState("-createdAt");
   const [page, setPage] = useState(1);
-  const limit = 12;
 
   const [items, setItems] = useState([]);
-  const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0 });
-
+  const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0, limit: LIMIT });
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [counts, setCounts] = useState(null);
 
+  const [busy, setBusy] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
-  const [confirmState, setConfirmState] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [loginFor, setLoginFor] = useState(null);
+  const [toggling, setToggling] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await listCustomers({
-        q,
-        isActive,
-        department: dept || undefined,
-        sort,
-        page,
-        limit,
-      });
-      setItems(res?.items || []);
-      setMeta({
-        page: res?.page || page,
-        pages: res?.pages || 1,
-        total: res?.total ?? 0,
-      });
+      const res = await listCustomers(buildClientParams({ q: dq.trim(), isActive, department, sort, page }));
+      setItems(Array.isArray(res?.items) ? res.items : []);
+      setMeta({ page: res?.page || page, pages: res?.pages || 1, total: res?.total ?? 0, limit: res?.limit || LIMIT });
     } catch (e) {
-      setError(
-        e?.response?.data?.message || e?.message || "Failed to load clients"
-      );
+      setItems([]);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [dq, isActive, department, sort, page]);
+
+  const loadCounts = useCallback(async () => {
+    try {
+      setCounts(await loadClientCounts());
+    } catch {
+      setCounts(null); // the summary is optional; the list still works
+    }
+  }, []);
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, isActive, dept, sort, page]);
+  }, [load]);
+  useEffect(() => {
+    if (access.isInternal) loadCounts();
+  }, [loadCounts, access.isInternal]);
+  useEffect(() => {
+    setPage(1);
+  }, [dq]);
 
-  const resetFilters = () => {
+  const set = (setter) => (v) => {
+    setter(v);
+    setPage(1);
+  };
+  const refresh = () => Promise.all([load(), access.isInternal ? loadCounts() : null]);
+  const filtered = Boolean(dq.trim() || isActive || department);
+  const clearFilters = () => {
     setQ("");
     setIsActive("");
-    setDept("");
-    setSort("-createdAt");
+    setDepartment("");
     setPage(1);
   };
 
-  const stats = useMemo(
-    () => ({
-      total: meta.total || 0,
-      activeOnPage: items.filter((x) => x.isActive).length,
-      inactiveOnPage: items.filter((x) => !x.isActive).length,
-      withLoginOnPage: items.filter((x) => Boolean(x.ownerUserId)).length,
-    }),
-    [items, meta.total]
+  const metrics = useMemo(() => {
+    if (!counts) return [];
+    const toggle = (setter, current, value) => () => set(setter)(current === value ? "" : value);
+    return [
+      { key: "active", label: "Active clients", value: counts.active, note: `${counts.inactive} inactive`, onClick: toggle(setIsActive, isActive, "true"), pressed: isActive === "true" },
+      { key: "agency", label: "Digital agency", value: counts.agency, note: "Projects and services", onClick: toggle(setDepartment, department, "digital_agency"), pressed: department === "digital_agency" },
+      { key: "procurement", label: "Procurement", value: counts.procurement, note: "Supply and sourcing", onClick: toggle(setDepartment, department, "procurement"), pressed: department === "procurement" },
+      { key: "both", label: "Both", value: counts.both, note: "Agency and procurement", onClick: toggle(setDepartment, department, "both"), pressed: department === "both" },
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [counts, isActive, department]);
+
+  const submit = async (fn, success, after) => {
+    setBusy(true);
+    try {
+      const res = await fn();
+      toast.success(success);
+      after?.(res);
+      await refresh();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "That didn't save. Check the details and try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const chips = [
+    dq.trim() && { key: "q", label: `Search: ${dq.trim()}`, clear: () => setQ("") },
+    isActive && { key: "s", label: isActive === "true" ? "Active" : "Inactive", clear: () => set(setIsActive)("") },
+    department && { key: "d", label: DEPARTMENT_LABEL[department], clear: () => set(setDepartment)("") },
+  ].filter(Boolean);
+
+  const toolbar = (
+    <div className="px-toolbar" role="search" aria-label="Filter clients">
+      <SearchField label="Search clients" value={q} onChange={setQ} placeholder="Company, contact, email or code" />
+      <SelectField label="Status" value={isActive} onChange={set(setIsActive)} options={STATUS_OPTIONS} />
+      <SelectField label="Department" value={department} onChange={set(setDepartment)} options={DEPT_OPTIONS} />
+      <SelectField label="Sort by" value={sort} onChange={set(setSort)} options={SORT_OPTIONS.some((o) => o.value === sort) ? SORT_OPTIONS : [...SORT_OPTIONS, { value: sort, label: "Custom" }]} />
+    </div>
   );
 
-  const onCreate = async (payload) => {
-    setBusy(true);
-    try {
-      await createCustomer(payload);
-      setCreateOpen(false);
-      setPage(1);
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Create failed");
-    } finally {
-      setBusy(false);
-    }
-  };
+  const resultBar = (
+    <div className="px-result-bar">
+      <span aria-live="polite">{loading ? "Loading clients…" : error ? "Clients unavailable" : `${meta.total} client${meta.total === 1 ? "" : "s"}`}</span>
+      {chips.length ? (
+        <div className="px-active-filters">
+          {chips.map((c) => (
+            <button key={c.key} type="button" className="px-filter-chip" onClick={c.clear} aria-label={`Remove filter ${c.label}`}>
+              {c.label}
+              <X size={12} aria-hidden="true" />
+            </button>
+          ))}
+          <button type="button" className="px-btn px-btn--ghost px-btn--sm" onClick={clearFilters}>
+            Clear all
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
 
-  const onEdit = async (payload) => {
-    if (!selected?._id) return;
-    setBusy(true);
-    try {
-      await updateCustomer(selected._id, payload);
-      setEditOpen(false);
-      setSelected(null);
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Update failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const onDeactivate = (c) => {
-    if (!c?._id) return;
-    setConfirmState({
-      title: "Deactivate client",
-      message: `Deactivate "${c.companyName}"?`,
-      danger: true,
-      confirmLabel: "Deactivate",
-      onConfirm: async () => {
-        setBusy(true);
-        setConfirmState(null);
-        try {
-          await deleteCustomer(c._id);
-          await load();
-        } catch (e) {
-          toast.error(
-            e?.response?.data?.message || e?.message || "Deactivate failed"
-          );
-        } finally {
-          setBusy(false);
-        }
-      },
-    });
-  };
-
-  const onCreateLogin = async (payload) => {
-    if (!selected?._id) return;
-    setBusy(true);
-    try {
-      await createCustomerLogin(selected._id, payload);
-      setLoginOpen(false);
-      setSelected(null);
-      await load();
-      toast.success("Login created and linked to client.");
-    } catch (e) {
-      toast.error(
-        e?.response?.data?.message || e?.message || "Create login failed"
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
+  let content;
+  if (error) {
+    content = <ErrorState title="Clients didn't load" message={error} onRetry={load} />;
+  } else if (!loading && !items.length) {
+    content = filtered ? (
+      <EmptyState
+        icon={SearchX}
+        title="No clients match these filters"
+        message="Try a different search, or clear the filters."
+        action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>}
+      />
+    ) : (
+      <EmptyState
+        icon={Building2}
+        title="No clients yet"
+        message="Client accounts hold projects, services, files and portal users. Clients are also created when a won deal is converted."
+        action={canWrite ? <Button onClick={() => setCreateOpen(true)}><Plus size={14} aria-hidden="true" />New client</Button> : null}
+      />
+    );
+  } else {
+    content = (
+      <>
+        <table className="px-table px-table--stack" aria-label="Clients" aria-busy={loading || undefined}>
+          <thead>
+            <tr>
+              <SortHeader label="Client" field="companyName" sort={sort} onSort={set(setSort)} />
+              <SortHeader label="Main contact" field="contactName" sort={sort} onSort={set(setSort)} />
+              <th scope="col" className="px-hide-tab">Department</th>
+              <SortHeader label="Status" field="isActive" sort={sort} onSort={set(setSort)} firstDir="desc" />
+              <th scope="col" className="px-hide-lg px-hide-sm">Portal login</th>
+              <th scope="col"><span className="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <SkeletonRows rows={6} cols={6} label="Loading clients" />
+            ) : (
+              items.map((c) => {
+                const src = logoSrc(c);
+                const actions = [
+                  { key: "open", label: "Open client", icon: ExternalLink, onSelect: () => nav(`/portal/customers/${c._id}`) },
+                  canWrite ? { key: "edit", label: "Edit client", icon: Pencil, onSelect: () => setEditing(c) } : null,
+                  canWrite && !c.ownerUserId ? { key: "login", label: "Create main login", icon: KeyRound, onSelect: () => setLoginFor(c) } : null,
+                  canWrite ? { key: "sep", separator: true } : null,
+                  canWrite
+                    ? { key: "toggle", label: c.isActive ? "Deactivate client" : "Reactivate client", icon: Power, onSelect: () => setToggling(c) }
+                    : null,
+                ];
+                return (
+                  <tr
+                    key={c._id}
+                    data-clickable="true"
+                    onClick={(e) => {
+                      if (e.target.closest("a, button, [role='menu']")) return;
+                      nav(`/portal/customers/${c._id}`);
+                    }}
+                  >
+                    <td className="px-primary">
+                      <div className="px-cell-with-logo">
+                        <span className="px-logo" aria-hidden="true">
+                          {src ? <img src={src} alt="" /> : clientInitials(c.companyName)}
+                        </span>
+                        <div className="px-cell-main">
+                          <Link to={`/portal/customers/${c._id}`}>{c.companyName || "Unnamed client"}</Link>
+                          <span>{[c.code, c.industry, c.country].filter(Boolean).join(", ") || "No code"}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-label="Main contact">
+                      <div className="px-cell-main">
+                        <b style={{ fontWeight: 500 }}>{c.contactName || "No contact"}</b>
+                        <span>{c.primaryEmail || "No email"}</span>
+                      </div>
+                    </td>
+                    <td data-label="Department" className="px-hide-tab">
+                      {DEPARTMENT_LABEL[departmentOf(c)]}
+                    </td>
+                    <td data-label="Status">
+                      <span>
+                        <Badge tone={c.isActive ? "ok" : "neutral"} dot={Boolean(c.isActive)}>
+                          {c.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </span>
+                    </td>
+                    <td data-label="Portal login" className="px-hide-lg px-hide-sm">
+                      {c.ownerUserId ? "Linked" : <span className="px-muted">None</span>}
+                    </td>
+                    <td className="px-actions-cell">
+                      <RowActions label={c.companyName || "client"} actions={actions} />
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+        {!loading && meta.total ? (
+          <Pagination page={meta.page} pages={meta.pages} total={meta.total} limit={meta.limit} onPage={setPage} noun={meta.total === 1 ? "client" : "clients"} label="Clients pages" />
+        ) : null}
+      </>
+    );
+  }
 
   return (
-    <div className="grid gap-4">
-      <PageHeader
-        eyebrow="ACCOUNTS"
+    <>
+      <PageFrame
         title="Clients"
-        subtitle="Client accounts & ownership."
-        breadcrumb={[{ label: "Portal", to: "/portal" }, { label: "Clients" }]}
-        right={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={load} disabled={loading || busy}>
-              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-              Refresh
-            </Button>
+        description="Client accounts, their contacts and the work Expresso does for them."
+        breadcrumb={[{ label: "Clients" }]}
+        secondaryActions={
+          <Button variant="outline" onClick={refresh} disabled={loading}>
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />
+            Refresh
+          </Button>
+        }
+        primaryAction={
+          canWrite ? (
             <Button onClick={() => setCreateOpen(true)} disabled={busy}>
-              <Plus size={15} />
+              <Plus size={14} aria-hidden="true" />
               New client
             </Button>
-          </div>
+          ) : null
         }
-      />
+      >
+        {access.isInternal ? <MetricsStrip label="Clients summary" items={metrics} /> : null}
+        <Panel flush bare label="Client list" className="px-list-panel">
+          {toolbar}
+          {resultBar}
+          {content}
+        </Panel>
+      </PageFrame>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard
-          icon={Building2}
-          label="Total"
-          value={stats.total}
-          color="indigo"
-        />
-        <StatCard
-          icon={Building2}
-          label="Active"
-          value={stats.activeOnPage}
-          color="emerald"
-        />
-        <StatCard
-          icon={Building2}
-          label="Inactive"
-          value={stats.inactiveOnPage}
-          color="rose"
-        />
-        <StatCard
-          icon={UserPlus}
-          label="Has Login"
-          value={stats.withLoginOnPage}
-          color="violet"
-        />
-      </div>
-
-      {/* Filter bar */}
-      <FilterBar
-        searchValue={q}
-        onSearchChange={(v) => {
-          setQ(v);
-          setPage(1);
-        }}
-        searchPlaceholder="Search company, contact, email…"
-        filters={[
-          {
-            label: "status",
-            value: isActive,
-            onChange: (v) => {
-              setIsActive(v);
-              setPage(1);
-            },
-            options: STATUS_OPTIONS,
-          },
-          {
-            label: "department",
-            value: dept,
-            onChange: (v) => {
-              setDept(v);
-              setPage(1);
-            },
-            options: DEPT_OPTIONS,
-          },
-          {
-            label: "sort",
-            value: sort,
-            onChange: (v) => {
-              setSort(v);
-              setPage(1);
-            },
-            options: SORT_OPTIONS,
-          },
-        ]}
-        onClear={resetFilters}
-      />
-
-      {/* Content */}
-      {error ? (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">
-          {error}
-        </div>
-      ) : loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-72 w-full rounded-[28px]" />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <EmptyState
-          icon={Building2}
-          title="No clients yet"
-          message="Create a client to start jobs and production workflow."
-          actionLabel="New client"
-          onAction={() => setCreateOpen(true)}
-        />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {items.map((c) => {
-            const hasLogin = Boolean(c.ownerUserId);
-            return (
-              <div
-                key={c._id}
-                className="group overflow-hidden rounded-[28px] border border-black/[0.07] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.14)]"
-              >
-                <button
-                  type="button"
-                  onClick={() => nav(`/portal/customers/${c._id}`)}
-                  className="block w-full text-left"
-                >
-                  <div className="p-5">
-                    <div className="rounded-[24px] border border-black/5 bg-slate-50 p-4">
-                      <div className="flex h-40 items-center justify-center rounded-[20px] border border-black/5 bg-slate-100 overflow-hidden">
-                        {c.logoUrl ? (
-                          <img
-                            src={getAssetUrl(c.logoUrl)}
-                            alt={c.companyName}
-                            loading="lazy"
-                            decoding="async"
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-                            <Building2 size={34} />
-                            <div className="text-sm font-bold text-slate-500">
-                              {c.companyName?.slice(0, 2)?.toUpperCase() ||
-                                "CU"}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <Badge tone={c.isActive ? "success" : "danger"}>
-                        {c.isActive ? "ACTIVE" : "INACTIVE"}
-                      </Badge>
-                      <Badge tone={hasLogin ? "info" : "neutral"}>
-                        {hasLogin ? "LOGIN LINKED" : "NO LOGIN"}
-                      </Badge>
-                      {(() => {
-                        const d = c.department || "digital_agency";
-                        const m = DEPT_META[d];
-                        if (!m) return null;
-                        const Icon = m.icon;
-                        return (
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] ${m.classes}`}
-                          >
-                            <Icon size={10} />
-                            {m.label}
-                          </span>
-                        );
-                      })()}
-                    </div>
-
-                    <div className="mt-3">
-                      <div className="line-clamp-1 text-lg font-black text-slate-900">
-                        {c.companyName}
-                      </div>
-                      <div className="mt-1 line-clamp-1 text-sm text-slate-600">
-                        {c.contactName || "No contact assigned"}
-                      </div>
-                      <div className="mt-1 line-clamp-1 text-xs text-slate-500">
-                        {c.primaryEmail || "No email"}
-                        {c.slug ? ` • /${c.slug}` : ""}
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
-                        Open profile
-                      </div>
-                      <ChevronRight
-                        size={18}
-                        className="text-slate-400 transition group-hover:translate-x-1"
-                      />
-                    </div>
-                  </div>
-                </button>
-
-                <div className="border-t border-black/5 bg-white/70 p-4">
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelected(c);
-                        setLoginOpen(true);
-                      }}
-                      disabled={busy}
-                    >
-                      <UserPlus size={16} />
-                      Login
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelected(c);
-                        setEditOpen(true);
-                      }}
-                      disabled={busy}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onDeactivate(c)}
-                      disabled={busy}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {!loading && !error && items.length > 0 && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500">
-            Page <b>{meta.page}</b> of <b>{meta.pages}</b> · {meta.total} total
-          </span>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={meta.page <= 1 || loading}
-            >
-              Prev
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(meta.pages, p + 1))}
-              disabled={meta.page >= meta.pages || loading}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <CustomerFormModal
-        open={createOpen}
-        mode="create"
-        onClose={() => setCreateOpen(false)}
-        onSubmit={onCreate}
-        busy={busy}
-      />
-      <CustomerFormModal
-        open={editOpen}
-        mode="edit"
-        initial={selected}
-        onClose={() => {
-          setEditOpen(false);
-          setSelected(null);
-        }}
-        onSubmit={onEdit}
-        busy={busy}
-      />
-      <CreateLoginModal
-        open={loginOpen}
-        customer={selected}
-        onClose={() => {
-          setLoginOpen(false);
-          setSelected(null);
-        }}
-        onSubmit={onCreateLogin}
-        busy={busy}
-      />
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        confirmLabel={confirmState?.confirmLabel}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-    </div>
+      {canWrite ? (
+        <>
+          <CustomerFormModal
+            open={createOpen}
+            mode="create"
+            busy={busy}
+            onClose={() => setCreateOpen(false)}
+            onSubmit={(payload) =>
+              submit(() => createCustomer(payload), "Client created.", (res) => {
+                setCreateOpen(false);
+                const id = res?.item?._id;
+                if (id) nav(`/portal/customers/${id}`);
+              })
+            }
+          />
+          <CustomerFormModal
+            open={Boolean(editing)}
+            mode="edit"
+            initial={editing}
+            busy={busy}
+            onClose={() => setEditing(null)}
+            onSubmit={(payload) => submit(() => updateCustomer(editing._id, payload), "Client updated.", () => setEditing(null))}
+          />
+          <CreateLoginModal
+            open={Boolean(loginFor)}
+            customer={loginFor}
+            busy={busy}
+            onClose={() => setLoginFor(null)}
+            onSubmit={(payload) => submit(() => createCustomerLogin(loginFor._id, payload), "Login created and linked to the client.", () => setLoginFor(null))}
+          />
+          <ConfirmDialog
+            open={Boolean(toggling)}
+            icon={Power}
+            tone={toggling?.isActive ? "warn" : "info"}
+            title={toggling?.isActive ? "Deactivate this client?" : "Reactivate this client?"}
+            confirmLabel={toggling?.isActive ? "Deactivate client" : "Reactivate client"}
+            onClose={() => setToggling(null)}
+            onConfirm={async () => {
+              const c = toggling;
+              try {
+                await updateCustomer(c._id, { isActive: !c.isActive });
+                toast.success(c.isActive ? `${c.companyName} deactivated.` : `${c.companyName} reactivated.`);
+                setToggling(null);
+                await refresh();
+              } catch (e) {
+                toast.error(e?.response?.data?.message || "The status didn't change. Try again.");
+              }
+            }}
+            details={
+              toggling?.isActive
+                ? [
+                    "The client is marked inactive. Nothing is deleted.",
+                    "Projects, services, invoices and files stay as they are.", "Its portal users can still sign in. To stop that, deactivate their accounts in Users and roles, or remove them from the Users tab.",
+                    "You can reactivate the client at any time.",
+                  ]
+                : ["The client is marked active again."]
+            }
+          >
+            {`"${toggling?.companyName || "This client"}"`}
+          </ConfirmDialog>
+        </>
+      ) : null}
+    </>
   );
 }

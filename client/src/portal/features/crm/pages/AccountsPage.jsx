@@ -1,514 +1,280 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Building2, ExternalLink, Pencil, Plus, RefreshCw, SearchX, Trash2, X } from "lucide-react";
 
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Card from "../../../shared/ui/Card";
-import Input from "../../../shared/ui/Input";
-import Skeleton from "../../../shared/ui/Skeleton";
+import Badge from "../../../shared/ui/Badge";
+import MetricsStrip from "../../../shared/ui/MetricsStrip";
+import SearchField from "../../../shared/ui/SearchField";
+import SelectField from "../../../shared/ui/SelectField";
+import SortHeader from "../../../shared/ui/SortHeader";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import Pagination from "../../../shared/ui/Pagination";
+import RowActions from "../../../shared/ui/RowActions";
 import EmptyState from "../../../shared/ui/EmptyState";
-import PageHeader from "../../../shared/ui/PageHeader";
-import StatCard from "../../../shared/ui/StatCard";
-import FilterBar from "../../../shared/ui/FilterBar";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
 import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import useDebouncedValue from "../../../shared/hooks/useDebouncedValue";
 
-import {
-  Plus,
-  RefreshCw,
-  Building2,
-  Globe,
-  Trash2,
-  Pencil,
-  Link2,
-  ChevronRight,
-} from "lucide-react";
+import { listAccounts, createAccount, updateAccount, deleteAccount } from "../api";
+import { ACCOUNT_STATUSES, ACCOUNT_STATUS_LABEL, ACCOUNT_STATUS_TONE } from "../format";
+import AccountFormModal from "../components/AccountFormModal";
 
-import {
-  listAccounts,
-  createAccount,
-  updateAccount,
-  deleteAccount,
-} from "../api";
+const LIMIT = 12;
+const STATUS_FILTERS = [{ value: "", label: "Any status" }, ...ACCOUNT_STATUSES.map((s) => ({ value: s, label: ACCOUNT_STATUS_LABEL[s] }))];
+const SORT_OPTIONS = [
+  { value: "-createdAt", label: "Newest first" },
+  { value: "createdAt", label: "Oldest first" },
+  { value: "name", label: "Name, A to Z" },
+  { value: "-name", label: "Name, Z to A" },
+  { value: "industry", label: "Industry, A to Z" },
+  { value: "-updatedAt", label: "Recently updated" },
+];
 
-function AccountFormModal({
-  open,
-  mode = "create",
-  initial = null,
-  busy = false,
-  onClose,
-  onSubmit,
-}) {
-  const [form, setForm] = useState({
-    name: "",
-    legalName: "",
-    industry: "",
-    website: "",
-    phone: "",
-    email: "",
-    country: "",
-    city: "",
-    address: "",
-    status: "active",
-    notes: "",
-  });
-
-  useEffect(() => {
-    if (!open) return;
-    setForm({
-      name: initial?.name || "",
-      legalName: initial?.legalName || "",
-      industry: initial?.industry || "",
-      website: initial?.website || "",
-      phone: initial?.phone || "",
-      email: initial?.email || "",
-      country: initial?.country || "",
-      city: initial?.city || "",
-      address: initial?.address || "",
-      status: initial?.status || "active",
-      notes: initial?.notes || "",
-    });
-  }, [open, initial]);
-
-  if (!open) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
-      onMouseDown={onClose}
-    >
-      <div
-        className="w-full max-w-3xl rounded-[28px] border border-black/10 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.18)]"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="border-b border-black/10 px-6 py-5">
-          <div className="text-xl font-black text-slate-900">
-            {mode === "edit" ? "Edit account" : "New account"}
-          </div>
-          <div className="mt-1 text-sm text-slate-600">
-            Company profile for CRM and deals.
-          </div>
-        </div>
-
-        <div className="grid gap-4 px-6 py-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Input
-              label="Account name"
-              value={form.name}
-              onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-            />
-            <Input
-              label="Legal name"
-              value={form.legalName}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, legalName: e.target.value }))
-              }
-            />
-            <Input
-              label="Industry"
-              value={form.industry}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, industry: e.target.value }))
-              }
-            />
-            <Input
-              label="Website"
-              value={form.website}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, website: e.target.value }))
-              }
-            />
-            <Input
-              label="Email"
-              value={form.email}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, email: e.target.value }))
-              }
-            />
-            <Input
-              label="Phone"
-              value={form.phone}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, phone: e.target.value }))
-              }
-            />
-            <Input
-              label="Country"
-              value={form.country}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, country: e.target.value }))
-              }
-            />
-            <Input
-              label="City"
-              value={form.city}
-              onChange={(e) => setForm((s) => ({ ...s, city: e.target.value }))}
-            />
-          </div>
-
-          <Input
-            label="Address"
-            value={form.address}
-            onChange={(e) =>
-              setForm((s) => ({ ...s, address: e.target.value }))
-            }
-          />
-
-          <label className="grid gap-2">
-            <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-              STATUS
-            </span>
-            <select
-              value={form.status}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, status: e.target.value }))
-              }
-              className="h-11 rounded-2xl border border-black/10 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="prospect">Prospect</option>
-            </select>
-          </label>
-
-          <label className="grid gap-2">
-            <span className="text-[11px] font-black tracking-[0.22em] text-slate-500">
-              NOTES
-            </span>
-            <textarea
-              rows={4}
-              value={form.notes}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, notes: e.target.value }))
-              }
-              className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-black/5"
-            />
-          </label>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 border-t border-black/10 px-6 py-5">
-          <Button variant="outline" onClick={onClose} disabled={busy}>
-            Cancel
-          </Button>
-          <Button
-            onClick={() => onSubmit(form)}
-            disabled={busy || !form.name.trim()}
-          >
-            {busy
-              ? "Saving..."
-              : mode === "edit"
-              ? "Save changes"
-              : "Create account"}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatusPill({ status }) {
-  const s = String(status || "active").toLowerCase();
-  const map = {
-    active: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    inactive: "border-slate-200 bg-slate-50 text-slate-700",
-    prospect: "border-sky-200 bg-sky-50 text-sky-700",
-  };
-
-  return (
-    <span
-      className={[
-        "inline-flex rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em]",
-        map[s] || "border-slate-200 bg-slate-50 text-slate-700",
-      ].join(" ")}
-    >
-      {s}
-    </span>
-  );
-}
-
+// CRM accounts (PUI-3): paged on the server (the old page showed only the
+// first 50), with real counts per status.
 export default function AccountsPage() {
   const nav = useNavigate();
   const toast = useToast();
+  const access = useAccess();
+  const canWrite = access.can("crm.write");
+  const canDelete = access.can("crm.delete");
 
-  const [confirmState, setConfirmState] = useState(null);
   const [q, setQ] = useState("");
+  const dq = useDebouncedValue(q);
+  const [status, setStatus] = useState("");
+  const [sort, setSort] = useState("-createdAt");
+  const [page, setPage] = useState(1);
   const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0, limit: LIMIT });
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-
+  const [counts, setCounts] = useState(null);
+  const [busy, setBusy] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [removing, setRemoving] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await listAccounts({
-        q,
-        limit: 50,
-        page: 1,
-        sort: "-createdAt",
-      });
+      const params = { q: dq.trim(), sort, page, limit: LIMIT };
+      if (status) params.status = status;
+      const res = await listAccounts(params);
       setItems(Array.isArray(res?.items) ? res.items : []);
+      setMeta({ page: res?.page || page, pages: res?.pages || 1, total: res?.total ?? 0, limit: res?.limit || LIMIT });
     } catch (e) {
-      setError(
-        e?.response?.data?.message || e?.message || "Failed to load accounts"
-      );
+      setItems([]);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [dq, status, sort, page]);
+
+  const loadCounts = useCallback(async () => {
+    try {
+      const entries = await Promise.all(
+        ACCOUNT_STATUSES.map(async (s) => [s, Number((await listAccounts({ status: s, limit: 1, page: 1 }))?.total || 0)])
+      );
+      setCounts(Object.fromEntries(entries));
+    } catch {
+      setCounts(null);
+    }
+  }, []);
 
   useEffect(() => {
     load();
+  }, [load]);
+  useEffect(() => {
+    loadCounts();
+  }, [loadCounts]);
+  useEffect(() => {
+    setPage(1);
+  }, [dq]);
+
+  const set = (setter) => (v) => {
+    setter(v);
+    setPage(1);
+  };
+  const refresh = () => Promise.all([load(), loadCounts()]);
+  const filtered = Boolean(dq.trim() || status);
+  const clearFilters = () => {
+    setQ("");
+    setStatus("");
+    setPage(1);
+  };
+
+  const metrics = useMemo(() => {
+    if (!counts) return [];
+    const toggle = (v) => () => set(setStatus)(status === v ? "" : v);
+    return ACCOUNT_STATUSES.map((s) => ({
+      key: s,
+      label: ACCOUNT_STATUS_LABEL[s],
+      value: counts[s],
+      note: s === "prospect" ? "Not clients yet" : s === "active" ? "Current relationships" : "Dormant",
+      onClick: toggle(s),
+      pressed: status === s,
+    }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  }, [counts, status]);
 
-  const stats = useMemo(() => {
-    return {
-      total: items.length,
-      active: items.filter((x) => x.status === "active").length,
-      prospects: items.filter((x) => x.status === "prospect").length,
-    };
-  }, [items]);
-
-  const onCreate = async (payload) => {
+  const save = async (fn, ok, after) => {
     setBusy(true);
     try {
-      await createAccount(payload);
-      setCreateOpen(false);
-      await load();
+      const res = await fn();
+      toast.success(ok);
+      after?.(res);
+      await refresh();
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Create failed");
+      toast.error(e?.response?.data?.message || "That didn't save. Check the details and try again.");
     } finally {
       setBusy(false);
     }
   };
 
-  const onEdit = async (payload) => {
-    if (!selected?._id) return;
-    setBusy(true);
-    try {
-      await updateAccount(selected._id, payload);
-      setEditOpen(false);
-      setSelected(null);
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Update failed");
-    } finally {
-      setBusy(false);
-    }
-  };
+  const chips = [
+    dq.trim() && { key: "q", label: `Search: ${dq.trim()}`, clear: () => setQ("") },
+    status && { key: "s", label: ACCOUNT_STATUS_LABEL[status] || status, clear: () => set(setStatus)("") },
+  ].filter(Boolean);
 
-  const onDelete = (item) => {
-    if (!item?._id) return;
-    setConfirmState({
-      title: "Delete account",
-      message: `Delete "${item.name}"?`,
-      danger: true,
-      onConfirm: async () => {
-        setBusy(true);
-        try {
-          await deleteAccount(item._id);
-          await load();
-        } catch (e) {
-          toast.error(e?.response?.data?.message || e?.message || "Delete failed");
-        } finally {
-          setBusy(false);
-        }
-        setConfirmState(null);
-      },
-    });
-  };
-
-  return (
-    <div className="grid gap-6">
-      <PageHeader
-        eyebrow="CRM"
-        title="Accounts"
-        subtitle="Companies and organizations linked to your pipeline."
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "CRM", to: "/portal/crm" },
-          { label: "Accounts" },
-        ]}
-        right={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={load} disabled={loading || busy}>
-              <RefreshCw size={16} />
-              Refresh
-            </Button>
-            <Button onClick={() => setCreateOpen(true)} disabled={busy}>
-              <Plus size={16} />
-              New account
-            </Button>
-          </div>
-        }
-      />
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard icon={Building2} label="Total"     value={stats.total}     color="indigo"  />
-        <StatCard icon={Building2} label="Active"    value={stats.active}    color="emerald" />
-        <StatCard icon={Building2} label="Prospects" value={stats.prospects} color="blue"    />
-      </div>
-
-      <FilterBar
-        searchValue={q}
-        onSearchChange={(v) => setQ(v)}
-        searchPlaceholder="Search company, industry, email…"
-        onClear={() => setQ("")}
-      />
-
-      {loading ? (
-        <Card className="p-6">
-          <div className="grid gap-3">
-            <Skeleton className="h-6 w-56" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-20 w-full" />
-          </div>
-        </Card>
-      ) : error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-black text-red-700">
-          {error}
-        </div>
-      ) : items.length === 0 ? (
-        <EmptyState
-          icon={Building2}
-          title="No accounts yet"
-          message="Create your first CRM account."
-          actionLabel="New account"
-          onAction={() => setCreateOpen(true)}
-        />
-      ) : (
-        <div className="overflow-hidden rounded-[28px] border border-black/[0.07] bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-black/10 p-4">
-            <div className="text-sm font-black text-slate-900">Accounts ({items.length})</div>
-            <div className="text-xs text-slate-500">CRM company records</div>
-          </div>
-          <div className="w-full overflow-x-auto">
-            <table className="w-full border-collapse bg-white">
-              <thead className="bg-slate-50">
-                <tr className="border-b border-black/10">
-                  <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">COMPANY</th>
-                  <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">INDUSTRY</th>
-                  <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">STATUS</th>
-                  <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">LINKED CLIENT</th>
-                  <th className="px-4 py-3 text-left text-xs font-black tracking-[0.18em] text-slate-500">COUNTRY</th>
-                  <th className="px-4 py-3 text-right text-xs font-black tracking-[0.18em] text-slate-500">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr
-                    key={item._id}
-                    className="border-b border-slate-100 hover:bg-black/[0.02]"
-                  >
-                    <td className="px-4 py-4 align-top">
-                      <button
-                        type="button"
-                        className="text-left"
-                        onClick={() => nav(`/portal/crm/accounts/${item._id}`)}
-                      >
-                        <div className="text-sm font-black text-slate-900 hover:underline">{item.name}</div>
-                        {item.email && (
-                          <div className="mt-0.5 text-xs text-slate-500">{item.email}</div>
-                        )}
-                        {item.website && (
-                          <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
-                            <Globe size={10} />{item.website}
-                          </div>
-                        )}
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 align-top text-sm text-slate-700">
-                      {item.industry || <span className="text-slate-400">—</span>}
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <StatusPill status={item.status} />
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      {item.customerId ? (
-                        <button
-                          type="button"
-                          onClick={() => nav(`/portal/customers/${item.customerId._id || item.customerId}`)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-black text-indigo-700 transition hover:bg-indigo-100"
-                        >
-                          <Link2 size={10} />
-                          {item.customerId.companyName || "Client"}
-                        </button>
-                      ) : (
-                        <span className="text-xs text-slate-400">Not linked</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 align-top text-sm text-slate-600">
-                      {item.country || <span className="text-slate-400">—</span>}
-                    </td>
-                    <td className="px-4 py-4 text-right align-top">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => nav(`/portal/crm/accounts/${item._id}`)}
-                          disabled={busy}
-                        >
-                          <ChevronRight size={14} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => { setSelected(item); setEditOpen(true); }}
-                          disabled={busy}
-                        >
-                          <Pencil size={14} />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onDelete(item)}
-                          disabled={busy}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
+  let content;
+  if (error) content = <ErrorState title="Accounts didn't load" message={error} onRetry={load} />;
+  else if (!loading && !items.length)
+    content = filtered ? (
+      <EmptyState icon={SearchX} title="No accounts match these filters" message="Try a different search, or clear the filters." action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>} />
+    ) : (
+      <EmptyState icon={Building2} title="No accounts yet" message="Accounts are companies in the CRM. They are also created when leads and deals are converted." action={canWrite ? <Button onClick={() => setCreateOpen(true)}><Plus size={14} aria-hidden="true" />New account</Button> : null} />
+    );
+  else
+    content = (
+      <>
+        <table className="px-table px-table--stack" aria-label="Accounts" aria-busy={loading || undefined}>
+          <thead>
+            <tr>
+              <SortHeader label="Account" field="name" sort={sort} onSort={set(setSort)} />
+              <SortHeader label="Industry" field="industry" sort={sort} onSort={set(setSort)} className="px-hide-tab" />
+              <th scope="col">Status</th>
+              <th scope="col">Client</th>
+              <th scope="col" className="px-hide-lg px-hide-sm">Country</th>
+              <th scope="col"><span className="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <SkeletonRows rows={6} cols={6} label="Loading accounts" />
+            ) : (
+              items.map((a) => {
+                const actions = [
+                  { key: "open", label: "Open account", icon: ExternalLink, onSelect: () => nav(`/portal/crm/accounts/${a._id}`) },
+                  canWrite ? { key: "edit", label: "Edit account", icon: Pencil, onSelect: () => setEditing(a) } : null,
+                  a.customerId?._id && access.canOpen("/portal/customers") ? { key: "client", label: "Open client", icon: Building2, onSelect: () => nav(`/portal/customers/${a.customerId._id}`) } : null,
+                  canDelete ? { key: "sep", separator: true } : null,
+                  canDelete ? { key: "delete", label: "Delete account", icon: Trash2, tone: "muted", onSelect: () => setRemoving(a) } : null,
+                ];
+                return (
+                  <tr key={a._id} data-clickable="true" onClick={(e) => !e.target.closest("a, button, [role='menu']") && nav(`/portal/crm/accounts/${a._id}`)}>
+                    <td className="px-primary">
+                      <div className="px-cell-main">
+                        <Link to={`/portal/crm/accounts/${a._id}`}>{a.name || "Unnamed account"}</Link>
+                        <span>{a.email || a.website || "No contact details"}</span>
                       </div>
                     </td>
+                    <td data-label="Industry" className="px-hide-tab">{a.industry || <span className="px-muted">—</span>}</td>
+                    <td data-label="Status">
+                      <span>
+                        <Badge tone={ACCOUNT_STATUS_TONE[a.status] || "neutral"} dot>
+                          {ACCOUNT_STATUS_LABEL[a.status] || a.status || "Active"}
+                        </Badge>
+                      </span>
+                    </td>
+                    <td data-label="Client">{a.customerId?.companyName || <span className="px-muted">Not a client</span>}</td>
+                    <td data-label="Country" className="px-hide-lg px-hide-sm">{a.country || <span className="px-muted">—</span>}</td>
+                    <td className="px-actions-cell">
+                      <RowActions label={a.name || "account"} actions={actions} />
+                    </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+        {!loading && meta.total ? <Pagination page={meta.page} pages={meta.pages} total={meta.total} limit={meta.limit} onPage={setPage} noun={meta.total === 1 ? "account" : "accounts"} label="Accounts pages" /> : null}
+      </>
+    );
+
+  return (
+    <>
+      <PageFrame
+        title="Accounts"
+        description="Companies in the CRM, with their contacts and deals."
+        breadcrumb={[{ label: "CRM", to: "/portal/crm" }, { label: "Accounts" }]}
+        secondaryActions={<Button variant="outline" onClick={refresh} disabled={loading}><RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />Refresh</Button>}
+        primaryAction={canWrite ? <Button onClick={() => setCreateOpen(true)} disabled={busy}><Plus size={14} aria-hidden="true" />New account</Button> : null}
+      >
+        <MetricsStrip label="Accounts by status" items={metrics} />
+        <Panel flush bare label="Account list" className="px-list-panel">
+          <div className="px-toolbar" role="search" aria-label="Filter accounts">
+            <SearchField label="Search accounts" value={q} onChange={setQ} placeholder="Name, email, industry or website" />
+            <SelectField label="Status" value={status} onChange={set(setStatus)} options={STATUS_FILTERS} />
+            <SelectField label="Sort by" value={sort} onChange={set(setSort)} options={SORT_OPTIONS.some((o) => o.value === sort) ? SORT_OPTIONS : [...SORT_OPTIONS, { value: sort, label: "Custom" }]} />
           </div>
-        </div>
-      )}
+          <div className="px-result-bar">
+            <span aria-live="polite">{loading ? "Loading accounts…" : error ? "Accounts unavailable" : `${meta.total} account${meta.total === 1 ? "" : "s"}`}</span>
+            {chips.length ? (
+              <div className="px-active-filters">
+                {chips.map((c) => (
+                  <button key={c.key} type="button" className="px-filter-chip" onClick={c.clear} aria-label={`Remove filter ${c.label}`}>
+                    {c.label}
+                    <X size={12} aria-hidden="true" />
+                  </button>
+                ))}
+                <button type="button" className="px-btn px-btn--ghost px-btn--sm" onClick={clearFilters}>Clear all</button>
+              </div>
+            ) : null}
+          </div>
+          {content}
+        </Panel>
+      </PageFrame>
 
-      <AccountFormModal
-        open={createOpen}
-        mode="create"
-        onClose={() => setCreateOpen(false)}
-        onSubmit={onCreate}
-        busy={busy}
-      />
-
-      <AccountFormModal
-        open={editOpen}
-        mode="edit"
-        initial={selected}
-        onClose={() => {
-          setEditOpen(false);
-          setSelected(null);
-        }}
-        onSubmit={onEdit}
-        busy={busy}
-      />
-
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-    </div>
+      {canWrite ? (
+        <>
+          <AccountFormModal open={createOpen} mode="create" busy={busy} onClose={() => setCreateOpen(false)} onSubmit={(p) => save(() => createAccount(p), "Account created.", () => setCreateOpen(false))} />
+          <AccountFormModal open={Boolean(editing)} mode="edit" initial={editing} busy={busy} onClose={() => setEditing(null)} onSubmit={(p) => save(() => updateAccount(editing._id, p), "Account updated.", () => setEditing(null))} />
+        </>
+      ) : null}
+      {canDelete ? (
+        <ConfirmDialog
+          open={Boolean(removing)}
+          icon={Trash2}
+          tone="bad"
+          danger
+          title="Delete this account permanently?"
+          confirmLabel="Delete account"
+          onClose={() => setRemoving(null)}
+          onConfirm={async () => {
+            try {
+              await deleteAccount(removing._id);
+              toast.success("Account deleted.");
+              setRemoving(null);
+              await refresh();
+            } catch (e) {
+              toast.error(e?.response?.data?.message || "The account wasn't deleted. Try again.");
+            }
+          }}
+          details={[
+            "The account is erased and can't be restored.",
+            "Its contacts, deals and activities are not deleted; they lose their link to this account.",
+            ...(removing?.customerId ? ["The linked client stays, with a link to an account that no longer exists."] : []),
+          ]}
+        >
+          {removing?.name}
+        </ConfirmDialog>
+      ) : null}
+    </>
   );
 }

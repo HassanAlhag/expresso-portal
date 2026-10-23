@@ -1,469 +1,227 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  ArrowUpRight,
-  BriefcaseBusiness,
-  Building2,
-  CalendarClock,
-  CheckCircle2,
-  CircleDollarSign,
-  Clock3,
-  Loader2,
-  Mail,
-  Phone,
-  Plus,
-  RefreshCw,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { AlertTriangle, Building2, CalendarClock, CheckCircle2, Handshake, Plus, RefreshCw, UserRound } from "lucide-react";
 
-import PageHeader from "../../../shared/ui/PageHeader";
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
+import MetricsStrip from "../../../shared/ui/MetricsStrip";
+import AttentionList from "../../../shared/ui/AttentionList";
+import Badge from "../../../shared/ui/Badge";
 import Button from "../../../shared/ui/Button";
-import StatCard from "../../../shared/ui/StatCard";
-import { leadSourceLabel } from "../constants";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ErrorState from "../../../shared/ui/ErrorState";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
-const DEAL_STAGES = [
-  "discovery",
-  "qualified",
-  "proposal",
-  "negotiation",
-  "verbal_commitment",
-  "won",
-  "lost",
-];
+import { DEAL_STAGE_LABEL, LEAD_STATUS_LABEL, LEAD_STATUS_TONE, ACCOUNT_STATUS_LABEL, ACCOUNT_STATUS_TONE, compactMoney, entityPath, leadSourceLabel } from "../format";
+import { loadCrmOverview, deriveCrmOverview } from "../lib/dashboardData";
+import { formatDate } from "../../projects/format";
+import LeadFormModal from "../components/LeadFormModal";
+import { createLead } from "../api";
+import { useToast } from "../../../shared/ui/Toast";
 
-const STAGE_LABELS = {
-  discovery: "Discovery",
-  qualified: "Qualified",
-  proposal: "Proposal",
-  negotiation: "Negotiation",
-  verbal_commitment: "Verbal Commit",
-  won: "Won",
-  lost: "Lost",
-};
+const KIND_ICON = { overdue: AlertTriangle, won: Handshake, lead: UserRound };
 
-const LEAD_STATUS_LABELS = {
-  new: "New",
-  contacted: "Contacted",
-  qualified: "Qualified",
-  unqualified: "Unqualified",
-  converted: "Converted",
-};
-
-function getToken() {
-  return (
-    localStorage.getItem("portal_token") ||
-    localStorage.getItem("token") ||
-    localStorage.getItem("authToken") ||
-    ""
-  );
-}
-
-async function apiGet(path) {
-  const token = getToken();
-  const res = await fetch(path, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    credentials: "include",
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.ok === false) throw new Error(data.message || "Request failed");
-  return data;
-}
-
-function formatMoney(value, currency = "AED") {
-  return `${currency} ${Number(value || 0).toLocaleString("en-AE", { maximumFractionDigits: 0 })}`;
-}
-
-function getDealValue(deal) {
-  return Number(deal?.value || 0);
-}
-
-function getStatusClass(status) {
-  switch (status) {
-    case "new":
-    case "discovery":
-      return "border-blue-100 bg-blue-50 text-blue-700";
-    case "contacted":
-    case "qualified":
-      return "border-purple-100 bg-purple-50 text-purple-700";
-    case "proposal":
-      return "border-amber-100 bg-amber-50 text-amber-700";
-    case "negotiation":
-    case "verbal_commitment":
-      return "border-orange-100 bg-orange-50 text-orange-700";
-    case "won":
-    case "converted":
-      return "border-emerald-100 bg-emerald-50 text-emerald-700";
-    case "lost":
-    case "unqualified":
-      return "border-red-100 bg-red-50 text-red-700";
-    default:
-      return "border-slate-100 bg-slate-50 text-slate-700";
-  }
-}
-
-function getOwnerName(item) {
-  return item?.ownerUserId?.fullName || item?.ownerUserId?.email || "Unassigned";
-}
-
+// CRM overview (PUI-3): what needs action in sales, where the pipeline
+// stands, and what came in recently. Staff only.
 export default function CRMDashboardPage() {
-  const nav = useNavigate();
+  const access = useAccess();
+  const toast = useToast();
+  const canWrite = access.can("crm.write");
+  const [data, setData] = useState(null);
+  const [state, setState] = useState("loading");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const [leads, setLeads] = useState([]);
-  const [deals, setDeals] = useState([]);
-  const [accounts, setAccounts] = useState([]);
-  const [totals, setTotals] = useState({ leads: 0, deals: 0, accounts: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const loadDashboard = async () => {
+  const load = useCallback(async () => {
+    setState("loading");
     try {
-      setLoading(true);
-      setError("");
-      const [leadsRes, dealsRes, accountsRes] = await Promise.all([
-        apiGet("/api/crm/leads?limit=8&includeConverted=true&sort=-createdAt"),
-        apiGet("/api/crm/deals?limit=50&sort=-createdAt"),
-        apiGet("/api/crm/accounts?limit=8&sort=-createdAt"),
-      ]);
-      setLeads(leadsRes.items || []);
-      setDeals(dealsRes.items || []);
-      setAccounts(accountsRes.items || []);
-      setTotals({
-        leads: leadsRes.total || 0,
-        deals: dealsRes.total || 0,
-        accounts: accountsRes.total || 0,
-      });
-    } catch (err) {
-      setError(err.message || "Failed to load CRM dashboard");
-    } finally {
-      setLoading(false);
+      setData(await loadCrmOverview());
+      setState("ready");
+    } catch {
+      setState("failed");
     }
-  };
-
-  useEffect(() => {
-    loadDashboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const openDeals = useMemo(() => deals.filter((d) => d.status === "open"), [deals]);
-  const wonDeals = useMemo(() => deals.filter((d) => d.stage === "won" || d.status === "won"), [deals]);
-  const pipelineValue = useMemo(() => openDeals.reduce((s, d) => s + getDealValue(d), 0), [openDeals]);
-  const wonValue = useMemo(() => wonDeals.reduce((s, d) => s + getDealValue(d), 0), [wonDeals]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const pipelineStages = useMemo(() =>
-    DEAL_STAGES.map((stage) => {
-      const stageDeals = deals.filter((d) => d.stage === stage);
-      return {
-        stage,
-        label: STAGE_LABELS[stage] || stage,
-        count: stageDeals.length,
-        value: stageDeals.reduce((s, d) => s + getDealValue(d), 0),
-      };
-    }),
-    [deals]
-  );
+  const view = useMemo(() => (data ? deriveCrmOverview(data) : null), [data]);
 
-  const convertedLeadsCount = useMemo(() => leads.filter((l) => l.status === "converted").length, [leads]);
-  const hotOpportunities = useMemo(() => openDeals.filter((d) => Number(d.value || 0) > 0).slice(0, 4), [openDeals]);
-
-  const followUps = useMemo(() => {
-    const leadTasks = leads
-      .filter((l) => l.status !== "converted")
-      .slice(0, 3)
-      .map((l) => ({
-        title: `Follow up with ${l.companyName || l.fullName}`,
-        subtitle: l.email || l.phone || "No contact details",
-        type: l.email ? "Email" : "Call",
-        icon: l.email ? Mail : Phone,
-      }));
-    const dealTasks = openDeals.slice(0, 2).map((d) => ({
-      title: `Move "${d.title}" forward`,
-      subtitle: `${STAGE_LABELS[d.stage] || d.stage} · ${formatMoney(d.value, d.currency)}`,
-      type: "Deal",
-      icon: CalendarClock,
-    }));
-    return [...leadTasks, ...dealTasks].slice(0, 5);
-  }, [leads, openDeals]);
+  const metrics = view
+    ? [
+        { key: "leads", label: "Open leads", value: view.openLeads, note: `${data.leads.qualified || 0} qualified`, to: "/portal/crm/leads" },
+        {
+          key: "deals",
+          label: "Open deals",
+          value: view.summary.open,
+          note: view.summary.openValue === null ? "Value not totalled: too many to add up here" : `${compactMoney(view.summary.openValue)} in the pipeline`,
+          to: "/portal/crm/deals",
+        },
+        { key: "won", label: "Won deals", value: view.summary.won, note: view.summary.wonValue === null ? "Value not totalled" : compactMoney(view.summary.wonValue), noteTone: "ok", to: "/portal/crm/deals" },
+        { key: "accounts", label: "Accounts", value: data.accountTotal, note: "Companies in the CRM", to: "/portal/crm/accounts" },
+      ]
+    : [];
 
   return (
-    <div className="grid gap-6">
-      <PageHeader
-        eyebrow="CRM"
-        title="Sales Pipeline"
-        subtitle="Leads, deals, accounts and follow-up actions in one view."
-        breadcrumb={[{ label: "Portal", to: "/portal" }, { label: "CRM" }, { label: "Dashboard" }]}
-        right={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={loadDashboard} disabled={loading}>
-              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-              Refresh
-            </Button>
-            <Button onClick={() => nav("/portal/crm/leads")}>
-              <Plus size={14} />
-              New lead
-            </Button>
-          </div>
-        }
-      />
-
-      {error ? (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">
-          {error}
-        </div>
-      ) : null}
-
-      {loading ? (
-        <div className="flex min-h-[360px] items-center justify-center rounded-[28px] border border-black/[0.07] bg-white shadow-sm">
-          <div className="flex items-center gap-3 text-sm font-semibold text-slate-500">
-            <Loader2 className="animate-spin" size={20} />
-            Loading CRM data…
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Stats row */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatCard icon={Users} label="Total Leads" value={totals.leads} color="indigo"
-              sub={`${convertedLeadsCount} converted`} />
-            <StatCard icon={BriefcaseBusiness} label="Open Deals" value={openDeals.length} color="violet"
-              sub={`${totals.deals} total`} />
-            <StatCard icon={CircleDollarSign} label="Pipeline" value={formatMoney(pipelineValue)} color="emerald"
-              sub="Open deal value" />
-            <StatCard icon={Building2} label="Accounts" value={totals.accounts} color="rose"
-              sub="CRM records" />
-          </div>
-
-          {/* Pipeline + Follow-ups */}
-          <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-            {/* Pipeline stages */}
-            <div className="rounded-[28px] border border-black/[0.07] bg-white p-5 shadow-sm">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <div className="text-[10.5px] font-black uppercase tracking-[0.2em] text-slate-400">Pipeline</div>
-                  <h2 className="mt-1 text-lg font-black text-slate-900">Deal Stages</h2>
-                  <p className="mt-0.5 text-sm text-slate-500">
-                    Open value: {formatMoney(pipelineValue)}
-                  </p>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => nav("/portal/crm/deals")}>
-                  Manage deals
-                  <ArrowUpRight size={14} />
-                </Button>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-4">
-                {pipelineStages.map((s) => (
-                  <div
-                    key={s.stage}
-                    className="rounded-[18px] border border-black/[0.06] bg-slate-50 p-3"
-                  >
-                    <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.1em] ${getStatusClass(s.stage)}`}>
-                      {s.label}
-                    </span>
-                    <div className="mt-3 text-2xl font-black text-slate-900">{s.count}</div>
-                    <div className="text-xs text-slate-500">deals</div>
-                    <div className="mt-2 rounded-xl bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 border border-black/5">
-                      {formatMoney(s.value)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Follow-ups */}
-            <div className="rounded-[28px] border border-black/[0.07] bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-[10.5px] font-black uppercase tracking-[0.2em] text-slate-400">Actions</div>
-                  <h2 className="mt-1 text-lg font-black text-slate-900">Follow-ups</h2>
-                  <p className="mt-0.5 text-sm text-slate-500">Suggested from leads and open deals.</p>
-                </div>
-                <Clock3 size={20} className="text-slate-300" />
-              </div>
-
-              <div className="mt-5 grid gap-2.5">
-                {followUps.length ? (
-                  followUps.map((task, i) => {
-                    const Icon = task.icon;
-                    return (
-                      <div key={i} className="flex items-start gap-3 rounded-[18px] border border-black/[0.06] bg-slate-50 p-3">
-                        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
-                          <Icon size={16} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-sm font-bold text-slate-900">{task.title}</div>
-                          <div className="mt-0.5 truncate text-xs text-slate-500">{task.subtitle}</div>
-                          <span className="mt-1.5 inline-flex rounded-full border border-black/10 bg-white px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.1em] text-slate-600">
-                            {task.type}
-                          </span>
-                        </div>
+    <>
+      <PageFrame
+        title="Sales overview"
+        description="Follow-ups that need action, the pipeline by stage, and the newest leads and accounts."
+        breadcrumb={[{ label: "CRM" }]}
+        secondaryActions={<Button variant="outline" onClick={load} disabled={state === "loading"}><RefreshCw size={14} className={state === "loading" ? "animate-spin" : ""} aria-hidden="true" />Refresh</Button>}
+        primaryAction={canWrite ? <Button onClick={() => setCreateOpen(true)}><Plus size={14} aria-hidden="true" />New lead</Button> : null}
+      >
+        {state === "failed" ? (
+          <ErrorState title="The sales overview didn't load" onRetry={load} />
+        ) : state === "loading" && !view ? (
+          <LoadingState rows={6} label="Loading the sales overview" />
+        ) : (
+          <>
+            <MetricsStrip label="Sales summary" items={metrics} />
+            <div className="px-grid px-cols-main">
+              <div className="px-stack">
+                <Panel title="Needs your attention" sub="Overdue follow-ups first" flush>
+                  <AttentionList
+                    items={view.attention.map((a) => ({ ...a, icon: KIND_ICON[a.kind] }))}
+                    empty={
+                      <div className="px-inline-empty">
+                        <CheckCircle2 size={18} aria-hidden="true" />
+                        <span>No overdue follow-ups, won deals waiting or qualified leads.</span>
                       </div>
-                    );
-                  })
-                ) : (
-                  <div className="rounded-[18px] border border-dashed border-black/10 bg-slate-50 p-5 text-center text-sm text-slate-400">
-                    No follow-up tasks.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+                    }
+                  />
+                </Panel>
 
-          {/* Recent Leads table */}
-          <div className="rounded-[28px] border border-black/[0.07] bg-white p-5 shadow-sm">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-[10.5px] font-black uppercase tracking-[0.2em] text-slate-400">Leads</div>
-                <h2 className="mt-1 text-lg font-black text-slate-900">Recent Leads</h2>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => nav("/portal/crm/leads")}>
-                View all
-                <ArrowUpRight size={14} />
-              </Button>
-            </div>
+                <Panel title="Pipeline by stage" sub="Every deal, counted from the CRM" flush action={<Link className="px-link" to="/portal/crm/deals">All deals</Link>}>
+                  <ul className="px-list">
+                    {view.pipeline.map((p) => (
+                      <li key={p.stage}>
+                        <div style={{ minWidth: 0, display: "grid", gap: 6 }}>
+                          <div className="px-t">{DEAL_STAGE_LABEL[p.stage]}</div>
+                          <div className="px-bar" data-tone={p.stage === "won" ? "ok" : p.stage === "lost" ? "bad" : undefined} aria-hidden="true">
+                            <i style={{ width: `${Math.round(p.share * 100)}%` }} />
+                          </div>
+                        </div>
+                        <div className="px-r">
+                          <b>{p.count}</b>
+                          <span>{p.value === null ? "Value not totalled" : compactMoney(p.value)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
 
-            <div className="mt-5 overflow-hidden rounded-[20px] border border-black/[0.06]">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-100">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      {["Lead", "Company", "Contact", "Source", "Owner", "Status"].map((h) => (
-                        <th key={h} className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
-                          {h}
-                        </th>
+                <Panel title="Newest leads" flush action={<Link className="px-link" to="/portal/crm/leads">All leads</Link>}>
+                  {data.recentLeads.length ? (
+                    <ul className="px-list px-cap-m3">
+                      {data.recentLeads.map((l) => (
+                        <li key={l._id}>
+                          <div style={{ minWidth: 0 }}>
+                            <div className="px-t">
+                              <Link to={`/portal/crm/leads/${l._id}`}>{l.fullName || "Unnamed lead"}</Link>
+                            </div>
+                            <div className="px-s">{[l.companyName, leadSourceLabel(l.source), formatDate(l.createdAt, { year: false })].filter(Boolean).join(", ")}</div>
+                          </div>
+                          <div className="px-r">
+                            <Badge tone={LEAD_STATUS_TONE[l.status] || "neutral"} dot>
+                              {LEAD_STATUS_LABEL[l.status] || l.status}
+                            </Badge>
+                          </div>
+                        </li>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50 bg-white">
-                    {leads.length ? (
-                      leads.map((lead) => (
-                        <tr
-                          key={lead._id}
-                          className="cursor-pointer transition hover:bg-slate-50"
-                          onClick={() => nav(`/portal/crm/leads/${lead._id}`)}
-                        >
-                          <td className="whitespace-nowrap px-4 py-3 text-sm font-bold text-slate-900">
-                            {lead.fullName}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                            {lead.companyName || "—"}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                            {lead.email || lead.phone || "—"}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                            {leadSourceLabel(lead.source)}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-600">
-                            {getOwnerName(lead)}
-                          </td>
-                          <td className="whitespace-nowrap px-4 py-3">
-                            <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.1em] ${getStatusClass(lead.status)}`}>
-                              {LEAD_STATUS_LABELS[lead.status] || lead.status || "New"}
+                    </ul>
+                  ) : (
+                    <div className="px-inline-empty">
+                      <UserRound size={18} aria-hidden="true" />
+                      <span>No leads yet.</span>
+                    </div>
+                  )}
+                </Panel>
+              </div>
+
+              <div className="px-stack">
+                <Panel title="Follow-ups this week" sub={view.overdueCount ? `${view.overdueCount} overdue` : "Due in the next 7 days"} flush>
+                  {view.dueSoon.length ? (
+                    <ul className="px-list px-cap-m3">
+                      {view.dueSoon.map((a) => (
+                        <li key={a._id}>
+                          <div style={{ minWidth: 0 }}>
+                            <div className="px-t">
+                              {entityPath(a.entityType, a.entityId) ? <Link to={entityPath(a.entityType, a.entityId)}>{a.subject || "Follow-up"}</Link> : a.subject || "Follow-up"}
+                            </div>
+                            <div className="px-s">{[a.entityType ? `On a ${a.entityType}` : null, a.assignedTo?.fullName].filter(Boolean).join(", ")}</div>
+                          </div>
+                          <div className="px-r">
+                            <span>
+                              <CalendarClock size={13} aria-hidden="true" /> {formatDate(a.dueAt, { year: false })}
                             </span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-10 text-center text-sm text-slate-400">
-                          No leads found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom 3 KPI cards + Accounts */}
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-2.5">
-                <CheckCircle2 size={20} className="text-emerald-500" />
-                <span className="font-black text-slate-900">Won Deals</span>
-              </div>
-              <div className="mt-4 text-3xl font-black text-slate-900">{formatMoney(wonValue)}</div>
-              <div className="mt-1 text-sm text-slate-500">
-                From {wonDeals.length} won deal{wonDeals.length !== 1 ? "s" : ""}
-              </div>
-            </div>
-
-            <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-2.5">
-                <CalendarClock size={20} className="text-indigo-500" />
-                <span className="font-black text-slate-900">Pending Follow-ups</span>
-              </div>
-              <div className="mt-4 text-3xl font-black text-slate-900">{followUps.length}</div>
-              <div className="mt-1 text-sm text-slate-500">Calls, emails, and deal updates</div>
-            </div>
-
-            <div className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-2.5">
-                <TrendingUp size={20} className="text-orange-500" />
-                <span className="font-black text-slate-900">Hot Opportunities</span>
-              </div>
-              <div className="mt-4 text-3xl font-black text-slate-900">{hotOpportunities.length}</div>
-              <div className="mt-1 text-sm text-slate-500">Open deals with active value</div>
-            </div>
-          </div>
-
-          {/* Recent Accounts */}
-          <div className="rounded-[28px] border border-black/[0.07] bg-white p-5 shadow-sm">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-[10.5px] font-black uppercase tracking-[0.2em] text-slate-400">Accounts</div>
-                <h2 className="mt-1 text-lg font-black text-slate-900">Recent Accounts</h2>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => nav("/portal/crm/accounts")}>
-                View all
-                <ArrowUpRight size={14} />
-              </Button>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {accounts.length ? (
-                accounts.map((account) => (
-                  <div
-                    key={account._id}
-                    className="cursor-pointer rounded-[20px] border border-black/[0.06] bg-slate-50 p-4 transition hover:bg-slate-100"
-                    onClick={() => nav(`/portal/crm/accounts/${account._id}`)}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-black text-slate-900">{account.name}</div>
-                        <div className="mt-0.5 truncate text-xs text-slate-500">
-                          {account.industry || "No industry"}
-                        </div>
-                      </div>
-                      <Building2 size={16} className="shrink-0 text-slate-300" />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="px-inline-empty">
+                      <CalendarClock size={18} aria-hidden="true" />
+                      <span>Nothing due in the next 7 days.</span>
                     </div>
-                    <div className="mt-3 space-y-1 text-xs text-slate-500">
-                      <div className="truncate">{account.email || account.phone || "No contact"}</div>
-                      <div className="truncate">
-                        {[account.city, account.country].filter(Boolean).join(", ") || "No location"}
-                      </div>
+                  )}
+                  {!view.pendingComplete ? <p className="px-muted" style={{ margin: "0 20px 14px", fontSize: 13 }}>Showing the first 200 open follow-ups by due date.</p> : null}
+                </Panel>
+
+                <Panel title="Newest accounts" flush action={<Link className="px-link" to="/portal/crm/accounts">All accounts</Link>}>
+                  {data.accounts.length ? (
+                    <ul className="px-list px-cap-m3">
+                      {data.accounts.map((a) => (
+                        <li key={a._id}>
+                          <div style={{ minWidth: 0 }}>
+                            <div className="px-t">
+                              <Link to={`/portal/crm/accounts/${a._id}`}>{a.name || "Unnamed account"}</Link>
+                            </div>
+                            <div className="px-s">{a.customerId?.companyName ? `Client: ${a.customerId.companyName}` : a.industry || "No industry"}</div>
+                          </div>
+                          <div className="px-r">
+                            <Badge tone={ACCOUNT_STATUS_TONE[a.status] || "neutral"} dot>
+                              {ACCOUNT_STATUS_LABEL[a.status] || a.status || "Active"}
+                            </Badge>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="px-inline-empty">
+                      <Building2 size={18} aria-hidden="true" />
+                      <span>No accounts yet.</span>
                     </div>
-                    <div className="mt-3">
-                      <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.1em] ${getStatusClass(account.status)}`}>
-                        {account.status || "active"}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-[20px] border border-dashed border-black/10 bg-slate-50 p-5 text-sm text-slate-400 sm:col-span-2 xl:col-span-4">
-                  No accounts found.
-                </div>
-              )}
+                  )}
+                </Panel>
+              </div>
             </div>
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </PageFrame>
+
+      {canWrite ? (
+        <LeadFormModal
+          open={createOpen}
+          mode="create"
+          busy={busy}
+          onClose={() => setCreateOpen(false)}
+          onSubmit={async (payload) => {
+            setBusy(true);
+            try {
+              await createLead(payload);
+              toast.success("Lead created.");
+              setCreateOpen(false);
+              await load();
+            } catch (e) {
+              toast.error(e?.response?.data?.message || "The lead wasn't created. Check the details and try again.");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        />
+      ) : null}
+    </>
   );
 }

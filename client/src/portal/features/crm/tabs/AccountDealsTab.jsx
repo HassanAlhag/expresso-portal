@@ -1,64 +1,51 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import Card, { CardBody, CardHeader } from "../../../shared/ui/Card";
-import EmptyState from "../../../shared/ui/EmptyState";
+import { Link } from "react-router-dom";
+import { Handshake } from "lucide-react";
+import Panel from "../../../shared/ui/Panel";
 import Badge from "../../../shared/ui/Badge";
-import { BriefcaseBusiness } from "lucide-react";
-import { formatMoney, stageLabel } from "../constants";
+import EmptyState from "../../../shared/ui/EmptyState";
+import { DEAL_STAGE_LABEL, DEAL_STAGE_TONE, money, normalizeStage, ownerName } from "../format";
+import { formatDate } from "../../projects/format";
 
-const STAGE_TONES = {
-  discovery: "neutral", qualified: "info", proposal: "info",
-  negotiation: "warning", verbal_commitment: "warning", won: "success", lost: "danger",
-};
-
+// Deals linked to the account (from GET /crm/accounts/:id `related.deals`).
 export default function AccountDealsTab({ deals = [] }) {
-  const nav = useNavigate();
-
+  if (!deals.length) return <EmptyState icon={Handshake} title="No deals yet" message="Deals linked to this account appear here." />;
   return (
-    <Card>
-      <CardHeader
-        title="Deals"
-        subtitle={`${deals.length} deal${deals.length !== 1 ? "s" : ""} linked to this account`}
-      />
-      <CardBody>
-        {deals.length === 0 ? (
-          <EmptyState
-            icon={BriefcaseBusiness}
-            title="No deals yet"
-            message="Deals linked to this account will appear here."
-          />
-        ) : (
-          <div className="grid gap-3">
-            {deals.map((deal) => (
-              <button
-                key={deal._id}
-                type="button"
-                onClick={() => nav(`/portal/crm/deals/${deal._id}`)}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-left transition hover:bg-black/[0.02]"
-              >
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-black text-slate-900">{deal.title}</div>
-                  <div className="mt-1 flex items-center gap-2 text-sm text-slate-600">
-                    <Badge tone={STAGE_TONES[deal.stage] || "neutral"} className="text-[10px]">
-                      {stageLabel(deal.stage)}
+    <Panel title="Deals" sub={`${deals.length} linked deal${deals.length === 1 ? "" : "s"}`} flush>
+      <table className="px-table px-table--stack" aria-label="Account deals">
+        <thead>
+          <tr>
+            <th scope="col">Deal</th>
+            <th scope="col">Stage</th>
+            <th scope="col" className="px-num">Value</th>
+            <th scope="col" className="px-hide-tab">Expected close</th>
+          </tr>
+        </thead>
+        <tbody>
+          {deals.map((d) => {
+            const st = normalizeStage(d.stage);
+            return (
+              <tr key={d._id}>
+                <td className="px-primary">
+                  <div className="px-cell-main">
+                    <Link to={`/portal/crm/deals/${d._id}`}>{d.title || "Untitled deal"}</Link>
+                    <span>{ownerName(d) || "Unassigned"}</span>
+                  </div>
+                </td>
+                <td data-label="Stage">
+                  <span>
+                    <Badge tone={DEAL_STAGE_TONE[st] || "neutral"} dot>
+                      {DEAL_STAGE_LABEL[st] || st}
                     </Badge>
-                    <span>{formatMoney(deal.value, deal.currency)}</span>
-                  </div>
-                  {deal.ownerUserId?.fullName && (
-                    <div className="mt-1 text-xs text-slate-400">{deal.ownerUserId.fullName}</div>
-                  )}
-                </div>
-                {deal.expectedCloseDate && (
-                  <div className="shrink-0 text-right text-xs text-slate-500">
-                    <div className="font-semibold">Close by</div>
-                    <div>{new Date(deal.expectedCloseDate).toLocaleDateString()}</div>
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </CardBody>
-    </Card>
+                  </span>
+                </td>
+                <td data-label="Value" className="px-num">{money(d.value, d.currency) || <span className="px-muted">—</span>}</td>
+                <td data-label="Expected close" className="px-hide-tab px-num">{formatDate(d.expectedCloseDate) || <span className="px-muted">—</span>}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </Panel>
   );
 }

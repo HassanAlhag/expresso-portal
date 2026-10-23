@@ -1026,3 +1026,42 @@ textarea.px-input { height: auto; padding: 9px 12px; line-height: 1.5; resize: v
   .px-shortcuts--grid a { padding: 10px 14px; }
   .px-shortcuts--grid small { display: none; }
 }
+
+/* ============================================================
+   PUI-3: Clients + CRM. Form error, check field, stage board, small
+   record helpers. Neutral + Lotus only.
+   ============================================================ */
+.px-form-error { margin: 10px 0 0; padding: 10px 12px; border-radius: var(--px-r); background: var(--px-bad-50); color: var(--px-bad); font-size: 14px; }
+.px-form-section .px-check { height: auto; min-height: 38px; }
+.px-form-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.px-choice-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.px-choice { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--px-line-strong); background: var(--px-surface); font: 500 13.5px var(--px-font); color: var(--px-ink-2); cursor: pointer; }
+.px-choice:hover { border-color: var(--px-lotus-600); color: var(--px-lotus-600); }
+.px-choice[aria-pressed="true"], .px-choice[aria-checked="true"] { background: var(--px-ink); border-color: var(--px-ink); color: #fff; }
+.px-logo { width: 34px; height: 34px; border-radius: 9px; flex: none; display: grid; place-items: center; overflow: hidden; background: var(--px-surface-2); color: var(--px-ink-2); font: 600 12.5px var(--px-font); }
+.px-logo img { width: 100%; height: 100%; object-fit: cover; }
+.px-logo--lg { width: 52px; height: 52px; border-radius: 12px; font-size: 16px; }
+.px-cell-with-logo { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.px-board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(240px, 1fr); gap: 12px; overflow-x: auto; padding: 4px 2px 10px; }
+.px-board-col { background: var(--px-surface-2); border-radius: var(--px-r-lg); padding: 10px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.px-board-col h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 2px 4px 4px; font: 600 14px var(--px-font); color: var(--px-ink); }
+.px-board-col h3 small { font-weight: 500; font-size: 12.5px; color: var(--px-muted); }
+.px-board-card { background: var(--px-surface); border: 1px solid var(--px-line); border-radius: var(--px-r); padding: 10px 12px; display: grid; gap: 6px; min-width: 0; }
+.px-board-card a { font-weight: 600; font-size: 14px; color: var(--px-ink); text-decoration: none; overflow-wrap: anywhere; }
+.px-board-card a:hover { color: var(--px-lotus-600); text-decoration: underline; }
+.px-board-card .px-s { font-size: 12.5px; color: var(--px-muted); }
+.px-board-card .px-select select { height: 32px; font-size: 13px; }
+.px-board-more { font-size: 12.5px; color: var(--px-muted); margin: 0 4px; }
+.px-stage-track { display: grid; grid-template-columns: repeat(var(--px-stage-n, 5), minmax(0, 1fr)); gap: 4px; }
+.px-stage-track span { height: 6px; border-radius: 99px; background: var(--px-surface-2); }
+.px-stage-track span[data-on="true"] { background: var(--px-lotus-600); }
+.px-stage-track[data-outcome="won"] span[data-on="true"] { background: var(--px-ok); }
+.px-stage-track[data-outcome="lost"] span[data-on="true"] { background: var(--px-bad); }
+@media (max-width: 960px) {
+  .px-form-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .px-form-grid--4 { grid-template-columns: minmax(0, 1fr); }
+  /* Phones: stage columns stack (no sideways carousel). */
+  .px-board { grid-auto-flow: row; grid-auto-columns: auto; overflow: visible; }
+}

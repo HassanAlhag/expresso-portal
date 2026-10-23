@@ -272,10 +272,12 @@ export default function CustomerJobsTab({
               Refresh
             </Button>
 
-            <Button onClick={onOpenNewJob} disabled={busy}>
-              <Plus size={16} />
-              New job
-            </Button>
+            {onOpenNewJob ? (
+              <Button onClick={onOpenNewJob} disabled={busy}>
+                <Plus size={16} />
+                New job
+              </Button>
+            ) : null}
           </div>
         </div>
 
@@ -308,7 +310,7 @@ export default function CustomerJobsTab({
           icon={ClipboardList}
           title="No jobs yet"
           message="Create a job to start execution for this customer."
-          actionLabel="Create Job"
+          actionLabel={onOpenNewJob ? "Create Job" : undefined}
           onAction={onOpenNewJob}
         />
       ) : (

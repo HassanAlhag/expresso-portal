@@ -1,341 +1,217 @@
-import React, { useEffect, useState } from "react";
-import {
-  UserPlus,
-  Trash2,
-  Shield,
-  Mail,
-  CheckCircle2,
-  XCircle,
-  RefreshCw,
-  Eye,
-  EyeOff,
-  X,
-} from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { Trash2, UserPlus, Users } from "lucide-react";
+import Panel from "../../../shared/ui/Panel";
+import Badge from "../../../shared/ui/Badge";
+import Button from "../../../shared/ui/Button";
+import RowActions from "../../../shared/ui/RowActions";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import EmptyState from "../../../shared/ui/EmptyState";
+import ErrorState from "../../../shared/ui/ErrorState";
+import FormDialog from "../../../shared/ui/FormDialog";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
+import TextField from "../../../shared/ui/TextField";
+import SelectField from "../../../shared/ui/SelectField";
+import { useToast } from "../../../shared/ui/Toast";
 import { listCustomerUsers, createCustomerUser } from "../api";
 import { deleteUser } from "../../iam/users/api";
-import { useToast } from "../../../shared/ui/Toast";
-import Skeleton from "../../../shared/ui/Skeleton";
+import { formatDate } from "../../projects/format";
 
-const CLIENT_ROLES = [
-  { value: "client",              label: "Client",              hint: "Basic access — projects, files, billing, tickets" },
-  { value: "staff_client",        label: "Staff Client",        hint: "Extended access — projects, files, billing, messages" },
-  { value: "client_admin",        label: "Client Admin",        hint: "Full client access — all above + procurement, brand kit" },
-  { value: "procurement_client",  label: "Procurement Client",  hint: "Procurement, files, billing, tickets" },
+export const CLIENT_ROLE_OPTIONS = [
+  { value: "client", label: "Client", hint: "Projects, files, billing and tickets" },
+  { value: "staff_client", label: "Staff client", hint: "Projects, files, billing and messages" },
+  { value: "client_admin", label: "Client admin", hint: "Everything above, plus procurement and brand kit" },
+  { value: "procurement_client", label: "Procurement client", hint: "Procurement, files, billing and tickets" },
 ];
+const roleLabel = (r) => CLIENT_ROLE_OPTIONS.find((o) => o.value === r)?.label || String(r || "").replaceAll("_", " ");
+const EMPTY = { email: "", fullName: "", tempPassword: "", role: "client" };
 
-const ROLE_COLORS = {
-  client:             "bg-slate-100 text-slate-600",
-  staff_client:       "bg-sky-50 text-sky-700",
-  client_admin:       "bg-indigo-50 text-indigo-700",
-  procurement_client: "bg-amber-50 text-amber-700",
-};
-
-const EMPTY_FORM = { email: "", fullName: "", tempPassword: "", role: "client" };
-
-function CreateUserModal({ customerId, onCreated, onClose }) {
+// The client's portal users (PUI-3). Listing needs customers.read (the API
+// limits client users to their own company); adding needs customers.write;
+// removing an account needs iam.users.delete.
+export default function CustomerUsersTab({ customer, canAdd = false, canRemove = false }) {
   const toast = useToast();
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [showPw, setShowPw] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [removing, setRemoving] = useState(null);
 
-  function set(k, v) {
-    setForm((f) => ({ ...f, [k]: v }));
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (form.tempPassword.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-    setSaving(true);
+  const load = useCallback(async () => {
+    if (!customer?._id) return;
+    setLoading(true);
+    setFailed(false);
     try {
-      const r = await createCustomerUser(customerId, form);
-      toast.success("User created successfully");
-      onCreated(r.user);
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to create user");
+      const res = await listCustomerUsers(customer._id);
+      setUsers(Array.isArray(res?.users) ? res.users : []);
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [customer?._id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const add = async () => {
+    setSaving(true);
+    setFormError("");
+    try {
+      await createCustomerUser(customer._id, { ...form, email: form.email.trim(), fullName: form.fullName.trim() });
+      toast.success("Portal user added.");
+      setAdding(false);
+      await load();
+    } catch (e) {
+      setFormError(e?.response?.data?.message || "The user wasn't added. Check the details and try again.");
     } finally {
       setSaving(false);
     }
-  }
+  };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <h3 className="text-[15px] font-bold text-slate-900">Add Company User</h3>
-            <p className="mt-0.5 text-[12px] text-slate-400">Creates a portal account linked to this company</p>
-          </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100">
-            <X size={16} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-[12px] font-semibold text-slate-600">Email *</label>
-            <input
-              required
-              type="email"
-              value={form.email}
-              onChange={(e) => set("email", e.target.value)}
-              placeholder="user@company.com"
-              className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-[13px] outline-none focus:border-[#6F7FD9]"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-[12px] font-semibold text-slate-600">Full Name</label>
-            <input
-              type="text"
-              value={form.fullName}
-              onChange={(e) => set("fullName", e.target.value)}
-              placeholder="Optional — defaults to company name"
-              className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-[13px] outline-none focus:border-[#6F7FD9]"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-[12px] font-semibold text-slate-600">Role *</label>
-            <div className="space-y-2">
-              {CLIENT_ROLES.map((r) => (
-                <label key={r.value} className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-indigo-300 has-[:checked]:border-[#6F7FD9] has-[:checked]:bg-indigo-50/50">
-                  <input
-                    type="radio"
-                    name="role"
-                    value={r.value}
-                    checked={form.role === r.value}
-                    onChange={() => set("role", r.value)}
-                    className="mt-0.5 accent-[#6F7FD9]"
-                  />
-                  <div>
-                    <p className="text-[13px] font-semibold text-slate-800">{r.label}</p>
-                    <p className="text-[11px] text-slate-400">{r.hint}</p>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-[12px] font-semibold text-slate-600">Temporary Password *</label>
-            <div className="relative">
-              <input
-                required
-                type={showPw ? "text" : "password"}
-                value={form.tempPassword}
-                onChange={(e) => set("tempPassword", e.target.value)}
-                placeholder="Min 8 characters"
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 pr-10 text-[13px] outline-none focus:border-[#6F7FD9]"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
-            </div>
-            {form.tempPassword.length > 0 && form.tempPassword.length < 8 && (
-              <p className="mt-1 text-[11px] text-rose-500">Password must be at least 8 characters</p>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-[13px] text-slate-600 hover:bg-slate-100">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center gap-1.5 rounded-xl bg-[#6F7FD9] px-5 py-2 text-[13px] font-semibold text-white disabled:opacity-50 hover:bg-[#5a6bc8]"
-            >
-              {saving ? <RefreshCw size={13} className="animate-spin" /> : <UserPlus size={13} />}
-              {saving ? "Creating…" : "Create user"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function UserRow({ user, onDelete, isOwner }) {
-  const toast = useToast();
-  const [confirming, setConfirming] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-
-  async function handleDelete() {
-    setDeleting(true);
+  const confirmRemove = async () => {
+    const u = removing;
     try {
-      await deleteUser(user._id);
-      toast.success("User deleted");
-      onDelete(user._id);
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to delete user");
+      await deleteUser(u._id);
+      toast.success(`${u.fullName || u.email} removed.`);
+    } catch (e) {
+      // Known issue (remediation P1-2): removing a client-linked account can
+      // report an error after the account was removed. Reload to show the truth.
+      toast.error(e?.response?.data?.message || "The server reported a problem. The list has been refreshed to show the current state.");
     } finally {
-      setDeleting(false);
-      setConfirming(false);
+      setRemoving(null);
+      await load();
     }
-  }
+  };
 
-  const roleLabel = CLIENT_ROLES.find((r) => r.value === user.role)?.label || user.role;
-  const roleColor = ROLE_COLORS[user.role] || "bg-slate-100 text-slate-600";
+  const action = canAdd ? (
+    <Button
+      size="sm"
+      onClick={() => {
+        setForm(EMPTY);
+        setFormError("");
+        setAdding(true);
+      }}
+    >
+      <UserPlus size={14} aria-hidden="true" />
+      Add user
+    </Button>
+  ) : null;
+
+  let content;
+  if (failed) content = <ErrorState title="Users didn't load" onRetry={load} />;
+  else if (!loading && !users.length)
+    content = <EmptyState icon={Users} title="No portal users yet" message="People at this company who can sign in to the client portal appear here." action={action} />;
+  else
+    content = (
+      <Panel title="Portal users" sub={loading ? undefined : `${users.filter((u) => u.isActive).length} of ${users.length} active`} flush action={action}>
+        <table className="px-table px-table--stack" aria-label="Portal users" aria-busy={loading || undefined}>
+          <thead>
+            <tr>
+              <th scope="col">Person</th>
+              <th scope="col">Role</th>
+              <th scope="col">Status</th>
+              <th scope="col" className="px-hide-tab">Last sign-in</th>
+              {canRemove ? (
+                <th scope="col">
+                  <span className="sr-only">Actions</span>
+                </th>
+              ) : null}
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <SkeletonRows rows={3} cols={canRemove ? 5 : 4} label="Loading users" />
+            ) : (
+              users.map((u) => (
+                <tr key={u._id}>
+                  <td className="px-primary">
+                    <div className="px-cell-main">
+                      <b>{u.fullName || u.email}</b>
+                      <span>{u.email}</span>
+                    </div>
+                  </td>
+                  <td data-label="Role">{roleLabel(u.role)}</td>
+                  <td data-label="Status">
+                    <span>
+                      <Badge tone={u.isActive ? "ok" : "neutral"} dot={Boolean(u.isActive)}>
+                        {u.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </span>
+                  </td>
+                  <td data-label="Last sign-in" className="px-hide-tab px-num">
+                    {u.lastLoginAt ? formatDate(u.lastLoginAt) : <span className="px-muted">Never</span>}
+                  </td>
+                  {canRemove ? (
+                    <td className="px-actions-cell">
+                      <RowActions
+                        label={u.fullName || u.email}
+                        actions={[{ key: "remove", label: "Remove account", icon: Trash2, onSelect: () => setRemoving(u) }]}
+                      />
+                    </td>
+                  ) : null}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </Panel>
+    );
 
   return (
-    <div className="flex items-center gap-4 border-b border-slate-50 px-5 py-3.5 last:border-b-0 hover:bg-slate-50/60 transition-colors">
-      {/* Avatar */}
-      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#6F7FD9]/10 text-[13px] font-bold text-[#6F7FD9]">
-        {(user.fullName || user.email || "?")[0].toUpperCase()}
-      </div>
-
-      {/* Info */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-[13px] font-semibold text-slate-800">{user.fullName || "—"}</p>
-          {isOwner && (
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-600">Primary</span>
-          )}
-        </div>
-        <div className="flex items-center gap-1 text-[12px] text-slate-400">
-          <Mail size={10} />
-          <span className="truncate">{user.email}</span>
-        </div>
-      </div>
-
-      {/* Role badge */}
-      <span className={`hidden flex-shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold sm:inline-flex items-center gap-1 ${roleColor}`}>
-        <Shield size={9} />
-        {roleLabel}
-      </span>
-
-      {/* Status */}
-      <div className="flex-shrink-0">
-        {user.isActive ? (
-          <CheckCircle2 size={15} className="text-emerald-500" />
-        ) : (
-          <XCircle size={15} className="text-slate-300" />
-        )}
-      </div>
-
-      {/* Delete */}
-      <div className="flex-shrink-0">
-        {confirming ? (
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={deleting}
-              className="rounded-lg bg-rose-500 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-rose-600 disabled:opacity-50"
-            >
-              {deleting ? "…" : "Confirm"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirming(false)}
-              className="rounded-lg px-2.5 py-1 text-[11px] text-slate-500 hover:bg-slate-100"
-            >
-              Cancel
-            </button>
+    <>
+      {content}
+      <FormDialog
+        open={adding}
+        title="Add a portal user"
+        description={`Creates a client portal account linked to ${customer?.companyName || "this client"}.`}
+        onClose={() => setAdding(false)}
+        onSubmit={add}
+        busy={saving}
+        canSubmit={Boolean(form.email.trim()) && form.tempPassword.length >= 8}
+        submitLabel="Add user"
+        submitIcon={UserPlus}
+        error={formError}
+      >
+        <fieldset className="px-form-section">
+          <legend>Person</legend>
+          <div className="px-form-grid px-form-grid--2">
+            <TextField label="Email" type="email" required value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+            <TextField label="Full name" value={form.fullName} onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))} />
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setConfirming(true)}
-            className="rounded-lg p-1.5 text-slate-300 transition hover:bg-rose-50 hover:text-rose-500"
-            title="Delete user"
-          >
-            <Trash2 size={14} />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default function CustomerUsersTab({ customer }) {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [createOpen, setCreateOpen] = useState(false);
-
-  useEffect(() => {
-    if (!customer?._id) return;
-    setLoading(true);
-    listCustomerUsers(customer._id)
-      .then((r) => setUsers(r?.users || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [customer?._id]);
-
-  function handleCreated(newUser) {
-    setUsers((prev) => [...prev, newUser]);
-    setCreateOpen(false);
-  }
-
-  function handleDeleted(id) {
-    setUsers((prev) => prev.filter((u) => u._id !== id));
-  }
-
-  return (
-    <div className="rounded-[28px] border border-black/[0.07] bg-white shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <div>
-          <p className="text-[14px] font-bold text-slate-900">Portal Users</p>
-          <p className="text-[12px] text-slate-400">All accounts linked to this company</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-1.5 rounded-xl bg-[#6F7FD9] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#5a6bc8] transition"
-        >
-          <UserPlus size={14} />
-          Add User
-        </button>
-      </div>
-
-      {/* User list */}
-      {loading ? (
-        <div className="space-y-1 p-5">
-          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}
-        </div>
-      ) : users.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-14 text-center">
-          <UserPlus size={32} className="mb-3 text-slate-200" strokeWidth={1.5} />
-          <p className="text-[13px] font-semibold text-slate-400">No users yet</p>
-          <p className="text-[12px] text-slate-300">Click "Add User" to create the first login</p>
-        </div>
-      ) : (
-        <div>
-          {users.map((u) => (
-            <UserRow
-              key={u._id}
-              user={u}
-              isOwner={String(u._id) === String(customer?.ownerUserId)}
-              onDelete={handleDeleted}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Stats footer */}
-      {!loading && users.length > 0 && (
-        <div className="flex items-center gap-4 border-t border-slate-100 px-5 py-3 text-[12px] text-slate-400">
-          <span>{users.length} user{users.length !== 1 ? "s" : ""} total</span>
-          <span>·</span>
-          <span>{users.filter((u) => u.isActive).length} active</span>
-        </div>
-      )}
-
-      {createOpen && (
-        <CreateUserModal
-          customerId={customer._id}
-          onCreated={handleCreated}
-          onClose={() => setCreateOpen(false)}
-        />
-      )}
-    </div>
+          <SelectField
+            label="Portal role"
+            value={form.role}
+            onChange={(v) => setForm((f) => ({ ...f, role: v }))}
+            options={CLIENT_ROLE_OPTIONS.map((o) => ({ value: o.value, label: `${o.label}: ${o.hint}` }))}
+          />
+          <TextField
+            label="Temporary password"
+            type="password"
+            required
+            autoComplete="new-password"
+            value={form.tempPassword}
+            onChange={(e) => setForm((f) => ({ ...f, tempPassword: e.target.value }))}
+            hint="At least 8 characters. Share it securely."
+          />
+        </fieldset>
+      </FormDialog>
+      <ConfirmDialog
+        open={Boolean(removing)}
+        icon={Trash2}
+        tone="bad"
+        danger
+        title="Remove this portal account?"
+        confirmLabel="Remove account"
+        onClose={() => setRemoving(null)}
+        onConfirm={confirmRemove}
+        details={["The person can no longer sign in to the client portal.", "This deletes the user account and can't be undone."]}
+      >
+        {`${removing?.fullName || removing?.email || "This user"} (${removing?.email || ""})`}
+      </ConfirmDialog>
+    </>
   );
 }

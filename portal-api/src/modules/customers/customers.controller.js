@@ -9,6 +9,25 @@ import {
   requireOwnClient,
 } from "../../utils/accessControl.js";
 
+// Client-user boundary (PUI-3, 21 Oct 2026). A client user who can read their
+// own company record never receives the internal notes or the links to the
+// CRM account and deal (CRM is internal: deal title, stage and value). Staff
+// responses are unchanged.
+export const CLIENT_HIDDEN_CUSTOMER_FIELDS = ["notes", "crmAccountId", "crmDealId"];
+const LIST_FIELDS =
+  "companyName contactName slug primaryEmail phone industry country code isActive ownerUserId logoUrl logoMediaId notes department createdAt updatedAt";
+const DETAIL_FIELDS =
+  "companyName contactName slug primaryEmail phone industry country code isActive ownerUserId logoUrl logoMediaId notes department crmAccountId crmDealId createdAt updatedAt";
+
+/** The field list a viewer may receive: internal users get all of it. */
+export function customerFieldsFor(req, fields) {
+  if (canSeeAllTenantRecords(req)) return fields;
+  return fields
+    .split(/\s+/)
+    .filter((f) => !CLIENT_HIDDEN_CUSTOMER_FIELDS.includes(f))
+    .join(" ");
+}
+
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -98,9 +117,7 @@ export async function listCustomers(req, res) {
         .sort(safeSort(sort))
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
-        .select(
-          "companyName contactName slug primaryEmail phone industry country code isActive ownerUserId logoUrl logoMediaId notes department createdAt updatedAt"
-        )
+        .select(customerFieldsFor(req, LIST_FIELDS))
         .lean(),
     ]);
 
@@ -125,13 +142,14 @@ export async function getCustomerById(req, res) {
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
 
-    const item = await Customer.findById(id)
-      .select(
-        "companyName contactName slug primaryEmail phone industry country code isActive ownerUserId logoUrl logoMediaId notes department crmAccountId crmDealId createdAt updatedAt"
-      )
-      .populate("crmAccountId", "name industry")
-      .populate("crmDealId", "title stage value currency")
-      .lean();
+    const internal = canSeeAllTenantRecords(req);
+    let query = Customer.findById(id).select(customerFieldsFor(req, DETAIL_FIELDS));
+    if (internal) {
+      query = query
+        .populate("crmAccountId", "name industry")
+        .populate("crmDealId", "title stage value currency");
+    }
+    const item = await query.lean();
 
     if (!item) return res.status(404).json({ ok: false, message: "Not found" });
     if (!requireOwnClient(req, item._id)) {
@@ -352,6 +370,11 @@ export async function listCustomerUsers(req, res) {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
+
+    // A client user may only list their own company's portal users (PUI-3).
+    if (!requireOwnClient(req, id)) {
+      return res.status(403).json({ ok: false, message: "Forbidden" });
+    }
 
     const users = await User.find({ clientId: id })
       .select("fullName email role isActive lastLoginAt createdAt")

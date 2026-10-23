@@ -1,126 +1,69 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { listJobs } from "../../jobs/api";
-import { useToast } from "../../../shared/ui/Toast";
-import Skeleton from "../../../shared/ui/Skeleton";
+import { Link } from "react-router-dom";
+import { Activity, ClipboardList } from "lucide-react";
+import Panel from "../../../shared/ui/Panel";
+import Badge from "../../../shared/ui/Badge";
+import Timeline from "../../../shared/ui/Timeline";
+import LoadingState from "../../../shared/ui/LoadingState";
+import ErrorState from "../../../shared/ui/ErrorState";
 import EmptyState from "../../../shared/ui/EmptyState";
-import { Activity, Clock, ChevronRight } from "lucide-react";
+import { listJobs } from "../../jobs/api";
+import { JOB_STATUS_TONE, formatDate, humanize } from "../../projects/format";
 
-function fmtDate(d) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-GB", {
-    day: "numeric", month: "short", year: "numeric",
-  });
-}
-
-const STATUS_CLS = {
-  published:      "text-emerald-600 bg-emerald-50 border-emerald-200",
-  approved:       "text-indigo-600  bg-indigo-50  border-indigo-200",
-  in_review:      "text-orange-600  bg-orange-50  border-orange-200",
-  client_review:  "text-orange-600  bg-orange-50  border-orange-200",
-  editing:        "text-sky-600     bg-sky-50     border-sky-200",
-  designing:      "text-sky-600     bg-sky-50     border-sky-200",
-  draft:          "text-slate-500   bg-slate-50   border-slate-200",
-  cancelled:      "text-rose-600    bg-rose-50    border-rose-200",
-  on_hold:        "text-amber-600   bg-amber-50   border-amber-200",
-};
-
+// Client activity (PUI-3). Production keeps no client activity log, so this
+// shows what exists: the client's jobs, newest first, as on Project detail.
 export default function CustomerActivityTab({ customerId }) {
-  const nav = useNavigate();
-  const toast = useToast();
-  const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState([]);
+  const [state, setState] = useState({ loading: true, failed: false, items: [] });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (!customerId) return;
+    if (!customerId) return undefined;
     let cancelled = false;
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await listJobs({ customerId, limit: 30, sort: "-createdAt" });
-        if (!cancelled) setItems(res?.items || []);
-      } catch (e) {
-        if (!cancelled)
-          toast.error(e?.response?.data?.message || "Failed to load activity");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [customerId, toast]);
+    setState((s) => ({ ...s, loading: true, failed: false }));
+    listJobs({ customerId, limit: 30, sort: "-createdAt" })
+      .then((res) => {
+        if (cancelled) return;
+        // The jobs list filters by customerId on the server; keep only this client's jobs.
+        const items = (res?.items || []).filter((j) => String(j?.customerId?._id || j?.customerId || "") === String(customerId));
+        setState({ loading: false, failed: false, items });
+      })
+      .catch(() => !cancelled && setState({ loading: false, failed: true, items: [] }));
+    return () => {
+      cancelled = true;
+    };
+  }, [customerId, attempt]);
 
-  if (loading) {
-    return (
-      <div className="rounded-[28px] border border-black/[0.07] bg-white p-6 shadow-sm">
-        <div className="grid gap-3">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full" />
-          ))}
-        </div>
-      </div>
-    );
+  if (state.loading) return <LoadingState rows={5} label="Loading activity" />;
+  if (state.failed) return <ErrorState title="Activity didn't load" onRetry={() => setAttempt((n) => n + 1)} />;
+  if (!state.items.length) {
+    return <EmptyState icon={Activity} title="No activity yet" message="Jobs created for this client will appear here, newest first." />;
   }
-
-  if (!items.length) {
-    return (
-      <div className="rounded-[28px] border border-black/[0.07] bg-white shadow-sm">
-        <EmptyState
-          icon={Activity}
-          title="No activity yet"
-          message="Jobs, productions, and delivery events for this client will appear here."
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="rounded-[28px] border border-black/[0.07] bg-white p-6 shadow-sm">
-      <div className="mb-4 text-[11px] font-extrabold tracking-[0.18em] text-slate-500">
-        RECENT JOBS · {items.length}
-      </div>
-      <div className="relative">
-        <div className="absolute left-3 top-0 bottom-0 w-px bg-slate-100" />
-        <div className="grid gap-3 pl-8">
-          {items.map((job) => (
-            <button
-              key={job._id}
-              type="button"
-              onClick={() => nav(`/portal/jobs/${job._id}`, { state: { returnTo: `/portal/customers/${customerId}` } })}
-              className="relative group text-left"
-            >
-              <div className="absolute -left-5 top-2 h-2 w-2 rounded-full border-2 border-indigo-300 bg-white group-hover:border-indigo-500 transition" />
-              <div className="flex items-start justify-between gap-3 rounded-xl border border-transparent px-3 py-2 hover:border-black/[0.07] hover:bg-black/[0.02] transition">
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-bold text-slate-900 group-hover:underline">
-                    {job.title || "Untitled job"}
-                  </div>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-                    <span
-                      className={[
-                        "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.1em]",
-                        STATUS_CLS[job.status] || STATUS_CLS.draft,
-                      ].join(" ")}
-                    >
-                      {String(job.status || "draft").replaceAll("_", " ")}
-                    </span>
-                    {job.type && (
-                      <span>{String(job.type).replaceAll("_", " ")}</span>
-                    )}
-                    {job.projectId?.name && (
-                      <span className="text-slate-400">· {job.projectId.name}</span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-1 text-xs text-slate-400">
-                  <Clock size={10} />
-                  {fmtDate(job.createdAt)}
-                  <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 transition" />
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
+    <Panel title="Job activity" sub="Jobs created for this client, newest first. A full client activity log isn't recorded yet.">
+      <Timeline
+        label="Job activity"
+        items={state.items.map((j) => ({
+          key: j._id,
+          icon: ClipboardList,
+          tone: JOB_STATUS_TONE[j.status] === "ok" ? "ok" : JOB_STATUS_TONE[j.status] === "warn" ? "warn" : "info",
+          dateTime: j.createdAt,
+          when: formatDate(j.createdAt),
+          content: (
+            <>
+              <Link to={`/portal/jobs/${j._id}`}>
+                <b>{j.title || "Untitled job"}</b>
+              </Link>{" "}
+              created
+              <span style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 4, flexWrap: "wrap" }}>
+                <Badge tone={JOB_STATUS_TONE[j.status] || "neutral"} dot>
+                  {humanize(j.status, "Unknown")}
+                </Badge>
+                {j.projectId?.name ? <span className="px-muted" style={{ fontSize: 13 }}>{j.projectId.name}</span> : null}
+              </span>
+            </>
+          ),
+        }))}
+      />
+    </Panel>
   );
 }

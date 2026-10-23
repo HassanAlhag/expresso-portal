@@ -14587,7 +14587,16 @@
           "line": 52
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 80
+        },
+        {
+          "file": "client/src/portal/features/customers/pages/CustomersPage.jsx",
+          "line": 71
+        }
+      ]
     },
     "customers.delete": {
       "api": [
@@ -14600,7 +14609,12 @@
           "line": 51
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 81
+        }
+      ]
     },
     "projects.read": {
       "api": [
@@ -14635,6 +14649,10 @@
           "line": 21
         },
         {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 60
+        },
+        {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
           "line": 325
         },
@@ -14664,6 +14682,10 @@
         }
       ],
       "ui": [
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 256
+        },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
           "line": 66
@@ -14768,6 +14790,18 @@
           "line": 25
         },
         {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 62
+        },
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 63
+        },
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 66
+        },
+        {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
           "line": 327
         },
@@ -14837,6 +14871,10 @@
         }
       ],
       "ui": [
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 258
+        },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
           "line": 69
@@ -15116,6 +15154,10 @@
           "line": 33
         },
         {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 61
+        },
+        {
           "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
           "line": 326
         }
@@ -15132,7 +15174,16 @@
           "line": 37
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/crm/pages/DealDetailsPage.jsx",
+          "line": 43
+        },
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 257
+        }
+      ]
     },
     "enrollments.delete": {
       "api": [
@@ -15380,6 +15431,10 @@
           "line": 36
         },
         {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 337
+        },
+        {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
           "line": 23
         }
@@ -15436,7 +15491,44 @@
           "line": 55
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/crm/pages/AccountDetailsPage.jsx",
+          "line": 34
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/AccountsPage.jsx",
+          "line": 44
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/ContactDetailsPage.jsx",
+          "line": 35
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/ContactsPage.jsx",
+          "line": 41
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/CRMDashboardPage.jsx",
+          "line": 29
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/DealDetailsPage.jsx",
+          "line": 41
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/DealsPage.jsx",
+          "line": 64
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/LeadDetailsPage.jsx",
+          "line": 39
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/LeadsPage.jsx",
+          "line": 65
+        }
+      ]
     },
     "crm.delete": {
       "api": [
@@ -15461,7 +15553,40 @@
           "line": 48
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/crm/pages/AccountDetailsPage.jsx",
+          "line": 35
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/AccountsPage.jsx",
+          "line": 45
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/ContactDetailsPage.jsx",
+          "line": 36
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/ContactsPage.jsx",
+          "line": 42
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/DealDetailsPage.jsx",
+          "line": 42
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/DealsPage.jsx",
+          "line": 65
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/LeadDetailsPage.jsx",
+          "line": 40
+        },
+        {
+          "file": "client/src/portal/features/crm/pages/LeadsPage.jsx",
+          "line": 66
+        }
+      ]
     },
     "procurement.read": {
       "api": [
@@ -15530,6 +15655,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 38
+        },
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 64
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -16152,7 +16281,12 @@
           "line": 104
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 382
+        }
+      ]
     },
     "iam.roles.read": {
       "api": [
@@ -18871,8 +19005,9 @@
           "client/src/portal/features/billing/pages/InvoiceDetailsPage.jsx",
           "client/src/portal/features/brand-kit/pages/BrandKitPage.jsx",
           "client/src/portal/features/careers/pages/CareersAdminPage.jsx",
-          "client/src/portal/features/crm/components/CRMActivityComposer.jsx",
-          "client/src/portal/features/crm/components/CRMActivityTimeline.jsx",
+          "client/src/portal/features/crm/components/AccountFormModal.jsx",
+          "client/src/portal/features/crm/components/ContactFormModal.jsx",
+          "client/src/portal/features/crm/components/CrmActivityPanel.jsx",
           "client/src/portal/features/crm/components/DealFormModal.jsx",
           "client/src/portal/features/crm/components/LeadFormModal.jsx",
           "client/src/portal/features/crm/pages/AccountDetailsPage.jsx",
@@ -18886,11 +19021,6 @@
           "client/src/portal/features/crm/pages/LeadsPage.jsx",
           "client/src/portal/features/crm/tabs/AccountContactsTab.jsx",
           "client/src/portal/features/crm/tabs/AccountDealsTab.jsx",
-          "client/src/portal/features/crm/tabs/AccountOverviewTab.jsx",
-          "client/src/portal/features/crm/tabs/DealActivitiesTab.jsx",
-          "client/src/portal/features/crm/tabs/DealOverviewTab.jsx",
-          "client/src/portal/features/crm/tabs/LeadActivitiesTab.jsx",
-          "client/src/portal/features/crm/tabs/LeadOverviewTab.jsx",
           "client/src/portal/features/customers/components/CreateLoginModal.jsx",
           "client/src/portal/features/customers/components/CustomerFormModal.jsx",
           "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -18898,7 +19028,7 @@
           "client/src/portal/features/customers/tabs/CustomerActivityTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerEnrollmentsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerJobsTab.jsx",
-          "client/src/portal/features/customers/tabs/CustomerLoginsTab.jsx",
+          "client/src/portal/features/customers/tabs/CustomerOverviewTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProcurementTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProductionsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProjectsTab.jsx",
@@ -19023,6 +19153,7 @@
           "client/src/portal/shared/ui/ConfirmModal.jsx",
           "client/src/portal/shared/ui/DetailsShell.jsx",
           "client/src/portal/shared/ui/ErrorState.jsx",
+          "client/src/portal/shared/ui/FormDialog.jsx",
           "client/src/portal/shared/ui/Modal.jsx",
           "client/src/portal/shared/ui/Pagination.jsx",
           "client/src/portal/shared/ui/PromptModal.jsx",
@@ -19177,8 +19308,9 @@
           "client/src/portal/features/billing/pages/InvoiceDetailsPage.jsx",
           "client/src/portal/features/brand-kit/pages/BrandKitPage.jsx",
           "client/src/portal/features/careers/pages/CareersAdminPage.jsx",
-          "client/src/portal/features/crm/components/CRMActivityComposer.jsx",
-          "client/src/portal/features/crm/components/CRMActivityTimeline.jsx",
+          "client/src/portal/features/crm/components/AccountFormModal.jsx",
+          "client/src/portal/features/crm/components/ContactFormModal.jsx",
+          "client/src/portal/features/crm/components/CrmActivityPanel.jsx",
           "client/src/portal/features/crm/components/DealFormModal.jsx",
           "client/src/portal/features/crm/components/DealsPipelineBoard.jsx",
           "client/src/portal/features/crm/components/LeadFormModal.jsx",
@@ -19193,11 +19325,6 @@
           "client/src/portal/features/crm/pages/LeadsPage.jsx",
           "client/src/portal/features/crm/tabs/AccountContactsTab.jsx",
           "client/src/portal/features/crm/tabs/AccountDealsTab.jsx",
-          "client/src/portal/features/crm/tabs/AccountOverviewTab.jsx",
-          "client/src/portal/features/crm/tabs/DealActivitiesTab.jsx",
-          "client/src/portal/features/crm/tabs/DealOverviewTab.jsx",
-          "client/src/portal/features/crm/tabs/LeadActivitiesTab.jsx",
-          "client/src/portal/features/crm/tabs/LeadOverviewTab.jsx",
           "client/src/portal/features/customers/components/CreateLoginModal.jsx",
           "client/src/portal/features/customers/components/CustomerFormModal.jsx",
           "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -19205,12 +19332,10 @@
           "client/src/portal/features/customers/tabs/CustomerActivityTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerEnrollmentsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerJobsTab.jsx",
-          "client/src/portal/features/customers/tabs/CustomerLoginsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerOverviewTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProcurementTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProductionsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProjectsTab.jsx",
-          "client/src/portal/features/customers/tabs/CustomerTabButton.jsx",
           "client/src/portal/features/customers/tabs/CustomerUsersTab.jsx",
           "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
           "client/src/portal/features/dashboard/staff/StaffDashboard.jsx",
@@ -19349,6 +19474,7 @@
           "client/src/portal/pages/RequestAccess.jsx",
           "client/src/portal/pages/ResetPassword.jsx",
           "client/src/portal/shared/hooks/useAccess.js",
+          "client/src/portal/shared/hooks/useDebouncedValue.js",
           "client/src/portal/shared/hooks/usePermissionCatalog.js",
           "client/src/portal/shared/hooks/usePortalPermissions.js",
           "client/src/portal/shared/hooks/usePortalProfile.js",
@@ -19371,6 +19497,7 @@
           "client/src/portal/shared/ui/EmptyState.jsx",
           "client/src/portal/shared/ui/ErrorState.jsx",
           "client/src/portal/shared/ui/FilterBar.jsx",
+          "client/src/portal/shared/ui/FormDialog.jsx",
           "client/src/portal/shared/ui/IconButton.jsx",
           "client/src/portal/shared/ui/Input.jsx",
           "client/src/portal/shared/ui/KeyValue.jsx",
@@ -19416,7 +19543,8 @@
           "client/src/components/MainHeader/mobileMenu.jsx",
           "client/src/index.js",
           "client/src/portal/features/projects/components/ProjectFormModal.jsx",
-          "client/src/portal/shared/ui/ConfirmDialog.jsx"
+          "client/src/portal/shared/ui/ConfirmDialog.jsx",
+          "client/src/portal/shared/ui/FormDialog.jsx"
         ]
       },
       {
@@ -19552,6 +19680,7 @@
           "client/src/portal/app/ProtectedRoute.jsx",
           "client/src/portal/features/billing/pages/BillingPage.jsx",
           "client/src/portal/features/billing/pages/InvoiceDetailsPage.jsx",
+          "client/src/portal/features/crm/components/DealsPipelineBoard.jsx",
           "client/src/portal/features/crm/pages/AccountDetailsPage.jsx",
           "client/src/portal/features/crm/pages/AccountsPage.jsx",
           "client/src/portal/features/crm/pages/ContactDetailsPage.jsx",
@@ -19563,13 +19692,13 @@
           "client/src/portal/features/crm/pages/LeadsPage.jsx",
           "client/src/portal/features/crm/tabs/AccountContactsTab.jsx",
           "client/src/portal/features/crm/tabs/AccountDealsTab.jsx",
-          "client/src/portal/features/crm/tabs/DealOverviewTab.jsx",
-          "client/src/portal/features/crm/tabs/LeadOverviewTab.jsx",
           "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
           "client/src/portal/features/customers/pages/CustomersPage.jsx",
           "client/src/portal/features/customers/tabs/CustomerActivityTab.jsx",
+          "client/src/portal/features/customers/tabs/CustomerOverviewTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProcurementTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProductionsTab.jsx",
+          "client/src/portal/features/customers/tabs/CustomerProjectsTab.jsx",
           "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
           "client/src/portal/features/dashboard/staff/StaffDashboard.jsx",
           "client/src/portal/features/delivery/pages/ServiceDeliveryPage.jsx",

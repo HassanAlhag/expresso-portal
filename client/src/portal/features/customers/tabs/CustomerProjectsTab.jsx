@@ -1,108 +1,79 @@
 import React from "react";
-import Card from "../../../shared/ui/Card";
+import { Link } from "react-router-dom";
+import { FolderKanban, Plus } from "lucide-react";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Skeleton from "../../../shared/ui/Skeleton";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
 import EmptyState from "../../../shared/ui/EmptyState";
-import Badge from "../../../shared/ui/Badge";
-import { BriefcaseBusiness } from "lucide-react";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ProjectStatusPill from "../../projects/components/ProjectStatusPill";
+import ProjectPriorityPill from "../../projects/components/ProjectPriorityPill";
+import { dueInfo, formatDate, humanize } from "../../projects/format";
 
-export default function CustomerProjectsTab({
-  projectsLoading,
-  projectsError,
-  projects,
-  onOpenProject,
-  onNewProject,
-}) {
-  if (projectsLoading) {
-    return (
-      <Card className="p-6">
-        <div className="grid gap-3">
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
-      </Card>
-    );
-  }
+// The client's projects (PUI-3), using the PUI-2 project status treatment.
+// Archived projects are hidden, as in the Projects list (R3).
+export default function CustomerProjectsTab({ projectsLoading, projectsError, projects = [], onNewProject, onRetry }) {
+  const action = onNewProject ? (
+    <Button size="sm" onClick={onNewProject}>
+      <Plus size={14} aria-hidden="true" />
+      New project
+    </Button>
+  ) : null;
 
-  if (projectsError) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-black text-red-700">
-        {projectsError}
-      </div>
-    );
-  }
-
-  if (!projects.length) {
-    return (
-      <EmptyState
-        icon={BriefcaseBusiness}
-        title="No projects yet"
-        message="This client has no projects yet."
-        actionLabel={onNewProject ? "New project" : undefined}
-        onAction={onNewProject}
-      />
-    );
+  if (projectsError) return <ErrorState title="Projects didn't load" message={projectsError} onRetry={onRetry} />;
+  if (!projectsLoading && !projects.length) {
+    return <EmptyState icon={FolderKanban} title="No projects yet" message="Projects for this client will appear here. Archived projects are hidden." action={action} />;
   }
 
   return (
-    <div className="grid gap-3">
-      {projects.map((project) => (
-        <button
-          key={project._id}
-          className="rounded-[28px] border border-black/[0.07] bg-white p-5 text-left shadow-sm transition hover:shadow-[0_22px_60px_rgba(15,23,42,0.10)]"
-          onClick={() => onOpenProject(project._id)}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="text-base font-black text-slate-900">
-                  {project.name}
-                </div>
-
-                <Badge tone="neutral">
-                  {String(project.type || "project").toUpperCase()}
-                </Badge>
-
-                <Badge tone="info">
-                  {String(project.status || "draft").toUpperCase()}
-                </Badge>
-              </div>
-
-              <div className="mt-2 text-sm text-slate-600">
-                {project.description || project.notes || "No description"}
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500">
-                <span>
-                  Priority:{" "}
-                  <span className="font-black text-slate-900">
-                    {project.priority || "—"}
-                  </span>
-                </span>
-
-                <span>
-                  Team:{" "}
-                  <span className="font-black text-slate-900">
-                    {project.team || "—"}
-                  </span>
-                </span>
-
-                <span>
-                  Created:{" "}
-                  <span className="font-black text-slate-900">
-                    {project.createdAt
-                      ? new Date(project.createdAt).toLocaleDateString()
-                      : "—"}
-                  </span>
-                </span>
-              </div>
-            </div>
-
-            <Button variant="outline">Open</Button>
-          </div>
-        </button>
-      ))}
-    </div>
+    <Panel title="Projects" sub="Archived projects are hidden" flush action={action}>
+      <table className="px-table px-table--stack" aria-label="Client projects" aria-busy={projectsLoading || undefined}>
+        <thead>
+          <tr>
+            <th scope="col">Project</th>
+            <th scope="col">Status</th>
+            <th scope="col" className="px-hide-tab">Priority</th>
+            <th scope="col">Due</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projectsLoading ? (
+            <SkeletonRows rows={3} cols={4} label="Loading projects" />
+          ) : (
+            projects.map((p) => {
+              const due = dueInfo(p);
+              return (
+                <tr key={p._id}>
+                  <td className="px-primary">
+                    <div className="px-cell-main">
+                      <Link to={`/portal/projects/${p._id}`}>{p.name || "Untitled project"}</Link>
+                      <span>{[p.code, humanize(p.type, "")].filter(Boolean).join(", ") || "Project"}</span>
+                    </div>
+                  </td>
+                  <td data-label="Status">
+                    <span>
+                      <ProjectStatusPill status={p.status} />
+                    </span>
+                  </td>
+                  <td data-label="Priority" className="px-hide-tab">
+                    <ProjectPriorityPill priority={p.priority} />
+                  </td>
+                  <td data-label="Due">
+                    {p.endDate ? (
+                      <span className="px-due">
+                        <span className="px-num">{formatDate(p.endDate)}</span>
+                        {due ? <small data-tone={due.tone || undefined}>{due.text}</small> : null}
+                      </span>
+                    ) : (
+                      <span className="px-muted">No due date</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </Panel>
   );
 }

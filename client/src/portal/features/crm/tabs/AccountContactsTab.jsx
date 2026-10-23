@@ -1,243 +1,149 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Card, { CardBody, CardHeader } from "../../../shared/ui/Card";
+import React, { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Star, Trash2, UserPlus, Users } from "lucide-react";
+import Panel from "../../../shared/ui/Panel";
+import Badge from "../../../shared/ui/Badge";
 import Button from "../../../shared/ui/Button";
-import Skeleton from "../../../shared/ui/Skeleton";
+import RowActions from "../../../shared/ui/RowActions";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
 import EmptyState from "../../../shared/ui/EmptyState";
-import { listContacts, createContact, deleteContact } from "../api";
-import { UserRound, Plus, Mail, Phone, Trash2, ExternalLink, Star } from "lucide-react";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
 import { useToast } from "../../../shared/ui/Toast";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import { listContacts, createContact, deleteContact } from "../api";
+import ContactFormModal from "../components/ContactFormModal";
 
-function ContactFormModal({ open, accountId, busy, onClose, onSubmit }) {
-  const [form, setForm] = useState({ fullName: "", jobTitle: "", email: "", phone: "", whatsapp: "", isPrimary: false });
-
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl">
-        <div className="mb-5 text-base font-black text-slate-900">Add contact</div>
-
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">FULL NAME *</label>
-            <input
-              value={form.fullName}
-              onChange={set("fullName")}
-              placeholder="Jane Smith"
-              className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-            />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">JOB TITLE</label>
-            <input
-              value={form.jobTitle}
-              onChange={set("jobTitle")}
-              placeholder="Marketing Manager"
-              className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
-              <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">EMAIL</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={set("email")}
-                placeholder="jane@company.com"
-                className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">PHONE</label>
-              <input
-                value={form.phone}
-                onChange={set("phone")}
-                placeholder="+971..."
-                className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
-            </div>
-          </div>
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-slate-700">
-            <input
-              type="checkbox"
-              checked={form.isPrimary}
-              onChange={(e) => setForm((f) => ({ ...f, isPrimary: e.target.checked }))}
-              className="h-4 w-4 rounded"
-            />
-            Primary contact
-          </label>
-        </div>
-
-        <div className="mt-6 flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
-          <Button onClick={() => onSubmit({ ...form, accountId })} loading={busy} disabled={!form.fullName.trim()}>
-            Add contact
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function AccountContactsTab({ account }) {
-  const nav = useNavigate();
+// Contacts at the account (PUI-3).
+export default function AccountContactsTab({ account, canWrite = false, canDelete = false }) {
   const toast = useToast();
-  const [confirmState, setConfirmState] = useState(null);
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [addOpen, setAddOpen] = useState(false);
+  const [state, setState] = useState("loading");
+  const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [removing, setRemoving] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!account?._id) return;
-    setLoading(true);
+    setState("loading");
     try {
-      const res = await listContacts({ accountId: account._id, limit: 50 });
+      const res = await listContacts({ accountId: account._id, limit: 100 });
       setItems(Array.isArray(res?.items) ? res.items : []);
-    } finally {
-      setLoading(false);
+      setState("ready");
+    } catch {
+      setState("failed");
     }
-  };
+  }, [account?._id]);
 
-  useEffect(() => { load(); }, [account?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const handleAdd = async (payload) => {
-    setBusy(true);
-    try {
-      const res = await createContact(payload);
-      setItems((prev) => [res.item, ...prev]);
-      setAddOpen(false);
-      toast.success("Contact added.");
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to add contact.");
-    } finally {
-      setBusy(false);
-    }
-  };
+  const action = canWrite ? (
+    <Button size="sm" onClick={() => setAdding(true)}>
+      <UserPlus size={14} aria-hidden="true" />
+      Add contact
+    </Button>
+  ) : null;
 
-  const handleDelete = (id) => {
-    setConfirmState({
-      title: "Remove contact",
-      message: "Remove this contact?",
-      danger: true,
-      onConfirm: async () => {
-        try {
-          await deleteContact(id);
-          setItems((prev) => prev.filter((x) => x._id !== id));
-          toast.success("Contact removed.");
-        } catch {
-          toast.error("Failed to remove contact.");
-        }
-        setConfirmState(null);
-      },
-    });
-  };
+  let content;
+  if (state === "failed") content = <ErrorState title="Contacts didn't load" onRetry={load} />;
+  else if (state === "ready" && !items.length) content = <EmptyState icon={Users} title="No contacts yet" message="People at this company appear here." action={action} />;
+  else
+    content = (
+      <Panel title="Contacts" sub={state === "ready" ? `${items.length} at ${account?.name || "this account"}` : undefined} flush action={action}>
+        <table className="px-table px-table--stack" aria-label="Account contacts" aria-busy={state === "loading" || undefined}>
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col" className="px-hide-tab">Phone</th>
+              {canDelete ? <th scope="col"><span className="sr-only">Actions</span></th> : null}
+            </tr>
+          </thead>
+          <tbody>
+            {state === "loading" ? (
+              <SkeletonRows rows={3} cols={canDelete ? 4 : 3} label="Loading contacts" />
+            ) : (
+              items.map((c) => (
+                <tr key={c._id}>
+                  <td className="px-primary">
+                    <div className="px-cell-main">
+                      <Link to={`/portal/crm/contacts/${c._id}`}>{c.fullName}</Link>
+                      <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                        {c.jobTitle || "No job title"}
+                        {c.isPrimary ? (
+                          <Badge tone="info">
+                            <Star size={11} aria-hidden="true" />
+                            Primary
+                          </Badge>
+                        ) : null}
+                      </span>
+                    </div>
+                  </td>
+                  <td data-label="Email">{c.email ? <a href={`mailto:${c.email}`}>{c.email}</a> : <span className="px-muted">—</span>}</td>
+                  <td data-label="Phone" className="px-hide-tab">{c.phone || <span className="px-muted">—</span>}</td>
+                  {canDelete ? (
+                    <td className="px-actions-cell">
+                      <RowActions label={c.fullName} actions={[{ key: "delete", label: "Delete contact", icon: Trash2, onSelect: () => setRemoving(c) }]} />
+                    </td>
+                  ) : null}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </Panel>
+    );
 
   return (
     <>
-      <Card>
-        <CardHeader
-          title="Contacts"
-          subtitle={`${items.length} contacts linked to this account`}
-          right={
-            <Button onClick={() => setAddOpen(true)} disabled={busy}>
-              <Plus size={14} />
-              Add contact
-            </Button>
-          }
+      {content}
+      {canWrite ? (
+        <ContactFormModal
+          open={adding}
+          busy={busy}
+          fixed={{ accountId: account?._id }}
+          context={`Adds a contact at ${account?.name || "this account"}.`}
+          onClose={() => setAdding(false)}
+          onSubmit={async (payload) => {
+            setBusy(true);
+            try {
+              await createContact(payload);
+              toast.success("Contact added.");
+              setAdding(false);
+              await load();
+            } catch (e) {
+              toast.error(e?.response?.data?.message || "The contact wasn't added. Try again.");
+            } finally {
+              setBusy(false);
+            }
+          }}
         />
-        <CardBody>
-          {loading ? (
-            <div className="grid gap-3">
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </div>
-          ) : items.length === 0 ? (
-            <EmptyState
-              icon={UserRound}
-              title="No contacts yet"
-              message="Add people associated with this account."
-              actionLabel="Add contact"
-              onAction={() => setAddOpen(true)}
-            />
-          ) : (
-            <div className="grid gap-3">
-              {items.map((c) => (
-                <div
-                  key={c._id}
-                  className="flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-4"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-                      <UserRound size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-bold text-slate-900">{c.fullName}</span>
-                        {c.isPrimary && (
-                          <Star size={11} className="text-amber-500 fill-amber-400" />
-                        )}
-                      </div>
-                      {c.jobTitle && (
-                        <div className="text-xs text-slate-500">{c.jobTitle}</div>
-                      )}
-                      <div className="mt-1 flex flex-wrap gap-3">
-                        {c.email && (
-                          <a href={`mailto:${c.email}`} className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 transition">
-                            <Mail size={11} />{c.email}
-                          </a>
-                        )}
-                        {c.phone && (
-                          <a href={`tel:${c.phone}`} className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 transition">
-                            <Phone size={11} />{c.phone}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => nav(`/portal/crm/contacts/${c._id}`)}
-                      className="text-slate-400 hover:text-slate-700 transition"
-                    >
-                      <ExternalLink size={15} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(c._id)}
-                      className="text-slate-300 hover:text-rose-500 transition"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardBody>
-      </Card>
-
-      <ContactFormModal
-        open={addOpen}
-        accountId={account?._id}
-        busy={busy}
-        onClose={() => setAddOpen(false)}
-        onSubmit={handleAdd}
-      />
-
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
+      ) : null}
+      {canDelete ? (
+        <ConfirmDialog
+          open={Boolean(removing)}
+          icon={Trash2}
+          tone="bad"
+          danger
+          title="Delete this contact permanently?"
+          confirmLabel="Delete contact"
+          onClose={() => setRemoving(null)}
+          onConfirm={async () => {
+            try {
+              await deleteContact(removing._id);
+              toast.success("Contact deleted.");
+              setRemoving(null);
+              await load();
+            } catch (e) {
+              toast.error(e?.response?.data?.message || "The contact wasn't deleted. Try again.");
+            }
+          }}
+          details={["The contact is erased and can't be restored.", "Deals that name this contact keep a link to a contact that no longer exists."]}
+        >
+          {removing?.fullName}
+        </ConfirmDialog>
+      ) : null}
     </>
   );
 }

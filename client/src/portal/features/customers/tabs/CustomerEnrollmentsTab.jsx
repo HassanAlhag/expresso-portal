@@ -51,7 +51,7 @@ export default function CustomerEnrollmentsTab({
         icon={Layers3}
         title="No enrollments yet"
         message="This client is not enrolled in any fixed service yet."
-        actionLabel="New Enrollment"
+        actionLabel={onNewEnrollment ? "New Enrollment" : undefined}
         onAction={onNewEnrollment}
       />
     );
@@ -63,10 +63,12 @@ export default function CustomerEnrollmentsTab({
         <div className="text-sm font-black text-slate-500">
           {enrollments.length} enrollment{enrollments.length !== 1 ? "s" : ""}
         </div>
-        <Button onClick={onNewEnrollment} disabled={busy}>
-          <Plus size={14} />
-          New Enrollment
-        </Button>
+        {onNewEnrollment ? (
+          <Button onClick={onNewEnrollment} disabled={busy}>
+            <Plus size={14} />
+            New Enrollment
+          </Button>
+        ) : null}
       </div>
       {enrollments.map((item) => {
         const serviceName = item?.serviceTemplateId?.name || "Unknown service";
@@ -154,14 +156,16 @@ export default function CustomerEnrollmentsTab({
                   Open jobs
                 </Button>
 
-                <Button
-                  onClick={() => onConvert(item._id)}
-                  disabled={busy || convertingEnrollmentId === item._id}
-                >
-                  {convertingEnrollmentId === item._id
-                    ? "Generating..."
-                    : "Generate contract jobs"}
-                </Button>
+                {onConvert ? (
+                  <Button
+                    onClick={() => onConvert(item._id)}
+                    disabled={busy || convertingEnrollmentId === item._id}
+                  >
+                    {convertingEnrollmentId === item._id
+                      ? "Generating..."
+                      : "Generate contract jobs"}
+                  </Button>
+                ) : null}
               </div>
             </div>
           </div>

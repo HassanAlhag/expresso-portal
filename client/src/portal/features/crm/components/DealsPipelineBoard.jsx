@@ -1,142 +1,52 @@
-import React, { useMemo } from "react";
-import Card from "../../../shared/ui/Card";
-import { DEAL_PIPELINE_COLUMNS, formatMoney, stageLabel } from "../constants";
+import React from "react";
+import { Link } from "react-router-dom";
+import SelectField from "../../../shared/ui/SelectField";
+import LoadingState from "../../../shared/ui/LoadingState";
+import { DEAL_STAGES, DEAL_STAGE_LABEL, compactMoney, ownerName } from "../format";
 
-function StagePill({ stage }) {
-  const toneMap = {
-    discovery: "border-slate-200 bg-slate-50 text-slate-700",
-    qualified: "border-sky-200 bg-sky-50 text-sky-700",
-    proposal: "border-indigo-200 bg-indigo-50 text-indigo-700",
-    negotiation: "border-amber-200 bg-amber-50 text-amber-700",
-    verbal_commitment: "border-violet-200 bg-violet-50 text-violet-700",
-    won: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    lost: "border-rose-200 bg-rose-50 text-rose-700",
-  };
-
+// Deals by stage (PUI-3). One column per stage with its first 100 deals by
+// value; a stage with more says how many are not shown. Moving a deal uses a
+// labelled select (no drag and drop), only for users who can edit deals.
+export default function DealsPipelineBoard({ columns = {}, loading, canMove = false, onMove, busyId }) {
+  if (loading) return <LoadingState rows={4} label="Loading the board" />;
   return (
-    <span
-      className={[
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]",
-        toneMap[stage] || "border-slate-200 bg-slate-50 text-slate-700",
-      ].join(" ")}
-    >
-      {stageLabel(stage)}
-    </span>
-  );
-}
-
-function DealCard({ item, onOpen, onMove, busy }) {
-  const nextStages = DEAL_PIPELINE_COLUMNS
-    .map((column) => column.key)
-    .filter((stage) => stage !== item.stage);
-
-  return (
-    <Card className="p-3">
-      <button
-        type="button"
-        onClick={() => onOpen?.(item)}
-        className="block w-full text-left"
-      >
-        <div className="line-clamp-2 text-sm font-black text-slate-900">
-          {item.title}
-        </div>
-
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <StagePill stage={item.stage} />
-          <span className="text-xs font-semibold text-slate-500">
-            {formatMoney(item.value, item.currency)}
-          </span>
-        </div>
-
-        <div className="mt-2 text-xs text-slate-500">
-          {item.customerId?.companyName || "No customer"}{" "}
-          {item.expectedCloseDate
-            ? `• ${new Date(item.expectedCloseDate).toLocaleDateString()}`
-            : ""}
-        </div>
-      </button>
-
-      <div className="mt-3">
-        <select
-          value=""
-          onChange={(e) => {
-            if (!e.target.value) return;
-            onMove?.(item, e.target.value);
-          }}
-          disabled={busy}
-          className="h-9 w-full rounded-xl border border-black/10 bg-white px-3 text-xs outline-none focus:ring-4 focus:ring-black/5"
-        >
-          <option value="">Move to...</option>
-          {nextStages.map((stage) => (
-            <option key={stage} value={stage}>
-              {stageLabel(stage)}
-            </option>
-          ))}
-        </select>
-      </div>
-    </Card>
-  );
-}
-
-export default function DealsPipelineBoard({
-  items = [],
-  busy = false,
-  onOpen,
-  onMove,
-}) {
-  const grouped = useMemo(() => {
-    const map = {};
-    DEAL_PIPELINE_COLUMNS.forEach((column) => {
-      map[column.key] = [];
-    });
-
-    items.forEach((item) => {
-      const key = item?.stage || "discovery";
-      const columnKey = map[key] ? key : "discovery";
-      map[columnKey].push(item);
-    });
-
-    return map;
-  }, [items]);
-
-  return (
-    <div className="grid gap-4 xl:grid-cols-4 2xl:grid-cols-7">
-      {DEAL_PIPELINE_COLUMNS.map((column) => {
-        const stage = column.key;
-        const colItems = grouped[stage] || [];
-
+    <div className="px-board" role="list" aria-label="Deals by stage">
+      {DEAL_STAGES.map((stage) => {
+        const col = columns[stage] || { items: [], total: 0 };
+        const value = col.items.reduce((s, d) => s + Number(d.value || 0), 0);
         return (
-          <div
-            key={stage}
-            className="rounded-[24px] border border-black/10 bg-white/70 p-3"
-          >
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <div className="text-sm font-black text-slate-900">
-                {column.label || stageLabel(stage)}
-              </div>
-              <div className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-700">
-                {colItems.length}
-              </div>
-            </div>
-
-            <div className="grid gap-3">
-              {colItems.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-black/10 bg-slate-50 p-4 text-xs text-slate-500">
-                  No deals
-                </div>
-              ) : (
-                colItems.map((item) => (
-                  <DealCard
-                    key={item._id}
-                    item={item}
-                    onOpen={onOpen}
-                    onMove={onMove}
-                    busy={busy}
-                  />
-                ))
-              )}
-            </div>
-          </div>
+          <section key={stage} className="px-board-col" role="listitem" aria-label={`${DEAL_STAGE_LABEL[stage]}, ${col.total} deals`}>
+            <h3>
+              {DEAL_STAGE_LABEL[stage]}
+              <small>
+                {col.total}
+                {col.total && col.total <= col.items.length ? ` · ${compactMoney(value)}` : ""}
+              </small>
+            </h3>
+            {col.items.length ? (
+              col.items.map((d) => (
+                <article key={d._id} className="px-board-card">
+                  <Link to={`/portal/crm/deals/${d._id}`}>{d.title || "Untitled deal"}</Link>
+                  <span className="px-s">
+                    {[d.customerId?.companyName || d.accountId?.name, d.value ? compactMoney(d.value, d.currency) : null, ownerName(d)].filter(Boolean).join(" · ") || "No details"}
+                  </span>
+                  {canMove ? (
+                    <SelectField
+                      label={`Stage for ${d.title || "deal"}`}
+                      hideLabel
+                      value={d.stage === "new" ? "discovery" : d.stage}
+                      disabled={busyId === d._id}
+                      onChange={(next) => next !== d.stage && onMove?.(d, next)}
+                      options={DEAL_STAGES.map((s) => ({ value: s, label: `Stage: ${DEAL_STAGE_LABEL[s]}` }))}
+                    />
+                  ) : null}
+                </article>
+              ))
+            ) : (
+              <p className="px-board-more">No deals</p>
+            )}
+            {col.total > col.items.length ? <p className="px-board-more">{col.total - col.items.length} more not shown. Use the table to see them.</p> : null}
+          </section>
         );
       })}
     </div>

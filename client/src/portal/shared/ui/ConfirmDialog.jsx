@@ -27,6 +27,8 @@ export default function ConfirmDialog({
   const cancelRef = useRef(null);
   const returnRef = useRef(null);
   const [busy, setBusy] = useState(false);
+  // A ref as well as state: a double click in one frame runs the action once.
+  const running = useRef(false);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -49,11 +51,13 @@ export default function ConfirmDialog({
   };
 
   const confirm = async () => {
-    if (!onConfirm) return;
+    if (!onConfirm || running.current) return;
+    running.current = true;
     setBusy(true);
     try {
       await onConfirm();
     } finally {
+      running.current = false;
       setBusy(false);
     }
   };

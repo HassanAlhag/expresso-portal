@@ -1,331 +1,225 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import PageHeader from "../../../shared/ui/PageHeader";
-import Card from "../../../shared/ui/Card";
+import React, { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ExternalLink, Pencil, Plus, RefreshCw, SearchX, Star, Trash2, UserRound, X } from "lucide-react";
+
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
+import Badge from "../../../shared/ui/Badge";
+import SearchField from "../../../shared/ui/SearchField";
+import SelectField from "../../../shared/ui/SelectField";
+import SortHeader from "../../../shared/ui/SortHeader";
+import SkeletonRows from "../../../shared/ui/SkeletonRows";
+import Pagination from "../../../shared/ui/Pagination";
+import RowActions from "../../../shared/ui/RowActions";
 import EmptyState from "../../../shared/ui/EmptyState";
-import Skeleton from "../../../shared/ui/Skeleton";
+import ErrorState from "../../../shared/ui/ErrorState";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
 import { useToast } from "../../../shared/ui/Toast";
-import ConfirmModal from "../../../shared/ui/ConfirmModal";
-import StatCard from "../../../shared/ui/StatCard";
-import FilterBar from "../../../shared/ui/FilterBar";
-import { listContacts, createContact, deleteContact } from "../api";
-import { leadSourceLabel } from "../constants";
-import {
-  UserRound, Plus, Mail, Phone,
-  Building2, RefreshCw, Trash2, ExternalLink, Star,
-} from "lucide-react";
+import { useAccess } from "../../../shared/hooks/useAccess";
+import useDebouncedValue from "../../../shared/hooks/useDebouncedValue";
 
-function ContactFormModal({ open, busy, onClose, onSubmit }) {
-  const [form, setForm] = useState({
-    fullName: "", jobTitle: "", email: "", phone: "",
-    whatsapp: "", notes: "", isPrimary: false,
-  });
+import { listContacts, createContact, updateContact, deleteContact } from "../api";
+import ContactFormModal from "../components/ContactFormModal";
 
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+const LIMIT = 15;
+const SORT_OPTIONS = [
+  { value: "-createdAt", label: "Newest first" },
+  { value: "createdAt", label: "Oldest first" },
+  { value: "fullName", label: "Name, A to Z" },
+  { value: "-fullName", label: "Name, Z to A" },
+  { value: "email", label: "Email, A to Z" },
+  { value: "-updatedAt", label: "Recently updated" },
+];
 
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-[28px] bg-white p-6 shadow-2xl">
-        <div className="mb-5 text-base font-black text-slate-900">New contact</div>
-
-        <div className="grid gap-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
-              <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">FULL NAME *</label>
-              <input
-                value={form.fullName}
-                onChange={set("fullName")}
-                placeholder="Jane Smith"
-                className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">JOB TITLE</label>
-              <input
-                value={form.jobTitle}
-                onChange={set("jobTitle")}
-                placeholder="Marketing Manager"
-                className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-2">
-              <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">EMAIL</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={set("email")}
-                placeholder="jane@company.com"
-                className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">PHONE</label>
-              <input
-                value={form.phone}
-                onChange={set("phone")}
-                placeholder="+971..."
-                className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-              />
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <label className="text-[11px] font-black tracking-[0.18em] text-slate-500">NOTES</label>
-            <textarea
-              value={form.notes}
-              onChange={set("notes")}
-              rows={2}
-              placeholder="Any relevant context..."
-              className="resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-black/5"
-            />
-          </div>
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-slate-700">
-            <input
-              type="checkbox"
-              checked={form.isPrimary}
-              onChange={(e) => setForm((f) => ({ ...f, isPrimary: e.target.checked }))}
-              className="h-4 w-4 rounded"
-            />
-            Mark as primary contact
-          </label>
-        </div>
-
-        <div className="mt-6 flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
-          <Button onClick={() => onSubmit(form)} loading={busy} disabled={!form.fullName.trim()}>
-            <Plus size={14} />
-            Create contact
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+// CRM contacts (PUI-3): searched and paged on the server. The old page loaded
+// the first 100 contacts and searched those in the browser.
 export default function ContactsPage() {
   const nav = useNavigate();
   const toast = useToast();
+  const access = useAccess();
+  const canWrite = access.can("crm.write");
+  const canDelete = access.can("crm.delete");
 
-  const [confirmState, setConfirmState] = useState(null);
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
   const [q, setQ] = useState("");
-  const [addOpen, setAddOpen] = useState(false);
+  const dq = useDebouncedValue(q);
+  const [sort, setSort] = useState("-createdAt");
+  const [page, setPage] = useState(1);
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0, limit: LIMIT });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [removing, setRemoving] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
-      const res = await listContacts({ limit: 100 });
+      const res = await listContacts({ q: dq.trim(), sort, page, limit: LIMIT });
       setItems(Array.isArray(res?.items) ? res.items : []);
-    } catch {
-      toast.error("Failed to load contacts.");
+      setMeta({ page: res?.page || page, pages: res?.pages || 1, total: res?.total ?? 0, limit: res?.limit || LIMIT });
+    } catch (e) {
+      setItems([]);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
     } finally {
       setLoading(false);
     }
+  }, [dq, sort, page]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+  useEffect(() => {
+    setPage(1);
+  }, [dq]);
+
+  const setSortReset = (v) => {
+    setSort(v);
+    setPage(1);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { load(); }, []);
-
-  const handleCreate = async (form) => {
+  const save = async (fn, ok, after) => {
     setBusy(true);
     try {
-      const res = await createContact(form);
-      setItems((prev) => [res.item, ...prev]);
-      setAddOpen(false);
-      toast.success("Contact created.");
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to create contact.");
+      const res = await fn();
+      toast.success(ok);
+      after?.(res);
+      await load();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "That didn't save. Check the details and try again.");
     } finally {
       setBusy(false);
     }
   };
 
-  const handleDelete = (id, name) => {
-    setConfirmState({
-      title: "Delete contact",
-      message: `Delete "${name}"?`,
-      danger: true,
-      onConfirm: async () => {
-        try {
-          await deleteContact(id);
-          setItems((prev) => prev.filter((x) => x._id !== id));
-          toast.success("Contact deleted.");
-        } catch {
-          toast.error("Failed to delete contact.");
-        }
-        setConfirmState(null);
-      },
-    });
-  };
-
-  const filtered = useMemo(() => {
-    if (!q.trim()) return items;
-    const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-    return items.filter((c) =>
-      rx.test(c.fullName) || rx.test(c.email) || rx.test(c.jobTitle) ||
-      rx.test(c.accountId?.name) || rx.test(c.phone)
+  let content;
+  if (error) content = <ErrorState title="Contacts didn't load" message={error} onRetry={load} />;
+  else if (!loading && !items.length)
+    content = dq.trim() ? (
+      <EmptyState icon={SearchX} title="No contacts match this search" message="Try another name, email or phone number." action={<Button variant="outline" onClick={() => setQ("")}>Clear search</Button>} />
+    ) : (
+      <EmptyState icon={UserRound} title="No contacts yet" message="Contacts are people at your accounts and clients. They are also created when leads and deals are converted." action={canWrite ? <Button onClick={() => setCreateOpen(true)}><Plus size={14} aria-hidden="true" />New contact</Button> : null} />
     );
-  }, [items, q]);
-
-  const stats = useMemo(() => ({
-    total: items.length,
-    withEmail: items.filter((c) => c.email).length,
-    primary: items.filter((c) => c.isPrimary).length,
-    linked: items.filter((c) => c.accountId || c.customerId || c.leadId).length,
-  }), [items]);
+  else
+    content = (
+      <>
+        <table className="px-table px-table--stack" aria-label="Contacts" aria-busy={loading || undefined}>
+          <thead>
+            <tr>
+              <SortHeader label="Name" field="fullName" sort={sort} onSort={setSortReset} />
+              <th scope="col">Account</th>
+              <SortHeader label="Email" field="email" sort={sort} onSort={setSortReset} />
+              <th scope="col" className="px-hide-tab">Phone</th>
+              <th scope="col"><span className="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <SkeletonRows rows={6} cols={5} label="Loading contacts" />
+            ) : (
+              items.map((c) => {
+                const actions = [
+                  { key: "open", label: "Open contact", icon: ExternalLink, onSelect: () => nav(`/portal/crm/contacts/${c._id}`) },
+                  canWrite ? { key: "edit", label: "Edit contact", icon: Pencil, onSelect: () => setEditing(c) } : null,
+                  canDelete ? { key: "sep", separator: true } : null,
+                  canDelete ? { key: "delete", label: "Delete contact", icon: Trash2, tone: "muted", onSelect: () => setRemoving(c) } : null,
+                ];
+                return (
+                  <tr key={c._id} data-clickable="true" onClick={(e) => !e.target.closest("a, button, [role='menu']") && nav(`/portal/crm/contacts/${c._id}`)}>
+                    <td className="px-primary">
+                      <div className="px-cell-main">
+                        <Link to={`/portal/crm/contacts/${c._id}`}>{c.fullName || "Unnamed contact"}</Link>
+                        <span style={{ display: "inline-flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                          {c.jobTitle || "No job title"}
+                          {c.isPrimary ? (
+                            <Badge tone="info">
+                              <Star size={11} aria-hidden="true" />
+                              Primary
+                            </Badge>
+                          ) : null}
+                        </span>
+                      </div>
+                    </td>
+                    <td data-label="Account">
+                      {c.accountId?._id ? <Link to={`/portal/crm/accounts/${c.accountId._id}`}>{c.accountId.name || "Account"}</Link> : c.customerId?.companyName || <span className="px-muted">None</span>}
+                    </td>
+                    <td data-label="Email">{c.email ? <a href={`mailto:${c.email}`}>{c.email}</a> : <span className="px-muted">—</span>}</td>
+                    <td data-label="Phone" className="px-hide-tab">{c.phone || <span className="px-muted">—</span>}</td>
+                    <td className="px-actions-cell">
+                      <RowActions label={c.fullName || "contact"} actions={actions} />
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+        {!loading && meta.total ? <Pagination page={meta.page} pages={meta.pages} total={meta.total} limit={meta.limit} onPage={setPage} noun={meta.total === 1 ? "contact" : "contacts"} label="Contacts pages" /> : null}
+      </>
+    );
 
   return (
-    <div className="grid gap-6">
-      <PageHeader
-        eyebrow="CRM"
+    <>
+      <PageFrame
         title="Contacts"
-        subtitle="People associated with accounts, deals, and leads."
-        breadcrumb={[
-          { label: "Portal", to: "/portal" },
-          { label: "CRM", to: "/portal/crm" },
-          { label: "Contacts" },
-        ]}
-        right={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={load} disabled={loading}>
-              <RefreshCw size={15} />
-              Refresh
-            </Button>
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus size={15} />
-              New contact
-            </Button>
+        description="People at your accounts and clients."
+        breadcrumb={[{ label: "CRM", to: "/portal/crm" }, { label: "Contacts" }]}
+        secondaryActions={<Button variant="outline" onClick={load} disabled={loading}><RefreshCw size={14} className={loading ? "animate-spin" : ""} aria-hidden="true" />Refresh</Button>}
+        primaryAction={canWrite ? <Button onClick={() => setCreateOpen(true)} disabled={busy}><Plus size={14} aria-hidden="true" />New contact</Button> : null}
+      >
+        <Panel flush bare label="Contact list" className="px-list-panel">
+          <div className="px-toolbar" role="search" aria-label="Filter contacts">
+            <SearchField label="Search contacts" value={q} onChange={setQ} placeholder="Name, email, phone or job title" />
+            <SelectField label="Sort by" value={sort} onChange={setSortReset} options={SORT_OPTIONS.some((o) => o.value === sort) ? SORT_OPTIONS : [...SORT_OPTIONS, { value: sort, label: "Custom" }]} />
           </div>
-        }
-      />
-
-      <div className="grid gap-3 sm:grid-cols-4">
-        <StatCard icon={UserRound} label="Total"      value={stats.total}     color="indigo"  />
-        <StatCard icon={UserRound} label="With Email" value={stats.withEmail} color="blue"    />
-        <StatCard icon={UserRound} label="Primary"    value={stats.primary}   color="amber"   />
-        <StatCard icon={UserRound} label="Linked"     value={stats.linked}    color="emerald" />
-      </div>
-
-      <FilterBar
-        searchValue={q}
-        onSearchChange={(v) => setQ(v)}
-        searchPlaceholder="Name, email, title, account…"
-        onClear={() => setQ("")}
-      />
-
-      {/* List */}
-      {loading ? (
-        <Card className="p-6">
-          <div className="grid gap-3">
-            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
-          </div>
-        </Card>
-      ) : filtered.length === 0 ? (
-        <Card className="p-0 overflow-hidden">
-          <EmptyState
-            icon={UserRound}
-            title="No contacts found"
-            message="Contacts link people to your CRM accounts and deals."
-            actionLabel="New contact"
-            onAction={() => setAddOpen(true)}
-          />
-        </Card>
-      ) : (
-        <div className="overflow-hidden rounded-[28px] border border-black/[0.07] bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-black/10 p-4">
-            <div className="text-sm font-black text-slate-900">Contacts ({filtered.length})</div>
-            <div className="text-xs text-slate-500">People in your CRM network</div>
-          </div>
-          <div className="divide-y divide-slate-100">
-            {filtered.map((c) => (
-              <div
-                key={c._id}
-                className="flex items-center justify-between gap-4 px-4 py-3.5 hover:bg-black/[0.02] transition"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 font-bold text-sm">
-                    {(c.fullName?.[0] || "?").toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-sm font-bold text-slate-900">{c.fullName}</span>
-                      {c.isPrimary && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-black text-amber-700">
-                          <Star size={9} className="fill-amber-400" /> Primary
-                        </span>
-                      )}
-                      {c.customerId?.companyName && (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-black text-indigo-700">
-                          <Building2 size={9} />
-                          {c.customerId.companyName}
-                        </span>
-                      )}
-                      {c.leadId && (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-black text-sky-700">
-                          Lead - {leadSourceLabel(c.leadId.source || c.source)}
-                        </span>
-                      )}
-                    </div>
-                    {c.jobTitle && (
-                      <div className="text-xs text-slate-500">{c.jobTitle}{c.accountId?.name ? ` · ${c.accountId.name}` : ""}</div>
-                    )}
-                    <div className="mt-1 flex flex-wrap gap-3">
-                      {c.email && (
-                        <a href={`mailto:${c.email}`} className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 transition">
-                          <Mail size={11} />{c.email}
-                        </a>
-                      )}
-                      {c.phone && (
-                        <a href={`tel:${c.phone}`} className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 transition">
-                          <Phone size={11} />{c.phone}
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => nav(`/portal/crm/contacts/${c._id}`)}
-                    className="text-slate-400 hover:text-slate-700 transition"
-                  >
-                    <ExternalLink size={15} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(c._id, c.fullName)}
-                    className="text-slate-300 hover:text-rose-500 transition"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+          <div className="px-result-bar">
+            <span aria-live="polite">{loading ? "Loading contacts…" : error ? "Contacts unavailable" : `${meta.total} contact${meta.total === 1 ? "" : "s"}`}</span>
+            {dq.trim() ? (
+              <div className="px-active-filters">
+                <button type="button" className="px-filter-chip" onClick={() => setQ("")} aria-label={`Remove filter Search: ${dq.trim()}`}>
+                  Search: {dq.trim()}
+                  <X size={12} aria-hidden="true" />
+                </button>
               </div>
-            ))}
+            ) : null}
           </div>
-        </div>
-      )}
+          {content}
+        </Panel>
+      </PageFrame>
 
-      <ContactFormModal
-        open={addOpen}
-        busy={busy}
-        onClose={() => setAddOpen(false)}
-        onSubmit={handleCreate}
-      />
-
-      <ConfirmModal
-        open={!!confirmState}
-        title={confirmState?.title}
-        message={confirmState?.message}
-        danger={confirmState?.danger}
-        onConfirm={confirmState?.onConfirm}
-        onClose={() => setConfirmState(null)}
-      />
-    </div>
+      {canWrite ? (
+        <>
+          <ContactFormModal open={createOpen} busy={busy} onClose={() => setCreateOpen(false)} onSubmit={(p) => save(() => createContact(p), "Contact created.", () => setCreateOpen(false))} />
+          <ContactFormModal open={Boolean(editing)} mode="edit" initial={editing} busy={busy} onClose={() => setEditing(null)} onSubmit={(p) => save(() => updateContact(editing._id, p), "Contact updated.", () => setEditing(null))} />
+        </>
+      ) : null}
+      {canDelete ? (
+        <ConfirmDialog
+          open={Boolean(removing)}
+          icon={Trash2}
+          tone="bad"
+          danger
+          title="Delete this contact permanently?"
+          confirmLabel="Delete contact"
+          onClose={() => setRemoving(null)}
+          onConfirm={async () => {
+            try {
+              await deleteContact(removing._id);
+              toast.success("Contact deleted.");
+              setRemoving(null);
+              await load();
+            } catch (e) {
+              toast.error(e?.response?.data?.message || "The contact wasn't deleted. Try again.");
+            }
+          }}
+          details={["The contact is erased and can't be restored.", "Deals that name this contact keep a link to a contact that no longer exists."]}
+        >
+          {removing?.fullName}
+        </ConfirmDialog>
+      ) : null}
+    </>
   );
 }
