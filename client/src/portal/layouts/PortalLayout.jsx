@@ -116,8 +116,8 @@ export default function PortalLayout() {
   };
 
   const navSections = useMemo(
-    () => getNavSectionsByRole(user?.role, user?.permissions || []),
-    [user?.role, user?.permissions]
+    () => getNavSectionsByRole(user?.role, user?.permissions || [], user?.isInternal),
+    [user?.role, user?.permissions, user?.isInternal]
   );
   const workspace = getWorkspaceKind(user);
   const permissions = user?.permissions || [];

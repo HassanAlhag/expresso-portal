@@ -1121,3 +1121,12 @@ textarea.px-input { height: auto; padding: 9px 12px; line-height: 1.5; resize: v
 .px-checklist { display: grid; gap: 0; max-height: 260px; overflow-y: auto; border: 1px solid var(--px-line); border-radius: 10px; padding: 4px 12px; }
 .px-checklist .px-check { height: auto; min-height: 34px; white-space: normal; }
 .px-checklist .px-check small { color: var(--px-muted); }
+
+/* Conversation (PUI-5): a support request's messages and status events. */
+.px-thread { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.px-thread-msg { max-width: min(560px, 92%); padding: 10px 13px; border-radius: 12px; background: var(--px-surface-2); border: 1px solid var(--px-line); }
+.px-thread-msg[data-mine] { justify-self: end; background: var(--px-persona-soft); border-color: color-mix(in srgb, var(--px-persona) 30%, transparent); }
+.px-thread-msg p { margin: 4px 0 0; white-space: pre-wrap; font-size: 14px; line-height: 1.5; color: var(--px-ink); overflow-wrap: anywhere; }
+.px-thread-who { display: flex; gap: 8px; align-items: baseline; font-size: 12.5px; font-weight: 600; color: var(--px-ink-2); }
+.px-thread-who time, .px-thread-event time { font-weight: 400; color: var(--px-muted); font-size: 12px; }
+.px-thread-event { justify-self: center; font-size: 12.5px; color: var(--px-muted); text-align: center; }

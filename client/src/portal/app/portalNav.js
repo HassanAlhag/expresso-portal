@@ -715,7 +715,58 @@ function filterSectionsForPermissions(sections, role, permissions) {
     .filter((section) => section.items.length > 0);
 }
 
-export function getNavSectionsByRole(role, permissions = []) {
+// External navigation (PUI-5). Clients and vendors get their own, smaller
+// information hierarchy instead of the staff menu filtered down; every item
+// still needs its permission (canSeeItem), and internal modules stay blocked.
+const relabel = (item, label, hint) => ({ ...item, label, hint: hint || item.hint });
+
+const CLIENT_SECTIONS = [
+  {
+    title: "Your work",
+    Icon: LayoutDashboard,
+    items: [
+      relabel(ITEMS.dashboard, "Overview", "What Expresso is doing for you"),
+      ITEMS.projects,
+      relabel(ITEMS.contentCalendar, "Content approvals", "Posts and approvals"),
+      relabel(ITEMS.procurementRequests, "Procurement requests", "What you've asked us to source"),
+    ],
+  },
+  {
+    title: "Support",
+    Icon: Ticket,
+    items: [relabel(ITEMS.tickets, "Support requests", "Ask for help or a change"), ITEMS.messages],
+  },
+  {
+    title: "Documents",
+    Icon: Files,
+    items: [ITEMS.files, relabel(ITEMS.billing, "Invoices", "Your invoices and payments"), ITEMS.brandKit, ITEMS.reports],
+  },
+  {
+    title: "Account",
+    Icon: User,
+    items: [relabel(ITEMS.clients, "Company", "Your company details"), ITEMS.profile, ITEMS.settings],
+  },
+];
+
+const VENDOR_SECTIONS = [
+  {
+    title: "Quotations",
+    Icon: ShoppingCart,
+    items: [relabel(ITEMS.dashboard, "Overview", "Open RFQs and your quotations"), relabel(ITEMS.rfqs, "RFQs", "Open RFQs and your quotations")],
+  },
+  {
+    title: "Support",
+    Icon: Ticket,
+    items: [relabel(ITEMS.tickets, "Support requests", "Ask Expresso for help")],
+  },
+  {
+    title: "Account",
+    Icon: User,
+    items: [ITEMS.profile, ITEMS.settings],
+  },
+];
+
+export function getNavSectionsByRole(role, permissions = [], isInternal) {
   const r = String(role || "").toLowerCase();
 
   if (!r) return [];
@@ -724,24 +775,9 @@ export function getNavSectionsByRole(role, permissions = []) {
     return ADMIN_SECTIONS;
   }
 
-  if (r === ROLES.CLIENT) {
-    return filterSectionsForPermissions(ADMIN_SECTIONS, r, permissions);
-  }
-
-  if (r === "vendor") {
-    return [
-      {
-        title: "Procurement",
-        Icon: ShoppingCart,
-        items: [ITEMS.procurement, ITEMS.rfqs],
-      },
-      {
-        title: "Account",
-        Icon: User,
-        items: [ITEMS.profile, ITEMS.settings],
-      },
-    ];
-  }
+  const lens = getWorkspaceKind({ role: r, isInternal });
+  if (lens === "vendor") return filterSectionsForPermissions(VENDOR_SECTIONS, r, permissions);
+  if (lens === "client") return filterSectionsForPermissions(CLIENT_SECTIONS, r, permissions);
 
   if (r === ROLES.STAFF) {
     return filterSectionsForPermissions(ADMIN_SECTIONS, r, permissions);

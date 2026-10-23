@@ -26,6 +26,8 @@ import {
   TYPE_OPTIONS,
   BOARD_COLUMNS,
 } from "../constants";
+import ClientTicketsList from "../client/ClientTicketsList";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -219,7 +221,7 @@ function KanbanBoard({ tickets, onCardClick }) {
 
 // ─── main page ──────────────────────────────────────────────────────────────
 
-export default function TicketsPage() {
+function StaffTicketsPage() {
   const nav = useNavigate();
   const toast = useToast();
 
@@ -398,4 +400,11 @@ export default function TicketsPage() {
       <TicketFormModal open={createOpen} onClose={() => setCreateOpen(false)} onSubmit={onCreate} busy={busy} />
     </div>
   );
+}
+
+// Support requests (PUI-5): external users (clients, vendors) get the client
+// view; staff keep the existing staff page.
+export default function TicketsPage() {
+  const access = useAccess();
+  return access.isInternal ? <StaffTicketsPage /> : <ClientTicketsList />;
 }

@@ -81,7 +81,8 @@ describe("navigation follows the real role and permissions", () => {
     const sections = getNavSectionsByRole("client", ["projects.read", "billing.read", "tickets.read", "crm.read", "iam.users.read"]);
     const { container } = render(<Sidebar id="s" navSections={sections} workspace="client" user={{ fullName: "Omar Saleh" }} />);
     const items = labels(container);
-    expect(items).toEqual(expect.arrayContaining(["Projects", "Billing", "Tickets"]));
+    // PUI-5: clients get their own navigation, not the staff menu filtered down.
+    expect(items).toEqual(expect.arrayContaining(["Overview", "Projects", "Invoices", "Support requests"]));
     expect(items).not.toContain("Leads");
     expect(items).not.toContain("Users");
     expect(screen.getByText("Client workspace")).toBeTruthy();
@@ -91,7 +92,7 @@ describe("navigation follows the real role and permissions", () => {
     const sections = getNavSectionsByRole("vendor", ["procurement.read"]);
     const { container } = render(<Sidebar id="s" navSections={sections} workspace="vendor" user={{ fullName: "Sara Rahman" }} />);
     const items = labels(container);
-    expect(items).toContain("RFQs");
+    expect(items).toEqual(["Overview", "RFQs", "Profile", "Settings"]); // no procurement admin, no support without tickets.read
     expect(items).not.toContain("Projects");
     expect(items).not.toContain("Clients");
     expect(screen.getByText("Vendor workspace")).toBeTruthy();

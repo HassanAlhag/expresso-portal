@@ -35,6 +35,19 @@ Status words used here: **Implemented** = code changed in the working tree · **
 
 Deferred from R3 by the plan's own timing: **P2-2** (CRM conversions, after Stage 4), **P2-6** (settings read without write, after Stage 4) and the **P2-7 pipeline** (Stage 5). P1-2 is a P1 item and was not part of this P2 stage.
 
+### PUI-5 findings (23 Oct 2026; not yet committed or deployed)
+
+| Finding | Status | Automated tests | Still pending |
+|---|---|---|---|
+| Tickets of type `internal` linked to a client's company were returned to that company's users (list, stats, detail, comments): the external filter matched on company only, and a `type=internal` query parameter replaced it. Client users could also create `internal` tickets (then hidden from staff triage views by type) | **Implemented** — external users never receive `internal` tickets (`ticket.controller.js`: list and stats filter, `canAccessTicket`, type filter limited to external types); an external user asking to create one gets a `support` ticket; staff unchanged | **Verified** — 3 tests in `test/pui5-external-boundaries.test.js` (all fail against the previous code) | — |
+| An external file upload accepted any `projectId`, `jobId` or `productionId`; the file list and detail populate those links, so a client could read another company's project or job name and status, or a production's | **Implemented** — external uploads may link only to their own company's project or job, never to a production (400 otherwise, nothing stored); staff uploads unchanged | **Verified** — 3 tests (the refusal test fails against the previous code; the own-project and staff tests pass on both) | — |
+| `GET /api/billing/invoices/:id` returned the staff member who recorded each payment (name and email) to client users | **Implemented** — client users receive payments without `recordedBy` (detail and list); staff unchanged; company isolation unchanged | **Verified** — 2 tests (the exposure test fails against the previous code) | — |
+| Vendors could open a closed or awarded RFQ they had quoted on (R2 rule), but no list showed those, so "what have I quoted on" had no answer | **Implemented** — `GET /api/procurement/rfqs?quoted=true` for vendors lists RFQs they quoted on, in their approved categories, published or later (never drafts), with vendor-safe fields; the default vendor list is unchanged | **Verified** — 2 tests (the new list fails against the previous code; the default-list test passes on both) | — |
+| An external user creating a ticket can set any `projectId`; it isn't populated back to them (no leak), but it attaches their ticket to another company's project in staff views | **Not changed** | — | Validate the project's company on external ticket creation (as for files) |
+| Ticket responses to client users include the assignee's email (`assigneeId` populated with `fullName email avatarUrl`); the portal shows the name only | **Not changed** — the handler is treated as client-facing | — | Decide whether external users should get the email |
+| Notes on client-visible files are returned to and shown to the client | **Not changed** — existing behaviour | — | Confirm staff treat file notes as client-facing |
+| There is no vendor-facing profile endpoint: a vendor can't see its own approved categories or profile details in the portal | **Not changed** — no profile page was invented | — | Decide whether vendors need a read-only profile |
+
 ### PUI-4 findings (23 Oct 2026; not yet committed or deployed)
 
 | Finding | Status | Automated tests | Still pending |

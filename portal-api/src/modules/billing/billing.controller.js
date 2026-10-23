@@ -103,7 +103,7 @@ export async function listInvoices(req, res) {
 
     return res.json({
       ok: true,
-      items,
+      items: canSeeAll(req) ? items : items.map(withoutRecorder),
       page: pageNum,
       pages: Math.max(1, Math.ceil(total / limitNum)),
       total,
@@ -113,6 +113,13 @@ export async function listInvoices(req, res) {
     console.error("listInvoices:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
+}
+
+// Who recorded a payment is internal staff information: client users get
+// their payments without it (PUI-5).
+function withoutRecorder(item) {
+  if (!item || !Array.isArray(item.payments)) return item;
+  return { ...item, payments: item.payments.map(({ recordedBy, ...p }) => p) };
 }
 
 // GET /api/billing/invoices/:id
@@ -135,6 +142,7 @@ export async function getInvoice(req, res) {
       const cid = String(req.user?.clientId || "");
       if (!cid || String(item.customerId?._id || item.customerId) !== cid)
         return res.status(403).json({ ok: false, message: "Forbidden" });
+      return res.json({ ok: true, item: withoutRecorder(item) });
     }
 
     return res.json({ ok: true, item });

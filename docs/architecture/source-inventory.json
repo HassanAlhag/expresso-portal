@@ -14657,8 +14657,12 @@
           "line": 60
         },
         {
-          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 325
+          "file": "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
+          "line": 93
+        },
+        {
+          "file": "client/src/portal/features/dashboard/client/clientOverview.js",
+          "line": 22
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -14667,6 +14671,10 @@
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
           "line": 19
+        },
+        {
+          "file": "client/src/portal/features/files/client/ClientFiles.jsx",
+          "line": 209
         }
       ]
     },
@@ -14806,16 +14814,8 @@
           "line": 66
         },
         {
-          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 327
-        },
-        {
-          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 366
-        },
-        {
-          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 367
+          "file": "client/src/portal/features/dashboard/client/clientOverview.js",
+          "line": 25
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -14997,8 +14997,12 @@
           "line": 27
         },
         {
-          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 368
+          "file": "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
+          "line": 143
+        },
+        {
+          "file": "client/src/portal/features/dashboard/client/clientOverview.js",
+          "line": 24
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
@@ -15018,6 +15022,14 @@
         }
       ],
       "ui": [
+        {
+          "file": "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
+          "line": 50
+        },
+        {
+          "file": "client/src/portal/features/files/client/ClientFiles.jsx",
+          "line": 46
+        },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
           "line": 317
@@ -15164,10 +15176,6 @@
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
           "line": 61
-        },
-        {
-          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 326
         }
       ]
     },
@@ -15225,6 +15233,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 34
+        },
+        {
+          "file": "client/src/portal/features/dashboard/client/clientOverview.js",
+          "line": 23
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -15316,8 +15328,12 @@
           "line": 35
         },
         {
-          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 324
+          "file": "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
+          "line": 119
+        },
+        {
+          "file": "client/src/portal/features/dashboard/client/clientOverview.js",
+          "line": 17
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -15356,7 +15372,20 @@
           "line": 27
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
+          "line": 49
+        },
+        {
+          "file": "client/src/portal/features/tickets/client/ClientTicketDetail.jsx",
+          "line": 27
+        },
+        {
+          "file": "client/src/portal/features/tickets/client/ClientTicketsList.jsx",
+          "line": 45
+        }
+      ]
     },
     "tickets.delete": {
       "api": [
@@ -15750,10 +15779,6 @@
         {
           "file": "client/src/portal/features/procurement/pages/RFQFormPage.jsx",
           "line": 41
-        },
-        {
-          "file": "client/src/portal/features/procurement/vendor/VendorRFQDetailView.jsx",
-          "line": 792
         }
       ]
     },
@@ -15850,10 +15875,6 @@
         {
           "file": "client/src/portal/features/procurement/pages/VendorApplicationsPage.jsx",
           "line": 43
-        },
-        {
-          "file": "client/src/portal/features/procurement/vendor/VendorRFQDetailView.jsx",
-          "line": 793
         }
       ]
     },
@@ -16706,10 +16727,6 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 28
-        },
-        {
-          "file": "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
-          "line": 369
         }
       ]
     },
@@ -19094,6 +19111,7 @@
     "client/src/portal/shared/hooks/useDebounce.js",
     "client/src/portal/shared/hooks/usePortalData.js",
     "client/src/portal/shared/hooks/usePortalMutations.js",
+    "client/src/portal/shared/hooks/usePortalPermissions.js",
     "client/src/portal/shared/hooks/usePortalProfile.js",
     "client/src/portal/shared/ui/AttachmentPicker.jsx",
     "client/src/portal/shared/ui/Can.jsx",
@@ -19277,13 +19295,15 @@
           "client/src/portal/features/customers/tabs/CustomerProductionsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProjectsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerUsersTab.jsx",
-          "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
+          "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
           "client/src/portal/features/dashboard/staff/StaffDashboard.jsx",
+          "client/src/portal/features/dashboard/vendor/VendorDashboard.jsx",
           "client/src/portal/features/delivery/pages/ServiceDeliveryPage.jsx",
           "client/src/portal/features/enrollments/components/CreateEnrollmentModal.jsx",
           "client/src/portal/features/enrollments/components/EditEnrollmentModal.jsx",
           "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
           "client/src/portal/features/enrollments/pages/EnrollmentsPage.jsx",
+          "client/src/portal/features/files/client/ClientFiles.jsx",
           "client/src/portal/features/files/pages/FilesPage.jsx",
           "client/src/portal/features/hr/components/ExpenseActionDialogs.jsx",
           "client/src/portal/features/hr/components/expenseActions.js",
@@ -19393,6 +19413,9 @@
           "client/src/portal/features/services/tabs/ServiceTemplateTabs.jsx",
           "client/src/portal/features/settings/pages/SettingsPage.jsx",
           "client/src/portal/features/social/pages/ContentCalendarPage.jsx",
+          "client/src/portal/features/tickets/client/ClientTicketDetail.jsx",
+          "client/src/portal/features/tickets/client/ClientTicketFormDialog.jsx",
+          "client/src/portal/features/tickets/client/ClientTicketsList.jsx",
           "client/src/portal/features/tickets/components/TicketCommentComposer.jsx",
           "client/src/portal/features/tickets/components/TicketFormModal.jsx",
           "client/src/portal/features/tickets/components/TicketThread.jsx",
@@ -19604,13 +19627,16 @@
           "client/src/portal/features/customers/tabs/CustomerProductionsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProjectsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerUsersTab.jsx",
+          "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
           "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
           "client/src/portal/features/dashboard/staff/StaffDashboard.jsx",
+          "client/src/portal/features/dashboard/vendor/VendorDashboard.jsx",
           "client/src/portal/features/delivery/pages/ServiceDeliveryPage.jsx",
           "client/src/portal/features/enrollments/components/CreateEnrollmentModal.jsx",
           "client/src/portal/features/enrollments/components/EditEnrollmentModal.jsx",
           "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
           "client/src/portal/features/enrollments/pages/EnrollmentsPage.jsx",
+          "client/src/portal/features/files/client/ClientFiles.jsx",
           "client/src/portal/features/files/pages/FilesPage.jsx",
           "client/src/portal/features/hr/components/ExpenseActionDialogs.jsx",
           "client/src/portal/features/hr/components/ExpenseClaimFormModal.jsx",
@@ -19733,6 +19759,9 @@
           "client/src/portal/features/services/tabs/ServiceTemplateTabs.jsx",
           "client/src/portal/features/settings/pages/SettingsPage.jsx",
           "client/src/portal/features/social/pages/ContentCalendarPage.jsx",
+          "client/src/portal/features/tickets/client/ClientTicketDetail.jsx",
+          "client/src/portal/features/tickets/client/ClientTicketFormDialog.jsx",
+          "client/src/portal/features/tickets/client/ClientTicketsList.jsx",
           "client/src/portal/features/tickets/components/TicketCommentComposer.jsx",
           "client/src/portal/features/tickets/components/TicketFormModal.jsx",
           "client/src/portal/features/tickets/components/TicketStatusPill.jsx",
@@ -19984,8 +20013,9 @@
           "client/src/portal/features/customers/tabs/CustomerProcurementTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProductionsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProjectsTab.jsx",
-          "client/src/portal/features/dashboard/pages/DashboardPage.jsx",
+          "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
           "client/src/portal/features/dashboard/staff/StaffDashboard.jsx",
+          "client/src/portal/features/dashboard/vendor/VendorDashboard.jsx",
           "client/src/portal/features/delivery/pages/ServiceDeliveryPage.jsx",
           "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
           "client/src/portal/features/enrollments/pages/EnrollmentsPage.jsx",
@@ -20030,6 +20060,8 @@
           "client/src/portal/features/services/pages/ServiceBuilderPage.jsx",
           "client/src/portal/features/services/pages/ServiceDetailsPage.jsx",
           "client/src/portal/features/services/pages/ServicesPage.jsx",
+          "client/src/portal/features/tickets/client/ClientTicketDetail.jsx",
+          "client/src/portal/features/tickets/client/ClientTicketsList.jsx",
           "client/src/portal/features/tickets/pages/TicketDetailsPage.jsx",
           "client/src/portal/features/tickets/pages/TicketsPage.jsx",
           "client/src/portal/layouts/PortalLayout.jsx",

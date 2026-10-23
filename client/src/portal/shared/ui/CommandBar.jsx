@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, ArrowRight } from "lucide-react";
+import { makeAccess, readPortalUser } from "../hooks/useAccess";
 
 const CommandBarCtx = createContext(null);
 
@@ -34,7 +35,10 @@ export function CommandBarProvider({ children, getItems }) {
   }, []);
 
   const items = useMemo(() => {
-    const all = (getItems?.() || []).filter(Boolean);
+    // Only destinations this user may open, by effective permissions (PUI-5):
+    // clients and vendors are never offered staff areas.
+    const access = makeAccess(readPortalUser());
+    const all = (getItems?.() || []).filter(Boolean).filter((it) => !it.to || access.canOpen(it.to));
     const qq = q.trim().toLowerCase();
     if (!qq) return all;
     return all.filter((it) => {

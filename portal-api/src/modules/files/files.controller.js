@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import File from "./file.model.js";
+import Project from "../projects/project.model.js";
+import Job from "../content/jobs/job.model.js";
 import { deleteFromS3 } from "../../utils/s3.js";
 import { putPrivate, privateDownloadUrl, deletePrivate } from "../../utils/privateStorage.js";
 import { canSeeAllTenantRecords } from "../../utils/accessControl.js";
@@ -252,6 +254,18 @@ export async function uploadFiles(req, res) {
           .split(",")
           .map((x) => x.trim())
           .filter(Boolean);
+
+    // An external user may link an upload only to their own company's project
+    // or job, and never to a production (productions have no company). The
+    // list and detail populate these links, so an unchecked id would reveal
+    // another company's record (PUI-5).
+    if (!internal) {
+      const cid = req.user.clientId;
+      const owns = async (Model, id) => !id || Boolean(await Model.findOne({ _id: id, customerId: cid }).select("_id").lean());
+      if (toId(productionId) || !(await owns(Project, toId(projectId))) || !(await owns(Job, toId(jobId)))) {
+        return res.status(400).json({ ok: false, message: "That project or job isn't one of your company's." });
+      }
+    }
 
     const uploaded = await Promise.all(
       files.map((f) => putPrivate(f.buffer, "files", f.originalname, f.mimetype))

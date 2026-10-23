@@ -14,12 +14,13 @@ import ErrorState from "../../../shared/ui/ErrorState";
 import { useAccess } from "../../../shared/hooks/useAccess";
 
 import { loadProcurementOverview, deriveProcurementOverview } from "../lib/overview";
+import VendorDashboard from "../../dashboard/vendor/VendorDashboard";
 import { PRIORITY_LABEL, PRIORITY_TONE, REQUEST_STATUSES, REQUEST_STATUS_LABEL, REQUEST_STATUS_TONE, clientName, date, requestRef } from "../format";
 
 const KIND_ICON = { request: Inbox, vendor: Store, rfq: FileText };
 
 // Procurement overview (PUI-4, procurement.read).
-export default function ProcurementDashboardPage() {
+function ProcurementOverview() {
   const access = useAccess();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -149,4 +150,11 @@ export default function ProcurementDashboardPage() {
       )}
     </PageFrame>
   );
+}
+
+// Vendors reach this address from older links; their overview is the vendor
+// overview, not company procurement figures (PUI-5).
+export default function ProcurementDashboardPage() {
+  const access = useAccess();
+  return access.role === "vendor" ? <VendorDashboard /> : <ProcurementOverview />;
 }

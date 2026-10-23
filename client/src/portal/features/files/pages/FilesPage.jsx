@@ -38,6 +38,8 @@ import {
   deleteFile,
   openFile,
 } from "../api";
+import ClientFiles from "../client/ClientFiles";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
 const BRAND = "#7F8AD1";
 
@@ -323,7 +325,7 @@ function UploadModal({ open, onClose, onUpload, busy }) {
 
 /* ─── Files Page ────────────────────────────────────────────── */
 
-export default function FilesPage() {
+function StaffFilesPage() {
   const nav = useNavigate();
   const toast = useToast();
 
@@ -929,4 +931,11 @@ export default function FilesPage() {
       />
     </div>
   );
+}
+
+// Files (PUI-5): external users get the client view of their company's
+// shared documents; staff keep the existing files page.
+export default function FilesPage() {
+  const access = useAccess();
+  return access.isInternal ? <StaffFilesPage /> : <ClientFiles />;
 }

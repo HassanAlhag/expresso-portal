@@ -48,6 +48,8 @@ import {
   SLA_OPTIONS,
   TERMINAL_STATUSES,
 } from "../constants";
+import ClientTicketDetail from "../client/ClientTicketDetail";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
 // ─── constants ───────────────────────────────────────────────────────────────
 
@@ -266,7 +268,7 @@ function MetaRow({ icon: Icon, label, children }) {
 
 // ─── main page ───────────────────────────────────────────────────────────────
 
-export default function TicketDetailsPage() {
+function StaffTicketDetailsPage() {
   const nav = useNavigate();
   const { id } = useParams();
   const role = useMemo(getRole, []);
@@ -1281,4 +1283,11 @@ function CRApprovalPanel({ onApprove, busy }) {
       </div>
     </div>
   );
+}
+
+// Support requests (PUI-5): external users (clients, vendors) get the client
+// view; staff keep the existing staff page.
+export default function TicketDetailsPage() {
+  const access = useAccess();
+  return access.isInternal ? <StaffTicketDetailsPage /> : <ClientTicketDetail />;
 }

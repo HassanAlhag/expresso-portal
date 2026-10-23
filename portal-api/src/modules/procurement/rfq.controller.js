@@ -157,7 +157,7 @@ export async function createRfq(req, res) {
 // GET /api/procurement/rfqs
 export async function listRfqs(req, res) {
   try {
-    const { status = "", q = "", page = "1", limit = "20" } = req.query;
+    const { status = "", q = "", page = "1", limit = "20", quoted = "" } = req.query;
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
 
@@ -166,7 +166,17 @@ export async function listRfqs(req, res) {
 
     let filter = {};
 
-    if (isVendor) {
+    if (isVendor && String(quoted) === "true") {
+      // "My quotations" (PUI-5): RFQs this vendor has quoted on, in their
+      // approved categories, while published or afterwards (closed/awarded) —
+      // the same rule as the vendor's RFQ detail. Never drafts.
+      const mine = await Quotation.find({ vendorId: vendor._id }).select("rfqId").lean();
+      filter = {
+        _id: { $in: mine.map((x) => x.rfqId) },
+        status: { $in: ["published", "closed", "awarded"] },
+        subcategoryIds: { $in: vendor.categories || [] },
+      };
+    } else if (isVendor) {
       // Vendors see only published RFQs in their approved categories.
       filter = {
         status: "published",

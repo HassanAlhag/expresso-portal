@@ -10,14 +10,20 @@ function isAdmin(req) {
   return canSeeAllTenantRecords(req);
 }
 
+// Ticket types an external user may create and see. "internal" tickets are
+// staff-only, even when staff link one to a client's company (PUI-5).
+const EXTERNAL_TYPES = new Set(["support", "change_request", "procurement"]);
+
 function externalTicketFilter(req) {
   const clientId = getUserClientId(req);
-  if (clientId) return { customerId: clientId };
-  return { clientId: req.user.id };
+  const notInternal = { type: { $ne: "internal" } };
+  if (clientId) return { customerId: clientId, ...notInternal };
+  return { clientId: req.user.id, ...notInternal };
 }
 
 function canAccessTicket(req, ticket) {
   if (isAdmin(req)) return true;
+  if (ticket?.type === "internal") return false;
   const clientId = getUserClientId(req);
   if (clientId && String(ticket.customerId || "") === clientId) return true;
   return String(ticket.clientId) === String(req.user.id);
@@ -114,7 +120,8 @@ export async function listTickets(req, res) {
     if (status && status !== "all") filter.status = status;
     if (category) filter.category = category;
     if (priority) filter.priority = priority;
-    if (type) filter.type = type;
+    // A type filter must not lift the external "no internal tickets" rule.
+    if (type && (isAdmin(req) || EXTERNAL_TYPES.has(type))) filter.type = type;
     if (slaLevel) filter.slaLevel = slaLevel;
 
     if (isAdmin(req)) {
@@ -194,13 +201,15 @@ export async function createTicket(req, res) {
 
     const admin = isAdmin(req);
     const resolvedCustomerId = admin ? oid(customerId) : oid(req.user?.clientId);
+    // External users can't file staff-only "internal" tickets (they couldn't see them).
+    const resolvedType = admin || EXTERNAL_TYPES.has(type) ? type : "support";
 
     const doc = await Ticket.create({
       clientId: req.user.id,
       customerId: resolvedCustomerId,
       projectId: oid(projectId),
       assigneeId: admin ? oid(assigneeId) : null,
-      type,
+      type: resolvedType,
       title: title.trim(),
       description: description.trim(),
       category,
@@ -210,13 +219,13 @@ export async function createTicket(req, res) {
       estimatedHours: estimatedHours != null ? Number(estimatedHours) : null,
       estimatedCost: estimatedCost != null ? Number(estimatedCost) : null,
       tags: Array.isArray(tags) ? tags.slice(0, 10) : [],
-      approvalStatus: type === "change_request" ? "pending" : null,
-      vendor: type === "procurement" ? vendor : null,
-      vendorContact: type === "procurement" ? vendorContact : null,
-      budgetAmount: type === "procurement" && budgetAmount != null ? Number(budgetAmount) : null,
-      currency: type === "procurement" ? currency : "USD",
-      purchaseOrderRef: type === "procurement" ? purchaseOrderRef : null,
-      deliveryDate: type === "procurement" && deliveryDate ? new Date(deliveryDate) : null,
+      approvalStatus: resolvedType === "change_request" ? "pending" : null,
+      vendor: resolvedType === "procurement" ? vendor : null,
+      vendorContact: resolvedType === "procurement" ? vendorContact : null,
+      budgetAmount: resolvedType === "procurement" && budgetAmount != null ? Number(budgetAmount) : null,
+      currency: resolvedType === "procurement" ? currency : "USD",
+      purchaseOrderRef: resolvedType === "procurement" ? purchaseOrderRef : null,
+      deliveryDate: resolvedType === "procurement" && deliveryDate ? new Date(deliveryDate) : null,
       status: "open",
       comments: [],
     });
@@ -436,7 +445,7 @@ export async function deleteTicket(req, res) {
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(400).json({ ok: false, message: "Invalid id" });
 
-    const existing = await Ticket.findById(id).select("customerId clientId").lean();
+    const existing = await Ticket.findById(id).select("customerId clientId type").lean();
     if (!existing) return res.status(404).json({ ok: false, message: "Not found" });
     // Same company boundary as viewing or updating a ticket.
     if (!canAccessTicket(req, existing))
