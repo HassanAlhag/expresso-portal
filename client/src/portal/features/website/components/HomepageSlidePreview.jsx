@@ -29,11 +29,18 @@ export default function HomepageSlidePreview({ slide }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
           <div className="relative z-10 flex min-h-[220px] flex-col justify-end p-5">
-            <div className="mb-3 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-white/80">
-              {slide?.eyebrowLeft || "EXPRESSO DIGITAL"}
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
-              {slide?.eyebrowRight || "GROWTH SYSTEMS"}
-            </div>
+            {slide?.eyebrowLeft || slide?.eyebrowRight ? (
+              <div
+                data-testid="slide-preview-eyebrow"
+                className="mb-3 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-white/80"
+              >
+                {slide?.eyebrowLeft ? <span>{slide.eyebrowLeft}</span> : null}
+                {slide?.eyebrowLeft && slide?.eyebrowRight ? (
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                ) : null}
+                {slide?.eyebrowRight ? <span>{slide.eyebrowRight}</span> : null}
+              </div>
+            ) : null}
 
             <h3 className="max-w-lg text-2xl font-black leading-tight text-white">
               {slide?.title || "Slide title preview"}

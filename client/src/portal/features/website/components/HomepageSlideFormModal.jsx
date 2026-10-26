@@ -10,7 +10,7 @@ import Button from "../../../shared/ui/Button";
 import Input from "../../../shared/ui/Input";
 import Modal from "../../../shared/ui/Modal";
 import HomepageSlidePreview from "./HomepageSlidePreview";
-import { EMPTY_HOMEPAGE_SLIDE } from "../constants/homepageSlides.constants";
+import { EMPTY_HOMEPAGE_SLIDE, LEGACY_SLIDE_EYEBROWS } from "../constants/homepageSlides.constants";
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
 // Change this import to your actual media picker path/name.
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
@@ -30,7 +30,9 @@ export default function HomepageSlideFormModal({
   useEffect(() => {
     if (open) {
       setForm(
-        initial ? { ...EMPTY_HOMEPAGE_SLIDE, ...initial } : EMPTY_HOMEPAGE_SLIDE
+        initial
+          ? { ...EMPTY_HOMEPAGE_SLIDE, ...LEGACY_SLIDE_EYEBROWS, ...initial }
+          : EMPTY_HOMEPAGE_SLIDE
       );
     }
   }, [open, initial]);
@@ -132,7 +134,7 @@ export default function HomepageSlideFormModal({
               label="EYEBROW RIGHT"
               value={form.eyebrowRight}
               onChange={setFromInput("eyebrowRight")}
-              placeholder="GROWTH SYSTEMS"
+              placeholder="Optional — leave blank for none"
             />
 
             <div className="lg:col-span-2">

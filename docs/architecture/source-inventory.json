@@ -16971,24 +16971,24 @@
       "reachable": true
     },
     {
+      "file": "client/src/hooks/useDigitalProducts.js",
+      "line": 16,
+      "call": "fetch",
+      "url": "`${API}/web-content/solutions?kind=digital`",
+      "reachable": true
+    },
+    {
       "file": "client/src/hooks/usePortfolioItem.js",
-      "line": 17,
+      "line": 22,
       "call": "fetch",
       "url": "`${BASE}/portfolio/${id}`",
       "reachable": true
     },
     {
       "file": "client/src/hooks/usePortfolioItems.js",
-      "line": 12,
+      "line": 13,
       "call": "fetch",
       "url": "`${BASE}/portfolio?status=published&limit=50&sort=sortOrder`",
-      "reachable": true
-    },
-    {
-      "file": "client/src/pages/DigitalSolutions/DigitalSolutionsPage.jsx",
-      "line": 148,
-      "call": "fetch",
-      "url": "`${API}/web-content/solutions?kind=digital`",
       "reachable": true
     },
     {
@@ -17007,7 +17007,7 @@
     },
     {
       "file": "client/src/pages/ServiceMain/serviceMain.jsx",
-      "line": 128,
+      "line": 133,
       "call": "fetch",
       "url": "`${API}/web-content/services`",
       "reachable": true
@@ -19460,6 +19460,7 @@
           "client/src/components/PricingFeatures/pricingFeatures.jsx",
           "client/src/components/PrimaryHeader/primaryHeader.jsx",
           "client/src/components/ProcurementProcess/ProcurementProcess.jsx",
+          "client/src/components/PublicLoadStatus/PublicLoadStatus.jsx",
           "client/src/components/RecentWorks/RecentWorks.jsx",
           "client/src/components/ReelsShowcase/ReelsShowcase.jsx",
           "client/src/components/ScrollToTop/scrollToTop.js",
@@ -19498,6 +19499,7 @@
           "client/src/components/WorkFlowSection/WorkFlowSection.jsx",
           "client/src/features/productions/pages/ProductionDetailsPage.jsx",
           "client/src/features/productions/pages/ProductionsPage.jsx",
+          "client/src/hooks/useDigitalProducts.js",
           "client/src/hooks/usePortfolioItem.js",
           "client/src/hooks/usePortfolioItems.js",
           "client/src/hooks/useSiteSettings.js",
@@ -19507,9 +19509,13 @@
           "client/src/pages/AboutUs/aboutUs.jsx",
           "client/src/pages/Career/CareerPage.jsx",
           "client/src/pages/Contact/contactPage.jsx",
+          "client/src/pages/DigitalSolutions/BusinessSuiteDiagrams.jsx",
+          "client/src/pages/DigitalSolutions/BusinessSuiteSection.jsx",
+          "client/src/pages/DigitalSolutions/BusinessSuiteVisual.jsx",
           "client/src/pages/DigitalSolutions/customPages.js",
           "client/src/pages/DigitalSolutions/DigitalSolutionDetailPage.jsx",
           "client/src/pages/DigitalSolutions/DigitalSolutionsPage.jsx",
+          "client/src/pages/DigitalSolutions/ProductLoadStatus.jsx",
           "client/src/pages/ErrorBoundary/errorBoundary.jsx",
           "client/src/pages/Home/home.jsx",
           "client/src/pages/ITSolutions/ITSolutionDetailsPage.jsx",
@@ -19521,6 +19527,7 @@
           "client/src/pages/Pricing/seoPricingPage.jsx",
           "client/src/pages/Pricing/socialMediaMarketingPage.jsx",
           "client/src/pages/Pricing/webPricingPage.jsx",
+          "client/src/pages/Products/BusinessSuitePage.jsx",
           "client/src/pages/Products/CASPage.jsx",
           "client/src/pages/Products/components/CASBookingJourney.jsx",
           "client/src/pages/Products/components/CASBuiltBy.jsx",
@@ -19816,6 +19823,7 @@
         "importFiles": [
           "client/src/App.js",
           "client/src/pages/DigitalSolutions/DigitalSolutionsPage.jsx",
+          "client/src/pages/Products/BusinessSuitePage.jsx",
           "client/src/pages/Products/CASPage.jsx"
         ]
       },
@@ -19869,6 +19877,8 @@
           "client/src/data/technologyConstants.js",
           "client/src/pages/AboutUs/aboutUs.jsx",
           "client/src/pages/Career/CareerPage.jsx",
+          "client/src/pages/DigitalSolutions/BusinessSuiteDiagrams.jsx",
+          "client/src/pages/DigitalSolutions/BusinessSuiteSection.jsx",
           "client/src/pages/DigitalSolutions/DigitalSolutionsPage.jsx",
           "client/src/pages/ErrorBoundary/errorBoundary.jsx",
           "client/src/pages/ITSolutions/ITSolutionDetailsPage.jsx",
@@ -19877,6 +19887,7 @@
           "client/src/pages/Pricing/seoPricingPage.jsx",
           "client/src/pages/Pricing/socialMediaMarketingPage.jsx",
           "client/src/pages/Pricing/webPricingPage.jsx",
+          "client/src/pages/Products/BusinessSuitePage.jsx",
           "client/src/pages/Products/components/CASBookingJourney.jsx",
           "client/src/pages/Products/components/CASHero.jsx",
           "client/src/pages/Products/components/CASPlatformSummary.jsx",
@@ -19916,6 +19927,7 @@
           "client/src/components/MainHeader/mobileMenu.jsx",
           "client/src/components/OurServiceSection/ourServiceSection.jsx",
           "client/src/components/PortfolioComponents/portfolioList.jsx",
+          "client/src/components/PublicLoadStatus/PublicLoadStatus.jsx",
           "client/src/components/ScrollToTop/scrollToTop.js",
           "client/src/components/ServicesBanner/servicesBanner.jsx",
           "client/src/components/ShuffleSection/shuffleSection.jsx",
@@ -19933,6 +19945,7 @@
           "client/src/pages/Home/home.jsx",
           "client/src/pages/ITSolutions/ITSolutionDetailsPage.jsx",
           "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+          "client/src/pages/Products/BusinessSuitePage.jsx",
           "client/src/pages/Products/CASPage.jsx",
           "client/src/pages/Products/components/CASHero.jsx",
           "client/src/pages/ServiceMain/serviceMain.jsx",

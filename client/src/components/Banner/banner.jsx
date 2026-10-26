@@ -64,7 +64,14 @@ const preload = (src) =>
     img.src = src;
   });
 
-function normalizeSlides(items) {
+// Eyebrows are optional. An explicitly blank value stays blank; the old
+// defaults apply only to records that predate the fields (field missing).
+function eyebrowText(value, legacyDefault) {
+  if (value === undefined || value === null) return legacyDefault;
+  return String(value).trim();
+}
+
+export function normalizeSlides(items) {
   const rows = Array.isArray(items) ? items : [];
 
   return rows
@@ -80,8 +87,8 @@ function normalizeSlides(items) {
     .map((item, index) => ({
       id: item.id || item._id || index,
 
-      eyebrowLeft: item.eyebrowLeft || "EXPRESSO DIGITAL",
-      eyebrowRight: item.eyebrowRight || "GROWTH SYSTEMS",
+      eyebrowLeft: eyebrowText(item.eyebrowLeft, "EXPRESSO DIGITAL"),
+      eyebrowRight: eyebrowText(item.eyebrowRight, "GROWTH SYSTEMS"),
 
       heading: item.title || item.heading || "Untitled slide",
       description: item.subtitle || item.description || "",
@@ -316,14 +323,23 @@ export default function Banner() {
 
       <div className="mx-auto grid min-h-screen w-[min(1220px,92vw)] items-center gap-10 py-24 md:py-20 lg:grid-cols-12">
         <div className={textColumnClass}>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold tracking-[0.22em] text-white/80 backdrop-blur-xl">
-            {current?.eyebrowLeft || "EXPRESSO DIGITAL"}
-            <span
-              className="h-1.5 w-1.5 rounded-full"
-              style={{ backgroundColor: BRAND }}
-            />
-            {current?.eyebrowRight || "GROWTH SYSTEMS"}
-          </div>
+          {current?.eyebrowLeft || current?.eyebrowRight ? (
+            <div
+              data-testid="hero-eyebrow"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold tracking-[0.22em] text-white/80 backdrop-blur-xl"
+            >
+              {current?.eyebrowLeft ? <span>{current.eyebrowLeft}</span> : null}
+              {current?.eyebrowLeft && current?.eyebrowRight ? (
+                <span
+                  aria-hidden="true"
+                  data-testid="hero-eyebrow-separator"
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: BRAND }}
+                />
+              ) : null}
+              {current?.eyebrowRight ? <span>{current.eyebrowRight}</span> : null}
+            </div>
+          ) : null}
 
           <h1 className="mt-6 text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
             <span className="relative">

@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import Slide from "./slide.model.js";
 
 const cleanString = (value, fallback = "") => String(value || fallback).trim();
+// Eyebrows are optional: an explicitly supplied blank stays blank. The old
+// defaults apply only when the field is not sent at all.
+const optionalText = (value, fallback) =>
+  value === undefined || value === null ? fallback : String(value).trim();
 const objectIdOrNull = (value) =>
   value && mongoose.Types.ObjectId.isValid(value) ? value : null;
 
@@ -29,8 +33,8 @@ export async function createSlide(req, res) {
   try {
     const body = req.body || {};
     const slide = await Slide.create({
-      eyebrowLeft: cleanString(body.eyebrowLeft, "EXPRESSO DIGITAL"),
-      eyebrowRight: cleanString(body.eyebrowRight, "GROWTH SYSTEMS"),
+      eyebrowLeft: optionalText(body.eyebrowLeft, "EXPRESSO DIGITAL"),
+      eyebrowRight: optionalText(body.eyebrowRight, "GROWTH SYSTEMS"),
       title: cleanString(body.title),
       subtitle: cleanString(body.subtitle),
       imageUrl: cleanString(body.imageUrl),

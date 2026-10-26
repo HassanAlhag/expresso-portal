@@ -7,6 +7,7 @@ import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImageSetting } from "../../utils/websiteImages";
 import { ServiceBanner } from "../../components/ServicesBanner/servicesBanner";
 import FinalCTASection from "../../components/FinalCTASection/FinalCTASection";
+import PublicLoadStatus from "../../components/PublicLoadStatus/PublicLoadStatus";
 
 const BRAND = "#8390C8";
 const CATS = ["All", "Website Design", "Social Media"];
@@ -14,7 +15,8 @@ const CATS = ["All", "Website Design", "Social Media"];
 export default function PortfolioGalleryPage() {
   const navigate = useNavigate();
   const settings = useSiteSettings();
-  const { items: resolved } = usePortfolioItems();
+  const { items: resolved, loading, error, retry } = usePortfolioItems();
+  const listStatus = loading ? "loading" : error ? "error" : resolved.length ? "success" : "empty";
   const [active, setActive] = useState("All");
 
   const filtered = useMemo(
@@ -78,6 +80,21 @@ export default function PortfolioGalleryPage() {
       </section>
 
       {/* ─── Projects ───────────────────────────────────────────────────── */}
+      {listStatus !== "success" ? (
+        <section aria-label="Portfolio projects" className="bg-white py-12 md:py-16">
+          <div className="mx-auto w-[min(1240px,94vw)]">
+            <PublicLoadStatus
+              status={listStatus}
+              loadingText="Loading our work…"
+              errorTitle="We couldn’t load our portfolio."
+              errorText="Please try again, or contact our team to see examples of our work."
+              emptyTitle="Our portfolio is being updated."
+              emptyText="Contact our team to see examples of our work."
+              onRetry={retry}
+            />
+          </div>
+        </section>
+      ) : null}
       <AnimatePresence mode="wait">
         <motion.div
           key={active}

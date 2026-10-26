@@ -59,6 +59,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.expressodigital.ae/digital-solutions/business-suite</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.expressodigital.ae/it-solutions</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

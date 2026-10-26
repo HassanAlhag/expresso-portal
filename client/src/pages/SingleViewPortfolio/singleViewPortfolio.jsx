@@ -5,6 +5,7 @@ import { FiArrowLeft, FiArrowRight, FiCheck } from "react-icons/fi";
 import { usePortfolioItem } from "../../hooks/usePortfolioItem";
 import { usePortfolioItems } from "../../hooks/usePortfolioItems";
 import ShiftingContactForm from "../../components/ContactForm/contactForm";
+import PublicLoadStatus from "../../components/PublicLoadStatus/PublicLoadStatus";
 
 const BRAND = "#8390C8";
 const BRAND_DIM = "rgba(131,144,200,0.15)";
@@ -21,13 +22,31 @@ const reveal = {
 export default function PrtofolioSingleViewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { item: portfolio, loading } = usePortfolioItem(id);
+  const { item: portfolio, loading, error, retry } = usePortfolioItem(id);
   const { items: allItems } = usePortfolioItems();
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <p className="text-neutral-400">Loading…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white px-4">
+        <div className="w-full max-w-2xl">
+          <PublicLoadStatus
+            status="error"
+            errorTitle="We couldn’t load this project."
+            errorText="Please try again, or go back to our case studies."
+            onRetry={retry}
+          />
+          <p className="mt-4 text-center text-sm">
+            <Link to="/case-studies" className="font-semibold text-lotus-700 underline underline-offset-4">All case studies</Link>
+          </p>
+        </div>
       </div>
     );
   }

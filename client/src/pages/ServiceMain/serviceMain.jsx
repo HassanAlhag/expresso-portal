@@ -6,6 +6,7 @@ import RevealCards from "../../components/OurServiceSection/ourServiceSection";
 import WebDevelopmentProcess from "../../components/WebDevolopmentProcess/webDevelopmentProcess";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
+import PublicLoadStatus from "../../components/PublicLoadStatus/PublicLoadStatus";
 
 const API = process.env.REACT_APP_API_URL || "/api";
 
@@ -117,7 +118,9 @@ function ServiceMainPage() {
   const { hash } = useLocation();
   const settings = useSiteSettings();
   const servicesSettings = settings?.services || {};
-  const [serviceCards, setServiceCards] = useState(null);
+  // loading | error | empty | success — a failed request is never shown as "no services".
+  const [services, setServices] = useState({ status: "loading", items: [] });
+  const [attempt, setAttempt] = useState(0);
 
   // This page is lazy-loaded, so scroll after its anchor has mounted.
   useEffect(() => {
@@ -125,14 +128,23 @@ function ServiceMainPage() {
   }, [hash]);
 
   useEffect(() => {
+    let alive = true;
+    setServices({ status: "loading", items: [] });
     fetch(`${API}/web-content/services`)
-      .then((r) => r.json())
-      .then((d) => setServiceCards(d.items || []))
-      .catch(() => setServiceCards([]));
-  }, []);
+      .then((r) => {
+        if (!r.ok) throw new Error(`Services request failed: ${r.status}`);
+        return r.json();
+      })
+      .then((d) => {
+        if (d?.ok === false || !Array.isArray(d?.items)) throw new Error("Invalid services response");
+        if (alive) setServices({ status: d.items.length ? "success" : "empty", items: d.items });
+      })
+      .catch(() => { if (alive) setServices({ status: "error", items: [] }); });
+    return () => { alive = false; };
+  }, [attempt]);
 
-  const cards = serviceCards
-    ? serviceCards.map((s) => ({
+  const cards = services.status === "success"
+    ? services.items.map((s) => ({
         title: s.title,
         description: s.description,
         imgSrc: s.imageUrl,
@@ -153,14 +165,28 @@ function ServiceMainPage() {
         backgroundImage={heroImage}
         ctaText="View Our Work"
         ctaLink="/contact-us"
-        badgeText="NEW!"
-        badgeLink="https://www.yourportfolio.com"
       />
       <ServiceMainHeader
         subheading={pageCopy(servicesSettings, "introSubheading")}
         heading={pageCopy(servicesSettings, "introHeading")}
       />
-      <RevealCards cards={cards} />
+      {cards ? (
+        <RevealCards cards={cards} />
+      ) : (
+        <section aria-label="Our services" className="bg-white px-4 py-12 md:py-16">
+          <div className="mx-auto max-w-6xl">
+            <PublicLoadStatus
+              status={services.status}
+              loadingText="Loading our services…"
+              errorTitle="We couldn’t load our services."
+              errorText="Please try again, or contact our team to talk about what you need."
+              emptyTitle="Our services are being updated."
+              emptyText="Contact our team to talk about what you need."
+              onRetry={() => setAttempt((n) => n + 1)}
+            />
+          </div>
+        </section>
+      )}
       <ServiceMainHeader
         subheading={pageCopy(servicesSettings, "processSubheading")}
         heading={pageCopy(servicesSettings, "processHeading")}

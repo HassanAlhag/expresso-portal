@@ -14,11 +14,11 @@ test("CAS never appears under Technology Solutions, even in a mixed list", () =>
 
 test("technology products never appear as Expresso-owned Digital Solutions", () => {
   const menu = buildMenus({ digital: [CAS, ERP], digitalLoaded: true }).find((m) => m.key === "digital-solutions");
-  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas"]);
+  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas", "/digital-solutions/business-suite"]);
 });
 
 test("a list with only technology records retains core Digital Solutions without leaking technology", () => {
   const menu = buildMenus({ digital: [ERP], digitalLoaded: true }).find((m) => m.key === "digital-solutions");
-  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas"]);
+  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas", "/digital-solutions/business-suite"]);
   expect(menu.groups).toEqual([]);
 });

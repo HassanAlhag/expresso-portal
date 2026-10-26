@@ -1,4 +1,5 @@
 import { CAS_IMAGES, CAS_PRODUCT } from "./casProduct";
+import { BUSINESS_SUITE_PRODUCT } from "./businessSuiteProduct";
 import { onlyDigital } from "../utils/solutionKinds";
 
 // Core first-party products exist independently of CMS publication. Reuse the
@@ -18,6 +19,11 @@ export const CORE_DIGITAL_PRODUCTS = Object.freeze([
     demoCtaLabel: CAS_PRODUCT.demoCtaLabel,
     demoCtaHref: CAS_PRODUCT.demoHref,
     order: 0,
+  }),
+  Object.freeze({
+    ...BUSINESS_SUITE_PRODUCT,
+    kind: "digital",
+    ownership: "expresso",
   }),
 ]);
 
@@ -48,6 +54,9 @@ export function mergeDigitalProducts(cmsItems = []) {
         if (typeof item[field] === "string" && item[field].trim()) product[field] = item[field].trim();
       }
       if (validOrder(item.order)) product.order = item.order;
+      // Reuse the existing CMS blocks for product content, including Suite
+      // modules. Discovery identity and routes remain owned by the registry.
+      if (Array.isArray(item.blocks)) product.blocks = item.blocks;
     } else {
       products.set(slug, {
         ...item,

@@ -22,7 +22,6 @@ export default function PortfolioPage() {
         ctaLink="/contact-us"
         badgeText="Go"
         badgeText2="Brands That Leveled Up"
-        badgeLink="https://www.yourportfolio.com"
       />
 
       <ProtfolioHeader />

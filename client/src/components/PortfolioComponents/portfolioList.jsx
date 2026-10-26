@@ -6,11 +6,13 @@ import "react-lazy-load-image-component/src/effects/blur.css";
 import { PortfolioTab, TAB_DATA } from "./portfolioTabs";
 import MagnetButtonExample from "./viewButton";
 import { usePortfolioItems } from "../../hooks/usePortfolioItems";
+import PublicLoadStatus from "../PublicLoadStatus/PublicLoadStatus";
 
 const BRAND = "#8390C8";
 
 export default function PortfolioGrid() {
-  const { items: allItems } = usePortfolioItems();
+  const { items: allItems, loading, error, retry } = usePortfolioItems();
+  const listStatus = loading ? "loading" : error ? "error" : allItems.length ? "success" : "empty";
   const [selectedTab, setSelectedTab] = useState(1);
 
   const selectedTitle = useMemo(() => {
@@ -49,6 +51,20 @@ export default function PortfolioGrid() {
           Request a similar project →
         </a>
       </div>
+
+      {listStatus !== "success" ? (
+        <div className="mb-8">
+          <PublicLoadStatus
+            status={listStatus}
+            loadingText="Loading our work…"
+            errorTitle="We couldn’t load our portfolio."
+            errorText="Please try again, or contact our team to see examples of our work."
+            emptyTitle="Our portfolio is being updated."
+            emptyText="Contact our team to see examples of our work."
+            onRetry={retry}
+          />
+        </div>
+      ) : null}
 
       {/* Portfolio Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

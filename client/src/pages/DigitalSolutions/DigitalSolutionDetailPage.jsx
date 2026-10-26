@@ -4,7 +4,7 @@ import ITSolutionDetailsPage from "../ITSolutions/ITSolutionDetailsPage";
 import { CUSTOM_PAGE_BY_SLUG, CUSTOM_SOLUTION_PAGES } from "./customPages";
 
 // /digital-solutions/:slug — products built and owned by Expresso.
-// Known product pages (CAS) render directly; anything else comes from the
+// Core product pages render directly; anything else comes from the
 // CMS Solution record (kind "digital").
 export default function DigitalSolutionDetailPage() {
   const { slug } = useParams();

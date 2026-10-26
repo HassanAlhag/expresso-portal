@@ -1,26 +1,29 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const BASE = process.env.REACT_APP_API_URL || "/api";
 
 let _cache = null;
 let _promise = null;
 
+// Shared published-portfolio list. A failed or invalid response rejects (and is
+// never cached), so pages can tell "no portfolio records" from "request failed".
 async function fetchPublishedItems() {
   if (_cache) return _cache;
-  if (_promise) return _promise;
-
-  _promise = fetch(`${BASE}/portfolio?status=published&limit=50&sort=sortOrder`)
-    .then((r) => r.json())
-    .then((data) => {
-      _cache = Array.isArray(data?.items) ? data.items : [];
-      _promise = null;
-      return _cache;
-    })
-    .catch(() => {
-      _promise = null;
-      return [];
-    });
-
+  if (!_promise) {
+    _promise = fetch(`${BASE}/portfolio?status=published&limit=50&sort=sortOrder`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`Portfolio request failed: ${r.status}`);
+        return r.json();
+      })
+      .then((data) => {
+        if (data?.ok === false || !Array.isArray(data?.items)) throw new Error("Invalid portfolio response");
+        _cache = data.items;
+        return _cache;
+      })
+      .finally(() => {
+        _promise = null;
+      });
+  }
   return _promise;
 }
 
@@ -30,18 +33,18 @@ export function invalidatePortfolioCache() {
 }
 
 export function usePortfolioItems() {
-  const [items, setItems] = useState(_cache || []);
-  const [loading, setLoading] = useState(!_cache);
-  const [error, setError] = useState(null);
+  const [state, setState] = useState(() => ({ items: _cache || [], loading: !_cache, error: null }));
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
+    setState((prev) => ({ ...prev, loading: !_cache, error: null }));
     fetchPublishedItems()
-      .then((data) => { if (mounted) { setItems(data); setLoading(false); } })
-      .catch((err) => { if (mounted) { setError(err); setLoading(false); } });
+      .then((items) => { if (mounted) setState({ items, loading: false, error: null }); })
+      .catch((error) => { if (mounted) setState({ items: [], loading: false, error }); });
     return () => { mounted = false; };
-  }, []);
+  }, [attempt]);
 
-  return { items, loading, error };
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+  return { ...state, retry };
 }

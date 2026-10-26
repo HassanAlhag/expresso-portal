@@ -2,7 +2,7 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · [Cleanup audit](CODE-CLEANUP-AUDIT.md) · [Reset plan](DATABASE-RESET-PLAN.md)
 
-**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is implemented and awaiting review (not committed). **Website Stage 4, R4 and R5 have not started.** Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
+**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is committed (`23425ab8`). **Website Stage 4: code complete and committed (`feat: complete website stage 4`); homepage CMS content pending manual entry.** **R4 and R5 have not started.** Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
 
 **Baseline:** branch `website/integrated-solutions`. Application code is at `58b8f86c`; the architecture docs were committed at `e867d95f`.
 
@@ -19,16 +19,16 @@ Status words used here: **Implemented** = code changed in the working tree · **
 
 ### Original plan versus actual implementation (reconciled 26 Oct 2026)
 
-The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → R4 → R5, with the design study in parallel and portal implementation after both the study and R4. The actual order was R1 → R2 → design study → a reliability stage labelled "R3" → PUI-1 to PUI-5 → R1/R3 closure. Website Stage 4, R4 and R5 have not started, so portal implementation ran **before** R4, the reverse of the plan; the R4 items it was meant to absorb (P3-5, P3-6) are only partly done.
+The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → R4 → R5, with the design study in parallel and portal implementation after both the study and R4. The actual order was R1 → R2 → design study → a reliability stage labelled "R3" → PUI-1 to PUI-5 → R1/R3 closure → Website Stage 4. R4 and R5 have not started, so portal implementation ran **before** R4, the reverse of the plan; the R4 items it was meant to absorb (P3-5, P3-6) are only partly done.
 
 **Original stages, by their original contents**
 
 | Original stage | Original contents | Status | Evidence / what remains |
 |---|---|---|---|
-| R1 Security hardening | P0-1–P0-4, P1-2, P2-3 invoices, `seedUser.js`, P3-1 meanings, P4-1, P4-3 | Code complete once the closure is accepted | P0-1–P0-4 in `b2958e76`; P2-3 invoices and `seedUser.js` in `91a0c0bc`; P1-2, P4-1, P4-3 and the `reports.export` part of P3-1 in the R1/R3 closure (awaiting review). Deployment checks pending |
+| R1 Security hardening | P0-1–P0-4, P1-2, P2-3 invoices, `seedUser.js`, P3-1 meanings, P4-1, P4-3 | Code complete (R1/R3 closure committed in `23425ab8`) | P0-1–P0-4 in `b2958e76`; P2-3 invoices and `seedUser.js` in `91a0c0bc`; P1-2, P4-1, P4-3 and the `reports.export` part of P3-1 in the R1/R3 closure (`23425ab8`). Deployment checks pending |
 | R2 Access model & vendor journey | P1-1, P1-3, P1-4, P1-5, P2-1, P2-3 RFQs, P2-4, P2-5, P3-4 | Code complete; one part deferred | `26a2cca6`; P2-4 and the RFQ counter in `91a0c0bc`. **Deferred:** RFQ unique index (needs the read-only duplicate check). Deployment checks pending |
-| R3 Housekeeping | P3-3, P3-9, audit corrections | Code complete once the closure is accepted | Audit corrections were applied with the baseline. P3-3 and P3-9 in the R1/R3 closure. **Note:** commit `91a0c0bc`, labelled R3, delivered R1/R2 items (P2-3, P2-4, `seedUser.js`), not the original R3 housekeeping |
-| Website Stage 4 | Homepage and remaining public pages | **Not started** | No public-website commit since `852369df`. Website work in the working tree is uncommitted and is not counted |
+| R3 Housekeeping | P3-3, P3-9, audit corrections | Code complete (R1/R3 closure committed in `23425ab8`) | Audit corrections were applied with the baseline. P3-3 and P3-9 in the R1/R3 closure. **Note:** commit `91a0c0bc`, labelled R3, delivered R1/R2 items (P2-3, P2-4, `seedUser.js`), not the original R3 housekeeping |
+| Website Stage 4 | Homepage and remaining public pages | **W4 code: complete and committed. W4 CMS content: pending manual entry** | No detailed W4 specification existed; scope settled in the W4 pre-flight (26 Oct 2026). See [Website Stage 4](#website-stage-4-w4-code-complete-and-committed-cms-content-pending) |
 | R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **Not started** as a stage | P3-5 and P3-6 partly done incidentally during PUI (see their rows); P2-2, P2-6, P3-7, P3-8 untouched |
 | R5 Verified cleanup & data lifecycle | P3-2, P4-2, P4-4, P4-5, P4-6, P2-7 pipeline | **Not started** | Needs backup with tested restore, database export and access-log review first |
 | Design study | Offline prototype and component specification | **Done** | `f0d9bc02` |
@@ -47,11 +47,27 @@ The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → 
 | `ffc5005c` | PUI-3 | Clients and CRM; customer endpoint boundaries | No |
 | `ed68bb5c` | PUI-4 | Finance, HR, Procurement; RFQ-from-request boundary and budget copy | No |
 | `3106b267` | PUI-5 | Client and vendor portal; ticket, file-link and billing boundaries; vendor `quoted=true` list | No |
-| — (not committed) | R1/R3 closure | P1-2, P4-1, P4-3, P3-1 `reports.export`, P3-3, P3-9, this status update | No |
+| `23425ab8` | R1/R3 closure | P1-2, P4-1, P4-3, P3-1 `reports.export`, P3-3, P3-9, status update | No |
+| `feat: complete website stage 4` | Website Stage 4 | Digital Solutions catalogue and Business Suite page; Services and Portfolio load states; homepage eyebrow rule; placeholder badges removed | No |
 
 No deployment gate listed under R2, R3 or section 8 has been performed.
 
-### R1/R3 closure (implemented, awaiting review; not committed or deployed)
+### Website Stage 4 (W4: code complete and committed; CMS content pending)
+
+The repository defined W4 only as "the next website implementation stage (homepage and remaining public pages)". Scope was settled in the W4 pre-flight from the approved Digital Solutions / Business Suite direction, the four approved homepage slides and the gaps documented in [PUBLIC-WEBSITE-MAP.md](PUBLIC-WEBSITE-MAP.md). No database, CMS schema or media change. The only API and portal change is the homepage-slide eyebrow fix below.
+
+| Part | Status | Detail |
+|---|---|---|
+| Digital Solutions catalogue, CAS and Expresso Business Suite pages | **Code complete** | `/digital-solutions` catalogue; `/digital-solutions/cas` unchanged; `/digital-solutions/business-suite` with 7 modules, sanitised product visuals and one final demo CTA; both products remain with zero CMS records; menu and sitemap entries |
+| Services list states | **Code complete** | Loading, error with retry, empty and success are distinct; a failed request is no longer an empty list |
+| Portfolio states | **Code complete** | The shared list reports failures; `/portfolio`, `/case-studies` and `/case-studies/:id` show error with retry; the detail page shows "not found" only for HTTP 404 |
+| Placeholder badges | **Code complete** | Services "NEW!" badge and the Portfolio page's `yourportfolio.com` link removed |
+| Homepage eyebrows | **Code complete** | A blank eyebrow stays blank end to end: the website hides it; `POST /api/homepage/slides` stores an explicitly blank eyebrow as blank (the old defaults apply only when the field is not sent); the portal's new-slide form starts with a blank second eyebrow and its preview hides blanks. Records that predate the fields keep the old defaults on the website and in the edit form. Existing slide records unchanged |
+| Four new homepage slides | **CMS content: pending manual entry** | Upload the four images in `client/public/images/homepage/` to the Media Library, then create the slides in Portal → Website → Homepage slides with the second eyebrow left blank and Order values after the existing five. Not seeded, not hard-coded |
+| Contact form `?interest=` capture | Not in W4 (optional future enhancement) | The Business Suite CTA keeps `/contact-us?interest=business-suite-demo` |
+| Dynamic sitemap | Not in W4 | The static sitemap remains; it lists the Business Suite route |
+
+### R1/R3 closure (committed in `23425ab8`; not deployed)
 
 Closes the original Stage 1 and Stage 3 items left open. No database, script, migration or deployment action; no website file touched.
 
@@ -707,7 +723,7 @@ Full candidate lists are in [CODE-CLEANUP-AUDIT.md](CODE-CLEANUP-AUDIT.md). Comm
 | P4-6 | Endpoints with no frontend consumer: `GET /procurement/categories/public`, `GET /crm/activities/:id`, `GET /procurement/vendors/:id`, `DELETE /roles/:id`, `GET /productions/:slug`, `PATCH /productions/:id/status` | No literal caller found | Keep the API-only ones; decide on `categories/public`; productions via P3-2 | Production access logs (last 90 days) for external callers | Low | None | Stage 5 |
 | P4-7 | Local git-ignored `server/` (old Strapi project with its own `.env`, not opened) | Not deployed, not tracked | Archive or delete locally | Confirm no deployment references it | None | None | Anytime |
 
-**Status:** P4-1 and P4-3 implemented in the R1/R3 closure (awaiting review). P4-2, P4-4, P4-5 and P4-6 not started (Stage 5). P4-7 awaits Hassan's decision.
+**Status:** P4-1 and P4-3 implemented in the R1/R3 closure (`23425ab8`). P4-2, P4-4, P4-5 and P4-6 not started (Stage 5). P4-7 awaits Hassan's decision.
 
 ---
 

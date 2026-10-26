@@ -24,7 +24,7 @@ test("Digital Solutions heading opens the landing page, not CAS", () => {
 
 test("published CAS metadata merges into one canonical Digital Solutions menu entry", () => {
   const menu = digitalMenu({ digital: [CAS], digitalLoaded: true });
-  expect(menu.featured).toHaveLength(1);
+  expect(menu.featured).toHaveLength(2);
   expect(menu.featured[0]).toMatchObject({
     to: "/digital-solutions/cas",
     badge: "Built by Expresso",
@@ -36,14 +36,14 @@ test("published CAS metadata merges into one canonical Digital Solutions menu en
 test("a second product needs no code change", () => {
   const next = { ...CAS, _id: "2", slug: "next-product", title: "Next", subtitle: "", badge: "" };
   const menu = digitalMenu({ digital: [CAS, next], digitalLoaded: true });
-  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas", "/digital-solutions/next-product"]);
+  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas", "/digital-solutions/next-product", "/digital-solutions/business-suite"]);
   expect(menu.featured[1].badge).toBe("Built by Expresso");
 });
 
 test("CAS is discoverable once before loading, with an empty CMS, or after an API failure", () => {
   for (const cms of [{}, { digital: [] }]) {
     const menu = digitalMenu(cms);
-    expect(menu.featured).toHaveLength(1);
+    expect(menu.featured).toHaveLength(2);
     expect(menu.featured[0].to).toBe("/digital-solutions/cas");
     expect(menu.featured[0].title).toBe("CAS — Clinic Appointment System");
     expect(menu.action.primary.to).toBe("/contact-us?interest=cas-demo");
@@ -52,13 +52,13 @@ test("CAS is discoverable once before loading, with an empty CMS, or after an AP
 
 test("a future CMS product does not replace the core CAS menu entry", () => {
   const menu = digitalMenu({ digital: [{ slug: "next", kind: "digital", title: "Next" }] });
-  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas", "/digital-solutions/next"]);
+  expect(menu.featured.map((f) => f.to)).toEqual(["/digital-solutions/cas", "/digital-solutions/next", "/digital-solutions/business-suite"]);
 });
 
 test("CMS marketing overrides are shared by menu title, description and demo action without duplicates", () => {
   const cms = { ...CAS, title: "CAS for clinics", tagline: "Approved CMS tagline", demoCtaHref: "/contact-us?interest=walkthrough" };
   const menu = digitalMenu({ digital: [cms, cms] });
-  expect(menu.featured).toHaveLength(1);
+  expect(menu.featured).toHaveLength(2);
   expect(menu.featured[0]).toMatchObject({ title: "CAS for clinics — Clinic Appointment System", desc: cms.tagline });
   expect(menu.action.primary.to).toBe(cms.demoCtaHref);
 });
@@ -141,7 +141,7 @@ test("Strict Mode navigation consumers share requests without cleanup canceling 
     });
     expect(result.current.solutions[0].title).toBe("Shared ERP");
     expect(result.current.digital).toEqual([CAS]);
-    expect(digitalMenu(result.current).featured).toHaveLength(1);
+    expect(digitalMenu(result.current).featured).toHaveLength(2);
   } finally {
     unmountFirst();
     unmountSecond();
