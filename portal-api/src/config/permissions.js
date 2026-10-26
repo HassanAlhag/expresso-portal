@@ -185,7 +185,6 @@ export const PERMISSION_CATALOG = [
     label: "Reports",
     permissions: [
       { key: "reports.read",   label: "View",   description: "View reports and analytics dashboards" },
-      { key: "reports.export", label: "Export", description: "Export report data to files" },
     ],
   },
   {
@@ -283,7 +282,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "billing.read", "billing.write",
     "hr.expenses.read", "hr.expenses.write", "hr.expenses.approve",
     "procurement.read",
-    "reports.read", "reports.export",
+    "reports.read",
     "activity.read",
   ],
 

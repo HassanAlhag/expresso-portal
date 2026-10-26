@@ -190,14 +190,14 @@ test("empty permissions: the roles list shows a stored empty role as empty, not 
 });
 
 // ═══ PERMISSION CATALOGUE (single source) ════════════════════════════════════
-test("catalogue: the API serves all 74 keys, including the 8 the portal copy was missing", async () => {
+test("catalogue: the API serves all 73 keys (74 at R2; reports.export removed in the R1/R3 closure, P3-1), including the 8 the portal copy was missing", async () => {
   const u = { _id: oid(), role: "staff" };
   setupAuth({ users: [u] });
   const r = await call("GET", "/api/permissions/catalog", { user: u });
   assert.equal(r.status, 200);
   const keys = r.body.catalog.flatMap((d) => d.permissions.map((p) => p.key));
-  assert.equal(keys.length, 74);
-  assert.equal(new Set(keys).size, 74);
+  assert.equal(keys.length, 73);
+  assert.equal(new Set(keys).size, 73);
   assert.deepEqual(r.body.allKeys, ALL_PERMISSION_KEYS);
   for (const k of ["messaging.read", "messaging.write", "brand_kit.read", "brand_kit.write", "social.metrics.read", "social.metrics.write", "hr.kpi.read", "hr.kpi.write"]) {
     assert.ok(keys.includes(k), `${k} missing from catalogue`);

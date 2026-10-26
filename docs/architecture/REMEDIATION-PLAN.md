@@ -2,7 +2,7 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · [Cleanup audit](CODE-CLEANUP-AUDIT.md) · [Reset plan](DATABASE-RESET-PLAN.md)
 
-**Status: approved planning baseline (`852369df`).** Stage R1 (P0, committed `b2958e76`), Stage R2 (access model and vendor journey, committed `26a2cca6`; deployment verification pending) and Stage R3 (reliability and data consistency; implemented, awaiting review) have been implemented on top of it, and the portal design study is committed as the design baseline (`f0d9bc02`); see [Implementation status](#implementation-status). Everything else in this plan is still pending. No database data, infrastructure, storage, configuration or `.env` file has been changed by any stage, and the only file deleted is the portal's duplicate permission catalogue (`client/src/portal/config/permissions.js`, P1-6 in R2), after both permission editors moved to the API catalogue.
+**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is implemented and awaiting review (not committed). **Website Stage 4, R4 and R5 have not started.** Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
 
 **Baseline:** branch `website/integrated-solutions`. Application code is at `58b8f86c`; the architecture docs were committed at `e867d95f`.
 
@@ -17,7 +17,56 @@ One finding was **narrower** than first described: invoice numbers fail with an 
 
 Status words used here: **Implemented** = code changed in the working tree · **Verified** = covered by automated tests that pass, and that fail against the pre-R1 code · **Pending** = not done yet (code, decision or runtime check).
 
-### Stage R3 — reliability and data consistency (implemented, awaiting review; not yet committed or deployed)
+### Original plan versus actual implementation (reconciled 26 Oct 2026)
+
+The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → R4 → R5, with the design study in parallel and portal implementation after both the study and R4. The actual order was R1 → R2 → design study → a reliability stage labelled "R3" → PUI-1 to PUI-5 → R1/R3 closure. Website Stage 4, R4 and R5 have not started, so portal implementation ran **before** R4, the reverse of the plan; the R4 items it was meant to absorb (P3-5, P3-6) are only partly done.
+
+**Original stages, by their original contents**
+
+| Original stage | Original contents | Status | Evidence / what remains |
+|---|---|---|---|
+| R1 Security hardening | P0-1–P0-4, P1-2, P2-3 invoices, `seedUser.js`, P3-1 meanings, P4-1, P4-3 | Code complete once the closure is accepted | P0-1–P0-4 in `b2958e76`; P2-3 invoices and `seedUser.js` in `91a0c0bc`; P1-2, P4-1, P4-3 and the `reports.export` part of P3-1 in the R1/R3 closure (awaiting review). Deployment checks pending |
+| R2 Access model & vendor journey | P1-1, P1-3, P1-4, P1-5, P2-1, P2-3 RFQs, P2-4, P2-5, P3-4 | Code complete; one part deferred | `26a2cca6`; P2-4 and the RFQ counter in `91a0c0bc`. **Deferred:** RFQ unique index (needs the read-only duplicate check). Deployment checks pending |
+| R3 Housekeeping | P3-3, P3-9, audit corrections | Code complete once the closure is accepted | Audit corrections were applied with the baseline. P3-3 and P3-9 in the R1/R3 closure. **Note:** commit `91a0c0bc`, labelled R3, delivered R1/R2 items (P2-3, P2-4, `seedUser.js`), not the original R3 housekeeping |
+| Website Stage 4 | Homepage and remaining public pages | **Not started** | No public-website commit since `852369df`. Website work in the working tree is uncommitted and is not counted |
+| R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **Not started** as a stage | P3-5 and P3-6 partly done incidentally during PUI (see their rows); P2-2, P2-6, P3-7, P3-8 untouched |
+| R5 Verified cleanup & data lifecycle | P3-2, P4-2, P4-4, P4-5, P4-6, P2-7 pipeline | **Not started** | Needs backup with tested restore, database export and access-log review first |
+| Design study | Offline prototype and component specification | **Done** | `f0d9bc02` |
+| Portal implementation | Shared components, then Dashboard, CRM, Projects, Finance, HR, Procurement, absorbing P3-5 and P3-6 | **Partial** | PUI-1 to PUI-5 cover all listed modules plus client and vendor views. Open: the Jobs board page (legacy UI), and the P3-5 / P3-6 remainder |
+
+**Actual implementation history (commits on `website/integrated-solutions`)**
+
+| Commit | Label | Delivered | Deployed |
+|---|---|---|---|
+| `b2958e76` | R1 | P0-1, P0-2 (company checks), P0-3, P0-4 | No |
+| `26a2cca6` | R2 | P0-2 external-role policy, P1-1, P1-3, P1-4, P1-5, P1-6, P2-1, P2-5, P3-4 | No |
+| `f0d9bc02` | Design study | Offline prototype and design-system specification | n/a |
+| `91a0c0bc` | "R3" reliability | P2-3 (invoice counter; RFQ counter, index blocked), P2-4 (archive), P2-7 `seedUser.js` | No |
+| `516cc002` | PUI-1 | Portal design system and application shell | No |
+| `83bc9017` | PUI-2 | Staff dashboard and Projects; client project field boundary | No |
+| `ffc5005c` | PUI-3 | Clients and CRM; customer endpoint boundaries | No |
+| `ed68bb5c` | PUI-4 | Finance, HR, Procurement; RFQ-from-request boundary and budget copy | No |
+| `3106b267` | PUI-5 | Client and vendor portal; ticket, file-link and billing boundaries; vendor `quoted=true` list | No |
+| — (not committed) | R1/R3 closure | P1-2, P4-1, P4-3, P3-1 `reports.export`, P3-3, P3-9, this status update | No |
+
+No deployment gate listed under R2, R3 or section 8 has been performed.
+
+### R1/R3 closure (implemented, awaiting review; not committed or deployed)
+
+Closes the original Stage 1 and Stage 3 items left open. No database, script, migration or deployment action; no website file touched.
+
+| ID | Implemented | Automated tests | Still pending |
+|---|---|---|---|
+| P1-2 | **Implemented** — `deleteUser` imports the customer model statically from the correct file (`customer.model.js`; the old dynamic import pointed at a non-existent `customers.model.js`, so the account was deleted, then the request returned 500 and no audit entry was written). After a successful delete, the company-owner unlink (`Customer.ownerUserId`, client-linked users only, as before) runs in its own guard: a failure there is logged and recorded in the audit entry (`meta.customerUnlinkFailed`) and the response is still success. The `user.deleted` audit entry is always written after a delete. Authorization, self-delete and last-super-admin guards unchanged. No delete-vs-deactivate change | **Verified** — 7 tests in `portal-api/test/r1r3-closure.test.js` (client-linked delete with unlink and audit; user without company; unlink failure; failed delete writes nothing; self-delete; last super admin; role hierarchy). The 2 delete-success tests fail against the previous code | Decision on deactivate vs delete for users who own records. Other references to a deleted user (projects, CRM, tickets, jobs, internal `ownerUserId`) are still not handled (unchanged). Read-only check for customers whose `ownerUserId` points at a missing user (data clean-up only) |
+| P4-1 | **Implemented** — 24 zero-byte source files deleted (20 client, 4 API), each re-checked: no relative import, require or dynamic import resolves to it (resolver over `client/src`, `portal-api/src`, `portal-api/test`, `docs/architecture`; the client has no path aliases). Two directories left empty were removed. `portal-api/README.md` (empty, documentation) kept | Client and API suites, build | — |
+| P4-3 | **Implemented** — `middleware/rbac.js`, `requirePerm.js`, `roles.js`, `utils/apiFeatures.js`, `apiResponse.js`, `resolvePermissions.js` deleted: no importer in source, tests or scripts; the remaining mentions are the live `requirePermission` export of `auth.js`, a search keyword and documentation | API suite | — |
+| P3-1 (`reports.export`) | **Implemented** — removed from the catalogue and the `finance` default (73 keys). No API route, middleware, client check or script used it. Stored strings are tolerated: role and user permission lists are already filtered against the catalogue on resolution, display and save, so a stored `reports.export` is ignored and nothing else changes | **Verified** — 4 tests (catalogue, defaults, stored role and user extras still resolve); R2 catalogue test updated to 73 | Optional read-only report of Role documents and users still storing `reports.export` (no access effect; cosmetic clean-up only). `reports.read` stays a page gate whose data is authorized by each module's own permissions |
+| P3-3 | **Implemented by decision: no user-notes feature.** The orphaned `getUserNotes` / `saveUserNotes` helpers (calling a non-existent `/api/users/:id/notes`) were removed. The working user Notes tab is unchanged: it saves the user's `notes` field through `PATCH /api/users/:id`. No backend route created | Client suite, build | — |
+| P3-9 | **Implemented** — `API_ENDPOINT_COVERAGE_COMPLETE.csv` regenerated from `source-inventory.json` by the new `docs/architecture/generate-endpoint-csv.cjs`: 283 endpoints (220 kept with their IDs, test design and QC columns; 63 added as API-221–API-283 with code-derived columns only and "Not Run"; none dropped). Guard, permission and source-file columns of kept rows refreshed from the code (36 guard and 5 permission values were stale). `validate.cjs` now fails if the sheet is stale. Files moved: `STAGE-3-TECHNOLOGY-VENDOR.md`, `STAGE-3.5-FUNCTIONAL-CLEANUP.md` → `docs/stages/`; `API_ENDPOINT_COVERAGE_COMPLETE.csv`, `USE_CASES_QC.csv`, `USE_CASES_QC_COMPLETE.csv`, `USE_CASES_QC_COMPLETE.xlsx` → `docs/qc/`; `EXPRESSO_ERP_FUTURE_ENHANCEMENT_PLAN.docx` → `docs/planning/` | Validator | The use-case QC sheets are moved unchanged (they are use-case lists, not generated from code) |
+
+### Stage R3 — reliability and data consistency (committed in `91a0c0bc`; not yet deployed)
+
+Labelled R3 when built; it delivered original Stage 1/2 items (P2-3, P2-4, `seedUser.js`), not the original Stage 3 housekeeping, which was done in the R1/R3 closure above.
 
 | | |
 |---|---|
@@ -33,9 +82,9 @@ Status words used here: **Implemented** = code changed in the working tree · **
 | P2-4 | **Implemented** — `DELETE /api/projects/:id` archives (`status: "archived"`, `archivedAt`) and never deletes; linked jobs, invoices, files, tickets and enrollments are untouched; repeating it is harmless; project lists hide archived projects unless `status=archived` or `includeArchived=true`; company boundary (R1) and the external-role refusal (R2) unchanged; the portal's trash button is now an archive button whose confirmation says history is kept, and the default status filter reads "All except archived" | **Verified** — 7 API tests in `r3-reliability.test.js` (the 4 archive tests fail against the pre-R3 code; the boundary, R2 refusal and direct-access tests pass on both, as intended), 3 R1 boundary tests updated to check the archive write, 3 client tests. An archived project can still be opened directly. `GET /api/projects/stats` (Reports) still counts all projects, with archived as its own status, and the job list's project-type filter still includes jobs of archived projects; both are history views, not the active project list; **kept by decision (21 Oct 2026)**, with archived shown as its own status | Read-only orphan report for earlier permanent deletes (data clean-up only). There is no hard-delete route and no restore action beyond changing the status |
 | P2-7 (`seedUser.js` only) | **Partly implemented** — `seedUser.js` is insert-only: an existing email is left unchanged (exit 1); `--reset-password` needs an existing account that is already super_admin, changes only `passwordHash` and `passwordChangedAt` (the write is guarded by `role: "super_admin"`), never creates or promotes an account and never touches permissions, company or profile fields; a concurrent creation is refused by the unique email index; the legacy `permissions` field is no longer written; importing the script doesn't run it | **Verified** — 8 tests with stubbed models (the script was not run against any database) | **DEFERRED:** backup/reset/seed pipeline (Stage 5) |
 
-Deferred from R3 by the plan's own timing: **P2-2** (CRM conversions, after Stage 4), **P2-6** (settings read without write, after Stage 4) and the **P2-7 pipeline** (Stage 5). P1-2 is a P1 item and was not part of this P2 stage.
+Deferred from R3 by the plan's own timing: **P2-2** (CRM conversions, after Stage 4), **P2-6** (settings read without write, after Stage 4) and the **P2-7 pipeline** (Stage 5). P1-2 is a P1 item and was not part of this P2 stage (fixed later in the R1/R3 closure).
 
-### PUI-5 findings (23 Oct 2026; not yet committed or deployed)
+### PUI-5 findings (23 Oct 2026; committed in `3106b267`; not yet deployed)
 
 | Finding | Status | Automated tests | Still pending |
 |---|---|---|---|
@@ -48,7 +97,7 @@ Deferred from R3 by the plan's own timing: **P2-2** (CRM conversions, after Stag
 | Notes on client-visible files are returned to and shown to the client | **Not changed** — existing behaviour | — | Confirm staff treat file notes as client-facing |
 | There is no vendor-facing profile endpoint: a vendor can't see its own approved categories or profile details in the portal | **Not changed** — no profile page was invented | — | Decide whether vendors need a read-only profile |
 
-### PUI-4 findings (23 Oct 2026; not yet committed or deployed)
+### PUI-4 findings (23 Oct 2026; committed in `ed68bb5c`; not yet deployed)
 
 | Finding | Status | Automated tests | Still pending |
 |---|---|---|---|
@@ -68,7 +117,7 @@ Deferred from R3 by the plan's own timing: **P2-2** (CRM conversions, after Stag
 | Procurement: accepting a quotation sets the RFQ to Awarded (even when closed) but leaves the other quotations as they are, so several can be accepted | **Not changed** — the confirmation says other quotations keep their status | **Verified (UI)** | Decide whether accepting one should reject the others |
 | Procurement: request status changes are unrestricted (any status to any other) | **Not changed** — kept as the existing workflow; each change is stamped in the request's timeline, which the portal now shows (it previously read the dates from the wrong place) | **Verified (UI)** | — |
 
-### PUI-3 findings (22 Oct 2026; not yet committed or deployed)
+### PUI-3 findings (22 Oct 2026; committed in `ffc5005c`; not yet deployed)
 
 | Finding | Status | Automated tests | Still pending |
 |---|---|---|---|
@@ -78,7 +127,9 @@ Deferred from R3 by the plan's own timing: **P2-2** (CRM conversions, after Stag
 | Client and CRM deletes are permanent (`findByIdAndDelete`) with no checks for linked records: deleting a client leaves its projects, jobs, invoices, files, tickets and portal users pointing at a client that no longer exists; deleting a deal, lead, account or contact leaves links on the others | **Not changed** — pre-existing behaviour, kept. The portal shows delete only with the matching `*.delete` permission, says the record can't be restored and what stays behind, and offers client deactivation (nothing deleted) as the alternative | **Verified (UI)** — client tests for the delete permission and wording | Decide on archive or reference checks for clients and CRM records (similar to P2-4 for projects) |
 | Deactivating a client does not stop its portal users signing in (sign-in checks the user, not the company) | **Not changed** — documented in the deactivation confirmation | **Verified (UI)** | Decide whether client deactivation should also block its users |
 
-### PUI-2 review findings (21 Oct 2026; not yet committed or deployed)
+### PUI-2 review findings (21 Oct 2026; committed in `83bc9017`; not yet deployed)
+
+PUI-1 (design system and application shell, `516cc002`) recorded no separate findings.
 
 | Finding | Status | Automated tests | Still pending |
 |---|---|---|---|
@@ -93,10 +144,10 @@ Deferred from R3 by the plan's own timing: **P2-2** (CRM conversions, after Stag
 |---|---|---|---|
 | P0-1 | **Implemented** — `optionalAuth` middleware; portfolio and productions lists/details force `status: published` and services/solutions lists/details force active records unless the caller holds `portfolio.read`, `productions.read` or `website.read`. Failed authentication (invalid, expired or deactivated) falls back to anonymous: public content stays available and no draft privilege is granted | **Verified** — 39 tests in `portal-api/test/r1-security.test.js`, including anonymous, authorised CMS, signed-in without permission, invalid-token and expired-token cases for all four content types | Staging check that the portal CMS still lists drafts with a real session. Draft records already exposed before the fix are not retractable |
 | P0-2 | **Implemented** — tenant/company isolation: company checks on project create, update (including `customerId` and internal-mode changes) and permanent delete, and on ticket delete | **Verified** — 16 tests (tenant/company isolation) | **External-role permission policy: implemented and verified in R2** — `projects.write`, `projects.delete` and `tickets.delete` are external-denied: stripped at sign-in and refused by the role and user-permission editors (API). DELETE remains a permanent delete for internal users (P2-4) |
-| P0-3 | **Implemented** — self-delete guard compares `req.user.id`; the last active super admin cannot be deleted, deactivated or demoted (delete, status and user-edit paths) | **Verified** — 8 tests | P1-2 (client-linked user delete crash, same function) is a separate P1 item and was not changed |
+| P0-3 | **Implemented** — self-delete guard compares `req.user.id`; the last active super admin cannot be deleted, deactivated or demoted (delete, status and user-edit paths) | **Verified** — 8 tests | P1-2 (client-linked user delete crash, same function) is a separate P1 item and was not changed in R1; fixed in the R1/R3 closure |
 | P0-4 | **Implemented** — request logger drops query strings and private-file path tokens from both the URL **and the Referer** (which carried `/portal/accept-invite?token=` and `/portal/reset-password?token=`) | **Verified** — 3 tests, including the real app's logger | Log retention, access and purging of logs written before the fix (Hassan's decision); optional move of invite verification to a POST body was not done |
 
-### Stage R2 — access model and vendor journey (reviewed and committed; not yet deployed)
+### Stage R2 — access model and vendor journey (committed in `26a2cca6`; not yet deployed)
 
 | | |
 |---|---|
@@ -203,7 +254,7 @@ These are refactors and consolidations that touch many screens or the shared dat
 | P0-2 | **Decided 20 Oct 2026:** external/client roles must not have general project create, edit or delete. Clients view their own company's projects and use only specifically designed client actions. Clients never hard-delete tickets. Implementation in the access-model stage (R2) |
 | P2-4 | **Decided 20 Oct 2026:** normal project deletion should become archive behaviour. Not part of R1 |
 | P2-5 | **Decided (R2 brief):** an explicit empty permission list means no access; defaults only initialise roles that have no stored configuration |
-| P3-3 | Do you want internal notes on user profiles? Build the endpoint or remove the frontend code |
+| P3-3 | **Decided 26 Oct 2026:** no user-notes endpoint; the orphaned frontend helpers are removed (R1/R3 closure) |
 | P0-4 | **Decided 20 Oct 2026:** do not purge historical request logs yet; log retention and access policy will be handled separately |
 | Messaging | Should every staff member with `messaging.read` see every client's thread, or only assigned account owners? (Not a defect today; a policy choice) |
 | P4-7 | Archive or delete the old local Strapi folder |
@@ -263,6 +314,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Data change** | None |
 | **Order** | Stage 1 |
 | **Status (R1)** | Implemented and verified by automated tests. P1-2 still pending |
+| **Status (R1/R3 closure)** | P1-2 fixed in the same function; P0-3 guards unchanged and re-tested |
 
 ### P0-4 Invite tokens written to production request logs
 
@@ -314,6 +366,7 @@ P3-2 (Productions), P4-2 (unreachable files), P4-5 (public images), P4-6 (uncons
 | **Tests** | Delete client-linked user → 200, audit written, customer owner cleared; delete user owning records → behaviour per policy |
 | **Data change** | Read-only check for customers whose `ownerUserId` points at a missing user and for audit gaps; optional clean-up after review |
 | **Order** | Stage 1 |
+| **Status (R1/R3 closure)** | Implemented and verified: correct static import, audit entry written, no false 500 after a completed delete (see R1/R3 closure). Delete-vs-deactivate policy and other references still open |
 
 ### P1-3 8 API permissions cannot be managed in the portal (74 vs 66)
 
@@ -513,6 +566,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Tests** | Catalog test: every key referenced by a route, a route gate or a documented page gate |
 | **Data change** | None (stored roles keep the key harmlessly, or a clean-up pass removes it) |
 | **Order** | Stage 1 (with P0-1) and Stage 2 (catalog) |
+| **Status** | `portfolio.read` and `productions.read`: done in R1 (P0-1). `reports.export`: removed from the catalogue and defaults in the R1/R3 closure. `reports.read`: kept as a page gate (as proposed) |
 
 ### P3-2 Old Productions stack alongside the job-based workspace
 
@@ -543,6 +597,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Tests** | If built: permission and audit tests. If removed: build passes |
 | **Data change** | Only if built (a new field or collection) |
 | **Order** | Stage 3 |
+| **Status (R1/R3 closure)** | Decided: no user-notes endpoint. Orphaned helpers removed; the existing Notes tab (user `notes` field) is unchanged |
 
 ### P3-4 Productions page gated by a permission its data does not use
 
@@ -634,6 +689,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Tests** | `validate.cjs` can check the regenerated CSV row count |
 | **Data change** | None |
 | **Order** | Stage 3 |
+| **Status (R1/R3 closure)** | Endpoint CSV regenerated from the inventory (283 endpoints) and checked by the validator; files moved to `docs/stages/`, `docs/qc/` and `docs/planning/` |
 
 ---
 
@@ -650,6 +706,8 @@ Full candidate lists are in [CODE-CLEANUP-AUDIT.md](CODE-CLEANUP-AUDIT.md). Comm
 | P4-5 | 145 `client/public` files (45.8 MB) not referenced by name in client or API source (130 at the root, 14 Barlow fonts, 1 brand file) | Possibly unused | Archive outside the repo, do not delete | Database export of stored image paths (SiteSettings, Solution, DigitalService, Portfolio, Media URLs); CSS `url()` search; email templates; external links to `/` assets | Medium | None | Stage 5 |
 | P4-6 | Endpoints with no frontend consumer: `GET /procurement/categories/public`, `GET /crm/activities/:id`, `GET /procurement/vendors/:id`, `DELETE /roles/:id`, `GET /productions/:slug`, `PATCH /productions/:id/status` | No literal caller found | Keep the API-only ones; decide on `categories/public`; productions via P3-2 | Production access logs (last 90 days) for external callers | Low | None | Stage 5 |
 | P4-7 | Local git-ignored `server/` (old Strapi project with its own `.env`, not opened) | Not deployed, not tracked | Archive or delete locally | Confirm no deployment references it | None | None | Anytime |
+
+**Status:** P4-1 and P4-3 implemented in the R1/R3 closure (awaiting review). P4-2, P4-4, P4-5 and P4-6 not started (Stage 5). P4-7 awaits Hassan's decision.
 
 ---
 

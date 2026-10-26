@@ -86,7 +86,14 @@ const cited = new Set([...Object.values(data.fixes).flat(), ...data.target.flatM
 for (const id of cited) ok(planIds.has(id) && data.rem[id], `blueprint cites ${id}, which is not in REMEDIATION-PLAN.md`);
 ok(html.includes('id="view-current"') && html.includes('id="view-target"'), 'blueprint must keep separate current and target views');
 
-// 9. No credentials in the documentation.
+// 9. The QC endpoint sheet (P3-9) covers exactly the routes in the code.
+{
+  try {
+    execFileSync(process.execPath, [path.join(dir, 'generate-endpoint-csv.cjs'), '--check'], { stdio: 'pipe' });
+  } catch (e) { fail.push('docs/qc/API_ENDPOINT_COVERAGE_COMPLETE.csv is stale: run node docs/architecture/generate-endpoint-csv.cjs'); }
+}
+
+// 10. No credentials in the documentation.
 const secretish = /(mongodb(\+srv)?:\/\/[^\s`<"]+@|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY|(?:SMTP_PASS|JWT_SECRET|AWS_SECRET_ACCESS_KEY|SUPER_ADMIN_PASSWORD)\s*=\s*\S+)/;
 for (const f of fs.readdirSync(dir).filter((x) => /\.(md|html|json)$/.test(x))) ok(!secretish.test(read(f)), `${f} contains something that looks like a credential`);
 

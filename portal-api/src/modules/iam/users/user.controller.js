@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import User from "./user.model.js";
 import Role from "../roles/role.model.js";
+import Customer from "../../customers/customer.model.js";
 import { logAudit } from "../audit/audit.service.js";
 import {
   ALL_PERMISSION_KEYS,
@@ -674,13 +675,21 @@ export async function deleteUser(req, res) {
 
     await User.findByIdAndDelete(id);
 
-    // If this user was a customer's ownerUserId, unlink it
+    // The account is gone from here on: report success even if the follow-up
+    // clean-up fails, so the admin is not told a completed delete failed.
+    const meta = { email: target.email };
+
+    // If this client user was their company's owner (ownerUserId), unlink it.
     if (target.clientId) {
-      const Customer = (await import("../../customers/customers.model.js")).default;
-      await Customer.updateOne({ ownerUserId: id }, { $unset: { ownerUserId: "" } });
+      try {
+        await Customer.updateOne({ ownerUserId: id }, { $unset: { ownerUserId: "" } });
+      } catch (cleanupErr) {
+        console.error("deleteUser customer unlink failed:", cleanupErr);
+        meta.customerUnlinkFailed = true;
+      }
     }
 
-    await logAudit(req, { action: "user.deleted", targetUserId: id, meta: { email: target.email } });
+    await logAudit(req, { action: "user.deleted", targetUserId: id, meta });
 
     return res.json({ ok: true });
   } catch (err) {

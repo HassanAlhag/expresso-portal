@@ -9,7 +9,7 @@
     "models": 45,
     "modelFiles": 45,
     "defaultRoles": 14,
-    "permissionKeys": 74,
+    "permissionKeys": 73,
     "frontendCatalogKeys": 0
   },
   "mounts": [
@@ -14054,11 +14054,6 @@
             "key": "reports.read",
             "label": "View",
             "description": "View reports and analytics dashboards"
-          },
-          {
-            "key": "reports.export",
-            "label": "Export",
-            "description": "Export report data to files"
           }
         ]
       },
@@ -14228,7 +14223,6 @@
         "hr.kpi.read",
         "hr.kpi.write",
         "reports.read",
-        "reports.export",
         "activity.read",
         "iam.users.read",
         "iam.users.write",
@@ -14304,7 +14298,6 @@
         "hr.kpi.read",
         "hr.kpi.write",
         "reports.read",
-        "reports.export",
         "activity.read",
         "iam.users.read",
         "iam.users.write",
@@ -14368,7 +14361,6 @@
         "hr.expenses.approve",
         "procurement.read",
         "reports.read",
-        "reports.export",
         "activity.read"
       ],
       "procurement_manager": [
@@ -16437,10 +16429,6 @@
         }
       ]
     },
-    "reports.export": {
-      "api": [],
-      "ui": []
-    },
     "activity.read": {
       "api": [
         {
@@ -18076,35 +18064,21 @@
     },
     {
       "file": "client/src/portal/features/iam/users/api.js",
-      "line": 80,
-      "call": "api.get",
-      "url": "`/users/${id}/notes`",
-      "reachable": true
-    },
-    {
-      "file": "client/src/portal/features/iam/users/api.js",
-      "line": 85,
-      "call": "api.patch",
-      "url": "`/users/${id}/notes`",
-      "reachable": true
-    },
-    {
-      "file": "client/src/portal/features/iam/users/api.js",
-      "line": 93,
+      "line": 79,
       "call": "api.get",
       "url": "`/users/${id}/effective-permissions`",
       "reachable": true
     },
     {
       "file": "client/src/portal/features/iam/users/api.js",
-      "line": 98,
+      "line": 84,
       "call": "api.patch",
       "url": "`/users/${id}/permissions`",
       "reachable": true
     },
     {
       "file": "client/src/portal/features/iam/users/api.js",
-      "line": 104,
+      "line": 90,
       "call": "api.delete",
       "url": "`/users/${id}`",
       "reachable": true
@@ -19060,12 +19034,9 @@
     "client/src/components/PrimaryHeader/primaryHeader.jsx",
     "client/src/components/ServicesComponents/webPortfolio.jsx",
     "client/src/components/SideBar/sideBar.jsx",
-    "client/src/components/SolutionCTA/SolutionCTA.jsx",
     "client/src/components/SolutionMegaPanel/SolutionMegaPanel.jsx",
     "client/src/features/portfolio/api.js",
     "client/src/features/productions/api.js",
-    "client/src/features/productions/components/ProductionCard.jsx",
-    "client/src/features/productions/components/ProductionGallery.jsx",
     "client/src/features/productions/pages/ProductionDetailsPage.jsx",
     "client/src/features/productions/pages/ProductionsPage.jsx",
     "client/src/icons/socialMedia.jsx",
@@ -19078,11 +19049,7 @@
     "client/src/pages/SingleViewPortfolio/portfolioData.js",
     "client/src/portal/config/portal.constants.js",
     "client/src/portal/features/activity/api.js",
-    "client/src/portal/features/crm/components/CRMStatCard.jsx",
-    "client/src/portal/features/crm/components/DealStageBoard.jsx",
-    "client/src/portal/features/dashboard/api.js",
     "client/src/portal/features/hr/components/MonthlyExpenseSummary.jsx",
-    "client/src/portal/features/iam/invites/components/InviteModal.jsx",
     "client/src/portal/features/iam/users/components/UserDrawer.jsx",
     "client/src/portal/features/iam/users/constants.js",
     "client/src/portal/features/iam/users/schemas.js",
@@ -19091,13 +19058,6 @@
     "client/src/portal/features/jobs/components/ProjectSelect.jsx",
     "client/src/portal/features/media-library/components/MediaFilters.jsx",
     "client/src/portal/features/media-library/components/ProductionForm.jsx",
-    "client/src/portal/features/media-library/constants.js",
-    "client/src/portal/features/productions/components/ProductionCalendarPanel.jsx",
-    "client/src/portal/features/productions/components/ProductionJobsTable.jsx",
-    "client/src/portal/features/productions/components/ProductionPublishedPanel.jsx",
-    "client/src/portal/features/productions/components/ProductionReviewsPanel.jsx",
-    "client/src/portal/features/productions/components/ProductionShowcasePanel.jsx",
-    "client/src/portal/features/productions/components/ProductionStats.jsx",
     "client/src/portal/features/productions/components/ProductionTabs.jsx",
     "client/src/portal/features/productions/components/ProductionToolbar.jsx",
     "client/src/portal/features/productions/components/VideoReviewPanel.jsx",
@@ -19105,12 +19065,8 @@
     "client/src/portal/features/projects/components/ProjectFilters.jsx",
     "client/src/portal/features/reports/api.js",
     "client/src/portal/features/services/components/QuantityCounter.jsx",
-    "client/src/portal/features/services/components/ScopeGroupEditorCard.jsx",
     "client/src/portal/features/services/tabs/ServiceTemplateTabs.jsx",
     "client/src/portal/features/settings/api.js",
-    "client/src/portal/shared/hooks/useDebounce.js",
-    "client/src/portal/shared/hooks/usePortalData.js",
-    "client/src/portal/shared/hooks/usePortalMutations.js",
     "client/src/portal/shared/hooks/usePortalPermissions.js",
     "client/src/portal/shared/hooks/usePortalProfile.js",
     "client/src/portal/shared/ui/AttachmentPicker.jsx",
@@ -19121,16 +19077,9 @@
     "client/src/portal/shared/ui/Table.jsx",
     "client/src/portal/shared/utils/cn.js",
     "client/src/portal/shared/utils/constants.js",
-    "client/src/portal/shared/utils/errors.js",
-    "client/src/portal/shared/utils/format.js",
     "client/src/portal/theme/portalTheme.js"
   ],
-  "unresolvedLocalJs": [
-    {
-      "file": "portal-api/src/modules/iam/users/user.controller.js",
-      "import": "../../customers/customers.model.js"
-    }
-  ],
+  "unresolvedLocalJs": [],
   "dependencies": {
     "client": [
       {

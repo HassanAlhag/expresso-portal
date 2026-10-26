@@ -72,20 +72,6 @@ export async function getUserActivity(id, { page = 1, limit = 20 } = {}) {
   return data;
 }
 
-// Notes
-// Backend should expose:
-// GET  /api/users/:id/notes
-// PATCH /api/users/:id/notes  body: { note }
-export async function getUserNotes(id) {
-  const { data } = await api.get(`/users/${id}/notes`);
-  return data;
-}
-
-export async function saveUserNotes(id, note) {
-  const { data } = await api.patch(`/users/${id}/notes`, { note });
-  return data;
-}
-
 // PATCH /api/users/:id/permissions
 // What the API will actually grant this user (role + overrides), computed
 // server-side by the same rules used at sign-in.
