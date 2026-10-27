@@ -53,7 +53,9 @@ function PermissionPicker({ keys = [], exclude = [], onPick }) {
   );
 }
 
-export default function AccessTab({ user: initialUser }) {
+// PI closure: granting or revoking individual permissions needs
+// iam.users.write (PATCH /api/users/:id/permissions); the page passes canEdit.
+export default function AccessTab({ user: initialUser, canEdit = false }) {
   const toast = useToast();
   const [user, setUser] = useState(initialUser);
   const [busy, setBusy] = useState(false);
@@ -97,6 +99,7 @@ export default function AccessTab({ user: initialUser }) {
   );
 
   const save = async (nextExtra, nextRevoked) => {
+    if (!canEdit) return;
     setBusy(true);
     try {
       const res = await updateUserPermissions(user._id, {
@@ -186,13 +189,15 @@ export default function AccessTab({ user: initialUser }) {
               <span className="ml-1.5 font-normal text-slate-400">({extra.length})</span>
             </span>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setShowExtraPicker((v) => !v)} disabled={busy}>
-            <Plus size={13} /> Grant
-          </Button>
+          {canEdit ? (
+            <Button size="sm" variant="outline" onClick={() => setShowExtraPicker((v) => !v)} disabled={busy}>
+              <Plus size={13} /> Grant
+            </Button>
+          ) : null}
         </div>
         <p className="mt-1 text-[11px] text-slate-400">Permissions added to this user beyond their role.</p>
 
-        {showExtraPicker && (
+        {canEdit && showExtraPicker && (
           <PermissionPicker keys={grantableKeys} exclude={[...extra, ...revoked, ...roleBasePerms]} onPick={addExtra} />
         )}
 
@@ -201,9 +206,11 @@ export default function AccessTab({ user: initialUser }) {
             {extra.map((p) => (
               <span key={p} className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5">
                 <span className="font-mono text-[10px] font-semibold text-emerald-700">{p}</span>
-                <button type="button" onClick={() => removeExtra(p)} disabled={busy} className="text-emerald-400 hover:text-rose-500 transition">
-                  <X size={11} />
-                </button>
+                {canEdit ? (
+                  <button type="button" onClick={() => removeExtra(p)} disabled={busy} aria-label={`Remove grant ${p}`} className="text-emerald-400 hover:text-rose-500 transition">
+                    <X size={11} />
+                  </button>
+                ) : null}
               </span>
             ))}
           </div>
@@ -223,13 +230,15 @@ export default function AccessTab({ user: initialUser }) {
               <span className="ml-1.5 font-normal text-slate-400">({revoked.length})</span>
             </span>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setShowRevokedPicker((v) => !v)} disabled={busy}>
-            <Plus size={13} /> Revoke
-          </Button>
+          {canEdit ? (
+            <Button size="sm" variant="outline" onClick={() => setShowRevokedPicker((v) => !v)} disabled={busy}>
+              <Plus size={13} /> Revoke
+            </Button>
+          ) : null}
         </div>
         <p className="mt-1 text-[11px] text-slate-400">Permissions removed from this user that their role would normally grant.</p>
 
-        {showRevokedPicker && (
+        {canEdit && showRevokedPicker && (
           <PermissionPicker keys={allKeys} exclude={[...revoked, ...extra]} onPick={addRevoked} />
         )}
 
@@ -238,9 +247,11 @@ export default function AccessTab({ user: initialUser }) {
             {revoked.map((p) => (
               <span key={p} className="flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5">
                 <span className="font-mono text-[10px] font-semibold text-rose-600">{p}</span>
-                <button type="button" onClick={() => removeRevoked(p)} disabled={busy} className="text-rose-400 hover:text-slate-500 transition">
-                  <X size={11} />
-                </button>
+                {canEdit ? (
+                  <button type="button" onClick={() => removeRevoked(p)} disabled={busy} aria-label={`Remove revocation ${p}`} className="text-rose-400 hover:text-slate-500 transition">
+                    <X size={11} />
+                  </button>
+                ) : null}
               </span>
             ))}
           </div>

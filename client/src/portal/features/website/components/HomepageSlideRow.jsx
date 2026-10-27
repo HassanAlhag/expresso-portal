@@ -80,7 +80,9 @@ export default function HomepageSlideRow({
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <button
+        {/* PI closure: each action shows only when the page passes its handler
+            (the page passes none without website.write). */}
+        {onToggle ? <button
           type="button"
           onClick={() => onToggle(slide)}
           disabled={busy}
@@ -92,9 +94,9 @@ export default function HomepageSlideRow({
           ) : (
             <ToggleLeft size={16} className="text-slate-400" />
           )}
-        </button>
+        </button> : null}
 
-        <Button
+        {onEdit ? <Button
           variant="outline"
           size="sm"
           onClick={() => onEdit(slide)}
@@ -102,16 +104,17 @@ export default function HomepageSlideRow({
         >
           <Pencil size={14} />
           Edit
-        </Button>
+        </Button> : null}
 
-        <Button
+        {onDelete ? <Button
           variant="outline"
           size="sm"
           onClick={() => onDelete(slide)}
           disabled={busy}
+          aria-label="Delete slide"
         >
           <Trash2 size={14} />
-        </Button>
+        </Button> : null}
       </div>
     </div>
   );

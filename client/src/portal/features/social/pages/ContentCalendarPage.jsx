@@ -32,6 +32,7 @@ import Select from "../../../shared/ui/Select";
 import { listJobs, updateJob, addApproval, updatePostMetrics } from "../../jobs/api";
 import { listCustomers } from "../../customers/api";
 import { listSocialMetrics, upsertSocialMetrics } from "../api";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -183,7 +184,7 @@ function ApprovalHistoryItem({ entry }) {
   );
 }
 
-function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange }) {
+function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange, canWrite = false }) {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
@@ -202,6 +203,7 @@ function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange }) {
   const isClientReview = status === "client_review";
 
   const doApproval = async (apStatus) => {
+    if (!canWrite) return;
     setBusy(true);
     try {
       const res = await addApproval(job._id, { status: apStatus, note });
@@ -227,7 +229,7 @@ function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange }) {
   };
 
   const doNote = async () => {
-    if (!note.trim()) return;
+    if (!canWrite || !note.trim()) return;
     setBusy(true);
     try {
       const res = await addApproval(job._id, { status: noteType, note });
@@ -305,8 +307,8 @@ function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange }) {
           </div>
         )}
 
-        {/* Client Approval Actions */}
-        {isClientReview && (
+        {/* Client Approval Actions (jobs.write) */}
+        {isClientReview && canWrite && (
           <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 grid gap-3">
             <p className="text-sm font-semibold text-orange-800 flex items-center gap-2">
               <Clock size={14} /> Awaiting Your Approval
@@ -332,7 +334,8 @@ function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange }) {
           </div>
         )}
 
-        {/* Add Note */}
+        {/* Add Note (jobs.write) */}
+        {canWrite ? (
         <div>
           {!noteOpen ? (
             <button
@@ -365,6 +368,7 @@ function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange }) {
             </div>
           )}
         </div>
+        ) : null}
 
         {/* Approval History */}
         {approvals.length > 0 && (
@@ -582,6 +586,11 @@ function FollowerGrowthChart({ growthData }) {
 
 export default function ContentCalendarPage() {
   const toast = useToast();
+  // PI closure: job approvals, notes, status and post metrics need jobs.write;
+  // monthly social metrics need social.metrics.write (API). Independent.
+  const access = useAccess();
+  const canWriteJobs = access.can("jobs.write");
+  const canWriteMetrics = access.can("social.metrics.write");
 
   const [{ year, month }, setYM] = useState(currentYearMonth);
   const [platform, setPlatform] = useState("");
@@ -733,6 +742,7 @@ export default function ContentCalendarPage() {
   };
 
   const handleSaveMetrics = async (payload) => {
+    if (!canWriteMetrics) return;
     setMetricsBusy(true);
     try {
       await upsertSocialMetrics(payload);
@@ -747,6 +757,7 @@ export default function ContentCalendarPage() {
   };
 
   const openMetricsModal = () => {
+    if (!canWriteMetrics) return;
     if (!customerId) {
       toast.warning("Select a client before adding metrics.");
       return;
@@ -843,7 +854,7 @@ export default function ContentCalendarPage() {
               <div className="rounded-2xl border border-dashed border-slate-200 py-10 text-center">
                 <BarChart2 size={28} className="mx-auto mb-2 text-slate-200" strokeWidth={1.5} />
                 <p className="text-[13px] text-slate-400">No platform metrics for this month</p>
-                <button onClick={openMetricsModal} className="mt-2 text-[12px] text-indigo-600 hover:underline">+ Add metrics</button>
+                {canWriteMetrics ? <button onClick={openMetricsModal} className="mt-2 text-[12px] text-indigo-600 hover:underline">+ Add metrics</button> : null}
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -905,14 +916,17 @@ export default function ContentCalendarPage() {
                                 Likes {j.postMetrics?.likes || 0} · Comments {j.postMetrics?.comments || 0} · Shares {j.postMetrics?.shares || 0}
                               </p>
                             </div>
-                            <button
-                              type="button"
-                              title="Edit metrics"
-                              onClick={(e) => { e.stopPropagation(); setPostMetricsJob(j); }}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white transition"
-                            >
-                              <Pencil size={12} />
-                            </button>
+                            {canWriteJobs ? (
+                              <button
+                                type="button"
+                                title="Edit metrics"
+                                aria-label={`Edit metrics for ${j.title || "post"}`}
+                                onClick={(e) => { e.stopPropagation(); setPostMetricsJob(j); }}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white transition"
+                              >
+                                <Pencil size={12} />
+                              </button>
+                            ) : null}
                           </div>
                         );
                       })}
@@ -1115,13 +1129,16 @@ export default function ContentCalendarPage() {
                 <BarChart2 size={14} className="text-indigo-500" />
                 Performance
               </h3>
-              <button
-                onClick={openMetricsModal}
-                className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"
-                title="Edit metrics"
-              >
-                <Pencil size={13} />
-              </button>
+              {canWriteMetrics ? (
+                <button
+                  onClick={openMetricsModal}
+                  className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"
+                  title="Edit metrics"
+                  aria-label="Edit monthly metrics"
+                >
+                  <Pencil size={13} />
+                </button>
+              ) : null}
             </div>
             {loading ? (
               <div className="grid gap-2">
@@ -1130,12 +1147,14 @@ export default function ContentCalendarPage() {
             ) : !selectedMetrics ? (
               <div className="text-center py-3">
                 <p className="text-xs text-slate-400 mb-2">No data for {period}</p>
-                <button
-                  onClick={openMetricsModal}
-                  className="text-xs text-indigo-600 hover:underline"
-                >
-                  + Add metrics
-                </button>
+                {canWriteMetrics ? (
+                  <button
+                    onClick={openMetricsModal}
+                    className="text-xs text-indigo-600 hover:underline"
+                  >
+                    + Add metrics
+                  </button>
+                ) : null}
               </div>
             ) : (
               <div className="grid gap-2 text-sm">
@@ -1177,6 +1196,7 @@ export default function ContentCalendarPage() {
         onClose={() => setSelectedJob(null)}
         onApprovalAdded={handleApprovalAdded}
         onStatusChange={handleStatusChange}
+        canWrite={canWriteJobs}
       />
 
       {/* Metrics Form */}
@@ -1192,7 +1212,7 @@ export default function ContentCalendarPage() {
       />
 
       {/* Post Metrics Editor */}
-      {postMetricsJob && (
+      {postMetricsJob && canWriteJobs && (
         <PostMetricsModal
           job={postMetricsJob}
           onSave={(updated) => {

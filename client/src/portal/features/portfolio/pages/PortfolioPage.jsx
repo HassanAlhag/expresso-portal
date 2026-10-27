@@ -7,6 +7,7 @@ import EmptyState from "../../../shared/ui/EmptyState";
 import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import ViewToggle from "../../../shared/ui/ViewToggle";
 import { listPortfolio, createPortfolio, deletePortfolio } from "../api";
 import {
@@ -161,17 +162,19 @@ function PortfolioRecordCard({ item, onOpen, onDelete, view = "grid" }) {
             <div className="text-xs font-bold text-slate-500">Readiness</div>
             <div className="mt-1 font-black text-slate-950">{readiness.done}/{readiness.total}</div>
           </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="grid h-9 w-9 place-items-center rounded-lg text-slate-300 transition hover:bg-rose-50 hover:text-rose-500"
-            aria-label={`Delete ${item.title}`}
-          >
-            <Trash2 size={15} />
-          </button>
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="grid h-9 w-9 place-items-center rounded-lg text-slate-300 transition hover:bg-rose-50 hover:text-rose-500"
+              aria-label={`Delete ${item.title}`}
+            >
+              <Trash2 size={15} />
+            </button>
+          ) : null}
         </div>
       </div>
     );
@@ -251,17 +254,19 @@ function PortfolioRecordCard({ item, onOpen, onDelete, view = "grid" }) {
                 <CheckCircle2 size={13} className={image ? "text-emerald-500" : "text-slate-300"} />
                 {image ? "Visual set" : "Needs visual"}
               </span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete();
-                }}
-                className="grid h-8 w-8 place-items-center rounded-lg text-slate-300 transition hover:bg-rose-50 hover:text-rose-500"
-                aria-label={`Delete ${item.title}`}
-              >
-                <Trash2 size={14} />
-              </button>
+              {onDelete ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-slate-300 transition hover:bg-rose-50 hover:text-rose-500"
+                  aria-label={`Delete ${item.title}`}
+                >
+                  <Trash2 size={14} />
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
@@ -401,6 +406,11 @@ export default function PortfolioPage() {
   const [view, setView] = useState("grid");
   const [addOpen, setAddOpen] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
+  // PI closure: create needs portfolio.write and delete needs
+  // portfolio.delete, exactly as the API enforces them.
+  const access = useAccess();
+  const canWrite = access.can("portfolio.write");
+  const canDelete = access.can("portfolio.delete");
 
   const load = async () => {
     setLoading(true);
@@ -420,6 +430,7 @@ export default function PortfolioPage() {
   }, []);
 
   const handleCreate = async (form) => {
+    if (!canWrite) return;
     setBusy(true);
     try {
       const res = await createPortfolio({
@@ -438,6 +449,7 @@ export default function PortfolioPage() {
   };
 
   const handleDelete = (id, title) => {
+    if (!canDelete) return;
     setConfirmState({
       title: "Delete portfolio item",
       message: `Delete "${title}"?`,
@@ -497,9 +509,11 @@ export default function PortfolioPage() {
             <Button variant="outline" onClick={load} disabled={loading}>
               <RefreshCw size={15} />
             </Button>
-            <Button onClick={() => setAddOpen(true)}>
-              <Plus size={15} /> New item
-            </Button>
+            {canWrite ? (
+              <Button onClick={() => setAddOpen(true)}>
+                <Plus size={15} /> New item
+              </Button>
+            ) : null}
           </div>
         }
       />
@@ -573,8 +587,8 @@ export default function PortfolioPage() {
             icon={Layers}
             title="No portfolio items"
             message="Add case studies and work samples to showcase on your website."
-            actionLabel="New item"
-            onAction={() => setAddOpen(true)}
+            actionLabel={canWrite ? "New item" : undefined}
+            onAction={canWrite ? () => setAddOpen(true) : undefined}
           />
         </Card>
       ) : (
@@ -585,14 +599,14 @@ export default function PortfolioPage() {
               item={item}
               view={view}
               onOpen={() => nav(`/portal/website/portfolio/${item._id}`)}
-              onDelete={() => handleDelete(item._id, item.title)}
+              onDelete={canDelete ? () => handleDelete(item._id, item.title) : undefined}
             />
           ))}
         </div>
       )}
 
       <NewPortfolioModal
-        open={addOpen}
+        open={addOpen && canWrite}
         busy={busy}
         onClose={() => setAddOpen(false)}
         onSubmit={handleCreate}

@@ -4,6 +4,7 @@ import { listMessages, sendMessage, markMessagesRead } from "../api";
 import { listCustomers } from "../../customers/api";
 import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
 function fmtTime(dt) {
   if (!dt) return "";
@@ -127,12 +128,13 @@ function CustomerList({ customers, selected, onSelect, loading }) {
 /* ─── main page ──────────────────────────────────────────────────── */
 export default function MessagesPage() {
   const toast = useToast();
-  const me = (() => {
-    try { return JSON.parse(localStorage.getItem("portal_user") || "{}"); }
-    catch { return {}; }
-  })();
-
-  const isClient = ["client", "staff_client", "procurement_client", "client_admin"].includes(me.role || "");
+  // PI closure: client vs staff view comes from the user's internal flag
+  // (the same rule the API uses), not a list of role names; sending needs
+  // messaging.write (POST /api/messaging), reading needs messaging.read.
+  const access = useAccess();
+  const me = access.user || {};
+  const isClient = !access.isInternal;
+  const canSend = access.can("messaging.write");
 
   const [customers, setCustomers] = useState([]);
   const [customersLoading, setCustomersLoading] = useState(!isClient);
@@ -180,7 +182,7 @@ export default function MessagesPage() {
 
   async function handleSend() {
     const trimmed = body.trim();
-    if (!trimmed || !selectedCustomer) return;
+    if (!canSend || !trimmed || !selectedCustomer) return;
     setSending(true);
     try {
       const r = await sendMessage({ customerId: selectedCustomer._id, body: trimmed });
@@ -271,7 +273,12 @@ export default function MessagesPage() {
         </div>
 
         {/* Input area */}
-        {selectedCustomer && (
+        {selectedCustomer && !canSend ? (
+          <div className="border-t border-slate-100 bg-white px-4 py-3 text-[13px] text-slate-500">
+            You can read these messages but your role can't send messages.
+          </div>
+        ) : null}
+        {selectedCustomer && canSend && (
           <div className="border-t border-slate-100 bg-white px-4 py-3">
             <div className="flex items-end gap-2">
               <textarea
@@ -287,6 +294,7 @@ export default function MessagesPage() {
               <button
                 type="button"
                 onClick={handleSend}
+                aria-label="Send message"
                 disabled={!body.trim() || sending}
                 className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6F7FD9] text-white transition hover:bg-[#5a6bc8] disabled:opacity-40"
               >

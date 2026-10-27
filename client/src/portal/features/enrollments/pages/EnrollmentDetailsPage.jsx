@@ -5,6 +5,7 @@ import Card, { CardBody, CardHeader } from "../../../shared/ui/Card";
 import Button from "../../../shared/ui/Button";
 import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import {
   getEnrollment, updateEnrollment, deleteEnrollment, generateJobsFromEnrollment,
 } from "../api";
@@ -83,6 +84,13 @@ export default function EnrollmentDetailsPage() {
   const nav = useNavigate();
   const { id } = useParams();
   const toast = useToast();
+  // PI closure: status changes need enrollments.write, delete needs
+  // enrollments.delete, and generating jobs (POST /api/jobs/generate/...)
+  // needs jobs.write. They are independent permissions.
+  const access = useAccess();
+  const canWrite = access.can("enrollments.write");
+  const canDelete = access.can("enrollments.delete");
+  const canGenerate = access.can("jobs.write");
 
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -110,6 +118,7 @@ export default function EnrollmentDetailsPage() {
   useEffect(() => { load(); }, [id]);
 
   const handleStatusChange = async (newStatus) => {
+    if (!canWrite) return;
     setStatusBusy(true);
     try {
       const res = await updateEnrollment(id, { status: newStatus });
@@ -124,6 +133,7 @@ export default function EnrollmentDetailsPage() {
   };
 
   const handleGenerateJobs = async () => {
+    if (!canGenerate) return;
     setBusy(true);
     setConfirmGenerate(false);
     try {
@@ -138,6 +148,7 @@ export default function EnrollmentDetailsPage() {
   };
 
   const handleDelete = async () => {
+    if (!canDelete) return;
     setBusy(true);
     setConfirmDelete(false);
     try {
@@ -196,12 +207,16 @@ export default function EnrollmentDetailsPage() {
             <Button variant="outline" onClick={load} disabled={busy}>
               <RefreshCw size={15} />
             </Button>
-            <Button variant="outline" onClick={() => setConfirmGenerate(true)} disabled={busy}>
-              <Zap size={15} /> Generate jobs
-            </Button>
-            <Button variant="outline" onClick={() => setConfirmDelete(true)} disabled={busy}>
-              <Trash2 size={15} />
-            </Button>
+            {canGenerate ? (
+              <Button variant="outline" onClick={() => setConfirmGenerate(true)} disabled={busy}>
+                <Zap size={15} /> Generate jobs
+              </Button>
+            ) : null}
+            {canDelete ? (
+              <Button variant="outline" onClick={() => setConfirmDelete(true)} disabled={busy} aria-label="Delete enrollment">
+                <Trash2 size={15} />
+              </Button>
+            ) : null}
           </div>
         }
       />
@@ -288,6 +303,7 @@ export default function EnrollmentDetailsPage() {
 
         {/* Right column: actions */}
         <div className="grid gap-6 self-start">
+          {canWrite ? (
           <Card>
             <CardHeader title="Update status" />
             <CardBody>
@@ -316,6 +332,7 @@ export default function EnrollmentDetailsPage() {
               </div>
             </CardBody>
           </Card>
+          ) : null}
 
           <Card>
             <CardHeader title="Quick actions" />
@@ -339,14 +356,16 @@ export default function EnrollmentDetailsPage() {
                     <FolderKanban size={14} /> View related project
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => setConfirmGenerate(true)}
-                  disabled={busy}
-                >
-                  <Zap size={14} /> Generate jobs from scope
-                </Button>
+                {canGenerate ? (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => setConfirmGenerate(true)}
+                    disabled={busy}
+                  >
+                    <Zap size={14} /> Generate jobs from scope
+                  </Button>
+                ) : null}
               </div>
             </CardBody>
           </Card>

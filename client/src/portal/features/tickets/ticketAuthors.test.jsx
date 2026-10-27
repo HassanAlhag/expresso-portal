@@ -18,7 +18,7 @@ const api = require("./api");
 const msg = (id, authorRole, extra = {}) => ({ _id: id, body: `${authorRole} message ${id}`, authorRole, authorId: `author-${id}`, visibility: "client", createdAt: "2026-10-20T00:00:00Z", ...extra });
 
 test("staff thread labels each author type: admin → Team, vendor → Vendor, client → Client", () => {
-  render(<TicketThread comments={[msg("1", "admin"), msg("2", "vendor"), msg("3", "client")]} isAdmin />);
+  render(<TicketThread comments={[msg("1", "admin"), msg("2", "vendor"), msg("3", "client")]} showInternal />);
   const label = (text) => within(screen.getByText(text).closest("div.rounded-xl")).getByText(/^(Team|Vendor|Client)$/).textContent; // eslint-disable-line testing-library/no-node-access
   expect(label("admin message 1")).toBe("Team");
   expect(label("vendor message 2")).toBe("Vendor");
@@ -26,7 +26,7 @@ test("staff thread labels each author type: admin → Team, vendor → Vendor, c
 });
 
 test("internal notes keep their internal styling whatever the author type", () => {
-  render(<TicketThread comments={[msg("4", "admin", { visibility: "internal" })]} isAdmin />);
+  render(<TicketThread comments={[msg("4", "admin", { visibility: "internal" })]} showInternal />);
   expect(screen.getByText("admin message 4").closest("div.rounded-xl").className).toMatch(/amber/); // eslint-disable-line testing-library/no-node-access
 });
 

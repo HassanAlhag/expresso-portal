@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { listMedia, uploadMedia } from "../api";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import MediaGrid from "../components/MediaGrid";
 import MediaDrawer from "../components/MediaDrawer";
 
@@ -63,6 +64,9 @@ const STAT_CARDS = [
 
 export default function MediaLibraryPage() {
   const toast = useToast();
+  // PI closure: upload needs media.write (API POST /api/media); browsing
+  // needs only media.read (the route permission).
+  const canUpload = useAccess().can("media.write");
   const inputRef = useRef(null);
 
   const [q, setQ] = useState("");
@@ -99,7 +103,7 @@ export default function MediaLibraryPage() {
 
   const handleFiles = async (files) => {
     const arr = Array.from(files || []);
-    if (!arr.length || uploading) return;
+    if (!canUpload || !arr.length || uploading) return;
     setUploading(true);
     let ok = 0;
     const fresh = [];
@@ -162,18 +166,21 @@ export default function MediaLibraryPage() {
               />
               Refresh
             </Button>
-            <Button
-              onClick={() => inputRef.current?.click()}
-              disabled={uploading}
-              style={{ backgroundColor: BRAND }}
-            >
-              <UploadCloud size={15} />
-              {uploading ? "Uploading…" : "Upload"}
-            </Button>
+            {canUpload ? (
+              <Button
+                onClick={() => inputRef.current?.click()}
+                disabled={uploading}
+                style={{ backgroundColor: BRAND }}
+              >
+                <UploadCloud size={15} />
+                {uploading ? "Uploading…" : "Upload"}
+              </Button>
+            ) : null}
           </div>
         }
       />
 
+      {canUpload ? (
       <input
         ref={inputRef}
         type="file"
@@ -184,6 +191,7 @@ export default function MediaLibraryPage() {
           e.target.value = "";
         }}
       />
+      ) : null}
 
       {/* Stats */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -209,7 +217,8 @@ export default function MediaLibraryPage() {
         ))}
       </div>
 
-      {/* Drag-and-drop upload zone */}
+      {/* Drag-and-drop upload zone (only for users who can upload) */}
+      {canUpload ? (
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -267,6 +276,7 @@ export default function MediaLibraryPage() {
           </div>
         )}
       </div>
+      ) : null}
 
       {/* Controls row */}
       <div className="flex flex-wrap items-center gap-2">

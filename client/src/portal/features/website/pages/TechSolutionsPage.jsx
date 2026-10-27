@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { FiPackage as FiPkg } from "react-icons/fi";
 import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import Modal from "../../../shared/ui/Modal";
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
@@ -1374,6 +1375,9 @@ function BlocksEditor({ solution, solutionId, blocks: initialBlocks, onSaved }) 
 
 export default function TechSolutionsPage() {
   const toast = useToast();
+  // PI closure: create, edit, show/hide, delete, reorder and page blocks are
+  // all website.write on the API; website.read only views the list.
+  const canWrite = useAccess().can("website.write");
   const [items, setItems] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1401,18 +1405,21 @@ export default function TechSolutionsPage() {
   useEffect(() => { load(); }, [load]);
 
   const handleCreate = async (form) => {
+    if (!canWrite) return;
     const res = await createSolution({ ...form, order: items.length });
     setItems((p) => [...p, res.item]);
     toast.success("Solution created.");
   };
 
   const handleUpdate = async (form) => {
+    if (!canWrite) return;
     const res = await updateSolution(editing._id, form);
     setItems((p) => p.map((x) => (x._id === editing._id ? res.item : x)));
     toast.success("Solution updated.");
   };
 
   const handleDelete = async () => {
+    if (!canWrite) return;
     await deleteSolution(confirmId);
     setItems((p) => p.filter((x) => x._id !== confirmId));
     if (blocksFor?._id === confirmId) setBlocksFor(null);
@@ -1421,6 +1428,7 @@ export default function TechSolutionsPage() {
   };
 
   const toggleActive = async (item) => {
+    if (!canWrite) return;
     const res = await updateSolution(item._id, { isActive: !item.isActive });
     setItems((p) => p.map((x) => (x._id === item._id ? res.item : x)));
     if (blocksFor?._id === item._id) setBlocksFor(res.item);
@@ -1429,6 +1437,7 @@ export default function TechSolutionsPage() {
   // Drag-to-reorder
   const onDragStart = (idx) => { dragIdx.current = idx; };
   const onDragOver = (e, idx) => {
+    if (!canWrite) return;
     e.preventDefault();
     if (dragIdx.current === null || dragIdx.current === idx) return;
     setItems((prev) => {
@@ -1441,6 +1450,7 @@ export default function TechSolutionsPage() {
   };
   const onDragEnd = async () => {
     dragIdx.current = null;
+    if (!canWrite) return;
     setReordering(true);
     try {
       await reorderSolutions(items.map((x) => x._id));
@@ -1452,7 +1462,7 @@ export default function TechSolutionsPage() {
     }
   };
 
-  const activeItem = blocksFor ? items.find((x) => x._id === blocksFor._id) || blocksFor : null;
+  const activeItem = blocksFor && canWrite ? items.find((x) => x._id === blocksFor._id) || blocksFor : null;
 
   return (
     <div className="space-y-6">
@@ -1463,14 +1473,16 @@ export default function TechSolutionsPage() {
             Digital Solutions (software built by Expresso) and Technology Solutions (grouped). Edit a solution to set its type and, for technology, its group. Drag to reorder.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => { setEditing(null); setFormOpen(true); }}
-          className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700"
-        >
-          <Plus size={15} />
-          Add solution
-        </button>
+        {canWrite ? (
+          <button
+            type="button"
+            onClick={() => { setEditing(null); setFormOpen(true); }}
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700"
+          >
+            <Plus size={15} />
+            Add solution
+          </button>
+        ) : null}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(360px,0.85fr)_minmax(680px,1.15fr)]">
@@ -1482,7 +1494,7 @@ export default function TechSolutionsPage() {
             </div>
           ) : items.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
-              <p className="text-sm font-semibold text-slate-400">No solutions yet. Add the first one.</p>
+              <p className="text-sm font-semibold text-slate-400">No solutions yet.{canWrite ? " Add the first one." : ""}</p>
             </div>
           ) : (
             <>
@@ -1499,10 +1511,10 @@ export default function TechSolutionsPage() {
                 return (
                   <div
                     key={item._id}
-                    draggable
-                    onDragStart={() => onDragStart(idx)}
-                    onDragOver={(e) => onDragOver(e, idx)}
-                    onDragEnd={onDragEnd}
+                    draggable={canWrite}
+                    onDragStart={canWrite ? () => onDragStart(idx) : undefined}
+                    onDragOver={canWrite ? (e) => onDragOver(e, idx) : undefined}
+                    onDragEnd={canWrite ? onDragEnd : undefined}
                     className={[
                       "flex items-center gap-4 rounded-xl border bg-white p-3 shadow-sm transition",
                       isBlocksOpen ? "border-indigo-300 shadow-md" : "border-slate-200 hover:border-slate-300",
@@ -1540,7 +1552,7 @@ export default function TechSolutionsPage() {
                       <p className="mt-0.5 font-mono text-[11px] text-slate-400">{publicPath(item)}</p>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-1">
+                    {canWrite ? <div className="flex shrink-0 items-center gap-1">
                       <button
                         type="button"
                         title="Edit blocks"
@@ -1557,6 +1569,7 @@ export default function TechSolutionsPage() {
                       <button
                         type="button"
                         title={item.isActive ? "Deactivate" : "Activate"}
+                        aria-label={`${item.isActive ? "Deactivate" : "Activate"} ${item.title || "item"}`}
                         onClick={() => toggleActive(item)}
                         className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
                       >
@@ -1564,6 +1577,7 @@ export default function TechSolutionsPage() {
                       </button>
                       <button
                         type="button"
+                        aria-label={`Edit ${item.title || "item"}`}
                         onClick={() => { setEditing(item); setFormOpen(true); }}
                         className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
                       >
@@ -1571,12 +1585,13 @@ export default function TechSolutionsPage() {
                       </button>
                       <button
                         type="button"
+                        aria-label={`Delete ${item.title || "item"}`}
                         onClick={() => setConfirmId(item._id)}
                         className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
                       >
                         <Trash2 size={13} />
                       </button>
-                    </div>
+                    </div> : null}
                   </div>
                 );
               })}
@@ -1611,7 +1626,7 @@ export default function TechSolutionsPage() {
       </div>
 
       <SolutionFormModal
-        open={formOpen}
+        open={formOpen && canWrite}
         onClose={() => setFormOpen(false)}
         initial={editing}
         groups={groups}

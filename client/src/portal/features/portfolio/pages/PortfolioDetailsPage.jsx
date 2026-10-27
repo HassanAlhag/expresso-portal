@@ -7,6 +7,7 @@ import Input from "../../../shared/ui/Input";
 import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import { getPortfolio, updatePortfolio, deletePortfolio } from "../api";
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
 import {
@@ -238,6 +239,11 @@ export default function PortfolioDetailsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [confirmState, setConfirmState] = useState(null);
+  // PI closure: save/publish/media changes need portfolio.write and delete
+  // needs portfolio.delete, matching the API. portfolio.read only views.
+  const access = useAccess();
+  const canWrite = access.can("portfolio.write");
+  const canDelete = access.can("portfolio.delete");
 
   const [form, setForm] = useState({
     title: "",
@@ -316,6 +322,7 @@ export default function PortfolioDetailsPage() {
   }, [id]);
 
   const set = (k) => (e) => {
+    if (!canWrite) return;
     const val = e.target.value;
     setForm((f) => ({ ...f, [k]: val }));
     setDirty(true);
@@ -325,7 +332,7 @@ export default function PortfolioDetailsPage() {
     media?.url || media?.mediumUrl || media?.thumbnailUrl || media?.path || "";
 
   const handleMediaSelect = (selection) => {
-    if (!picker) return;
+    if (!picker || !canWrite) return;
 
     if (picker.kind === "gallery") {
       const selected = Array.isArray(selection) ? selection : selection ? [selection] : [];
@@ -380,6 +387,7 @@ export default function PortfolioDetailsPage() {
   };
 
   const handleSave = async () => {
+    if (!canWrite) return;
     setBusy(true);
     try {
       const payload = {
@@ -419,6 +427,7 @@ export default function PortfolioDetailsPage() {
   };
 
   const handlePublish = async () => {
+    if (!canWrite) return;
     setBusy(true);
     try {
       const res = await updatePortfolio(id, { status: "published" });
@@ -433,6 +442,7 @@ export default function PortfolioDetailsPage() {
   };
 
   const handleDelete = () => {
+    if (!canDelete) return;
     setConfirmState({
       title: "Delete portfolio item",
       message: `Delete "${item?.title}"?`,
@@ -521,15 +531,17 @@ export default function PortfolioDetailsPage() {
             <Button variant="outline" onClick={load} disabled={busy}>
               <RefreshCw size={15} />
             </Button>
-            {item?.status !== "published" && (
+            {canWrite && item?.status !== "published" && (
               <Button variant="outline" onClick={handlePublish} disabled={busy}>
                 <Eye size={15} /> Publish
               </Button>
             )}
-            <Button variant="outline" onClick={handleDelete} disabled={busy}>
-              <Trash2 size={15} />
-            </Button>
-            {dirty && (
+            {canDelete ? (
+              <Button variant="outline" onClick={handleDelete} disabled={busy} aria-label="Delete portfolio item">
+                <Trash2 size={15} />
+              </Button>
+            ) : null}
+            {canWrite && dirty && (
               <Button onClick={handleSave} loading={busy}>
                 <Save size={15} /> Save
               </Button>
@@ -538,6 +550,10 @@ export default function PortfolioDetailsPage() {
         }
       />
 
+      {!canWrite ? (
+        <p className="text-sm font-semibold text-slate-500">View only. Your role can't edit portfolio items.</p>
+      ) : null}
+      <fieldset disabled={!canWrite} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr),360px]">
         {/* Main editor */}
         <div className="grid min-w-0 gap-6">
@@ -728,16 +744,17 @@ export default function PortfolioDetailsPage() {
             </CardBody>
           </Card>
 
-          {dirty && (
+          {canWrite && dirty && (
             <Button onClick={handleSave} loading={busy} className="w-full shadow-lg shadow-indigo-600/20">
               <Save size={15} /> Save changes
             </Button>
           )}
         </div>
       </div>
+      </fieldset>
 
       <MediaPicker
-        open={Boolean(picker)}
+        open={Boolean(picker) && canWrite}
         onClose={() => setPicker(null)}
         onSelect={mediaPickerProps.onSelect}
         title={picker?.title || "Select media"}

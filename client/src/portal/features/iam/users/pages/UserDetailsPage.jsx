@@ -22,6 +22,7 @@ import {
 
 import { getUser, setUserStatus, resetUserPassword } from "../api";
 import UserModal from "../components/UserModal";
+import { useAccess } from "../../../../shared/hooks/useAccess";
 import ResetPasswordModal from "../components/ResetPasswordModal";
 
 import OverviewTab from "../tabs/OverviewTab";
@@ -61,6 +62,9 @@ function roleTone(role) {
 export default function UserDetailsPage() {
   const { id } = useParams();
   const toast = useToast();
+  // PI closure: status, edit, password reset, notes and permission changes
+  // all need iam.users.write (API); iam.users.read only views.
+  const canWrite = useAccess().can("iam.users.write");
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -97,7 +101,7 @@ export default function UserDetailsPage() {
   }, [id]);
 
   const toggleStatus = async () => {
-    if (!user?._id) return;
+    if (!canWrite || !user?._id) return;
     setBusy(true);
     try {
       const next = !Boolean(user.isActive);
@@ -109,7 +113,7 @@ export default function UserDetailsPage() {
   };
 
   const doReset = async (newPassword) => {
-    if (!user?._id) return;
+    if (!canWrite || !user?._id) return;
     setBusy(true);
     try {
       await resetUserPassword(user._id, { newPassword });
@@ -148,7 +152,7 @@ export default function UserDetailsPage() {
     );
   }
 
-  const RightActions = (
+  const RightActions = canWrite ? (
     <>
       <Button variant="outline" onClick={toggleStatus} disabled={busy}>
         {user.isActive ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
@@ -169,7 +173,7 @@ export default function UserDetailsPage() {
         Reset password
       </Button>
     </>
-  );
+  ) : null;
 
   const TabsBar = (
     <Tabs
@@ -242,12 +246,14 @@ export default function UserDetailsPage() {
     >
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === TAB.OVERVIEW ? <OverviewTab user={user} /> : null}
-        {tab === TAB.ACCESS ? <AccessTab user={user} /> : null}
+        {tab === TAB.ACCESS ? <AccessTab user={user} canEdit={canWrite} /> : null}
         {tab === TAB.SECURITY ? <SecurityTab user={user} /> : null}
         {tab === TAB.ACTIVITY ? <ActivityTab user={user} /> : null}
-        {tab === TAB.NOTES ? <NotesTab user={user} /> : null}
+        {tab === TAB.NOTES ? <NotesTab user={user} canEdit={canWrite} /> : null}
       </div>
 
+      {canWrite ? (
+      <>
       <UserModal
         open={editOpen}
         mode="edit"
@@ -267,6 +273,8 @@ export default function UserDetailsPage() {
         onSubmit={doReset}
         busy={busy}
       />
+      </>
+      ) : null}
     </DetailsShell>
   );
 }

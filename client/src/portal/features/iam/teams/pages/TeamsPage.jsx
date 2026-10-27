@@ -19,8 +19,11 @@ import {
 
 import { listTeams, setTeamStatus } from "../api";
 import TeamEditor from "../components/TeamEditor";
+import { useAccess } from "../../../../shared/hooks/useAccess";
 
 export default function TeamsPage() {
+  // PI closure: create, edit and status changes need iam.teams.write (API).
+  const canWrite = useAccess().can("iam.teams.write");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [rows, setRows] = useState([]);
@@ -53,6 +56,7 @@ export default function TeamsPage() {
   );
 
   const toggleStatus = async (team) => {
+    if (!canWrite) return;
     setBusy(true);
     try {
       await setTeamStatus(team._id, !team.isActive);
@@ -81,16 +85,18 @@ export default function TeamsPage() {
                 Refresh
               </Button>
 
-              <Button
-                onClick={() => {
-                  setSelected(null);
-                  setEditorOpen(true);
-                }}
-                disabled={busy}
-              >
-                <Plus size={16} />
-                New team
-              </Button>
+              {canWrite ? (
+                <Button
+                  onClick={() => {
+                    setSelected(null);
+                    setEditorOpen(true);
+                  }}
+                  disabled={busy}
+                >
+                  <Plus size={16} />
+                  New team
+                </Button>
+              ) : null}
             </div>
           }
         />
@@ -113,12 +119,12 @@ export default function TeamsPage() {
           <EmptyState
             icon={Users}
             title="No teams found"
-            message="Create your first team."
-            actionLabel="Create team"
-            onAction={() => {
+            message={canWrite ? "Create your first team." : "No teams have been created yet."}
+            actionLabel={canWrite ? "Create team" : undefined}
+            onAction={canWrite ? () => {
               setSelected(null);
               setEditorOpen(true);
-            }}
+            } : undefined}
           />
         ) : (
           <div className="overflow-hidden rounded-[28px] border border-black/[0.07] bg-white shadow-sm">
@@ -190,7 +196,7 @@ export default function TeamsPage() {
                       </td>
 
                       <td className="px-4 py-4 text-right align-top">
-                        <div className="flex justify-end gap-2">
+                        {canWrite ? <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
                             onClick={() => {
@@ -206,6 +212,7 @@ export default function TeamsPage() {
                             type="button"
                             className="grid h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white hover:bg-black/[0.03]"
                             title={team.isActive ? "Deactivate" : "Activate"}
+                            aria-label={`${team.isActive ? "Deactivate" : "Activate"} ${team.label || team.name || "team"}`}
                             disabled={busy}
                             onClick={() => toggleStatus(team)}
                           >
@@ -215,7 +222,7 @@ export default function TeamsPage() {
                               <ToggleLeft size={18} />
                             )}
                           </button>
-                        </div>
+                        </div> : null}
                       </td>
                     </tr>
                   ))}
@@ -237,6 +244,7 @@ export default function TeamsPage() {
         )}
       </div>
 
+      {canWrite ? (
       <TeamEditor
         open={editorOpen}
         initial={selected}
@@ -252,6 +260,7 @@ export default function TeamsPage() {
         }}
         setBusy={setBusy}
       />
+      ) : null}
     </>
   );
 }

@@ -10,6 +10,8 @@ There are **26 portal feature-area folders**, backed by **21 API domain folders*
 
 All paths below are relative to the React portal, not separate applications. API → handler → model evidence is indexed in [API map](API-MAP.md) and [source inventory](source-inventory.json). Files/notifications descriptions distinguish actual storage/email from UI toasts.
 
+**Action gating (PI closure pass, complete and committed).** Across the modules below, every create, edit, save, toggle, reorder, upload and delete control is shown, and its handler runs, only when the user holds the permission the API route requires (`useAccess`; `super_admin` is the only bypass, no role-name lists). Messages and Brand Kit choose the client or staff view by the internal/external classification; the staff ticket page's staff tools follow `tickets.write`. Productions is outside this pass (Jobs/Productions migration). Details: [Remediation plan — PI closure](REMEDIATION-PLAN.md#pi-closure--older-page-permission-and-action-alignment-complete-and-committed).
+
 ## Identity & access
 
 **Purpose:** Accounts, roles, teams, invitations, access requests, login/reset/Google sign-in.
@@ -363,7 +365,7 @@ Source: [client/src/portal/features/careers](../../client/src/portal/features/ca
 | States / workflow | open/in_progress/waiting_client/waiting_vendor/in_review/escalated/resolved/closed; change request approval pending/approved/rejected. |
 | Other modules | Connects customers/projects/users, with embedded comments and legacy clientId referring to User, not Customer. |
 | Files / notifications | Attachments are embedded URL metadata; internal/client comment visibility; no automatic ticket email service found. |
-| Assessment | Active; legacy authorRole enum client/admin is narrower than current role registry. |
+| Assessment | Active; legacy authorRole enum client/admin is narrower than current role registry. Staff ticket tools follow `tickets.write` and internal notes the internal/external classification since the PI closure pass (the `isAdminRole` list is gone). |
 
 Source: [client/src/portal/features/tickets](../../client/src/portal/features/tickets).
 

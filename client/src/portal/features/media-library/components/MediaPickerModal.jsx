@@ -6,6 +6,7 @@ import EmptyState from "../../../shared/ui/EmptyState";
 import { X, Search, Image as ImageIcon, Check, RefreshCw } from "lucide-react";
 
 import { listMedia } from "../api";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import MediaUploader from "./MediaUploader";
 
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
@@ -22,6 +23,11 @@ export default function MediaPickerModal({
   limit = 100,
   status = "", // keep empty for internal/admin usage
 }) {
+  // PI closure: browsing the library needs media.read (GET /api/media) and
+  // uploading needs media.write (POST /api/media); they are independent.
+  const access = useAccess();
+  const canBrowse = access.can("media.read");
+  const canUpload = allowUpload && access.can("media.write");
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -29,7 +35,7 @@ export default function MediaPickerModal({
 
   const load = useCallback(
     async (search = "") => {
-      if (!open) return;
+      if (!open || !canBrowse) return;
 
       setLoading(true);
       try {
@@ -50,7 +56,7 @@ export default function MediaPickerModal({
         setLoading(false);
       }
     },
-    [open, onlyType, limit, status]
+    [open, onlyType, limit, status, canBrowse]
   );
 
   useEffect(() => {
@@ -131,7 +137,7 @@ export default function MediaPickerModal({
           </div>
 
           {/* Upload */}
-          {allowUpload ? (
+          {canUpload ? (
             <div className="shrink-0 border-b border-black/10 bg-white p-4">
               <MediaUploader
                 onUploaded={(it) => {
@@ -153,6 +159,7 @@ export default function MediaPickerModal({
           ) : null}
 
           {/* Search */}
+          {canBrowse ? (
           <div className="shrink-0 border-b border-black/10 bg-white p-4">
             <div className="grid gap-3 lg:grid-cols-[1fr,auto] items-end">
               <label className="grid gap-2">
@@ -184,10 +191,17 @@ export default function MediaPickerModal({
               </div>
             </div>
           </div>
+          ) : null}
 
           {/* Grid */}
           <div className="min-h-0 flex-1 overflow-y-auto bg-white p-5">
-            {loading ? (
+            {!canBrowse ? (
+              <EmptyState
+                icon={ImageIcon}
+                title="The media library isn't available to you"
+                message={canUpload ? "Your role can upload new media but not browse the library. Upload a file above to use it here." : "Choosing media needs access to the media library. Ask an administrator if you need it."}
+              />
+            ) : loading ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <Skeleton className="h-64 w-full rounded-[24px]" />
                 <Skeleton className="h-64 w-full rounded-[24px]" />

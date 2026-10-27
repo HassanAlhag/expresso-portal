@@ -11,6 +11,7 @@ import StatCard from "../../../shared/ui/StatCard";
 import FilterBar from "../../../shared/ui/FilterBar";
 
 import { listEnrollments, createEnrollment, updateEnrollment } from "../api";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import CreateEnrollmentModal from "../components/CreateEnrollmentModal";
 import EditEnrollmentModal from "../components/EditEnrollmentModal";
 
@@ -79,6 +80,8 @@ function scopeSummary(item) {
 export default function EnrollmentsPage() {
   const nav = useNavigate();
   const toast = useToast();
+  // PI closure: create and edit need enrollments.write (API).
+  const canWrite = useAccess().can("enrollments.write");
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
@@ -113,6 +116,7 @@ export default function EnrollmentsPage() {
   }, []);
 
   const onCreate = async (payload) => {
+    if (!canWrite) return;
     setBusy(true);
     try {
       await createEnrollment(payload);
@@ -127,7 +131,7 @@ export default function EnrollmentsPage() {
   };
 
   const onEdit = async (payload) => {
-    if (!selectedEnrollment?._id) return;
+    if (!canWrite || !selectedEnrollment?._id) return;
 
     setBusy(true);
     try {
@@ -209,14 +213,16 @@ export default function EnrollmentsPage() {
               Refresh
             </Button>
 
-            <Button
-              onClick={() => setCreateOpen(true)}
-              style={{ backgroundColor: BRAND }}
-              disabled={busy}
-            >
-              <Plus size={16} />
-              New enrollment
-            </Button>
+            {canWrite ? (
+              <Button
+                onClick={() => setCreateOpen(true)}
+                style={{ backgroundColor: BRAND }}
+                disabled={busy}
+              >
+                <Plus size={16} />
+                New enrollment
+              </Button>
+            ) : null}
           </div>
         }
       />
@@ -263,8 +269,8 @@ export default function EnrollmentsPage() {
             icon={ClipboardList}
             title="No enrollments yet"
             message="Enrollments connect a client to one or more fixed service contracts."
-            actionLabel="New enrollment"
-            onAction={() => setCreateOpen(true)}
+            actionLabel={canWrite ? "New enrollment" : undefined}
+            onAction={canWrite ? () => setCreateOpen(true) : undefined}
           />
         </Card>
       ) : (
@@ -325,16 +331,18 @@ export default function EnrollmentsPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedEnrollment(item);
-                          setEditOpen(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
+                      {canWrite ? (
+                        <Button
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedEnrollment(item);
+                            setEditOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      ) : null}
                       <ChevronRight
                         size={18}
                         className="text-slate-400 transition group-hover:translate-x-1"
@@ -348,6 +356,8 @@ export default function EnrollmentsPage() {
         </div>
       )}
 
+      {canWrite ? (
+      <>
       <CreateEnrollmentModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
@@ -365,6 +375,8 @@ export default function EnrollmentsPage() {
         }}
         onSubmit={onEdit}
       />
+      </>
+      ) : null}
     </div>
   );
 }

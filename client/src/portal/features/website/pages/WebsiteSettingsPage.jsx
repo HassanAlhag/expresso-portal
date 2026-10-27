@@ -26,6 +26,7 @@ import Skeleton from "../../../shared/ui/Skeleton";
 import { useToast } from "../../../shared/ui/Toast";
 import MediaPickerModal from "../../media-library/components/MediaPickerModal";
 import { getSiteSettings, updateSiteSettings } from "../api";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import { updateSiteSettingsCache } from "../../../../hooks/useSiteSettings";
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
 import {
@@ -1741,6 +1742,9 @@ function MarqueeSection({ sectionData, onSave }) {
 
 export default function WebsiteSettingsPage() {
   const toast = useToast();
+  // PI closure: saving site settings is PATCH /api/site-settings
+  // (website.write). Without it the editing area is shown view-only.
+  const canWrite = useAccess().can("website.write");
   const [activeWebsiteImagePage, setActiveWebsiteImagePage] = useState("branding");
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1762,6 +1766,7 @@ export default function WebsiteSettingsPage() {
   }, [load]);
 
   const handleSave = async (section, data) => {
+    if (!canWrite) throw new Error("Your role can't change website settings.");
     const res = await updateSiteSettings(section, data);
     const nextSettings = res.settings || {};
     setSettings(nextSettings);
@@ -1895,6 +1900,12 @@ export default function WebsiteSettingsPage() {
               : "rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6",
           ].join(" ")}
         >
+          {!canWrite ? (
+            <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600" role="note">
+              View only: your role can see the website settings but not change them.
+            </div>
+          ) : null}
+          <fieldset disabled={!canWrite} aria-label={canWrite ? undefined : "Website settings (view only)"} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
           {loading ? (
             <div className="grid gap-4 sm:grid-cols-2">
               <Skeleton className="h-44 w-full rounded-2xl" />
@@ -1988,6 +1999,7 @@ export default function WebsiteSettingsPage() {
               onSave={handleSave}
             />
           )}
+          </fieldset>
         </div>
       </main>
       </div>

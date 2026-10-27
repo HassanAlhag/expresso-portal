@@ -29,7 +29,7 @@ function EventEntry({ comment }) {
 // authorRole is the author type: "admin" = Expresso team, "vendor", "client".
 const AUTHOR_LABELS = { admin: "Team", vendor: "Vendor", client: "Client" };
 
-function CommentEntry({ comment, isAdmin }) {
+function CommentEntry({ comment, showInternal }) {
   const internal = comment.visibility === "internal";
   const isAdminAuthor = comment.authorRole === "admin";
 
@@ -53,7 +53,7 @@ function CommentEntry({ comment, isAdmin }) {
           </p>
         </div>
 
-        {internal && isAdmin && (
+        {internal && showInternal && (
           <span className="flex-shrink-0 inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
             <Lock size={11} />
             Internal
@@ -64,7 +64,7 @@ function CommentEntry({ comment, isAdmin }) {
   );
 }
 
-export default function TicketThread({ comments = [], isAdmin }) {
+export default function TicketThread({ comments = [], showInternal }) {
   if (!comments.length) {
     return (
       <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center text-sm text-slate-500">
@@ -79,7 +79,7 @@ export default function TicketThread({ comments = [], isAdmin }) {
         c.event ? (
           <EventEntry key={c._id || c.createdAt} comment={c} />
         ) : (
-          <CommentEntry key={c._id || c.createdAt} comment={c} isAdmin={isAdmin} />
+          <CommentEntry key={c._id || c.createdAt} comment={c} showInternal={showInternal} />
         )
       )}
     </div>

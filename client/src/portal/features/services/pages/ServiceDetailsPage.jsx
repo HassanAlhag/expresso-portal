@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { getService, deleteService, openServiceTemplateFile } from "../api";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import ServiceStatusPill from "../components/ServiceStatusPill";
 
 // ── Creative type helpers ─────────────────────────────────────────────────────
@@ -233,6 +234,10 @@ export default function ServiceDetailsPage() {
   const nav = useNavigate();
   const { id } = useParams();
   const toast = useToast();
+  // PI closure: editing needs services.write; delete needs services.delete.
+  const access = useAccess();
+  const canWrite = access.can("services.write");
+  const canDelete = access.can("services.delete");
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -270,6 +275,7 @@ export default function ServiceDetailsPage() {
   const coverSrc = item?.coverImageId?.thumbnailUrl || item?.coverImageId?.url || null;
 
   const handleDelete = () => {
+    if (!canDelete) return;
     setConfirmState({
       title: "Delete service",
       message: `Delete "${item?.name || item?.title}"? This cannot be undone.`,
@@ -343,13 +349,17 @@ export default function ServiceDetailsPage() {
             <RefreshCw size={16} />
             Refresh
           </Button>
-          <Button variant="outline" onClick={() => nav(`/portal/services/${id}/edit`)} disabled={busy}>
-            <Pencil size={16} />
-            Edit in builder
-          </Button>
-          <Button variant="outline" onClick={handleDelete} disabled={busy}>
-            <Trash2 size={16} />
-          </Button>
+          {canWrite ? (
+            <Button variant="outline" onClick={() => nav(`/portal/services/${id}/edit`)} disabled={busy}>
+              <Pencil size={16} />
+              Edit in builder
+            </Button>
+          ) : null}
+          {canDelete ? (
+            <Button variant="outline" onClick={handleDelete} disabled={busy} aria-label="Delete service">
+              <Trash2 size={16} />
+            </Button>
+          ) : null}
         </div>
       </div>
 

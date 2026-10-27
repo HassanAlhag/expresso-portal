@@ -16,11 +16,12 @@ import Badge from "../../../../shared/ui/Badge";
 import { createRole, updateRole } from "../api";
 import { isExternalDeniedKey, usePermissionCatalog } from "../../../../shared/hooks/usePermissionCatalog";
 
-function PermissionRow({ permission, active, locked, onToggle }) {
+function PermissionRow({ permission, active, locked, onToggle, readOnly = false }) {
   return (
     <button
       type="button"
-      disabled={locked}
+      disabled={locked || readOnly}
+      aria-pressed={active}
       title={locked ? "Client and vendor roles cannot hold this permission" : undefined}
       onClick={() => onToggle([permission.key], !active)}
       className={[
@@ -65,7 +66,7 @@ function PermissionRow({ permission, active, locked, onToggle }) {
   );
 }
 
-function DomainPanel({ domain, active, isLocked, onToggle }) {
+function DomainPanel({ domain, active, isLocked, onToggle, readOnly = false }) {
   const keys = domain.permissions
     .map((permission) => permission.key)
     .filter((permissionKey) => !isLocked(permissionKey));
@@ -90,7 +91,7 @@ function DomainPanel({ domain, active, isLocked, onToggle }) {
           </p>
         </div>
 
-        <button
+        {readOnly ? null : <button
           type="button"
           onClick={() => onToggle(keys, !allSelected)}
           disabled={keys.length === 0}
@@ -102,7 +103,7 @@ function DomainPanel({ domain, active, isLocked, onToggle }) {
             <Square size={15} className="text-slate-400" />
           )}
           {allSelected ? "Clear group" : "Select group"}
-        </button>
+        </button>}
       </div>
 
       <div className="mt-4 grid gap-2 lg:grid-cols-2">
@@ -113,6 +114,7 @@ function DomainPanel({ domain, active, isLocked, onToggle }) {
             active={active.includes(permission.key)}
             locked={isLocked(permission.key)}
             onToggle={onToggle}
+            readOnly={readOnly}
           />
         ))}
       </div>
@@ -127,6 +129,9 @@ export default function RoleEditor({
   onSaved,
   busy,
   setBusy,
+  // PI closure: without iam.roles.write the editor opens view-only (no
+  // toggles, no save); the API refuses role changes without it anyway.
+  readOnly = false,
 }) {
   const isSynthetic = Boolean(initial?.synthetic);
   // A synthetic role has no real DB document yet — save via POST (createRole).
@@ -216,6 +221,7 @@ export default function RoleEditor({
   const canSave = key.trim() && label.trim() && (audienceLocked || isInternal !== null);
 
   const handleToggle = (keys, add) => {
+    if (readOnly) return;
     setPermissions((prev) => {
       const next = new Set(prev);
       keys.forEach((permissionKey) => {
@@ -234,6 +240,7 @@ export default function RoleEditor({
   };
 
   const save = async () => {
+    if (readOnly) return;
     setError("");
     setBusy(true);
 
@@ -272,11 +279,13 @@ export default function RoleEditor({
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onClose} disabled={busy}>
-          Cancel
+          {readOnly ? "Close" : "Cancel"}
         </Button>
-        <Button onClick={save} disabled={!canSave || busy || catalogLoading || Boolean(catalogError)} loading={busy}>
-          {isEdit ? "Save changes" : "Create role"}
-        </Button>
+        {readOnly ? null : (
+          <Button onClick={save} disabled={!canSave || busy || catalogLoading || Boolean(catalogError)} loading={busy}>
+            {isEdit ? "Save changes" : "Create role"}
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -284,8 +293,8 @@ export default function RoleEditor({
   return (
     <Modal
       open={open}
-      title={isEdit ? "Role Access" : "Create Role"}
-      subtitle={isEdit ? "Review details and tune permissions in one place." : "Create a custom role with precise module access."}
+      title={readOnly ? "Role Access (view only)" : isEdit ? "Role Access" : "Create Role"}
+      subtitle={readOnly ? "Your role can view roles but not change them." : isEdit ? "Review details and tune permissions in one place." : "Create a custom role with precise module access."}
       onClose={onClose}
       width="1180px"
       footer={footer}
@@ -323,7 +332,7 @@ export default function RoleEditor({
               value={key}
               onChange={(e) => setKey(e.target.value)}
               placeholder="project_manager"
-              disabled={isEdit && initial?.isSystem}
+              disabled={(isEdit && initial?.isSystem) || readOnly}
               hint={initial?.isSystem && !isSynthetic ? "System role keys are locked." : "Use lowercase words with underscores."}
             />
 
@@ -332,9 +341,10 @@ export default function RoleEditor({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Project Manager"
+              readOnly={readOnly}
             />
 
-            <fieldset className="grid gap-2" disabled={audienceLocked}>
+            <fieldset className="grid gap-2" disabled={audienceLocked || readOnly}>
               <legend className="mb-1 text-[10.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
                 WHO USES THIS ROLE
               </legend>
@@ -386,6 +396,7 @@ export default function RoleEditor({
                 rows={5}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                readOnly={readOnly}
                 placeholder="Short summary of what this role can do."
                 className="resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
               />
@@ -458,20 +469,24 @@ export default function RoleEditor({
               >
                 All groups
               </button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleToggle(allKeys, true)}
-              >
-                Select all
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setPermissions([])}
-              >
-                Clear
-              </Button>
+              {readOnly ? null : (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleToggle(allKeys, true)}
+                  >
+                    Select all
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPermissions([])}
+                  >
+                    Clear
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
@@ -505,6 +520,7 @@ export default function RoleEditor({
                 active={permissions}
                 isLocked={isLocked}
                 onToggle={handleToggle}
+                readOnly={readOnly}
               />
             ))}
 

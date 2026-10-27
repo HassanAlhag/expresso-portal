@@ -20,6 +20,7 @@ import StatCard from "../../../../shared/ui/StatCard";
 
 import { listRoles } from "../api";
 import RoleEditor from "../components/RoleEditor";
+import { useAccess } from "../../../../shared/hooks/useAccess";
 
 const ROLE_GROUPS = {
   internal: new Set([
@@ -174,6 +175,9 @@ function RoleCard({ role, selected, onEdit }) {
 }
 
 export default function RolesPage() {
+  // PI closure: creating and changing roles needs iam.roles.write (API);
+  // iam.roles.read can open a role to inspect it, view-only.
+  const canWrite = useAccess().can("iam.roles.write");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [rows, setRows] = useState([]);
@@ -225,6 +229,7 @@ export default function RolesPage() {
   }, [groupFilter, query, rows]);
 
   const openEditor = (role = null) => {
+    if (!role && !canWrite) return;
     setSelected(role);
     setEditorOpen(true);
   };
@@ -244,10 +249,12 @@ export default function RolesPage() {
                 Refresh
               </Button>
 
-              <Button onClick={() => openEditor(null)} disabled={busy}>
-                <Plus size={16} />
-                New role
-              </Button>
+              {canWrite ? (
+                <Button onClick={() => openEditor(null)} disabled={busy}>
+                  <Plus size={16} />
+                  New role
+                </Button>
+              ) : null}
             </div>
           }
         />
@@ -311,8 +318,8 @@ export default function RolesPage() {
             icon={Shield}
             title="No matching roles"
             message="Adjust the search or filter to find the access role you need."
-            actionLabel="Create role"
-            onAction={() => openEditor(null)}
+            actionLabel={canWrite ? "Create role" : undefined}
+            onAction={canWrite ? () => openEditor(null) : undefined}
           />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -342,6 +349,7 @@ export default function RolesPage() {
           await load();
         }}
         setBusy={setBusy}
+        readOnly={!canWrite}
       />
     </>
   );

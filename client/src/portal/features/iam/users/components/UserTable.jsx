@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { setUserStatus, deleteUser } from "../api";
+import { useAccess } from "../../../../shared/hooks/useAccess";
 
 function roleLabel(role) {
   const r = String(role || "").replaceAll("_", " ");
@@ -30,11 +31,16 @@ function roleTone(role) {
 
 export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
   const nav = useNavigate();
+  // PI closure: status changes and password resets need iam.users.write;
+  // deleting needs iam.users.delete (API). Viewing needs iam.users.read.
+  const access = useAccess();
+  const canWrite = access.can("iam.users.write");
+  const canDelete = access.can("iam.users.delete");
   const [deletingId, setDeletingId] = useState(null);
   const [confirmId, setConfirmId] = useState(null);
 
   const toggleActive = async (u) => {
-    if (!u?._id) return;
+    if (!canWrite || !u?._id) return;
     setBusy(true);
     try {
       await setUserStatus(u._id, !Boolean(u.isActive));
@@ -45,6 +51,7 @@ export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
   };
 
   const handleDelete = async (u) => {
+    if (!canDelete) return;
     setDeletingId(u._id);
     try {
       await deleteUser(u._id);
@@ -188,38 +195,43 @@ export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
                           label: "Open profile",
                           onClick: () => nav(`/portal/users/${u._id}`),
                         },
-                        {
+                        canWrite && {
                           label: u.isActive ? "Deactivate" : "Activate",
                           onClick: () => toggleActive(u),
                         },
-                      ]}
+                      ].filter(Boolean)}
                     />
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => nav(`/portal/users/${u._id}`)}
-                      title="Reset password from details page"
-                    >
-                      <KeyRound size={16} />
-                      Reset
-                    </Button>
+                    {canWrite ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => nav(`/portal/users/${u._id}`)}
+                          title="Reset password from details page"
+                        >
+                          <KeyRound size={16} />
+                          Reset
+                        </Button>
 
-                    <button
-                      type="button"
-                      className="grid h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white hover:bg-black/[0.03]"
-                      title={u.isActive ? "Deactivate" : "Activate"}
-                      disabled={busy}
-                      onClick={() => toggleActive(u)}
-                    >
-                      {u.isActive ? (
-                        <ToggleRight size={18} />
-                      ) : (
-                        <ToggleLeft size={18} />
-                      )}
-                    </button>
+                        <button
+                          type="button"
+                          className="grid h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white hover:bg-black/[0.03]"
+                          title={u.isActive ? "Deactivate" : "Activate"}
+                          aria-label={`${u.isActive ? "Deactivate" : "Activate"} ${u.fullName || u.email || "user"}`}
+                          disabled={busy}
+                          onClick={() => toggleActive(u)}
+                        >
+                          {u.isActive ? (
+                            <ToggleRight size={18} />
+                          ) : (
+                            <ToggleLeft size={18} />
+                          )}
+                        </button>
+                      </>
+                    ) : null}
 
-                    {confirmId === u._id ? (
+                    {!canDelete ? null : confirmId === u._id ? (
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
@@ -243,6 +255,7 @@ export default function UserTable({ rows = [], busy, setBusy, onChanged }) {
                         onClick={() => setConfirmId(u._id)}
                         className="grid h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white text-slate-300 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500"
                         title="Delete user"
+                        aria-label={`Delete ${u.fullName || u.email || "user"}`}
                       >
                         <Trash2 size={15} />
                       </button>

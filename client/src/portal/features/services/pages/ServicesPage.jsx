@@ -10,6 +10,7 @@ import PageHeader from "../../../shared/ui/PageHeader";
 import Badge from "../../../shared/ui/Badge";
 import { useToast } from "../../../shared/ui/Toast";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
 import {
   Plus,
@@ -163,7 +164,7 @@ function money(value) {
 
 // ── ServiceCard ───────────────────────────────────────────────────────────────
 
-function ServiceCard({ service, busy, nav, onEditQuick, onArchive }) {
+function ServiceCard({ service, busy, nav, onEditQuick, onArchive, canWrite = false }) {
   const name = service.name || service.title || "Untitled";
   const slug = service.slug || "—";
   const summary = service.summary || service.description || "—";
@@ -254,27 +255,35 @@ function ServiceCard({ service, busy, nav, onEditQuick, onArchive }) {
         </div>
       </button>
 
+      {canWrite || onArchive ? (
       <div className="border-t border-black/5 bg-white/70 px-5 py-3">
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => nav(`/portal/services/${service._id}/edit`)} disabled={busy}>
-            <Pencil size={14} />
-            Builder
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onEditQuick(service)} disabled={busy}>
-            Edit
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onArchive(service)} disabled={busy}>
-            <Archive size={14} />
-          </Button>
+          {canWrite ? (
+            <>
+              <Button variant="outline" size="sm" onClick={() => nav(`/portal/services/${service._id}/edit`)} disabled={busy}>
+                <Pencil size={14} />
+                Builder
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onEditQuick(service)} disabled={busy}>
+                Edit
+              </Button>
+            </>
+          ) : null}
+          {onArchive ? (
+            <Button variant="outline" size="sm" onClick={() => onArchive(service)} disabled={busy} aria-label={`Archive ${name}`}>
+              <Archive size={14} />
+            </Button>
+          ) : null}
         </div>
       </div>
+      ) : null}
     </div>
   );
 }
 
 // ── ServiceRow (list view) ────────────────────────────────────────────────────
 
-function ServiceRow({ service, busy, nav, onArchive }) {
+function ServiceRow({ service, busy, nav, onArchive, canWrite = false }) {
   const name = service.name || service.title || "Untitled";
   const slug = service.slug || "—";
   const summary = service.summary || service.description || "—";
@@ -358,24 +367,30 @@ function ServiceRow({ service, busy, nav, onArchive }) {
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >
-          <button
-            type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:border-[rgba(127,138,209,0.25)] hover:bg-[rgba(127,138,209,0.08)] hover:text-slate-900"
-            onClick={() => nav(`/portal/services/${service._id}/edit`)}
-            title="Edit in builder"
-            disabled={busy}
-          >
-            <Pencil size={15} />
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
-            onClick={() => onArchive(service)}
-            title="Archive"
-            disabled={busy}
-          >
-            <Archive size={15} />
-          </button>
+          {canWrite ? (
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:border-[rgba(127,138,209,0.25)] hover:bg-[rgba(127,138,209,0.08)] hover:text-slate-900"
+              onClick={() => nav(`/portal/services/${service._id}/edit`)}
+              title="Edit in builder"
+              aria-label={`Edit ${name} in builder`}
+              disabled={busy}
+            >
+              <Pencil size={15} />
+            </button>
+          ) : null}
+          {onArchive ? (
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+              onClick={() => onArchive(service)}
+              title="Archive"
+              aria-label={`Archive ${name}`}
+              disabled={busy}
+            >
+              <Archive size={15} />
+            </button>
+          ) : null}
         </div>
       </div>
     </div>
@@ -387,6 +402,11 @@ function ServiceRow({ service, busy, nav, onArchive }) {
 export default function ServicesPage() {
   const nav = useNavigate();
   const toast = useToast();
+  // PI closure: create and edit need services.write; archiving calls
+  // DELETE /api/service/:id, which needs services.delete.
+  const access = useAccess();
+  const canWrite = access.can("services.write");
+  const canDelete = access.can("services.delete");
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
@@ -438,6 +458,7 @@ export default function ServicesPage() {
   }), [items, meta.total]);
 
   const handleCreate = async (payload) => {
+    if (!canWrite) return;
     setBusy(true);
     try {
       const res = await createService(payload);
@@ -454,7 +475,7 @@ export default function ServicesPage() {
   };
 
   const handleEdit = async (payload) => {
-    if (!selected?._id) return;
+    if (!canWrite || !selected?._id) return;
     setBusy(true);
     try {
       await updateService(selected._id, payload);
@@ -469,7 +490,7 @@ export default function ServicesPage() {
   };
 
   const handleArchive = (service) => {
-    if (!service?._id) return;
+    if (!canDelete || !service?._id) return;
     setConfirmState({
       title: "Archive service",
       message: `Archive "${service.name || "service"}"?`,
@@ -502,10 +523,12 @@ export default function ServicesPage() {
               <RefreshCw size={16} />
               Refresh
             </Button>
-            <Button onClick={() => setCreateOpen(true)} disabled={busy} style={{ backgroundColor: BRAND }}>
-              <Plus size={16} />
-              New service
-            </Button>
+            {canWrite ? (
+              <Button onClick={() => setCreateOpen(true)} disabled={busy} style={{ backgroundColor: BRAND }}>
+                <Plus size={16} />
+                New service
+              </Button>
+            ) : null}
           </div>
         }
       />
@@ -619,9 +642,9 @@ export default function ServicesPage() {
         <EmptyState
           icon={Layers}
           title="No services yet"
-          message="Create your first template to start building scope, projects, and execution."
-          actionLabel="New service"
-          onAction={() => setCreateOpen(true)}
+          message={canWrite ? "Create your first template to start building scope, projects, and execution." : "No service templates have been created yet."}
+          actionLabel={canWrite ? "New service" : undefined}
+          onAction={canWrite ? () => setCreateOpen(true) : undefined}
         />
       ) : view === "cards" ? (
         <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
@@ -632,7 +655,8 @@ export default function ServicesPage() {
               busy={busy}
               nav={nav}
               onEditQuick={(item) => { setSelected(item); setEditOpen(true); }}
-              onArchive={handleArchive}
+              onArchive={canDelete ? handleArchive : undefined}
+              canWrite={canWrite}
             />
           ))}
         </div>
@@ -645,7 +669,8 @@ export default function ServicesPage() {
                 service={service}
                 busy={busy}
                 nav={nav}
-                onArchive={handleArchive}
+                onArchive={canDelete ? handleArchive : undefined}
+                canWrite={canWrite}
               />
             ))}
           </div>

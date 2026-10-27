@@ -31,6 +31,7 @@ import Skeleton from "../../../shared/ui/Skeleton";
 import EmptyState from "../../../shared/ui/EmptyState";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
 import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
 const BRAND = "#6F7FD9";
 
@@ -88,14 +89,6 @@ const EMPTY = {
   isPrimary: false,
   notes: "",
 };
-
-function readCurrentUser() {
-  try {
-    return JSON.parse(localStorage.getItem("portal_user") || "{}");
-  } catch {
-    return {};
-  }
-}
 
 function assetUrl(asset) {
   return asset?.url || asset?.mediaId?.url || asset?.mediaId?.thumbnailUrl || "";
@@ -168,22 +161,28 @@ function AssetCard({ asset, onCopy, onEdit, onDelete }) {
               Primary
             </span>
           )}
-          <button
-            type="button"
-            onClick={() => onEdit(asset)}
-            className="grid h-8 w-8 place-items-center rounded-xl border border-black/[0.07] text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
-            title="Edit asset"
-          >
-            <Edit3 size={14} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(asset)}
-            className="grid h-8 w-8 place-items-center rounded-xl border border-rose-200 text-rose-500 transition hover:bg-rose-50"
-            title="Delete asset"
-          >
-            <Trash2 size={14} />
-          </button>
+          {onEdit ? (
+            <button
+              type="button"
+              onClick={() => onEdit(asset)}
+              className="grid h-8 w-8 place-items-center rounded-xl border border-black/[0.07] text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+              title="Edit asset"
+              aria-label={`Edit ${asset.name || "asset"}`}
+            >
+              <Edit3 size={14} />
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={() => onDelete(asset)}
+              className="grid h-8 w-8 place-items-center rounded-xl border border-rose-200 text-rose-500 transition hover:bg-rose-50"
+              title="Delete asset"
+              aria-label={`Delete ${asset.name || "asset"}`}
+            >
+              <Trash2 size={14} />
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -498,13 +497,13 @@ function AssetFormModal({ initial, customerId, onSave, onClose }) {
 
 export default function BrandKitPage() {
   const toast = useToast();
-  const me = useMemo(readCurrentUser, []);
-  const isClient = [
-    "client",
-    "staff_client",
-    "procurement_client",
-    "client_admin",
-  ].includes(me.role || "");
+  // PI closure: client vs staff view comes from the user's internal flag
+  // (as the API decides), not role names. Create, edit and delete all use
+  // brand_kit.write on the API (there is no brand_kit.delete).
+  const access = useAccess();
+  const me = access.user || {};
+  const isClient = !access.isInternal;
+  const canWrite = access.can("brand_kit.write");
 
   const [customers, setCustomers] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState(
@@ -621,6 +620,7 @@ export default function BrandKitPage() {
   }, []);
 
   async function handleSave(payload) {
+    if (!canWrite) return;
     const isUpdate = Boolean(payload._id);
     const response = isUpdate
       ? await updateBrandAsset(payload._id, payload)
@@ -631,6 +631,7 @@ export default function BrandKitPage() {
   }
 
   function handleDelete(asset) {
+    if (!canWrite) return;
     setConfirmState({
       title: "Delete brand asset",
       message: `Delete "${asset.name}" from the brand kit? This cannot be undone.`,
@@ -708,14 +709,16 @@ export default function BrandKitPage() {
               <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
               Refresh
             </Button>
-            <Button
-              onClick={() => setModal({ initial: null })}
-              disabled={!selectedCustomerId}
-              style={{ backgroundColor: BRAND }}
-            >
-              <Plus size={15} />
-              Add asset
-            </Button>
+            {canWrite ? (
+              <Button
+                onClick={() => setModal({ initial: null })}
+                disabled={!selectedCustomerId}
+                style={{ backgroundColor: BRAND }}
+              >
+                <Plus size={15} />
+                Add asset
+              </Button>
+            ) : null}
           </div>
         }
       />
@@ -838,9 +841,9 @@ export default function BrandKitPage() {
             <EmptyState
               icon={Palette}
               title="No brand assets yet"
-              message="Add the first color, logo, font, or guideline for this client."
-              actionLabel="Add asset"
-              onAction={() => setModal({ initial: null })}
+              message={canWrite ? "Add the first color, logo, font, or guideline for this client." : "No colors, logos, fonts or guidelines have been added yet."}
+              actionLabel={canWrite ? "Add asset" : undefined}
+              onAction={canWrite ? () => setModal({ initial: null }) : undefined}
             />
           ) : filteredAssets.length === 0 ? (
             <EmptyState
@@ -879,8 +882,8 @@ export default function BrandKitPage() {
                           key={asset._id}
                           asset={asset}
                           onCopy={handleCopy}
-                          onEdit={(item) => setModal({ initial: item })}
-                          onDelete={handleDelete}
+                          onEdit={canWrite ? (item) => setModal({ initial: item }) : undefined}
+                          onDelete={canWrite ? handleDelete : undefined}
                         />
                       ))}
                     </div>
@@ -892,7 +895,7 @@ export default function BrandKitPage() {
         </>
       )}
 
-      {modal ? (
+      {modal && canWrite ? (
         <AssetFormModal
           initial={modal.initial}
           customerId={selectedCustomerId}

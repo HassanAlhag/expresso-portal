@@ -14873,6 +14873,10 @@
           "line": 258
         },
         {
+          "file": "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
+          "line": 93
+        },
+        {
           "file": "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
           "line": 64
         },
@@ -14883,6 +14887,10 @@
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
           "line": 69
+        },
+        {
+          "file": "client/src/portal/features/social/pages/ContentCalendarPage.jsx",
+          "line": 592
         }
       ]
     },
@@ -14928,7 +14936,12 @@
           "line": 9
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/social/pages/ContentCalendarPage.jsx",
+          "line": 593
+        }
+      ]
     },
     "media.read": {
       "api": [
@@ -14949,6 +14962,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 27
+        },
+        {
+          "file": "client/src/portal/features/media-library/components/MediaPickerModal.jsx",
+          "line": 29
         }
       ]
     },
@@ -14963,7 +14980,20 @@
           "line": 19
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/media-library/components/MediaDrawer.jsx",
+          "line": 142
+        },
+        {
+          "file": "client/src/portal/features/media-library/components/MediaPickerModal.jsx",
+          "line": 30
+        },
+        {
+          "file": "client/src/portal/features/media-library/pages/MediaLibraryPage.jsx",
+          "line": 69
+        }
+      ]
     },
     "media.delete": {
       "api": [
@@ -14972,7 +15002,12 @@
           "line": 20
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/media-library/components/MediaDrawer.jsx",
+          "line": 143
+        }
+      ]
     },
     "files.read": {
       "api": [
@@ -15097,7 +15132,16 @@
           "line": 20
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/portfolio/pages/PortfolioDetailsPage.jsx",
+          "line": 245
+        },
+        {
+          "file": "client/src/portal/features/portfolio/pages/PortfolioPage.jsx",
+          "line": 412
+        }
+      ]
     },
     "portfolio.delete": {
       "api": [
@@ -15106,7 +15150,16 @@
           "line": 21
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/portfolio/pages/PortfolioDetailsPage.jsx",
+          "line": 246
+        },
+        {
+          "file": "client/src/portal/features/portfolio/pages/PortfolioPage.jsx",
+          "line": 413
+        }
+      ]
     },
     "services.read": {
       "api": [
@@ -15153,7 +15206,20 @@
           "line": 54
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/services/pages/ServiceBuilderPage.jsx",
+          "line": 82
+        },
+        {
+          "file": "client/src/portal/features/services/pages/ServiceDetailsPage.jsx",
+          "line": 239
+        },
+        {
+          "file": "client/src/portal/features/services/pages/ServicesPage.jsx",
+          "line": 408
+        }
+      ]
     },
     "services.delete": {
       "api": [
@@ -15162,7 +15228,16 @@
           "line": 47
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/services/pages/ServiceDetailsPage.jsx",
+          "line": 240
+        },
+        {
+          "file": "client/src/portal/features/services/pages/ServicesPage.jsx",
+          "line": 409
+        }
+      ]
     },
     "enrollments.read": {
       "api": [
@@ -15213,6 +15288,14 @@
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
           "line": 257
+        },
+        {
+          "file": "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
+          "line": 91
+        },
+        {
+          "file": "client/src/portal/features/enrollments/pages/EnrollmentsPage.jsx",
+          "line": 84
         }
       ]
     },
@@ -15223,7 +15306,12 @@
           "line": 44
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
+          "line": 92
+        }
+      ]
     },
     "billing.read": {
       "api": [
@@ -15399,6 +15487,10 @@
         {
           "file": "client/src/portal/features/tickets/client/ClientTicketsList.jsx",
           "line": 45
+        },
+        {
+          "file": "client/src/portal/features/tickets/pages/TicketDetailsPage.jsx",
+          "line": 257
         }
       ]
     },
@@ -15416,7 +15508,7 @@
       "ui": [
         {
           "file": "client/src/portal/features/tickets/pages/TicketDetailsPage.jsx",
-          "line": 278
+          "line": 260
         }
       ]
     },
@@ -16556,7 +16648,20 @@
           "line": 97
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/iam/users/components/UserTable.jsx",
+          "line": 37
+        },
+        {
+          "file": "client/src/portal/features/iam/users/pages/UserDetailsPage.jsx",
+          "line": 67
+        },
+        {
+          "file": "client/src/portal/features/iam/users/pages/UsersListPage.jsx",
+          "line": 44
+        }
+      ]
     },
     "iam.users.delete": {
       "api": [
@@ -16569,6 +16674,10 @@
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
           "line": 382
+        },
+        {
+          "file": "client/src/portal/features/iam/users/components/UserTable.jsx",
+          "line": 38
         }
       ]
     },
@@ -16613,7 +16722,12 @@
           "line": 28
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/iam/roles/pages/RolesPage.jsx",
+          "line": 180
+        }
+      ]
     },
     "iam.teams.read": {
       "api": [
@@ -16660,7 +16774,12 @@
           "line": 28
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/iam/teams/pages/TeamsPage.jsx",
+          "line": 26
+        }
+      ]
     },
     "iam.invites.send": {
       "api": [
@@ -16757,7 +16876,12 @@
           "line": 16
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/messaging/pages/MessagesPage.jsx",
+          "line": 137
+        }
+      ]
     },
     "brand_kit.read": {
       "api": [
@@ -16792,7 +16916,12 @@
           "line": 15
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/brand-kit/pages/BrandKitPage.jsx",
+          "line": 506
+        }
+      ]
     },
     "website.read": {
       "api": [
@@ -16927,7 +17056,28 @@
           "line": 35
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/careers/pages/CareersAdminPage.jsx",
+          "line": 145
+        },
+        {
+          "file": "client/src/portal/features/website/pages/DigitalServicesPage.jsx",
+          "line": 1259
+        },
+        {
+          "file": "client/src/portal/features/website/pages/HomepageSlidersPage.jsx",
+          "line": 22
+        },
+        {
+          "file": "client/src/portal/features/website/pages/TechSolutionsPage.jsx",
+          "line": 1380
+        },
+        {
+          "file": "client/src/portal/features/website/pages/WebsiteSettingsPage.jsx",
+          "line": 1747
+        }
+      ]
     }
   },
   "frontendRequests": [

@@ -4,7 +4,8 @@ import Button from "../../../../shared/ui/Button";
 import Card from "../../../../shared/ui/Card";
 import { updateUser } from "../api";
 
-export default function NotesTab({ user }) {
+// PI closure: saving notes is PATCH /api/users/:id (iam.users.write).
+export default function NotesTab({ user, canEdit = false }) {
   const toast = useToast();
   const [text, setText] = useState(user?.notes || "");
   const [saving, setSaving] = useState(false);
@@ -16,7 +17,7 @@ export default function NotesTab({ user }) {
   }, [user]);
 
   const save = async () => {
-    if (!user?._id) return;
+    if (!canEdit || !user?._id) return;
 
     setSaving(true);
     setSaved("");
@@ -45,16 +46,20 @@ export default function NotesTab({ user }) {
             rows={8}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Write internal notes about this user..."
+            readOnly={!canEdit}
+            aria-label="Internal notes"
+            placeholder={canEdit ? "Write internal notes about this user..." : "No notes."}
             className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:ring-4 focus:ring-black/5"
           />
 
           <div className="flex items-center justify-between">
             <div className="text-xs text-slate-500">{saved || " "}</div>
 
-            <Button onClick={save} disabled={saving}>
-              {saving ? "Saving…" : "Save notes"}
-            </Button>
+            {canEdit ? (
+              <Button onClick={save} disabled={saving}>
+                {saving ? "Saving…" : "Save notes"}
+              </Button>
+            ) : null}
           </div>
         </div>
       </Card>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   AlertCircle,
@@ -128,29 +128,6 @@ function InlineConfirm({ message, confirmLabel = "Confirm", busy, onConfirm, onC
   );
 }
 
-function getRole() {
-  try {
-    const u = JSON.parse(localStorage.getItem("portal_user") || "{}");
-    return u?.role || "client";
-  } catch {
-    return "client";
-  }
-}
-
-function isAdminRole(r) {
-  return [
-    "super_admin",
-    "admin",
-    "operations_manager",
-    "finance",
-    "procurement_manager",
-    "procurement_officer",
-    "project_manager",
-    "staff",
-    "hr_management",
-  ].includes(r);
-}
-
 function fmt(d) {
   if (!d) return "—";
   return new Date(d).toLocaleString("en-US", {
@@ -271,10 +248,15 @@ function MetaRow({ icon: Icon, label, children }) {
 function StaffTicketDetailsPage() {
   const nav = useNavigate();
   const { id } = useParams();
-  const role = useMemo(getRole, []);
-  const isAdmin = isAdminRole(role);
-  // Same permission the API checks for DELETE /api/tickets/:id (R4-A).
+  // PI closure: this page only renders for internal users. Staff tools
+  // (status, ownership, assignment, editable details, approval, change-request
+  // and procurement fields, replies and internal notes) follow tickets.write,
+  // which the API checks on every ticket mutation. Seeing internal notes
+  // follows the internal/external classification, as on the API.
   const access = useAccess();
+  const canWriteTicket = access.can("tickets.write");
+  const showInternal = access.isInternal;
+  // Same permission the API checks for DELETE /api/tickets/:id (R4-A).
   const canDeleteTicket = access.can("tickets.delete");
   const toast = useToast();
 
@@ -336,14 +318,14 @@ function StaffTicketDetailsPage() {
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!canWriteTicket) return;
     listUsers({ isInternal: "true", isActive: "true", limit: 100 })
       .then((r) => setStaffUsers(r?.users || []))
       .catch(() => {});
-  }, [isAdmin]);
+  }, [canWriteTicket]);
 
   const saveMeta = async (overrides = {}) => {
-    if (!isAdmin) return;
+    if (!canWriteTicket) return;
     setSaving(true);
     try {
       const payload = { ...localMeta, ...overrides };
@@ -378,6 +360,7 @@ function StaffTicketDetailsPage() {
   };
 
   const handleStatus = async (status, resolution) => {
+    if (!canWriteTicket) return;
     setBusy(true);
     try {
       await updateTicketStatus(id, status, resolution);
@@ -390,6 +373,7 @@ function StaffTicketDetailsPage() {
   };
 
   const handleApprove = async (decision, note) => {
+    if (!canWriteTicket) return;
     setBusy(true);
     try {
       await approveTicket(id, decision, note);
@@ -402,6 +386,7 @@ function StaffTicketDetailsPage() {
   };
 
   const handleComment = async ({ body, visibility }) => {
+    if (!canWriteTicket) return;
     setBusy(true);
     try {
       await addTicketComment(id, { body, visibility });
@@ -414,6 +399,7 @@ function StaffTicketDetailsPage() {
   };
 
   const handleDelete = async () => {
+    if (!canDeleteTicket) return;
     setBusy(true);
     try {
       await deleteTicket(id);
@@ -649,7 +635,7 @@ function StaffTicketDetailsPage() {
                   Immediate attention required. Assign a handler and update the
                   status to begin resolution.
                 </div>
-                {isAdmin && (
+                {canWriteTicket && (
                   <div className="mt-3 flex gap-2">
                     <Button
                       size="sm"
@@ -674,7 +660,7 @@ function StaffTicketDetailsPage() {
         )}
 
         {/* Change request approval banner */}
-        {isAdmin &&
+        {canWriteTicket &&
           ticket.type === "change_request" &&
           (() => {
             const pending =
@@ -734,7 +720,7 @@ function StaffTicketDetailsPage() {
         </div>
 
         {/* CSAT (post-resolution client view) */}
-        {isTerminal && !isAdmin && (
+        {isTerminal && !access.isInternal && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
             <div className="text-sm font-black text-amber-800 mb-3">
               How satisfied are you with the resolution?
@@ -794,11 +780,12 @@ function StaffTicketDetailsPage() {
             </span>
           </div>
           <div className="p-5">
-            <TicketThread comments={ticket.comments || []} isAdmin={isAdmin} />
+            <TicketThread comments={ticket.comments || []} showInternal={showInternal} />
           </div>
         </div>
 
-        {/* Reply composer */}
+        {/* Reply composer (POST /comments needs tickets.write) */}
+        {canWriteTicket ? (
         <div className="rounded-2xl border border-black/[0.07] bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <Send size={13} className="text-slate-400" />
@@ -808,16 +795,17 @@ function StaffTicketDetailsPage() {
           </div>
           <TicketCommentComposer
             busy={busy}
-            isAdmin={isAdmin}
+            canPostInternal={canWriteTicket && showInternal}
             onSubmit={handleComment}
           />
         </div>
+        ) : null}
       </div>
 
       {/* ── RIGHT: control panel ───────────────────────────────────────────── */}
       <div className="grid gap-3 lg:sticky lg:top-4">
         {/* Status workflow (admin) */}
-        {isAdmin && (
+        {canWriteTicket && (
           <SideCard title="Workflow" icon={Zap}>
             <div className="grid gap-1.5">
               {STATUS_FLOW.map((s) => {
@@ -870,7 +858,7 @@ function StaffTicketDetailsPage() {
         )}
 
         {/* Assignment (admin) */}
-        {isAdmin && (
+        {canWriteTicket && (
           <SideCard title="Assignment" icon={User}>
             <div className="mb-3">
               {assigneeName ? (
@@ -925,7 +913,7 @@ function StaffTicketDetailsPage() {
 
         {/* Details (editable for admin, read-only for client) */}
         <SideCard title="Details" icon={Tag}>
-          {isAdmin ? (
+          {canWriteTicket ? (
             <div className="grid gap-3">
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 mb-1">
@@ -1067,7 +1055,7 @@ function StaffTicketDetailsPage() {
         )}
 
         {/* Resolution (admin writes when resolving) */}
-        {isAdmin && isTerminal && (
+        {canWriteTicket && isTerminal && (
           <SideCard
             title="Resolution Notes"
             icon={CheckCircle2}
@@ -1088,7 +1076,7 @@ function StaffTicketDetailsPage() {
         )}
 
         {/* Change Request fields */}
-        {ticket.type === "change_request" && isAdmin && (
+        {ticket.type === "change_request" && canWriteTicket && (
           <SideCard title="Change Request" icon={ChevronRight} accent="violet">
             <div className="grid gap-2">
               {[
@@ -1118,7 +1106,7 @@ function StaffTicketDetailsPage() {
         )}
 
         {/* Procurement fields */}
-        {ticket.type === "procurement" && isAdmin && (
+        {ticket.type === "procurement" && canWriteTicket && (
           <SideCard title="Procurement" icon={ChevronRight}>
             <div className="grid gap-2">
               {[

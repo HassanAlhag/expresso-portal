@@ -19,6 +19,7 @@ import {
 import UserTable from "../components/UserTable";
 import UserModal from "../components/UserModal";
 import { listUsers } from "../api";
+import { useAccess } from "../../../../shared/hooks/useAccess";
 import { listRoles } from "../../roles/api";
 import { listTeams } from "../../teams/api";
 import { listCustomers } from "../../../customers/api";
@@ -39,6 +40,8 @@ const SORT = [
 ];
 
 export default function UsersListPage() {
+  // PI closure: adding users needs iam.users.write (POST /api/users).
+  const canWrite = useAccess().can("iam.users.write");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -139,10 +142,12 @@ export default function UsersListPage() {
                 <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
                 Refresh
               </Button>
-              <Button onClick={() => setCreateOpen(true)} disabled={busy}>
-                <Plus size={15} />
-                Add user
-              </Button>
+              {canWrite ? (
+                <Button onClick={() => setCreateOpen(true)} disabled={busy}>
+                  <Plus size={15} />
+                  Add user
+                </Button>
+              ) : null}
             </div>
           }
         />
@@ -179,9 +184,9 @@ export default function UsersListPage() {
           <EmptyState
             icon={UsersIcon}
             title="No users found"
-            message="Create a new user or adjust your filters."
-            actionLabel="Add user"
-            onAction={() => setCreateOpen(true)}
+            message={canWrite ? "Create a new user or adjust your filters." : "Adjust your filters."}
+            actionLabel={canWrite ? "Add user" : undefined}
+            onAction={canWrite ? () => setCreateOpen(true) : undefined}
           />
         ) : (
           <UserTable rows={rows} busy={busy} setBusy={setBusy} onChanged={load} />
@@ -199,13 +204,15 @@ export default function UsersListPage() {
         </div>
       </div>
 
-      <UserModal
-        open={createOpen}
-        mode="create"
-        onClose={() => setCreateOpen(false)}
-        busy={busy}
-        onSubmit={async () => { setCreateOpen(false); await load(); }}
-      />
+      {canWrite ? (
+        <UserModal
+          open={createOpen}
+          mode="create"
+          onClose={() => setCreateOpen(false)}
+          busy={busy}
+          onSubmit={async () => { setCreateOpen(false); await load(); }}
+        />
+      ) : null}
     </>
   );
 }

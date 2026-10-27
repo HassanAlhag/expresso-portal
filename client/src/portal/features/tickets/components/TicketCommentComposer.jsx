@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import Button from "../../../shared/ui/Button";
 import { Send, Lock } from "lucide-react";
 
-export default function TicketCommentComposer({ busy, isAdmin, onSubmit }) {
+export default function TicketCommentComposer({ busy, canPostInternal = false, onSubmit }) {
   const [body, setBody] = useState("");
   const [internal, setInternal] = useState(false);
 
   const submit = () => {
     const text = body.trim();
     if (!text) return;
-    onSubmit?.({ body: text, visibility: internal ? "internal" : "client" });
+    onSubmit?.({ body: text, visibility: canPostInternal && internal ? "internal" : "client" });
     setBody("");
     setInternal(false);
   };
@@ -31,7 +31,7 @@ export default function TicketCommentComposer({ busy, isAdmin, onSubmit }) {
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        {isAdmin && (
+        {canPostInternal && (
           <button
             type="button"
             onClick={() => setInternal((s) => !s)}

@@ -7,6 +7,7 @@ import FilterBar from "../../../shared/ui/FilterBar";
 import StatCard from "../../../shared/ui/StatCard";
 import { useToast } from "../../../shared/ui/Toast";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import {
   listCareers, createCareer, updateCareer, deleteCareer,
   listAllApplications, updateApplicationStatus,
@@ -139,6 +140,9 @@ function StatusPill({ status }) {
 
 export default function CareersAdminPage() {
   const toast = useToast();
+  // PI closure: every change here (openings and application status) is
+  // website.write on the API; website.read only views.
+  const canWrite = useAccess().can("website.write");
 
   // CVs are stored privately; fetch a short-lived link when opened.
   const openCv = async (applicationId) => {
@@ -210,6 +214,7 @@ export default function CareersAdminPage() {
   }), [appItems, appMeta.total]);
 
   const handleSubmit = async (payload) => {
+    if (!canWrite) return;
     setBusy(true);
     try {
       if (selected) { await updateCareer(selected._id, payload); toast.success("Opening updated."); }
@@ -224,6 +229,7 @@ export default function CareersAdminPage() {
   };
 
   const handleToggle = async (item) => {
+    if (!canWrite) return;
     try {
       await updateCareer(item._id, { isActive: !item.isActive });
       setItems((prev) => prev.map((x) => x._id === item._id ? { ...x, isActive: !x.isActive } : x));
@@ -231,6 +237,7 @@ export default function CareersAdminPage() {
   };
 
   const handleDelete = (item) => {
+    if (!canWrite) return;
     setConfirmState({
       title: "Delete opening",
       message: `Delete "${item.title}"?`,
@@ -246,6 +253,7 @@ export default function CareersAdminPage() {
   };
 
   const handleAppStatus = async (app, newStatus) => {
+    if (!canWrite) return;
     setUpdatingApp(app._id);
     try {
       await updateApplicationStatus(app._id, { status: newStatus });
@@ -285,7 +293,7 @@ export default function CareersAdminPage() {
             <Button variant="outline" onClick={activeTab === "openings" ? load : loadApplications} disabled={loading || appLoading || busy}>
               <RefreshCw size={16} /> Refresh
             </Button>
-            {activeTab === "openings" && (
+            {activeTab === "openings" && canWrite && (
               <Button onClick={() => { setSelected(null); setModalOpen(true); }} disabled={busy}>
                 <Plus size={16} /> New opening
               </Button>
@@ -313,8 +321,8 @@ export default function CareersAdminPage() {
             icon={BriefcaseBusiness}
             title="No openings yet"
             message="Create your first career opening and it will appear on the public careers page."
-            actionLabel="New opening"
-            onAction={() => { setSelected(null); setModalOpen(true); }}
+            actionLabel={canWrite ? "New opening" : undefined}
+            onAction={canWrite ? () => { setSelected(null); setModalOpen(true); } : undefined}
           />
         ) : (
           <div className="overflow-hidden rounded-[28px] border border-black/[0.07] bg-white shadow-sm">
@@ -339,17 +347,21 @@ export default function CareersAdminPage() {
                     </div>
                     {item.summary && <p className="mt-1 line-clamp-1 text-xs text-slate-400">{item.summary}</p>}
                   </div>
+                  {canWrite ? (
                   <div className="flex shrink-0 items-center gap-2">
-                    <button onClick={() => handleToggle(item)} className="text-slate-400 transition hover:text-slate-700">
+                    <button onClick={() => handleToggle(item)} aria-label={`${item.isActive ? "Hide" : "Show"} ${item.title || "opening"}`} className="text-slate-400 transition hover:text-slate-700">
                       {item.isActive ? <ToggleRight size={20} className="text-emerald-500" /> : <ToggleLeft size={20} />}
                     </button>
                     <Button variant="outline" size="sm" onClick={() => { setSelected(item); setModalOpen(true); }}>
                       <Pencil size={14} /> Edit
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDelete(item)}>
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(item)} aria-label={`Delete ${item.title || "opening"}`}>
                       <Trash2 size={14} />
                     </Button>
                   </div>
+                  ) : (
+                    <span className="text-xs font-semibold text-slate-400">{item.isActive ? "Live" : "Hidden"}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -452,7 +464,8 @@ export default function CareersAdminPage() {
                         <td className="px-4 py-4 text-right align-top">
                           <select
                             value={app.status}
-                            disabled={updatingApp === app._id}
+                            aria-label={`Status for ${app.fullName || app.name || "application"}`}
+                            disabled={!canWrite || updatingApp === app._id}
                             onChange={(e) => handleAppStatus(app, e.target.value)}
                             className="h-8 rounded-xl border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none transition focus:border-indigo-300 disabled:opacity-50"
                           >
@@ -484,7 +497,7 @@ export default function CareersAdminPage() {
       )}
 
       <CareerFormModal
-        open={modalOpen}
+        open={modalOpen && canWrite}
         initial={selected}
         busy={busy}
         onClose={() => setModalOpen(false)}

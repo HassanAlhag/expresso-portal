@@ -7,6 +7,8 @@ import Skeleton from "../../../shared/ui/Skeleton";
 import PageHeader from "../../../shared/ui/PageHeader";
 import { useToast } from "../../../shared/ui/Toast";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import EmptyState from "../../../shared/ui/EmptyState";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
@@ -74,6 +76,10 @@ export default function ServiceBuilderPage() {
   const nav = useNavigate();
   const { id } = useParams();
   const toast = useToast();
+  // PI closure: the builder only saves (POST/PATCH /api/service) and uploads
+  // files (POST /api/service/:id/files), all services.write. Without it the
+  // builder is not offered (the route itself only needs services.read).
+  const canWrite = useAccess().can("services.write");
 
   const isEdit = Boolean(id);
 
@@ -142,6 +148,7 @@ export default function ServiceBuilderPage() {
   };
 
   const handleSave = async () => {
+    if (!canWrite) return;
     setBusy(true);
     setError("");
 
@@ -320,6 +327,7 @@ export default function ServiceBuilderPage() {
   }, [load]);
 
   const uploadFiles = async (files) => {
+    if (!canWrite) return;
     if (!id) {
       toast.error("Save first before uploading files.");
       return;
@@ -345,6 +353,18 @@ export default function ServiceBuilderPage() {
       setBusy(false);
     }
   };
+
+  if (!canWrite) {
+    return (
+      <EmptyState
+        icon={CheckCircle2}
+        title="You can't edit service templates"
+        message="Your role can view services but not create or change them. Ask an administrator if you need to."
+        actionLabel={isEdit ? "View this service" : "Back to services"}
+        onAction={() => nav(isEdit ? `/portal/services/${id}` : "/portal/services")}
+      />
+    );
+  }
 
   if (loading) {
     return (

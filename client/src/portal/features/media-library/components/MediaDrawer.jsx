@@ -17,6 +17,7 @@ import {
   Maximize2,
 } from "lucide-react";
 import { updateMedia, deleteMedia } from "../api";
+import { useAccess } from "../../../shared/hooks/useAccess";
 import { getAssetUrl } from "../../../shared/utils/assetUrl";
 
 const BRAND = "#7F8AD1";
@@ -136,6 +137,10 @@ function MediaPreview({ item }) {
 
 export default function MediaDrawer({ open, item, onClose, onChanged }) {
   const toast = useToast();
+  // PI closure: edit needs media.write, delete needs media.delete (API).
+  const access = useAccess();
+  const canEdit = access.can("media.write");
+  const canDelete = access.can("media.delete");
   const [title, setTitle] = useState("");
   const [tags, setTags] = useState("");
   const [category, setCategory] = useState("");
@@ -165,6 +170,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
   if (!open || !item) return null;
 
   const save = async () => {
+    if (!canEdit) return;
     setBusy(true);
     try {
       const res = await updateMedia(item._id, { title, category, tags, status });
@@ -178,6 +184,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
   };
 
   const remove = () => {
+    if (!canDelete) return;
     setConfirmState({
       title: "Delete media",
       message: `Delete "${item.title || "this item"}"? This cannot be undone.`,
@@ -285,18 +292,21 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Optional title"
+                  readOnly={!canEdit}
                 />
                 <Input
                   label="CATEGORY"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   placeholder="e.g. Branding"
+                  readOnly={!canEdit}
                 />
                 <Input
                   label="TAGS"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="Comma-separated tags"
+                  readOnly={!canEdit}
                 />
 
                 <label className="grid gap-1.5">
@@ -305,6 +315,7 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
                   </span>
                   <select
                     value={status}
+                    disabled={!canEdit}
                     onChange={(e) => setStatus(e.target.value)}
                     className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
                   >
@@ -375,22 +386,28 @@ export default function MediaDrawer({ open, item, onClose, onChanged }) {
 
         {/* Footer */}
         <div className="flex shrink-0 items-center justify-between gap-2 border-t border-black/[0.07] bg-white p-4">
-          <button
-            onClick={remove}
-            disabled={busy}
-            className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-extrabold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
-          >
-            <Trash2 size={14} />
-            Delete
-          </button>
-          <Button
-            onClick={save}
-            disabled={busy}
-            style={{ backgroundColor: BRAND }}
-          >
-            <Save size={14} />
-            {busy ? "Saving…" : "Save changes"}
-          </Button>
+          {canDelete ? (
+            <button
+              onClick={remove}
+              disabled={busy}
+              className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-extrabold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+            >
+              <Trash2 size={14} />
+              Delete
+            </button>
+          ) : <span />}
+          {canEdit ? (
+            <Button
+              onClick={save}
+              disabled={busy}
+              style={{ backgroundColor: BRAND }}
+            >
+              <Save size={14} />
+              {busy ? "Saving…" : "Save changes"}
+            </Button>
+          ) : (
+            <span className="text-xs font-semibold text-slate-500">View only</span>
+          )}
         </div>
       </div>
 

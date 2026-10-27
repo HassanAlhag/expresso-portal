@@ -8,6 +8,7 @@ import EmptyState from "../../../shared/ui/EmptyState";
 import Card from "../../../shared/ui/Card";
 import { useToast } from "../../../shared/ui/Toast";
 import ConfirmModal from "../../../shared/ui/ConfirmModal";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
 import HomepageSlideFormModal from "../components/HomepageSlideFormModal";
 import HomepageSlideList from "../components/HomepageSlideList";
@@ -16,6 +17,9 @@ import { listSlides, createSlide, updateSlide, deleteSlide } from "../api";
 
 export default function HomepageSlidersPage() {
   const toast = useToast();
+  // PI closure: creating, editing, toggling and deleting slides all need
+  // website.write on the API; website.read only views.
+  const canWrite = useAccess().can("website.write");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [items, setItems] = useState([]);
@@ -43,6 +47,7 @@ export default function HomepageSlidersPage() {
   }, [load]);
 
   const handleCreate = () => {
+    if (!canWrite) return;
     setSelected(null);
     setModalOpen(true);
   };
@@ -53,6 +58,7 @@ export default function HomepageSlidersPage() {
   };
 
   const handleSave = async (form) => {
+    if (!canWrite) return;
     setBusy(true);
 
     try {
@@ -73,6 +79,7 @@ export default function HomepageSlidersPage() {
   };
 
   const handleDelete = (slide) => {
+    if (!canWrite) return;
     setConfirm({
       title: "Delete slide",
       message: `Delete slide "${slide.title || "this slide"}"?`,
@@ -93,6 +100,7 @@ export default function HomepageSlidersPage() {
   };
 
   const handleToggle = async (slide) => {
+    if (!canWrite) return;
     setBusy(true);
 
     try {
@@ -134,10 +142,12 @@ export default function HomepageSlidersPage() {
                 Refresh
               </Button>
 
-              <Button onClick={handleCreate} disabled={busy}>
-                <Plus size={16} />
-                New slide
-              </Button>
+              {canWrite ? (
+                <Button onClick={handleCreate} disabled={busy}>
+                  <Plus size={16} />
+                  New slide
+                </Button>
+              ) : null}
             </div>
           }
         />
@@ -154,23 +164,23 @@ export default function HomepageSlidersPage() {
           <EmptyState
             icon={ImageIcon}
             title="No slides yet"
-            message="Create your first homepage hero slide."
-            actionLabel="New slide"
-            onAction={handleCreate}
+            message={canWrite ? "Create your first homepage hero slide." : "No homepage slides have been created yet."}
+            actionLabel={canWrite ? "New slide" : undefined}
+            onAction={canWrite ? handleCreate : undefined}
           />
         ) : (
           <HomepageSlideList
             items={items}
             busy={busy}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onToggle={handleToggle}
+            onEdit={canWrite ? handleEdit : undefined}
+            onDelete={canWrite ? handleDelete : undefined}
+            onToggle={canWrite ? handleToggle : undefined}
           />
         )}
       </div>
 
       <HomepageSlideFormModal
-        open={modalOpen}
+        open={modalOpen && canWrite}
         initial={selected}
         busy={busy}
         onClose={() => {
