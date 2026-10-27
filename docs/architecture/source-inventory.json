@@ -17051,13 +17051,6 @@
       "reachable": true
     },
     {
-      "file": "client/src/portal/features/activity/api.js",
-      "line": 5,
-      "call": "api.get",
-      "url": "`/audit?${params}`",
-      "reachable": false
-    },
-    {
       "file": "client/src/portal/features/activity/pages/ActivityPage.jsx",
       "line": 212,
       "call": "api.get",
@@ -18605,13 +18598,6 @@
       "reachable": true
     },
     {
-      "file": "client/src/portal/features/profile/api.js",
-      "line": 9,
-      "call": "api.patch",
-      "url": "\"/users/me\"",
-      "reachable": false
-    },
-    {
       "file": "client/src/portal/features/profile/pages/ProfilePage.jsx",
       "line": 137,
       "call": "api.patch",
@@ -18645,34 +18631,6 @@
       "call": "api.get",
       "url": "`${BASE}/stats`",
       "reachable": true
-    },
-    {
-      "file": "client/src/portal/features/reports/api.js",
-      "line": 4,
-      "call": "api.get",
-      "url": "\"/projects/stats\"",
-      "reachable": false
-    },
-    {
-      "file": "client/src/portal/features/reports/api.js",
-      "line": 9,
-      "call": "api.get",
-      "url": "\"/tickets/stats\"",
-      "reachable": false
-    },
-    {
-      "file": "client/src/portal/features/reports/api.js",
-      "line": 14,
-      "call": "api.get",
-      "url": "\"/billing/stats\"",
-      "reachable": false
-    },
-    {
-      "file": "client/src/portal/features/reports/api.js",
-      "line": 19,
-      "call": "api.get",
-      "url": "\"/customers\"",
-      "reachable": false
     },
     {
       "file": "client/src/portal/features/reports/pages/ReportsPage.jsx",
@@ -18764,20 +18722,6 @@
       "call": "api.get",
       "url": "`${BASE}/${templateId}/files/${fileId}/url`",
       "reachable": true
-    },
-    {
-      "file": "client/src/portal/features/settings/api.js",
-      "line": 4,
-      "call": "api.patch",
-      "url": "\"/auth/change-password\"",
-      "reachable": false
-    },
-    {
-      "file": "client/src/portal/features/settings/api.js",
-      "line": 9,
-      "call": "api.patch",
-      "url": "\"/users/me/notifications\"",
-      "reachable": false
     },
     {
       "file": "client/src/portal/features/settings/pages/SettingsPage.jsx",
@@ -19047,57 +18991,18 @@
     }
   ],
   "unreachableFrontendCandidates": [
-    "client/src/components/CreativePostsShowcase/CreativePostsShowcase.jsx",
-    "client/src/components/ExpertsCard/expertsCard.jsx",
-    "client/src/components/HeroSection/heroSection.jsx",
-    "client/src/components/MainHeader/DropDowns/careerContent.jsx",
-    "client/src/components/MainHeader/DropDowns/ourSolution.jsx",
-    "client/src/components/MainHeader/DropDowns/pricingDropdown.jsx",
-    "client/src/components/PortfolioComponents/PortfolioCaseStudy.jsx",
-    "client/src/components/PortfolioComponents/PortfolioGallerySection.jsx",
-    "client/src/components/PortfolioComponents/categoryTabs.jsx",
-    "client/src/components/PortfolioComponents/portfolio.js",
-    "client/src/components/PortfolioComponents/portfolioDetailCard.jsx",
-    "client/src/components/PortfolioComponents/portfolioIntroDesc.jsx",
-    "client/src/components/PortfolioComponents/portfolioProblemSection.jsx",
-    "client/src/components/PortfolioComponents/portfolioResultSection.jsx",
-    "client/src/components/PortfolioComponents/portfolioSolutionSection.jsx",
-    "client/src/components/PrimaryHeader/primaryHeader.jsx",
-    "client/src/components/ServicesComponents/webPortfolio.jsx",
-    "client/src/components/SideBar/sideBar.jsx",
-    "client/src/components/SolutionMegaPanel/SolutionMegaPanel.jsx",
-    "client/src/features/portfolio/api.js",
     "client/src/features/productions/api.js",
     "client/src/features/productions/pages/ProductionDetailsPage.jsx",
     "client/src/features/productions/pages/ProductionsPage.jsx",
-    "client/src/icons/socialMedia.jsx",
-    "client/src/pages/Services/content-creation.jsx",
-    "client/src/pages/Services/google-ads.jsx",
-    "client/src/pages/Services/seo-marketing.jsx",
-    "client/src/pages/Services/social-media-marketing.jsx",
-    "client/src/pages/Services/videography.jsx",
-    "client/src/pages/Services/webiste-dev.jsx",
-    "client/src/pages/SingleViewPortfolio/portfolioData.js",
-    "client/src/portal/config/portal.constants.js",
-    "client/src/portal/features/activity/api.js",
-    "client/src/portal/features/hr/components/MonthlyExpenseSummary.jsx",
     "client/src/portal/features/iam/users/components/UserDrawer.jsx",
     "client/src/portal/features/iam/users/constants.js",
     "client/src/portal/features/iam/users/schemas.js",
-    "client/src/portal/features/jobs/components/CustomerSelect.jsx",
-    "client/src/portal/features/jobs/components/EnrollmentSelect.jsx",
-    "client/src/portal/features/jobs/components/ProjectSelect.jsx",
-    "client/src/portal/features/media-library/components/MediaFilters.jsx",
     "client/src/portal/features/media-library/components/ProductionForm.jsx",
     "client/src/portal/features/productions/components/ProductionTabs.jsx",
     "client/src/portal/features/productions/components/ProductionToolbar.jsx",
     "client/src/portal/features/productions/components/VideoReviewPanel.jsx",
-    "client/src/portal/features/profile/api.js",
-    "client/src/portal/features/projects/components/ProjectFilters.jsx",
-    "client/src/portal/features/reports/api.js",
     "client/src/portal/features/services/components/QuantityCounter.jsx",
     "client/src/portal/features/services/tabs/ServiceTemplateTabs.jsx",
-    "client/src/portal/features/settings/api.js",
     "client/src/portal/shared/hooks/usePortalProfile.js",
     "client/src/portal/shared/ui/AttachmentPicker.jsx",
     "client/src/portal/shared/ui/DataTable.jsx",
@@ -19111,13 +19016,6 @@
   "unresolvedLocalJs": [],
   "dependencies": {
     "client": [
-      {
-        "name": "@carbon/icons-react",
-        "range": "^11.47.1",
-        "importFiles": [
-          "client/src/components/SideBar/sideBar.jsx"
-        ]
-      },
       {
         "name": "@emailjs/browser",
         "range": "^4.4.1",
@@ -19134,38 +19032,12 @@
         ]
       },
       {
-        "name": "@react-three/drei",
-        "range": "^9.120.5",
-        "importFiles": []
-      },
-      {
-        "name": "@react-three/fiber",
-        "range": "^8.17.10",
-        "importFiles": []
-      },
-      {
-        "name": "@testing-library/jest-dom",
-        "range": "^5.17.0",
-        "importFiles": []
-      },
-      {
-        "name": "@testing-library/react",
-        "range": "^13.4.0",
-        "importFiles": []
-      },
-      {
-        "name": "@testing-library/user-event",
-        "range": "^13.5.0",
-        "importFiles": []
-      },
-      {
         "name": "axios",
         "range": "^1.13.4",
         "importFiles": [
           "client/src/api/careers.js",
           "client/src/api/vendorApplications.js",
           "client/src/api/websiteProductions.js",
-          "client/src/features/portfolio/api.js",
           "client/src/features/productions/api.js",
           "client/src/portal/shared/api/client.js"
         ]
@@ -19185,12 +19057,10 @@
           "client/src/components/ContactForm/successModal.jsx",
           "client/src/components/DragCardSection/dragCardSection.jsx",
           "client/src/components/Lightbox/Lightbox.jsx",
-          "client/src/components/MainHeader/DropDowns/ourSolution.jsx",
           "client/src/components/MainHeader/header.jsx",
           "client/src/components/MainHeader/mobileMenu.jsx",
           "client/src/components/OurServiceSection/ourServiceSection.jsx",
           "client/src/components/PlanBuilder/PlanBuilder.jsx",
-          "client/src/components/PortfolioComponents/PortfolioGallerySection.jsx",
           "client/src/components/PortfolioComponents/viewButton.jsx",
           "client/src/components/PricingFeatures/pricingFeatures.jsx",
           "client/src/components/ProcurementProcess/ProcurementProcess.jsx",
@@ -19198,7 +19068,6 @@
           "client/src/components/ServicesComponents/faq.jsx",
           "client/src/components/ServicesComponents/portfolioHeader.jsx",
           "client/src/components/ServicesComponents/pricing.jsx",
-          "client/src/components/ServicesComponents/webPortfolio.jsx",
           "client/src/components/ServicesComponents/webSolution.jsx",
           "client/src/components/ServicesComponents/webSteps.jsx",
           "client/src/components/SolutionCard/SolutionCard.jsx",
@@ -19237,7 +19106,6 @@
           "client/src/features/productions/pages/ProductionDetailsPage.jsx",
           "client/src/pages/Home/home.jsx",
           "client/src/portal/app/portalNav.js",
-          "client/src/portal/config/portal.constants.js",
           "client/src/portal/features/activity/pages/ActivityPage.jsx",
           "client/src/portal/features/billing/components/invoiceActions.js",
           "client/src/portal/features/billing/components/InvoiceFormDialog.jsx",
@@ -19287,7 +19155,6 @@
           "client/src/portal/features/hr/components/expenseActions.js",
           "client/src/portal/features/hr/components/ExpenseClaimFormModal.jsx",
           "client/src/portal/features/hr/components/LeaveRequestFormModal.jsx",
-          "client/src/portal/features/hr/components/MonthlyExpenseSummary.jsx",
           "client/src/portal/features/hr/components/StaffFormModal.jsx",
           "client/src/portal/features/hr/kpi/KpiCheckinDialog.jsx",
           "client/src/portal/features/hr/kpi/KpiGoalFormDialog.jsx",
@@ -19328,14 +19195,11 @@
           "client/src/portal/features/iam/users/tabs/ActivityTab.jsx",
           "client/src/portal/features/iam/users/tabs/OverviewTab.jsx",
           "client/src/portal/features/jobs/components/CreativeReviewPanel.jsx",
-          "client/src/portal/features/jobs/components/CustomerSelect.jsx",
-          "client/src/portal/features/jobs/components/EnrollmentSelect.jsx",
           "client/src/portal/features/jobs/components/JobDialogs.jsx",
           "client/src/portal/features/jobs/components/JobsList.jsx",
           "client/src/portal/features/jobs/components/JobsPipelineBoard.jsx",
           "client/src/portal/features/jobs/components/JobStaffField.jsx",
           "client/src/portal/features/jobs/components/NewJobModal.jsx",
-          "client/src/portal/features/jobs/components/ProjectSelect.jsx",
           "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
           "client/src/portal/features/jobs/pages/JobsPage.jsx",
           "client/src/portal/features/media-library/components/MediaDrawer.jsx",
@@ -19368,7 +19232,6 @@
           "client/src/portal/features/productions/pages/ProductionsPage.jsx",
           "client/src/portal/features/profile/pages/ProfilePage.jsx",
           "client/src/portal/features/projects/components/CustomerSelect.jsx",
-          "client/src/portal/features/projects/components/ProjectFilters.jsx",
           "client/src/portal/features/projects/components/ProjectFormModal.jsx",
           "client/src/portal/features/projects/components/ProjectHeader.jsx",
           "client/src/portal/features/projects/components/ProjectList.jsx",
@@ -19459,38 +19322,23 @@
           "client/src/components/ContactInfo/contactInfo.jsx",
           "client/src/components/ContactMap/contactMap.jsx",
           "client/src/components/ContactUsSection/contactSection.jsx",
-          "client/src/components/CreativePostsShowcase/CreativePostsShowcase.jsx",
           "client/src/components/DragCardSection/dragCardSection.jsx",
-          "client/src/components/ExpertsCard/expertsCard.jsx",
           "client/src/components/FinalCTASection/FinalCTASection.jsx",
           "client/src/components/Footer/footer.jsx",
-          "client/src/components/HeroSection/heroSection.jsx",
           "client/src/components/HomeSection/HomeSection.jsx",
           "client/src/components/LandingHero/LandingHero.jsx",
           "client/src/components/Lightbox/Lightbox.jsx",
           "client/src/components/Loader/loader.jsx",
-          "client/src/components/MainHeader/DropDowns/careerContent.jsx",
-          "client/src/components/MainHeader/DropDowns/ourSolution.jsx",
-          "client/src/components/MainHeader/DropDowns/pricingDropdown.jsx",
           "client/src/components/MainHeader/header.jsx",
           "client/src/components/MainHeader/MegaPanel.jsx",
           "client/src/components/MainHeader/mobileMenu.jsx",
           "client/src/components/MainHeader/navData.js",
           "client/src/components/OurServiceSection/ourServiceSection.jsx",
           "client/src/components/PlanBuilder/PlanBuilder.jsx",
-          "client/src/components/PortfolioComponents/categoryTabs.jsx",
-          "client/src/components/PortfolioComponents/PortfolioCaseStudy.jsx",
-          "client/src/components/PortfolioComponents/portfolioDetailCard.jsx",
-          "client/src/components/PortfolioComponents/PortfolioGallerySection.jsx",
-          "client/src/components/PortfolioComponents/portfolioIntroDesc.jsx",
           "client/src/components/PortfolioComponents/portfolioList.jsx",
-          "client/src/components/PortfolioComponents/portfolioProblemSection.jsx",
-          "client/src/components/PortfolioComponents/portfolioResultSection.jsx",
-          "client/src/components/PortfolioComponents/portfolioSolutionSection.jsx",
           "client/src/components/PortfolioComponents/portfolioTabs.jsx",
           "client/src/components/PortfolioComponents/viewButton.jsx",
           "client/src/components/PricingFeatures/pricingFeatures.jsx",
-          "client/src/components/PrimaryHeader/primaryHeader.jsx",
           "client/src/components/ProcurementProcess/ProcurementProcess.jsx",
           "client/src/components/PublicLoadStatus/PublicLoadStatus.jsx",
           "client/src/components/RecentWorks/RecentWorks.jsx",
@@ -19506,7 +19354,6 @@
           "client/src/components/ServicesComponents/webSteps.jsx",
           "client/src/components/ServicesSection/ServicesSection.jsx",
           "client/src/components/ShuffleSection/shuffleSection.jsx",
-          "client/src/components/SideBar/sideBar.jsx",
           "client/src/components/SolutionCard/SolutionCard.jsx",
           "client/src/components/SolutionDetailCTA/SolutionDetailCTA.jsx",
           "client/src/components/SolutionDetailRenderer/SolutionDetailRenderer.jsx",
@@ -19514,7 +19361,6 @@
           "client/src/components/SolutionGalleryBlock/SolutionGalleryBlock.jsx",
           "client/src/components/SolutionImageCardsBlock/SolutionImageCardsBlock.jsx",
           "client/src/components/SolutionImageShowcaseBlock/SolutionImageShowcaseBlock.jsx",
-          "client/src/components/SolutionMegaPanel/SolutionMegaPanel.jsx",
           "client/src/components/SolutionProcessBlock/SolutionProcessBlock.jsx",
           "client/src/components/SolutionSplitBlock/SolutionSplitBlock.jsx",
           "client/src/components/SolutionUseCasesBlock/SolutionUseCasesBlock.jsx",
@@ -19535,7 +19381,6 @@
           "client/src/hooks/usePortfolioItem.js",
           "client/src/hooks/usePortfolioItems.js",
           "client/src/hooks/useSiteSettings.js",
-          "client/src/icons/socialMedia.jsx",
           "client/src/index.js",
           "client/src/pages/404Page/NotFoundPage.jsx",
           "client/src/pages/AboutUs/aboutUs.jsx",
@@ -19567,13 +19412,7 @@
           "client/src/pages/Products/components/CASPlatformSummary.jsx",
           "client/src/pages/Products/components/CASProviderScheduling.jsx",
           "client/src/pages/ServiceMain/serviceMain.jsx",
-          "client/src/pages/Services/content-creation.jsx",
-          "client/src/pages/Services/google-ads.jsx",
-          "client/src/pages/Services/seo-marketing.jsx",
           "client/src/pages/Services/ServiceDetailPage.jsx",
-          "client/src/pages/Services/social-media-marketing.jsx",
-          "client/src/pages/Services/videography.jsx",
-          "client/src/pages/Services/webiste-dev.jsx",
           "client/src/pages/SingleViewPortfolio/singleViewPortfolio.jsx",
           "client/src/pages/ThankYou/ThankYouPage.jsx",
           "client/src/pages/VendorRegistration/VendorRegistrationPage.jsx",
@@ -19629,7 +19468,6 @@
           "client/src/portal/features/hr/components/ExpenseActionDialogs.jsx",
           "client/src/portal/features/hr/components/ExpenseClaimFormModal.jsx",
           "client/src/portal/features/hr/components/LeaveRequestFormModal.jsx",
-          "client/src/portal/features/hr/components/MonthlyExpenseSummary.jsx",
           "client/src/portal/features/hr/components/StaffFormModal.jsx",
           "client/src/portal/features/hr/kpi/KpiCheckinDialog.jsx",
           "client/src/portal/features/hr/kpi/KpiGoalFormDialog.jsx",
@@ -19674,18 +19512,14 @@
           "client/src/portal/features/iam/users/tabs/OverviewTab.jsx",
           "client/src/portal/features/iam/users/tabs/SecurityTab.jsx",
           "client/src/portal/features/jobs/components/CreativeReviewPanel.jsx",
-          "client/src/portal/features/jobs/components/CustomerSelect.jsx",
-          "client/src/portal/features/jobs/components/EnrollmentSelect.jsx",
           "client/src/portal/features/jobs/components/JobDialogs.jsx",
           "client/src/portal/features/jobs/components/JobsList.jsx",
           "client/src/portal/features/jobs/components/JobsPipelineBoard.jsx",
           "client/src/portal/features/jobs/components/JobStaffField.jsx",
           "client/src/portal/features/jobs/components/NewJobModal.jsx",
-          "client/src/portal/features/jobs/components/ProjectSelect.jsx",
           "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
           "client/src/portal/features/jobs/pages/JobsPage.jsx",
           "client/src/portal/features/media-library/components/MediaDrawer.jsx",
-          "client/src/portal/features/media-library/components/MediaFilters.jsx",
           "client/src/portal/features/media-library/components/MediaGrid.jsx",
           "client/src/portal/features/media-library/components/MediaPickerModal.jsx",
           "client/src/portal/features/media-library/components/MediaUploader.jsx",
@@ -19720,7 +19554,6 @@
           "client/src/portal/features/productions/pages/ProductionsPage.jsx",
           "client/src/portal/features/profile/pages/ProfilePage.jsx",
           "client/src/portal/features/projects/components/CustomerSelect.jsx",
-          "client/src/portal/features/projects/components/ProjectFilters.jsx",
           "client/src/portal/features/projects/components/ProjectFormModal.jsx",
           "client/src/portal/features/projects/components/ProjectHeader.jsx",
           "client/src/portal/features/projects/components/ProjectList.jsx",
@@ -19872,33 +19705,22 @@
           "client/src/components/CASShowcaseSection/CASShowcaseSection.jsx",
           "client/src/components/ContactForm/successModal.jsx",
           "client/src/components/ContactInfo/contactInfo.jsx",
-          "client/src/components/CreativePostsShowcase/CreativePostsShowcase.jsx",
-          "client/src/components/ExpertsCard/expertsCard.jsx",
           "client/src/components/Footer/footer.jsx",
           "client/src/components/LandingHero/LandingHero.jsx",
-          "client/src/components/MainHeader/DropDowns/careerContent.jsx",
-          "client/src/components/MainHeader/DropDowns/ourSolution.jsx",
           "client/src/components/MainHeader/header.jsx",
           "client/src/components/MainHeader/MegaPanel.jsx",
           "client/src/components/MainHeader/mobileMenu.jsx",
           "client/src/components/OurServiceSection/ourServiceSection.jsx",
-          "client/src/components/PortfolioComponents/PortfolioCaseStudy.jsx",
-          "client/src/components/PortfolioComponents/PortfolioGallerySection.jsx",
-          "client/src/components/PortfolioComponents/portfolioSolutionSection.jsx",
           "client/src/components/PortfolioComponents/viewButton.jsx",
-          "client/src/components/PrimaryHeader/primaryHeader.jsx",
           "client/src/components/RecentWorks/RecentWorks.jsx",
           "client/src/components/ReelsShowcase/ReelsShowcase.jsx",
           "client/src/components/ServicesBanner/servicesBanner.jsx",
           "client/src/components/ServicesComponents/faq.jsx",
           "client/src/components/ServicesComponents/pricing.jsx",
-          "client/src/components/ServicesComponents/webPortfolio.jsx",
-          "client/src/components/SideBar/sideBar.jsx",
           "client/src/components/SolutionCard/SolutionCard.jsx",
           "client/src/components/SolutionDetailCTA/SolutionDetailCTA.jsx",
           "client/src/components/SolutionFeatureGrid/SolutionFeatureGrid.jsx",
           "client/src/components/SolutionImageShowcaseBlock/SolutionImageShowcaseBlock.jsx",
-          "client/src/components/SolutionMegaPanel/SolutionMegaPanel.jsx",
           "client/src/components/SolutionSplitBlock/SolutionSplitBlock.jsx",
           "client/src/components/SolutionUseCasesBlock/SolutionUseCasesBlock.jsx",
           "client/src/components/TechnologyCTA/TechnologyCTA.jsx",
@@ -19953,9 +19775,6 @@
           "client/src/components/ContactForm/contactForm.jsx",
           "client/src/components/Footer/footer.jsx",
           "client/src/components/LandingHero/LandingHero.jsx",
-          "client/src/components/MainHeader/DropDowns/careerContent.jsx",
-          "client/src/components/MainHeader/DropDowns/ourSolution.jsx",
-          "client/src/components/MainHeader/DropDowns/pricingDropdown.jsx",
           "client/src/components/MainHeader/header.jsx",
           "client/src/components/MainHeader/MegaPanel.jsx",
           "client/src/components/MainHeader/mobileMenu.jsx",
@@ -19967,7 +19786,6 @@
           "client/src/components/ShuffleSection/shuffleSection.jsx",
           "client/src/components/SolutionCard/SolutionCard.jsx",
           "client/src/components/SolutionDetailCTA/SolutionDetailCTA.jsx",
-          "client/src/components/SolutionMegaPanel/SolutionMegaPanel.jsx",
           "client/src/components/TechnologyCTA/TechnologyCTA.jsx",
           "client/src/components/TechnologyVendorPanel/TechnologyVendorPanel.jsx",
           "client/src/components/TextParallax/textParallaxComponent.jsx",
@@ -20091,21 +19909,6 @@
         ]
       },
       {
-        "name": "tailwind-clip-path",
-        "range": "^1.0.0",
-        "importFiles": []
-      },
-      {
-        "name": "tailwind-merge",
-        "range": "^2.6.0",
-        "importFiles": []
-      },
-      {
-        "name": "three",
-        "range": "^0.172.0",
-        "importFiles": []
-      },
-      {
         "name": "web-vitals",
         "range": "^2.1.4",
         "importFiles": [
@@ -20123,11 +19926,6 @@
         ]
       },
       {
-        "name": "@aws-sdk/lib-storage",
-        "range": "^3.1045.0",
-        "importFiles": []
-      },
-      {
         "name": "@aws-sdk/s3-request-presigner",
         "range": "^3.1045.0",
         "importFiles": [
@@ -20141,11 +19939,6 @@
           "portal-api/src/modules/iam/users/user.controller.js",
           "portal-api/src/modules/iam/users/user.model.js"
         ]
-      },
-      {
-        "name": "cookie-parser",
-        "range": "^1.4.7",
-        "importFiles": []
       },
       {
         "name": "cors",

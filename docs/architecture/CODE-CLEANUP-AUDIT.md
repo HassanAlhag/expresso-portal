@@ -2,6 +2,82 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · Baseline `58b8f86c`.
 
+## R5-A — complete / committed (27 Oct 2026)
+
+Implementation baseline: `64a444a35865a746732f6162bce6e6119178b735` on `website/integrated-solutions`. This bounded, approved repository-only pass is complete / committed. The original audit below remains historical evidence, not a claim about the current implementation.
+
+- **P4-2:** deleted exactly the 39 approved unreachable files listed below after rechecking runtime, lazy/dynamic imports, re-exports, routes, tests, scripts/configuration and CSS/HTML references. No candidate was rejected or restored. All seven deferred Production-related files and fourteen manual-review files remain.
+- **P4-4:** removed only client `three`, `@react-three/fiber`, `@react-three/drei`, `tailwind-clip-path`, `tailwind-merge`, `@carbon/icons-react` and API `cookie-parser`, `@aws-sdk/lib-storage`. Moved the three Testing Library packages to client devDependencies without changing their ranges or installed versions. Normal npm operations updated both lockfiles; no surviving package version, resolved source or integrity changed.
+- **Inventory:** non-test client JS/JSX files 489 → 450; runtime-reachable files 429 → 429; unreachable candidates 60 → 21; client tests 29 → 29; API source JS files 179 → 179. Static frontend request sites 302 → 294. Permissions remain 73, API registrations 283, models 45 and frontend route records 106; `reports.export` remains absent. Client runtime dependencies 23 → 14 and devDependencies 2 → 5; API runtime dependencies 16 → 14.
+- **Retained descriptive references:** the live website image registry still displays source-path labels for `CreativePostsShowcase.jsx` and `portfolioSolutionSection.jsx`. These are metadata strings, not imports or file reads; changing that registry is outside this pass.
+- **Pre-existing finding, not changed:** retained, unreachable `portal/shared/hooks/usePortalProfile.js` imports missing `../../api/profile.api`. That path was already missing at the baseline and is unrelated to the approved deletions. No live import was broken. The inventory's `unresolvedLocalJs` check only reports explicit `.js`/`.jsx` imports, so its empty result does not cover this extensionless legacy import.
+- **Verification:** focused checks passed for manifest/lock agreement, unchanged routes and dependency versions. Full results and the cached-run focus-test caveat are recorded below.
+- **Still blocked/deferred:** P3-2 Production retirement, P4-5 assets, P4-6 endpoints, P4-7 Strapi and the P2-7 lifecycle remainder. No database, schema, endpoint, asset, permission, Production runtime, PI reconciliation or Operating Manual change.
+
+### Verification results (27 Oct 2026)
+
+| Check | Result |
+|---|---|
+| API `npm test` | 357 passed, 0 failed, 6 skipped (363 total); the six opt-in local replica-set integration tests were not enabled. Tests used the stubbed/local harness; no application database was accessed |
+| Client full suite | `CI=true npm test -- --watchAll=false --runInBand --no-cache`: 29 suites / 308 tests passed |
+| Client test caveat | Two earlier cached full runs each passed 307/308 and failed the unchanged Clients radio-group focus assertion (`clients.test.js:279`). The Clients suite passed 14/14 in isolation. A temporary copy of baseline source, using the same retained dependency tree and no environment files, passed 308/308. Modal initial focus is scheduled with a zero-delay timer; this timing-sensitive assertion was reported, not changed or suppressed |
+| Lint | `eslint src --ext .js,.jsx --format json`: 0 errors, 1 pre-existing unused `Input` import warning in retained/protected `AttachmentPicker.jsx:3` |
+| Production build | `CI=false npm run build`: compiled successfully. Browserslist reported an outdated data warning; no unrelated update was performed |
+| Architecture | `node docs/architecture/validate.cjs`: passed (15 documents, 283 routes, 45 models; Blueprint offline) |
+| Route/import sanity | All 106 frontend route records and 283 API registrations unchanged. No unresolved runtime/test import or remaining source import of the eight removed packages. The retained unreachable hook exception is documented above |
+| Dependency/lock checks | Both `npm ls --depth=0` checks passed; root manifest/lock metadata agree; only the exact approved direct dependency changes and transitive pruning/dev flags. Client lock entries removed: 71; API: 21; no retained version/resolved/integrity changes or added package entries |
+| Scope/whitespace | Exactly 39 approved source deletions and 7 approved file updates; `git diff --check` passed |
+
+Static route/import checks covered Home, About, Digital Services, Digital Solutions, Technology, Portfolio/case studies, Careers/Work With Us, Contact and Plan Builder; portal authentication, dashboard, Projects, Jobs, live Productions, Clients, CRM, Finance, HR, Procurement, Client and Vendor workspaces. No screenshot/browser verification was requested or performed.
+
+### Exact approved source deletions (39)
+
+Paths are relative to the repository root; no other source deletion is included.
+
+```text
+client/src/components/CreativePostsShowcase/CreativePostsShowcase.jsx
+client/src/components/ExpertsCard/expertsCard.jsx
+client/src/components/HeroSection/heroSection.jsx
+client/src/components/MainHeader/DropDowns/careerContent.jsx
+client/src/components/MainHeader/DropDowns/ourSolution.jsx
+client/src/components/MainHeader/DropDowns/pricingDropdown.jsx
+client/src/components/PortfolioComponents/PortfolioCaseStudy.jsx
+client/src/components/PortfolioComponents/PortfolioGallerySection.jsx
+client/src/components/PortfolioComponents/categoryTabs.jsx
+client/src/components/PortfolioComponents/portfolio.js
+client/src/components/PortfolioComponents/portfolioDetailCard.jsx
+client/src/components/PortfolioComponents/portfolioIntroDesc.jsx
+client/src/components/PortfolioComponents/portfolioProblemSection.jsx
+client/src/components/PortfolioComponents/portfolioResultSection.jsx
+client/src/components/PortfolioComponents/portfolioSolutionSection.jsx
+client/src/components/PrimaryHeader/primaryHeader.jsx
+client/src/components/ServicesComponents/webPortfolio.jsx
+client/src/components/SideBar/sideBar.jsx
+client/src/components/SolutionMegaPanel/SolutionMegaPanel.jsx
+client/src/features/portfolio/api.js
+client/src/icons/socialMedia.jsx
+client/src/pages/Services/content-creation.jsx
+client/src/pages/Services/google-ads.jsx
+client/src/pages/Services/seo-marketing.jsx
+client/src/pages/Services/social-media-marketing.jsx
+client/src/pages/Services/videography.jsx
+client/src/pages/Services/webiste-dev.jsx
+client/src/pages/SingleViewPortfolio/portfolioData.js
+client/src/portal/config/portal.constants.js
+client/src/portal/features/activity/api.js
+client/src/portal/features/hr/components/MonthlyExpenseSummary.jsx
+client/src/portal/features/jobs/components/CustomerSelect.jsx
+client/src/portal/features/jobs/components/EnrollmentSelect.jsx
+client/src/portal/features/jobs/components/ProjectSelect.jsx
+client/src/portal/features/media-library/components/MediaFilters.jsx
+client/src/portal/features/profile/api.js
+client/src/portal/features/projects/components/ProjectFilters.jsx
+client/src/portal/features/reports/api.js
+client/src/portal/features/settings/api.js
+```
+
+## Original audit (`58b8f86c`)
+
 **Nothing has been removed, refactored or fixed.** This is a decision list for a later, separately approved cleanup stage. Every item has an ID so it can be approved, deferred or rejected individually.
 
 | Label | Meaning |
