@@ -14,14 +14,39 @@ const UPLOAD_ROOT = resolve(__dirname, "../../uploads");
 let cachedClient;
 let cachedRegion;
 
+// Public bucket configuration (P3-7, R4-D). AWS_S3_BUCKET is the canonical
+// name. S3_BUCKET and AWS_BUCKET_NAME are deprecated aliases, still accepted
+// for compatibility (in this order) and scheduled for removal. This is the one
+// place the public bucket name is resolved; private storage keeps its own,
+// narrower rule (AWS_S3_PRIVATE_BUCKET, else AWS_S3_BUCKET only).
+export const PUBLIC_BUCKET_ENV = "AWS_S3_BUCKET";
+const DEPRECATED_PUBLIC_BUCKET_ENV = ["S3_BUCKET", "AWS_BUCKET_NAME"];
+let aliasWarned = false;
+
+export function publicBucket() {
+  const canonical = process.env[PUBLIC_BUCKET_ENV];
+  if (canonical) return canonical;
+  for (const name of DEPRECATED_PUBLIC_BUCKET_ENV) {
+    const value = process.env[name];
+    if (!value) continue;
+    if (!aliasWarned) {
+      aliasWarned = true;
+      // Names only: never log the bucket value.
+      console.warn(`Storage: ${name} is deprecated; set ${PUBLIC_BUCKET_ENV} instead.`);
+    }
+    return value;
+  }
+  return "";
+}
+
+/** Test hook: allow the one-time alias warning to fire again. */
+export function resetPublicBucketWarning() {
+  aliasWarned = false;
+}
+
 function getS3Config() {
   const region = process.env.AWS_REGION || DEFAULT_REGION;
-  const bucket =
-    process.env.AWS_S3_BUCKET ||
-    process.env.S3_BUCKET ||
-    process.env.AWS_BUCKET_NAME;
-
-  return { region, bucket };
+  return { region, bucket: publicBucket() };
 }
 
 function getS3Client(region) {

@@ -91,7 +91,7 @@ Source: [client/src/portal/features/services](../../client/src/portal/features/s
 | States / workflow | String status (default active), dates, execution/pricing snapshots; schema does not enforce a single universal lifecycle enum. |
 | Other modules | References Customer/template and optional Project. Jobs can be explicitly generated from finalScope; creation alone is not automatic project/invoice creation. |
 | Files / notifications | Scope may include file/approval metadata; no dedicated upload endpoint or external notification on enrollment creation. |
-| Assessment | Active; scope normalization is duplicated and linking/generation is a partly manual lifecycle. |
+| Assessment | Active; scope normalization is one shared module since R4-D (`services/scopeNormalization.js`); linking/generation is a partly manual lifecycle. |
 
 Source: [client/src/portal/features/enrollments](../../client/src/portal/features/enrollments).
 
@@ -125,7 +125,7 @@ Source: [client/src/portal/features/projects](../../client/src/portal/features/p
 | States / workflow | brief → script/pre_production → designing/shooting/editing → internal_review/client_review → approved/scheduled → published/delivered; on_hold/archived; separate publishStatus. |
 | Other modules | Generated from enrollment scopes; also drives Productions, content calendar, customer/project tabs and public website reels. |
 | Files / notifications | draft/final/poster Media references, approval subdocuments; approval entries are stored history, not guaranteed email messages. |
-| Assessment | Active; board stages duplicated in several views and state transitions are not one central workflow engine. |
+| Assessment | Active; the Jobs board stages come from `jobs/pipeline.js` (checked against the API statuses since R4-D); the dashboard summary is a deliberate roll-up; the Productions pages keep their own stage lists (drift recorded for the Jobs/Productions migration); state transitions are not one central workflow engine. |
 
 Source: [client/src/portal/features/jobs](../../client/src/portal/features/jobs).
 

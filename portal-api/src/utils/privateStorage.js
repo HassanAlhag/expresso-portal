@@ -25,6 +25,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "../config/env.js";
+import { publicBucket } from "./s3.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const LOCAL_PRIVATE_ROOT = resolve(__dirname, "../../private-uploads");
@@ -45,6 +46,9 @@ function s3() {
   return client;
 }
 
+// Deliberately narrower than the public resolver (s3.js publicBucket): the
+// deprecated public aliases S3_BUCKET / AWS_BUCKET_NAME are NOT a private
+// fallback, so private files never move into a bucket named only by an alias.
 export function privateBucket() {
   return process.env.AWS_S3_PRIVATE_BUCKET || process.env.AWS_S3_BUCKET || "";
 }
@@ -145,7 +149,7 @@ export async function deletePrivate(key) {
 
 /** Used by the migration script: copy a legacy public object into private storage. */
 export async function copyPublicObjectToPrivate(publicKey, folder) {
-  const sourceBucket = process.env.AWS_S3_BUCKET;
+  const sourceBucket = publicBucket();
   const bucket = privateBucket();
   if (!sourceBucket || !bucket) throw new Error("S3 buckets are not configured");
   const { base, ext } = safeBase(path.basename(publicKey));

@@ -2,7 +2,7 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · [Cleanup audit](CODE-CLEANUP-AUDIT.md) · [Reset plan](DATABASE-RESET-PLAN.md)
 
-**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is committed (`23425ab8`). **Website Stage 4: code complete and committed (`feat: complete website stage 4`); homepage CMS content pending manual entry.** **R4 is in progress: R4-A (P3-5 / P3-6 access consistency) complete and committed (`refactor: align portal access controls`); R4-B (P2-6 / P3-8) complete and committed (`fix: remove R4 read and schema inconsistencies`); R4-C (P2-2 CRM conversion atomicity and link integrity) complete and committed (`fix: make CRM conversions atomic`); R4-D (P3-7) not started. R5 has not started.** Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
+**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is committed (`23425ab8`). **Website Stage 4: code complete and committed (`feat: complete website stage 4`); homepage CMS content pending manual entry.** **R4 is in progress: R4-A (P3-5 / P3-6 access consistency) complete and committed (`refactor: align portal access controls`); R4-B (P2-6 / P3-8) complete and committed (`fix: remove R4 read and schema inconsistencies`); R4-C (P2-2 CRM conversion atomicity and link integrity) complete and committed (`fix: make CRM conversions atomic`); R4-D (P3-7 duplicated sources of truth) complete and committed (`refactor: consolidate duplicated sources of truth`). R4 implementation is complete; R4 closure is pending its final gates. R5 has not started.** Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
 
 **Baseline:** branch `website/integrated-solutions`. Application code is at `58b8f86c`; the architecture docs were committed at `e867d95f`.
 
@@ -29,7 +29,7 @@ The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → 
 | R2 Access model & vendor journey | P1-1, P1-3, P1-4, P1-5, P2-1, P2-3 RFQs, P2-4, P2-5, P3-4 | Code complete; one part deferred | `26a2cca6`; P2-4 and the RFQ counter in `91a0c0bc`. **Deferred:** RFQ unique index (needs the read-only duplicate check). Deployment checks pending |
 | R3 Housekeeping | P3-3, P3-9, audit corrections | Code complete (R1/R3 closure committed in `23425ab8`) | Audit corrections were applied with the baseline. P3-3 and P3-9 in the R1/R3 closure. **Note:** commit `91a0c0bc`, labelled R3, delivered R1/R2 items (P2-3, P2-4, `seedUser.js`), not the original R3 housekeeping |
 | Website Stage 4 | Homepage and remaining public pages | **W4 code: complete and committed. W4 CMS content: pending manual entry** | No detailed W4 specification existed; scope settled in the W4 pre-flight (26 Oct 2026). See [Website Stage 4](#website-stage-4-w4-code-complete-and-committed-cms-content-pending) |
-| R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **In progress (not complete)** | Split into passes (26 Oct 2026): **R4-A** P3-5 / P3-6 complete and committed; **R4-B** P2-6 + P3-8 complete and committed; **R4-C** P2-2 complete and committed; **R4-D** P3-7 not started. See [R4](#r4-consistency-refactors-in-progress-r4-a-r4-b-and-r4-c-committed) |
+| R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **Implementation complete; final gates open (not closed)** | Split into passes (26 Oct 2026): **R4-A** P3-5 / P3-6 complete and committed; **R4-B** P2-6 + P3-8 complete and committed; **R4-C** P2-2 complete and committed; **R4-D** P3-7 complete and committed. See [R4](#r4-consistency-refactors-in-progress-r4-a-r4-b-and-r4-c-committed) |
 | R5 Verified cleanup & data lifecycle | P3-2, P4-2, P4-4, P4-5, P4-6, P2-7 pipeline | **Not started** | Needs backup with tested restore, database export and access-log review first |
 | Design study | Offline prototype and component specification | **Done** | `f0d9bc02` |
 | Portal implementation | Shared components, then Dashboard, CRM, Projects, Finance, HR, Procurement, absorbing P3-5 and P3-6 | **Partial** | PUI-1 to PUI-5 cover all listed modules plus client and vendor views. Open: the Jobs board page (legacy UI), and the P3-5 / P3-6 remainder |
@@ -52,6 +52,7 @@ The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → 
 | `refactor: align portal access controls` | R4-A | P3-5 / P3-6 access consistency: no `admin` name bypass in the route guard or navigation, session refresh on focus, menu/route alignment, permission-gated delete actions, internal-only file deletion, one role-hierarchy helper | No |
 | `fix: remove R4 read and schema inconsistencies` | R4-B | P2-6 settings reads never write; P3-8 one access-request `status` index and a `vendor` comment author type | No |
 | `fix: make CRM conversions atomic` | R4-C | P2-2 CRM conversions in one transaction each, safe to repeat; `convertedDealId` the only link written; deal conversion stores the account it creates | No |
+| `refactor: consolidate duplicated sources of truth` | R4-D | P3-7 one public-bucket resolver (aliases deprecated, private rule unchanged); one scope normaliser; shared client-login creation; drift checks for the technology fallback and job statuses | No |
 
 No deployment gate listed under R2, R3 or section 8 has been performed.
 
@@ -72,14 +73,14 @@ The repository defined W4 only as "the next website implementation stage (homepa
 
 ### R4 consistency refactors (in progress; R4-A, R4-B and R4-C committed)
 
-The original R4 is P2-2, P2-6, P3-5, P3-6, P3-7 and P3-8 (section 10). None is deferred; it is delivered in four controlled passes. **R4 is not complete.**
+The original R4 is P2-2, P2-6, P3-5, P3-6, P3-7 and P3-8 (section 10). None is deferred; it is delivered in four controlled passes. **All four passes are complete and committed; R4 is not closed until its final gates are run.**
 
 | Pass | Items | Status |
 |---|---|---|
 | R4-A | P3-5, P3-6 (access consistency) | **Complete and committed** |
 | R4-B | P2-6 (settings read without write), P3-8 (duplicate index, ticket comment role) | **Complete and committed** |
 | R4-C | P2-2 (CRM conversion atomicity and link field) | **Complete and committed** |
-| R4-D | P3-7 (duplicated sources of truth) | Not started |
+| R4-D | P3-7 (duplicated sources of truth) | **Complete and committed** |
 
 **R4-A detail.** Backend unchanged in principle: the API reloads the user and resolves permissions from the database on every request; `super_admin` is the only bypass.
 
@@ -122,6 +123,25 @@ Found, not changed in R4-A: the legacy staff ticket page's `isAdminRole` list of
 **Real rollback proof.** `portal-api/test/r4c-crm-conversion.integration.test.js` runs only when `MONGO_TEST_URI` is set, refuses any host other than localhost and any database whose name does not contain `test`, and drops that database before and after. Run against a disposable local single-node replica set (MongoDB 8, `rs0`, port 27999; never the configured application database): commit and repeat, rollback after the last write (lead: lead untouched, no account, contact or deal; deal: deal untouched, no client, account or contact), and two simultaneous conversions (one record each, both requests return it). All six fail against the previous code. `mongodb-memory-server` (section 9) was not added: no new dependency.
 
 **Deployment gates (open).** (1) Staging and (2) production must support transactions (replica set or sharded cluster; Atlas does). Until then both conversions return 503 by design. Check with the read-only `hello` command only. (3) **CRM conversion integrity audit** (designed, not run; read-only counts only): leads with both link fields set to different deals; leads with status `converted` but no link; links pointing at a missing deal; several deals sharing one `leadId`; deals with `customerId` pointing at a missing client; won deals with a client but no `accountId`; accounts and contacts created by a conversion with no deal. Run before any data clean-up; not required for the code. (4) Role-editor round trip (R4-A gate, still open).
+
+**R4-D detail** (complete and committed; code, tests and docs only; no database, schema, enum, index, bucket or configuration change).
+
+| P3-7 item | Outcome | Detail | Tests |
+|---|---|---|---|
+| S3 bucket variables | **Consolidated** | `utils/s3.js` `publicBucket()` is the one public-bucket resolver: `AWS_S3_BUCKET`, then the deprecated aliases `S3_BUCKET`, `AWS_BUCKET_NAME` (order unchanged). Used by uploads, the admin system-status panel (public flag and the private-vs-public comparison) and the confidential-file migration (public source and precondition); before, those three read only `AWS_S3_BUCKET`. An alias triggers one warning per process naming the variable, never its value. **Private storage is unchanged:** `AWS_S3_PRIVATE_BUCKET`, else the `private/` prefix of `AWS_S3_BUCKET`; the aliases are deliberately not a private fallback. Documented in `portal-api/docs/storage.md` | `r4d-single-sources.test.js` (no AWS call): canonical wins, each alias alone, one warning without the value, private rule unchanged, no-bucket local and production behaviour, migration precondition run as a process with no database |
+| Service scope normalisation | **Consolidated** | `modules/services/scopeNormalization.js` holds `normalizeChecklist`, `normalizeScopeGroupJob`, `normalizeScopeGroup` (the service-template version, keeping checklist ids); both controllers import it and no longer define their own. Stored data is unchanged: the enrollment schema has no checklist `id` and still drops it (checked over 400 generated inputs against the previous code) | Frozen expected output, template create/update, enrollment create/update/final scope, no local copies |
+| Client login endpoints | **Shared logic, two contracts kept** | `customers.controller.js`: one internal helper for email and password checks, the email-taken check and account creation; the client role list is `roleRegistry.SYSTEM_CLIENT_ROLES` (same roles, same order). Both routes keep their paths, status codes, response shapes, owner rules and messages, including the two different duplicate-email texts ("Email already exists" / "Email already in use"). Credential delivery unchanged | Both routes: success, owner rules, every client role, invalid role, duplicate email, short password, missing email, invalid id, response keys. The same tests pass against the previous code |
+| Technology groups | **Intentional separation, drift-checked** | The API taxonomy stays authoritative; the client fallback JSON stays for API outages (Stage 2 decision). `LEGACY_GROUPS` is exported for the test only | API test: fallback = taxonomy (ids, labels, descriptions, order) and legacy slug map, both directions |
+| Job stages | **Board owner kept; drift-checked** | `jobs/pipeline.js` owns the Jobs board columns. The old `DashboardPage` `STAGES` copy is gone (PUI-2). The staff dashboard summary (`staffData.js`) is intentionally a different 5-bucket view. The API `JOB_STATUSES` is authoritative; the separately deployed client keeps its own copies, compared by `validate.cjs` (no runtime import of API code) | `validate.cjs` §11: every API status has a board column (exactly one) and a client label, no client status the API lacks, move statuses stay in their column, no dashboard `STAGES`; `jobs/pipeline.test.js` for columns, neighbour moves, next/previous |
+| Public data caches | **Intentional separation, no code change** | Site settings (storage-backed, 30 s, cross-tab), navigation (session memory, failures shown as an empty menu) and portfolio (memory, failures reported to the page) cache different resources with deliberately different lifetimes and error handling; pages keep their own load and error states (W4). No shared data layer | — |
+
+**Handed off.** (1) **Productions stage drift → Jobs/Productions migration:** the Productions board (`ProductionsPage.jsx` `PROD_STAGES`) has six columns; `on_hold` and `archived` match none and appear under Brief (the Jobs board puts them in Done), and `published`/`delivered` share "Live"; the detail tracker (`ProductionDetailsPage.jsx`) has no step for `content_ready`, `pre_production`, `shooting`, `delivered`, `on_hold` or `archived`. Not changed. (2) **Deprecated bucket aliases → removal after the compatibility period.**
+
+**Found, not changed (outside P3-7):** the client-role list copy in `user.controller.js` (user list filter); client `JOB_TYPES` vs API `JOB_TYPES` (the client has `event`, the API has `reel` and `video`).
+
+**Deployment gate (new, read-only):** confirm which public bucket variable **name** staging and production set (names only, never values); a host using an alias logs the deprecation warning and should move to `AWS_S3_BUCKET`.
+
+**R4 gates still open:** staging and production MongoDB transaction support, the CRM conversion integrity audit, the role-editor real-session round trip, and the bucket variable-name check.
 
 ### R1/R3 closure (committed in `23425ab8`; not deployed)
 
@@ -735,6 +755,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Tests** | Existing client tests for technology groups and navigation; job board stage tests |
 | **Data change** | None |
 | **Order** | Stage 4 |
+| **Status (R4-D)** | Implemented and committed (`refactor: consolidate duplicated sources of truth`): S3 public-bucket resolver, scope normaliser and client-login creation consolidated; technology fallback and job statuses drift-checked as intentional separations; public caches kept separate by decision; Productions stage drift handed to the Jobs/Productions migration. See R4-D detail |
 
 ### P3-8 Duplicate index and narrow ticket comment role
 
@@ -903,7 +924,7 @@ Status vocabulary (also used in the blueprint): **CURRENT** = exists and works �
 | Business Platform | Reporting / Management KPIs | PLANNED | Browser-built reports from module stats | P3-1 |
 | Shared Services | Authentication & RBAC | NEEDS FIX | Works; two catalogs, logged tokens, delete bugs | P0-3, P0-4, P1-2–P1-4, P2-5 |
 | Shared Services | Workflow / approvals | PLANNED | Approval logic duplicated per module (jobs, tickets, expenses, leave, RFQs) | — |
-| Shared Services | Master / reference data | PLANNED | Categories, teams, templates, technology groups each separate; groups duplicated | P3-7 |
+| Shared Services | Master / reference data | PLANNED | Categories, teams, templates, technology groups each separate; technology fallback drift-checked since R4-D | P3-7 |
 | Shared Services | Document / file management | CURRENT | Public Media + private Files with signed links | P3-2 (legacy links) |
 | Shared Services | Audit / activity history | CURRENT | IAM actions only; cross-module history PLANNED | — |
 | Shared Services | Notifications | PLANNED | SMTP for invites/resets/RFQ; no outbox, no in-app center | — |

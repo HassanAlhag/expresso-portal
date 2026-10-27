@@ -23,7 +23,8 @@ export const TECHNOLOGY_GROUPS = [
   },
 ];
 
-const LEGACY_GROUPS = {
+// Exported for the fallback drift test (P3-7); runtime use is unchanged.
+export const LEGACY_GROUPS = {
   "erp-solution": "business-software",
   "crm-solution": "business-software",
   "queue-management": "business-software",

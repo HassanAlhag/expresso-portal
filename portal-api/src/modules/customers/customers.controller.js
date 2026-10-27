@@ -8,6 +8,7 @@ import {
   getUserClientId,
   requireOwnClient,
 } from "../../utils/accessControl.js";
+import { SYSTEM_CLIENT_ROLES } from "../../utils/roleRegistry.js";
 
 // Client-user boundary (PUI-3, 21 Oct 2026). A client user who can read their
 // own company record never receives the internal notes or the links to the
@@ -359,7 +360,39 @@ export async function deleteCustomer(req, res) {
   }
 }
 
-const CLIENT_ROLES = new Set(["client", "staff_client", "procurement_client", "client_admin"]);
+// The client roles come from the role registry (P3-7, R4-D); same four roles,
+// same order as the copy that used to live here.
+const CLIENT_ROLES = SYSTEM_CLIENT_ROLES;
+
+/**
+ * Shared by POST /:id/create-login and POST /:id/users (P3-7, R4-D): email and
+ * password checks, the email-taken check and the account creation. Each route
+ * keeps its own role, owner rule, response shape and messages; only the
+ * duplicate-email wording differs, so the caller passes it. Returns
+ * { user } on success or { status, message } to send as an error.
+ */
+async function createClientLogin(customer, { email, fullName, tempPassword }, { role, emailTakenMessage }) {
+  const cleanEmail = String(email || "").trim().toLowerCase();
+  if (!cleanEmail) return { status: 400, message: "email is required" };
+
+  const password = String(tempPassword || "");
+  if (password.length < 8) return { status: 400, message: "tempPassword must be at least 8 characters" };
+
+  const exists = await User.findOne({ email: cleanEmail }).lean();
+  if (exists) return { status: 409, message: emailTakenMessage };
+
+  const passwordHash = await User.hashPassword(password);
+  const user = await User.create({
+    fullName: String(fullName || "").trim() || customer.contactName || customer.companyName,
+    email: cleanEmail,
+    role,
+    isActive: true,
+    clientId: customer._id,
+    passwordHash,
+    passwordChangedAt: new Date(),
+  });
+  return { user };
+}
 
 /**
  * GET /api/customers/:id/users
@@ -408,29 +441,9 @@ export async function createCustomerUser(req, res) {
     if (!customer)
       return res.status(404).json({ ok: false, message: "Customer not found" });
 
-    const cleanEmail = String(email || "").trim().toLowerCase();
-    if (!cleanEmail)
-      return res.status(400).json({ ok: false, message: "email is required" });
-
-    const password = String(tempPassword || "");
-    if (password.length < 8)
-      return res.status(400).json({ ok: false, message: "tempPassword must be at least 8 characters" });
-
-    const exists = await User.findOne({ email: cleanEmail }).lean();
-    if (exists)
-      return res.status(409).json({ ok: false, message: "Email already in use" });
-
-    const passwordHash = await User.hashPassword(password);
-
-    const user = await User.create({
-      fullName: String(fullName || "").trim() || customer.contactName || customer.companyName,
-      email: cleanEmail,
-      role,
-      isActive: true,
-      clientId: customer._id,
-      passwordHash,
-      passwordChangedAt: new Date(),
-    });
+    const created = await createClientLogin(customer, { email, fullName, tempPassword }, { role, emailTakenMessage: "Email already in use" });
+    if (!created.user) return res.status(created.status).json({ ok: false, message: created.message });
+    const { user } = created;
 
     // Set ownerUserId on the customer if this is the first user
     if (!customer.ownerUserId) {
@@ -479,39 +492,9 @@ export async function createCustomerLogin(req, res) {
       });
     }
 
-    const cleanEmail = String(email || "")
-      .trim()
-      .toLowerCase();
-    if (!cleanEmail)
-      return res.status(400).json({ ok: false, message: "email is required" });
-
-    const password = String(tempPassword || "");
-    if (password.length < 8)
-      return res.status(400).json({
-        ok: false,
-        message: "tempPassword must be at least 8 characters",
-      });
-
-    const exists = await User.findOne({ email: cleanEmail }).lean();
-    if (exists)
-      return res
-        .status(409)
-        .json({ ok: false, message: "Email already exists" });
-
-    const passwordHash = await User.hashPassword(password);
-
-    const user = await User.create({
-      fullName:
-        String(fullName || "").trim() ||
-        customer.contactName ||
-        customer.companyName,
-      email: cleanEmail,
-      role: "client",
-      isActive: true,
-      clientId: customer._id,
-      passwordHash,
-      passwordChangedAt: new Date(),
-    });
+    const created = await createClientLogin(customer, { email, fullName, tempPassword }, { role: "client", emailTakenMessage: "Email already exists" });
+    if (!created.user) return res.status(created.status).json({ ok: false, message: created.message });
+    const { user } = created;
 
     customer.ownerUserId = user._id;
     await customer.save();

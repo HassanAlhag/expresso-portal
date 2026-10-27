@@ -6942,7 +6942,7 @@
       "path": "/api/admin/system-status",
       "domain": "admin",
       "file": "portal-api/src/modules/admin/systemStatus.routes.js",
-      "line": 14,
+      "line": 15,
       "globalGuards": [],
       "handlers": [
         {

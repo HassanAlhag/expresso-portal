@@ -7,7 +7,8 @@
 //   node src/scripts/migrateConfidentialFiles.js --apply --delete-public
 //                                                         # also delete the public copies
 //
-// Run against STAGING first. Requires AWS_S3_BUCKET (source) and ideally
+// Run against STAGING first. Requires the public bucket (source: AWS_S3_BUCKET,
+// or a deprecated alias S3_BUCKET / AWS_BUCKET_NAME) and ideally
 // AWS_S3_PRIVATE_BUCKET (destination) in portal-api/.env.
 import { config } from "dotenv";
 import { dirname, resolve } from "path";
@@ -24,7 +25,7 @@ const { assertSafeTarget } = await import("./_guard.js");
 const { default: File } = await import("../modules/files/file.model.js");
 const { default: Application } = await import("../modules/careers/application.model.js");
 const { copyPublicObjectToPrivate, privateBucket } = await import("../utils/privateStorage.js");
-const { deleteFromS3 } = await import("../utils/s3.js");
+const { deleteFromS3, publicBucket } = await import("../utils/s3.js");
 
 const APPLY = process.argv.includes("--apply");
 const DELETE_PUBLIC = process.argv.includes("--delete-public");
@@ -41,7 +42,7 @@ function keyFromUrl(url) {
 async function main() {
   // A dry run only reads; applying changes is a write.
   assertSafeTarget({ readOnly: !APPLY });
-  if (!process.env.AWS_S3_BUCKET || !privateBucket()) {
+  if (!publicBucket() || !privateBucket()) {
     throw new Error("Set AWS_S3_BUCKET (and preferably AWS_S3_PRIVATE_BUCKET) first.");
   }
   await connectDB();

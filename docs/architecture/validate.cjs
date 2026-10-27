@@ -97,5 +97,43 @@ ok(html.includes('id="view-current"') && html.includes('id="view-target"'), 'blu
 const secretish = /(mongodb(\+srv)?:\/\/[^\s`<"]+@|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY|(?:SMTP_PASS|JWT_SECRET|AWS_SECRET_ACCESS_KEY|SUPER_ADMIN_PASSWORD)\s*=\s*\S+)/;
 for (const f of fs.readdirSync(dir).filter((x) => /\.(md|html|json)$/.test(x))) ok(!secretish.test(read(f)), `${f} contains something that looks like a credential`);
 
+// 11. Job statuses (P3-7, R4-D). The API's JOB_STATUSES is authoritative; the
+// client is deployed separately and keeps its own copies, so they are compared
+// here (read-only, no application import): every API status has a Jobs board
+// column and a client label, and the client names no status the API lacks.
+// The staff dashboard summary and the Productions pages are intentionally not
+// checked (different presentation / Jobs-Productions migration).
+{
+  const vm = require('node:vm');
+  const repo = path.resolve(dir, '../..');
+  const load = (rel, names) => {
+    const src = fs.readFileSync(path.join(repo, rel), 'utf8');
+    if (/^\s*import\s/m.test(src)) { fail.push(`${rel} now has imports; update the job status check`); return {}; }
+    try { return vm.runInNewContext(`${src.replace(/^export\s+/gm, '')}\n;({ ${names.join(', ')} })`, {}); }
+    catch (e) { fail.push(`${rel} could not be read for the job status check: ${e.message}`); return {}; }
+  };
+  const api = load('portal-api/src/modules/content/jobs/job.constants.js', ['JOB_STATUSES']);
+  const board = load('client/src/portal/features/jobs/pipeline.js', ['STATUS_TO_COLUMN', 'JOB_STAGES']);
+  const labels = load('client/src/portal/features/jobs/constants.js', ['JOB_STATUSES']);
+  if (api.JOB_STATUSES && board.STATUS_TO_COLUMN && labels.JOB_STATUSES) {
+    const statuses = new Set(api.JOB_STATUSES);
+    const columns = new Map(board.JOB_STAGES.map((st) => [st.key, st]));
+    for (const st of statuses) {
+      ok(Object.prototype.hasOwnProperty.call(board.STATUS_TO_COLUMN, st), `job status ${st} has no Jobs board column (pipeline.js)`);
+      ok(board.JOB_STAGES.filter((c) => c.statuses.includes(st)).length === 1, `job status ${st} is not in exactly one JOB_STAGES column`);
+      ok(labels.JOB_STATUSES.some((o) => o.value === st), `job status ${st} has no client label (jobs/constants.js)`);
+    }
+    for (const [st, col] of Object.entries(board.STATUS_TO_COLUMN)) {
+      ok(statuses.has(st), `pipeline.js maps ${st}, which is not an API job status`);
+      ok(columns.has(col) && columns.get(col).statuses.includes(st), `pipeline.js maps ${st} to ${col}, but that column does not list it`);
+    }
+    for (const c of board.JOB_STAGES) ok(statuses.has(c.moveStatus) && board.STATUS_TO_COLUMN[c.moveStatus] === c.key, `board column ${c.key} moves jobs to a status outside it`);
+    for (const o of labels.JOB_STATUSES) ok(o.value === '' || statuses.has(o.value), `client job status label ${o.value} is not an API job status`);
+  }
+  // The old dashboard copy of the stages (P3-7) stays gone.
+  const dash = fs.readFileSync(path.join(repo, 'client/src/portal/features/dashboard/pages/DashboardPage.jsx'), 'utf8');
+  ok(!/\bconst STAGES\s*=/.test(dash), 'DashboardPage.jsx defines its own job STAGES again');
+}
+
 if (fail.length) { console.error('FAILED\n- ' + fail.join('\n- ')); process.exit(1); }
 console.log(`OK: ${required.length} documents, ${c.apiRoutes} routes, ${c.models} models (${Object.entries(totals).map(([k, n]) => `${k} ${n}`).join(', ')}), blueprint offline.`);
