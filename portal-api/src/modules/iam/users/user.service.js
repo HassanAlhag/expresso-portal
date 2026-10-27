@@ -2,11 +2,8 @@
 import mongoose from "mongoose";
 import User from "./user.model.js";
 
-export function canManageRole(actorRole, targetRole) {
-  if (actorRole === "super_admin") return true;
-  if (actorRole === "admin") return !["super_admin", "admin"].includes(targetRole);
-  return false;
-}
+// The hierarchy rule has one implementation (R4-A); re-exported for callers of this module.
+export { canManageRole } from "../../../utils/roleHierarchy.js";
 
 export async function ensureEmailUnique(email, excludeId = null) {
   const q = { email };

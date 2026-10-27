@@ -14552,7 +14552,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 19
+          "line": 20
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -14638,11 +14638,11 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 20
+          "line": 21
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 21
+          "line": 22
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -14783,15 +14783,15 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 23
-        },
-        {
-          "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 24
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 25
+        },
+        {
+          "file": "client/src/portal/app/ProtectedRoute.jsx",
+          "line": 26
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -14934,7 +14934,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 26
+          "line": 27
         }
       ]
     },
@@ -14986,7 +14986,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 27
+          "line": 28
         },
         {
           "file": "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
@@ -15031,11 +15031,20 @@
     "files.delete": {
       "api": [
         {
+          "file": "portal-api/src/modules/files/files.controller.js",
+          "line": 392
+        },
+        {
           "file": "portal-api/src/modules/files/files.routes.js",
           "line": 63
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/files/pages/FilesPage.jsx",
+          "line": 332
+        }
+      ]
     },
     "portfolio.read": {
       "api": [
@@ -15055,11 +15064,11 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 30
+          "line": 31
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 31
+          "line": 32
         }
       ]
     },
@@ -15111,7 +15120,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 32
+          "line": 33
         }
       ]
     },
@@ -15163,7 +15172,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 33
+          "line": 34
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -15224,7 +15233,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 34
+          "line": 35
         },
         {
           "file": "client/src/portal/features/dashboard/client/clientOverview.js",
@@ -15317,7 +15326,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 35
+          "line": 36
         },
         {
           "file": "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
@@ -15337,7 +15346,7 @@
         },
         {
           "file": "client/src/portal/layouts/PortalLayout.jsx",
-          "line": 126
+          "line": 156
         }
       ]
     },
@@ -15390,7 +15399,12 @@
           "line": 62
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/tickets/pages/TicketDetailsPage.jsx",
+          "line": 278
+        }
+      ]
     },
     "crm.read": {
       "api": [
@@ -15466,7 +15480,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 36
+          "line": 37
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -15692,7 +15706,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 38
+          "line": 39
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -15854,7 +15868,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 37
+          "line": 38
         },
         {
           "file": "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
@@ -15900,15 +15914,23 @@
         },
         {
           "file": "client/src/portal/app/portalNav.js",
+          "line": 537
+        },
+        {
+          "file": "client/src/portal/app/portalNav.js",
           "line": 684
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 39
+          "line": 40
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 46
+          "line": 45
+        },
+        {
+          "file": "client/src/portal/app/ProtectedRoute.jsx",
+          "line": 48
         },
         {
           "file": "client/src/portal/features/hr/lib/hrOverview.js",
@@ -16006,7 +16028,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 40
+          "line": 41
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -16082,7 +16104,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 41
+          "line": 42
         },
         {
           "file": "client/src/portal/features/hr/components/expenseActions.js",
@@ -16154,7 +16176,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 42
+          "line": 43
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -16250,15 +16272,7 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 537
-        },
-        {
-          "file": "client/src/portal/app/portalNav.js",
           "line": 684
-        },
-        {
-          "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 43
         },
         {
           "file": "client/src/portal/features/hr/staff/staffTabs.js",
@@ -16350,7 +16364,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 45
+          "line": 47
         },
         {
           "file": "client/src/portal/features/hr/staff/staffTabs.js",
@@ -16425,7 +16439,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 47
+          "line": 49
         }
       ]
     },
@@ -16451,7 +16465,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 48
+          "line": 50
         },
         {
           "file": "client/src/portal/features/hr/staff/staffTabs.js",
@@ -16485,7 +16499,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 16
+          "line": 17
         },
         {
           "file": "client/src/portal/features/hr/components/StaffFormModal.jsx",
@@ -16562,7 +16576,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 17
+          "line": 18
         }
       ]
     },
@@ -16605,7 +16619,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 18
+          "line": 19
         },
         {
           "file": "client/src/portal/features/hr/components/StaffFormModal.jsx",
@@ -16680,11 +16694,11 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 14
+          "line": 15
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 15
+          "line": 16
         }
       ]
     },
@@ -16714,7 +16728,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 28
+          "line": 29
         }
       ]
     },
@@ -16741,7 +16755,7 @@
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 29
+          "line": 30
         }
       ]
     },
@@ -16808,15 +16822,23 @@
         },
         {
           "file": "client/src/portal/app/portalNav.js",
+          "line": 416
+        },
+        {
+          "file": "client/src/portal/app/portalNav.js",
+          "line": 425
+        },
+        {
+          "file": "client/src/portal/app/portalNav.js",
           "line": 687
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 49
+          "line": 51
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 50
+          "line": 52
         }
       ]
     },
@@ -16887,16 +16909,7 @@
           "line": 35
         }
       ],
-      "ui": [
-        {
-          "file": "client/src/portal/app/portalNav.js",
-          "line": 416
-        },
-        {
-          "file": "client/src/portal/app/portalNav.js",
-          "line": 425
-        }
-      ]
+      "ui": []
     }
   },
   "frontendRequests": [
@@ -19067,10 +19080,8 @@
     "client/src/portal/features/services/components/QuantityCounter.jsx",
     "client/src/portal/features/services/tabs/ServiceTemplateTabs.jsx",
     "client/src/portal/features/settings/api.js",
-    "client/src/portal/shared/hooks/usePortalPermissions.js",
     "client/src/portal/shared/hooks/usePortalProfile.js",
     "client/src/portal/shared/ui/AttachmentPicker.jsx",
-    "client/src/portal/shared/ui/Can.jsx",
     "client/src/portal/shared/ui/DataTable.jsx",
     "client/src/portal/shared/ui/ListShell.jsx",
     "client/src/portal/shared/ui/StatusPill.jsx",
@@ -19745,7 +19756,6 @@
           "client/src/portal/shared/hooks/useAccess.js",
           "client/src/portal/shared/hooks/useDebouncedValue.js",
           "client/src/portal/shared/hooks/usePermissionCatalog.js",
-          "client/src/portal/shared/hooks/usePortalPermissions.js",
           "client/src/portal/shared/hooks/usePortalProfile.js",
           "client/src/portal/shared/ui/ActionMenu.jsx",
           "client/src/portal/shared/ui/Alert.jsx",

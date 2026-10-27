@@ -273,7 +273,9 @@ function StaffTicketDetailsPage() {
   const { id } = useParams();
   const role = useMemo(getRole, []);
   const isAdmin = isAdminRole(role);
-  const isSuperAdmin = role === "super_admin";
+  // Same permission the API checks for DELETE /api/tickets/:id (R4-A).
+  const access = useAccess();
+  const canDeleteTicket = access.can("tickets.delete");
   const toast = useToast();
 
   const [ticket, setTicket] = useState(null);
@@ -575,7 +577,7 @@ function StaffTicketDetailsPage() {
               />
             </Button>
 
-            {isSuperAdmin && (
+            {canDeleteTicket && (
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}

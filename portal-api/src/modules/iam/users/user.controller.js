@@ -10,15 +10,7 @@ import {
   VALID_PERMISSION_KEYS,
 } from "../../../config/permissions.js";
 import { externalDeniedIn, resolveRoleContext } from "../../../utils/roleRegistry.js";
-
-function canManageRole(actorRole, targetRole) {
-  const actor = String(actorRole || "").toLowerCase();
-  const target = String(targetRole || "").toLowerCase();
-
-  if (actor === "super_admin") return true;
-  if (actor === "admin") return !["super_admin", "admin"].includes(target);
-  return false;
-}
+import { canManageRole } from "../../../utils/roleHierarchy.js";
 
 /**
  * True when the change would leave no active super admin: the target is an

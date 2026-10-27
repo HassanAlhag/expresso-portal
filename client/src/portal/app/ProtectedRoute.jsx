@@ -1,6 +1,7 @@
 // src/portal/app/ProtectedRoute.jsx
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { readPortalUser, usePortalSessionVersion } from "../shared/hooks/useAccess";
 
 function parseToken(token) {
   try {
@@ -40,7 +41,8 @@ const ROUTE_PERMISSIONS = [
   ["/portal/hr/expenses", "hr.expenses.read"],
   ["/portal/hr/monthly-expenses", "hr.expenses.approve"],
   ["/portal/hr/leaves", "hr.leaves.read"],
-  ["/portal/hr/skills", "hr.scorecards.read"],
+  // The skills matrix reads staff records (GET /api/hr/staff → hr.staff.read).
+  ["/portal/hr/skills", "hr.staff.read"],
   // KPI pages use the KPI permission, not hr.staff.read (must precede /portal/hr).
   ["/portal/hr/kpi", "hr.kpi.read"],
   ["/portal/hr", "hr.staff.read"],
@@ -128,14 +130,13 @@ function isVendorRfqView(role, p) {
   return Boolean(m) && m[1] !== "new";
 }
 
+/**
+ * Route guard rule. Same as the API (R4-A): super_admin passes; every other
+ * role, admin included, needs the route's permission in its effective list.
+ * The inherited `admin` role-name bypass was removed (P3-5).
+ */
 export function isAllowed(role, pathname) {
-  const r = String(role || "").toLowerCase();
-  // Pre-existing: the route guard also lets the `admin` role through, while
-  // the API bypasses checks for super_admin only. Recorded as a deferred
-  // finding (PUI-2 review); unchanged here so R2 route behaviour is not
-  // altered. New UI decisions use isAllowedByPermissions below.
-  if (r === "super_admin" || r === "admin") return true;
-  return checkRoute(r, pathname);
+  return isAllowedByPermissions(role, pathname);
 }
 
 /**
@@ -174,13 +175,17 @@ function checkRoute(r, pathname) {
 
 export default function ProtectedRoute({ children }) {
   const location = useLocation();
+  usePortalSessionVersion(); // re-check when the session is refreshed
   const token = localStorage.getItem("portal_token");
   if (!token) return <Navigate to="/portal/login" replace />;
 
   const payload = parseToken(token);
   if (!payload) return <Navigate to="/portal/login" replace />;
 
-  if (!isAllowed(payload.role, location.pathname)) {
+  // Prefer the role last confirmed by /auth/me (refreshed on focus); the
+  // token's role is only a fallback before the first refresh.
+  const role = readPortalUser()?.role || payload.role;
+  if (!isAllowed(role, location.pathname)) {
     return <Navigate to="/portal" replace />;
   }
 

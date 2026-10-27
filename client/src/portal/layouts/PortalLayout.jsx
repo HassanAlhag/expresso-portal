@@ -5,12 +5,17 @@ import Topbar from "./Topbar";
 import Sidebar from "./Sidebar";
 import { ShellProvider } from "./ShellContext";
 import { getNavSectionsByRole, getWorkspaceKind } from "../app/portalNav";
+import { writePortalSession } from "../shared/hooks/useAccess";
 
 // Application shell (PUI-1): dark sidebar with permission-filtered groups,
 // top bar with page context, and a balanced page column. Desktop sidebar
 // collapses to an icon rail; at 960 px and below it becomes a drawer.
 const DRAWER_QUERY = "(max-width: 960px)";
 const COLLAPSE_KEY = "portal_nav_collapsed";
+// Permissions are re-read from /auth/me when the window regains focus, at most
+// once a minute (R4-A). The API always enforces current permissions; this only
+// keeps the menu, route guard and page controls in step with them.
+export const SESSION_REFRESH_MS = 60 * 1000;
 
 function readStoredUser() {
   try {
@@ -51,17 +56,16 @@ export default function PortalLayout() {
   const [navOpen, setNavOpen] = useState(false);
   const isDrawer = useMediaQuery(DRAWER_QUERY);
   const menuButtonRef = useRef(null);
+  const lastRefreshRef = useRef(0);
 
   useEffect(() => {
     const run = async () => {
+      lastRefreshRef.current = Date.now();
       try {
         const res = await me();
         const userData = res?.user || null;
         setUser(userData);
-        if (userData) {
-          localStorage.setItem("portal_user", JSON.stringify(userData));
-          localStorage.setItem("portal_permissions", JSON.stringify(userData.permissions || []));
-        }
+        if (userData) writePortalSession(userData);
       } catch {
         localStorage.removeItem("portal_token");
         localStorage.removeItem("portal_user");
@@ -71,6 +75,32 @@ export default function PortalLayout() {
     };
     run();
   }, [nav]);
+
+  // Refresh on focus (throttled). A failed refresh keeps the current view; an
+  // expired session is already handled by the API client's 401 redirect.
+  useEffect(() => {
+    const onFocus = async () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      if (Date.now() - lastRefreshRef.current < SESSION_REFRESH_MS) return;
+      lastRefreshRef.current = Date.now();
+      try {
+        const res = await me();
+        const userData = res?.user || null;
+        if (userData) {
+          writePortalSession(userData);
+          setUser(userData);
+        }
+      } catch {
+        // keep the last confirmed session
+      }
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, []);
 
   // The drawer closes when the route changes.
   useEffect(() => {

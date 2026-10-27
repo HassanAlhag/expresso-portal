@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isAllowedByPermissions } from "../../app/ProtectedRoute";
 
 // UI gating helpers (PUI-2). The API is always the authority; these decide
@@ -8,6 +8,40 @@ import { isAllowedByPermissions } from "../../app/ProtectedRoute";
 // in its effective permission list. `canOpen` applies the route rules with
 // that same rule, so a link is only offered when its page and data are allowed.
 const EXTERNAL_ROLES = new Set(["client", "staff_client", "procurement_client", "client_admin", "vendor"]);
+
+// Signed-in user as last confirmed by the API (/auth/me). Pages, the route
+// guard and the navigation read it from here; writePortalSession stores a
+// refreshed copy and tells them to re-evaluate (R4-A).
+export const PORTAL_SESSION_EVENT = "portal:session-updated";
+
+export function writePortalSession(user) {
+  if (!user) return;
+  try {
+    localStorage.setItem("portal_user", JSON.stringify(user));
+    localStorage.setItem("portal_permissions", JSON.stringify(user.permissions || []));
+  } catch {
+    // storage unavailable: the API still enforces every decision
+  }
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(PORTAL_SESSION_EVENT));
+}
+
+/** Re-renders when the stored session changes (this tab or another tab). */
+export function usePortalSessionVersion() {
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    const bump = () => setVersion((v) => v + 1);
+    const onStorage = (e) => {
+      if (!e.key || e.key === "portal_user" || e.key === "portal_permissions") bump();
+    };
+    window.addEventListener(PORTAL_SESSION_EVENT, bump);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(PORTAL_SESSION_EVENT, bump);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+  return version;
+}
 
 export function readPortalUser() {
   try {
@@ -44,5 +78,7 @@ export function makeAccess(user = {}) {
 }
 
 export function useAccess() {
-  return useMemo(() => makeAccess(readPortalUser()), []);
+  const version = usePortalSessionVersion();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- re-read storage when the session changes
+  return useMemo(() => makeAccess(readPortalUser()), [version]);
 }

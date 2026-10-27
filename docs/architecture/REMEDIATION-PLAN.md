@@ -2,7 +2,7 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · [Cleanup audit](CODE-CLEANUP-AUDIT.md) · [Reset plan](DATABASE-RESET-PLAN.md)
 
-**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is committed (`23425ab8`). **Website Stage 4: code complete and committed (`feat: complete website stage 4`); homepage CMS content pending manual entry.** **R4 and R5 have not started.** Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
+**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is committed (`23425ab8`). **Website Stage 4: code complete and committed (`feat: complete website stage 4`); homepage CMS content pending manual entry.** **R4 is in progress: R4-A (P3-5 / P3-6 access consistency) complete and committed (`refactor: align portal access controls`); R4-B, R4-C and R4-D not started. R5 has not started.** Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
 
 **Baseline:** branch `website/integrated-solutions`. Application code is at `58b8f86c`; the architecture docs were committed at `e867d95f`.
 
@@ -29,7 +29,7 @@ The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → 
 | R2 Access model & vendor journey | P1-1, P1-3, P1-4, P1-5, P2-1, P2-3 RFQs, P2-4, P2-5, P3-4 | Code complete; one part deferred | `26a2cca6`; P2-4 and the RFQ counter in `91a0c0bc`. **Deferred:** RFQ unique index (needs the read-only duplicate check). Deployment checks pending |
 | R3 Housekeeping | P3-3, P3-9, audit corrections | Code complete (R1/R3 closure committed in `23425ab8`) | Audit corrections were applied with the baseline. P3-3 and P3-9 in the R1/R3 closure. **Note:** commit `91a0c0bc`, labelled R3, delivered R1/R2 items (P2-3, P2-4, `seedUser.js`), not the original R3 housekeeping |
 | Website Stage 4 | Homepage and remaining public pages | **W4 code: complete and committed. W4 CMS content: pending manual entry** | No detailed W4 specification existed; scope settled in the W4 pre-flight (26 Oct 2026). See [Website Stage 4](#website-stage-4-w4-code-complete-and-committed-cms-content-pending) |
-| R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **Not started** as a stage | P3-5 and P3-6 partly done incidentally during PUI (see their rows); P2-2, P2-6, P3-7, P3-8 untouched |
+| R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **In progress (not complete)** | Split into passes (26 Oct 2026): **R4-A** P3-5 / P3-6 complete and committed; **R4-B** P2-6 + P3-8, **R4-C** P2-2, **R4-D** P3-7 not started. See [R4](#r4-consistency-refactors-in-progress-r4-a-complete-and-committed) |
 | R5 Verified cleanup & data lifecycle | P3-2, P4-2, P4-4, P4-5, P4-6, P2-7 pipeline | **Not started** | Needs backup with tested restore, database export and access-log review first |
 | Design study | Offline prototype and component specification | **Done** | `f0d9bc02` |
 | Portal implementation | Shared components, then Dashboard, CRM, Projects, Finance, HR, Procurement, absorbing P3-5 and P3-6 | **Partial** | PUI-1 to PUI-5 cover all listed modules plus client and vendor views. Open: the Jobs board page (legacy UI), and the P3-5 / P3-6 remainder |
@@ -49,6 +49,7 @@ The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → 
 | `3106b267` | PUI-5 | Client and vendor portal; ticket, file-link and billing boundaries; vendor `quoted=true` list | No |
 | `23425ab8` | R1/R3 closure | P1-2, P4-1, P4-3, P3-1 `reports.export`, P3-3, P3-9, status update | No |
 | `feat: complete website stage 4` | Website Stage 4 | Digital Solutions catalogue and Business Suite page; Services and Portfolio load states; homepage eyebrow rule; placeholder badges removed | No |
+| `refactor: align portal access controls` | R4-A | P3-5 / P3-6 access consistency: no `admin` name bypass in the route guard or navigation, session refresh on focus, menu/route alignment, permission-gated delete actions, internal-only file deletion, one role-hierarchy helper | No |
 
 No deployment gate listed under R2, R3 or section 8 has been performed.
 
@@ -66,6 +67,36 @@ The repository defined W4 only as "the next website implementation stage (homepa
 | Four new homepage slides | **CMS content: pending manual entry** | Upload the four images in `client/public/images/homepage/` to the Media Library, then create the slides in Portal → Website → Homepage slides with the second eyebrow left blank and Order values after the existing five. Not seeded, not hard-coded |
 | Contact form `?interest=` capture | Not in W4 (optional future enhancement) | The Business Suite CTA keeps `/contact-us?interest=business-suite-demo` |
 | Dynamic sitemap | Not in W4 | The static sitemap remains; it lists the Business Suite route |
+
+### R4 consistency refactors (in progress; R4-A complete and committed)
+
+The original R4 is P2-2, P2-6, P3-5, P3-6, P3-7 and P3-8 (section 10). None is deferred; it is delivered in four controlled passes. **R4 is not complete.**
+
+| Pass | Items | Status |
+|---|---|---|
+| R4-A | P3-5, P3-6 (access consistency) | **Complete and committed** |
+| R4-B | P2-6 (settings read without write), P3-8 (duplicate index, ticket comment role) | Not started |
+| R4-C | P2-2 (CRM conversion atomicity and link field) | Not started |
+| R4-D | P3-7 (duplicated sources of truth) | Not started |
+
+**R4-A detail.** Backend unchanged in principle: the API reloads the user and resolves permissions from the database on every request; `super_admin` is the only bypass.
+
+| Change | Detail | Tests |
+|---|---|---|
+| Route guard | `ProtectedRoute.isAllowed` no longer lets `admin` through by name; `super_admin` keeps its bypass, everyone else needs the route permission. The role comes from the user last confirmed by `/auth/me`, with the token's role only as a fallback | `app/r4aAccess.test.jsx`; `useAccess.test.js` updated (it pinned the old bypass as deferred) |
+| Navigation | `portalNav` filters `admin` by permissions like any other role (`super_admin` keeps the full menu). A default admin sees the same menu as before | `app/r4aAccess.test.jsx` |
+| Menu / route alignment | Digital Services and Tech Solutions editors: menu `website.write` → `website.read` (matches the route). Skill Matrix: menu and route `hr.scorecards.read` → `hr.staff.read` (the permission its data needs) | `app/r4aAccess.test.jsx` |
+| Session refresh | `PortalLayout` re-reads `/auth/me` when the window regains focus or becomes visible, at most once a minute; `writePortalSession` stores it and signals `useAccess`, the route guard and the menu to re-evaluate. No polling, sockets or new session model | `app/r4aAccess.test.jsx` |
+| Delete actions | Staff Files: Delete shown only with `files.delete`. Staff ticket: Delete shown with `tickets.delete` (was: role name `super_admin`) | `app/r4aAccess.test.jsx` |
+| File deletion (API) | `deleteFile` requires an internal user **and** `files.delete` (was: role name `admin`/`super_admin`). Internal custom roles with the permission now work; client and vendor users stay refused even if granted `files.delete`, because deletion has no company scoping | `portal-api/test/r4a-access.test.js` |
+| Role hierarchy | `canManageRole` now has one implementation, `portal-api/src/utils/roleHierarchy.js`, used by users, invites and access requests (two live copies and one unused copy removed). Rule unchanged; protected-role, self-management and last-super-admin guards untouched | Equivalence matrix over every actor × target pair, plus route checks for users, invites and access requests |
+| Unused helpers | `shared/ui/Can.jsx` and `shared/hooks/usePortalPermissions.js` deleted: no importers, never used since added, superseded by `useAccess`; `usePortalPermissions` had no `super_admin` bypass (the API sends super_admin an empty permission list), so adopting it would have hidden every control from super admins | — |
+
+Kept as intentional: the API's `super_admin` bypass, protected-role and self-management rules, last-super-admin protection, vendor/client workspace selection, and the portfolio rule that only `admin`/`super_admin` edit slug, tags, SEO and sort order (no permission key exists for it).
+
+Found, not changed in R4-A: the legacy staff ticket page's `isAdminRole` list of internal role names (gates staff tools; custom internal roles do not get them) and save/delete controls on about 27 older pages that are not permission-gated; both belong to those modules' migration (PI tail). `billing.delete` is catalogued but has no route (decision, outside R4).
+
+**Deployment gate (still open):** role-editor round trip with a real session (edit and save a stored role, including keys the editor does not list, reopen and compare).
 
 ### R1/R3 closure (committed in `23425ab8`; not deployed)
 
@@ -645,6 +676,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Tests** | Per-module UI tests with a read-only role |
 | **Data change** | None |
 | **Order** | Stage 4 |
+| **Status (R4-A)** | Implemented and committed: no `admin` name bypass in the route guard or navigation; session refresh on focus; menu/route alignment (website editors, Skill Matrix); Files and ticket Delete follow their permissions; `useAccess` (not `Can`) is the canonical helper. Older pages' controls stay with their module migrations |
 
 ### P3-6 Hard-coded role names instead of permissions
 
@@ -660,6 +692,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Tests** | Matrix of actor role × target role for user and invite management |
 | **Data change** | None |
 | **Order** | Stage 4 |
+| **Status (R4-A)** | Implemented and committed: `deleteFile` uses internal user + `files.delete`; `canManageRole` is one shared helper with the same rule (a rank rule, kept deliberately); vendor detection (R2) and dashboard choice (PUI-5) were already permission/profile based |
 
 ### P3-7 Other duplicated sources of truth
 

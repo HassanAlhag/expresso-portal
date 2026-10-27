@@ -7,8 +7,8 @@ import {
   ensureRoleExists,
   ensureTeamExists,
   resolveClientId,
-  canManageRole,
 } from "../invites/invite.controller.js";
+import { canManageRole } from "../../../utils/roleHierarchy.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

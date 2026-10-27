@@ -12,6 +12,7 @@ import { logAudit } from "../audit/audit.service.js";
 import { sendMail } from "../../../utils/email.js";
 import { env } from "../../../config/env.js";
 import { DEFAULT_ROLE_PERMISSIONS } from "../../../config/permissions.js";
+import { canManageRole } from "../../../utils/roleHierarchy.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -37,14 +38,6 @@ function safeSort(sort) {
   return { [key]: dir };
 }
 
-export function canManageRole(actorRole, targetRole) {
-  const actor = String(actorRole || "").toLowerCase();
-  const target = String(targetRole || "").toLowerCase();
-
-  if (actor === "super_admin") return true;
-  if (actor === "admin") return !["super_admin", "admin"].includes(target);
-  return false;
-}
 
 export async function ensureRoleExists(roleKey) {
   const key = String(roleKey || "")

@@ -413,7 +413,7 @@ const ITEMS = {
     hint: "Service cards on the services page",
     Icon: Globe,
     accent: ACCENTS.sky,
-    permission: "website.write",
+    permission: "website.read",
   },
 
   techSolutions: {
@@ -422,7 +422,7 @@ const ITEMS = {
     hint: "IT solution cards & content",
     Icon: Layers,
     accent: ACCENTS.violet,
-    permission: "website.write",
+    permission: "website.read",
   },
 
   procurement: {
@@ -534,7 +534,7 @@ const ITEMS = {
     hint: "Team skills overview",
     Icon: Grid3x3,
     accent: ACCENTS.mint,
-    permission: "hr.scorecards.read",
+    permission: "hr.staff.read",
   },
 
   hrKpi: {
@@ -697,7 +697,9 @@ const CLIENT_ROLES = new Set([
 
 function canSeeItem(item, role, permissionSet) {
   const r = String(role || "").toLowerCase();
-  if (r === ROLES.SUPER_ADMIN || r === ROLES.ADMIN) return true;
+  // Same rule as the API (R4-A): only super_admin bypasses; admin is filtered
+  // by its effective permissions like every other role.
+  if (r === ROLES.SUPER_ADMIN) return true;
   if (!item.permission) return true;
   // Hard-block internal sections from all client roles, regardless of permissions
   if (CLIENT_ROLES.has(r) && INTERNAL_PERMISSIONS.has(item.permission)) return false;
@@ -771,7 +773,7 @@ export function getNavSectionsByRole(role, permissions = [], isInternal) {
 
   if (!r) return [];
 
-  if (r === ROLES.SUPER_ADMIN || r === ROLES.ADMIN) {
+  if (r === ROLES.SUPER_ADMIN) {
     return ADMIN_SECTIONS;
   }
 

@@ -328,6 +328,8 @@ function UploadModal({ open, onClose, onUpload, busy }) {
 function StaffFilesPage() {
   const nav = useNavigate();
   const toast = useToast();
+  // Delete is offered only with the permission the API checks (R4-A).
+  const canDeleteFiles = useAccess().can("files.delete");
 
   const [pageDragging, setPageDragging] = useState(false);
   const [q, setQ] = useState("");
@@ -871,13 +873,15 @@ function StaffFilesPage() {
                             Client
                           </button>
                         )}
-                        <button
-                          onClick={() => onDelete(f)}
-                          className="grid h-8 w-8 place-items-center rounded-xl border border-rose-200 bg-white text-rose-400 transition hover:bg-rose-50 hover:text-rose-600"
-                          title="Delete"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        {canDeleteFiles ? (
+                          <button
+                            onClick={() => onDelete(f)}
+                            className="grid h-8 w-8 place-items-center rounded-xl border border-rose-200 bg-white text-rose-400 transition hover:bg-rose-50 hover:text-rose-600"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   );

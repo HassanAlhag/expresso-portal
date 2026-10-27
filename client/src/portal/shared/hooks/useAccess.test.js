@@ -32,9 +32,10 @@ test("super_admin passes everything, as on the API", () => {
   expect(a.canOpen("/portal/billing")).toBe(true);
 });
 
-test("the pre-existing route guard is unchanged (deferred finding), the new check is not role-name based", () => {
+test("the route guard follows effective permissions for admin too (R4-A removed the role-name bypass)", () => {
   signIn("admin", ["projects.read"]);
-  expect(isAllowed("admin", "/portal/billing")).toBe(true); // inherited behaviour, documented and deferred
+  expect(isAllowed("admin", "/portal/billing")).toBe(false);
+  expect(isAllowed("admin", "/portal/projects")).toBe(true);
   expect(isAllowedByPermissions("admin", "/portal/billing")).toBe(false);
   expect(isAllowedByPermissions("admin", "/portal/projects")).toBe(true);
   signIn("project_manager", ["projects.read"]);

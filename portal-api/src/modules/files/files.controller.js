@@ -4,7 +4,8 @@ import Project from "../projects/project.model.js";
 import Job from "../content/jobs/job.model.js";
 import { deleteFromS3 } from "../../utils/s3.js";
 import { putPrivate, privateDownloadUrl, deletePrivate } from "../../utils/privateStorage.js";
-import { canSeeAllTenantRecords } from "../../utils/accessControl.js";
+import { canSeeAllTenantRecords, isInternalUser } from "../../utils/accessControl.js";
+import { userHasPermission } from "../../middleware/auth.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -34,10 +35,6 @@ function safeSort(sort) {
   const key = raw.startsWith("-") ? raw.slice(1) : raw;
   const dir = raw.startsWith("-") ? -1 : 1;
   return { [key]: dir };
-}
-
-function role(req) {
-  return String(req.user?.role || "").toLowerCase();
 }
 
 /**
@@ -390,7 +387,9 @@ export async function updateFile(req, res) {
 // DELETE /api/files/:id
 export async function deleteFile(req, res) {
   try {
-    if (!["super_admin", "admin"].includes(role(req))) {
+    // Internal users with files.delete only (R4-A). Deletion has no company
+    // scoping, so external roles stay refused even if granted files.delete.
+    if (!isInternalUser(req) || !userHasPermission(req.user, "files.delete")) {
       return res.status(403).json({ ok: false, message: "Forbidden" });
     }
 
