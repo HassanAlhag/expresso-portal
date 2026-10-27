@@ -200,3 +200,17 @@ test("nothing needing attention is said plainly", () => {
   expect(view.metrics.map((m) => m.label)).toEqual(["Active projects", "Jobs in production"]);
   expect(plannedSources(makeAccess({ role: "x", permissions: ["billing.read"] })).map((s) => s.key)).toEqual(["billing"]);
 });
+
+test("job links open the Jobs list filtered to the jobs counted, video included (PI tail)", () => {
+  const access = makeAccess({ role: "super_admin" });
+  const view = deriveStaff(
+    { jobs: { items: [{ _id: "j1", title: "Reel cut", status: "client_review", workflowType: "video" }, { _id: "j2", title: "Banner", status: "editing" }] } },
+    access
+  );
+  const review = view.attention.find((a) => a.key === "jobs-review");
+  expect(review.to).toBe("/portal/jobs?status=internal_review,client_review&workflow=all");
+  expect(view.metrics.find((m) => m.key === "jobs").to).toBe("/portal/jobs?status=designing,shooting,editing&workflow=all");
+  // Without access to Jobs there is no link at all.
+  const noJobs = deriveStaff({ jobs: { items: [{ _id: "j1", status: "internal_review" }] } }, makeAccess({ role: "x", permissions: ["projects.read"] }));
+  expect(noJobs.attention.find((a) => a.key === "jobs-review").to).toBeUndefined();
+});

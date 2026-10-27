@@ -154,7 +154,7 @@ const ITEMS = {
   productions: {
     to: ROUTES.PRODUCTIONS,
     label: "Production",
-    hint: "Jobs, review, publishing",
+    hint: "Video and reel production",
     Icon: Clapperboard,
     accent: ACCENTS.rose,
     permission: "jobs.read",
@@ -172,7 +172,7 @@ const ITEMS = {
   jobs: {
     to: ROUTES.JOBS,
     label: "Jobs",
-    hint: "Individual delivery tasks",
+    hint: "Design, photo, post and task work",
     Icon: Briefcase,
     accent: ACCENTS.amber,
     permission: "jobs.read",
@@ -819,7 +819,7 @@ export function getPageMeta(pathname) {
   if (starts(ROUTES.PRODUCTIONS)) {
     return {
       label: "Production",
-      subtitle: "Jobs, reviews, publishing, and showcase",
+      subtitle: "Video and reel production: review, publishing and showcase",
       Icon: Clapperboard,
     };
   }
@@ -835,7 +835,7 @@ export function getPageMeta(pathname) {
   if (starts(ROUTES.JOBS)) {
     return {
       label: "Jobs",
-      subtitle: "Individual delivery tasks and outputs",
+      subtitle: "Design, photo, post and task work (video is in Production)",
       Icon: Briefcase,
     };
   }

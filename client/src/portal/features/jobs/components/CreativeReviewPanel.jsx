@@ -25,9 +25,9 @@ function threadStyle(status) {
     case "changes_requested":
       return { bg: "bg-orange-50 border-orange-200", Icon: AlertTriangle, iconCls: "text-orange-500", label: "Changes requested" };
     case "client_sent":
-      return { bg: "bg-blue-50 border-blue-200", Icon: Send, iconCls: "text-blue-500", label: "Sent to client" };
+      return { bg: "bg-blue-50 border-blue-200", Icon: Send, iconCls: "text-blue-500", label: "Marked as in client review" };
     case "client_note":
-      return { bg: "bg-violet-50 border-violet-200", Icon: MessageSquare, iconCls: "text-violet-500", label: "Client note" };
+      return { bg: "bg-violet-50 border-violet-200", Icon: MessageSquare, iconCls: "text-violet-500", label: "Client feedback" };
     default:
       return { bg: "bg-slate-50 border-slate-200", Icon: Lock, iconCls: "text-slate-400", label: "Internal note" };
   }
@@ -119,6 +119,9 @@ export default function CreativeReviewPanel({
   onRequestChanges,
   onSendToClient,
   onAddNote,
+  // PI tail: without jobs.write the panel is view-only (no attach, approve,
+  // request changes, notes or client-review marking).
+  readOnly = false,
 }) {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [note, setNote] = useState("");
@@ -166,15 +169,17 @@ export default function CreativeReviewPanel({
               </span>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onAttach}
-            disabled={busy}
-            className="flex items-center gap-1.5 rounded-xl border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
-          >
-            <Paperclip size={12} />
-            Attach version
-          </button>
+          {readOnly ? null : (
+            <button
+              type="button"
+              onClick={onAttach}
+              disabled={busy}
+              className="flex items-center gap-1.5 rounded-xl border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+            >
+              <Paperclip size={12} />
+              Attach version
+            </button>
+          )}
         </div>
 
         {!hasMedia ? (
@@ -185,17 +190,19 @@ export default function CreativeReviewPanel({
             </div>
             <div>
               <p className="text-sm font-extrabold text-slate-500">No artwork attached yet</p>
-              <p className="mt-1 text-xs text-slate-400">Upload the creative here for everyone to review and approve.</p>
+              <p className="mt-1 text-xs text-slate-400">Attach the creative here for the team to review.</p>
             </div>
-            <button
-              type="button"
-              onClick={onAttach}
-              disabled={busy}
-              className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-60"
-            >
-              <Paperclip size={14} />
-              Attach creative
-            </button>
+            {readOnly ? null : (
+              <button
+                type="button"
+                onClick={onAttach}
+                disabled={busy}
+                className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-60"
+              >
+                <Paperclip size={14} />
+                Attach creative
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid lg:grid-cols-[1fr_360px]">
@@ -316,7 +323,7 @@ export default function CreativeReviewPanel({
                     {media.length > 1 && ` · ${selectedIdx + 1} of ${media.length}`}
                   </div>
                 </div>
-                <div className="flex shrink-0 gap-1.5">
+                {readOnly ? null : <div className="flex shrink-0 gap-1.5">
                   <Button
                     variant="outline"
                     onClick={handleRequestChanges}
@@ -334,7 +341,7 @@ export default function CreativeReviewPanel({
                     <CheckCircle2 size={13} />
                     Approve
                   </Button>
-                </div>
+                </div>}
               </div>
             </div>
 
@@ -358,11 +365,11 @@ export default function CreativeReviewPanel({
               </div>
 
               {/* Compose */}
-              <div className="border-t border-black/[0.07] p-4">
+              {readOnly ? null : <div className="border-t border-black/[0.07] p-4">
                 <div className="mb-2 flex gap-1">
                   {[
                     { value: "internal_note", label: "Internal", Icon: Lock },
-                    { value: "client_note",   label: "Client",   Icon: MessageSquare },
+                    { value: "client_note",   label: "Client feedback",   Icon: MessageSquare },
                   ].map(({ value, label, Icon: Ic }) => (
                     <button
                       key={value}
@@ -387,7 +394,7 @@ export default function CreativeReviewPanel({
                   placeholder={
                     noteType === "internal_note"
                       ? "Write an internal note…"
-                      : "Write a client-visible note…"
+                      : "Record what the client said (clients don't see jobs in the portal)…"
                   }
                   className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:ring-4 focus:ring-black/5"
                 />
@@ -407,10 +414,10 @@ export default function CreativeReviewPanel({
                     className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
                   >
                     <Send size={11} />
-                    Send to client
+                    Mark as in client review
                   </button>
                 </div>
-              </div>
+              </div>}
             </div>
           </div>
         )}

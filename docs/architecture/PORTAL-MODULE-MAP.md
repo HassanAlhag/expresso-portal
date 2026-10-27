@@ -125,7 +125,7 @@ Source: [client/src/portal/features/projects](../../client/src/portal/features/p
 | States / workflow | brief → script/pre_production → designing/shooting/editing → internal_review/client_review → approved/scheduled → published/delivered; on_hold/archived; separate publishStatus. |
 | Other modules | Generated from enrollment scopes; also drives Productions, content calendar, customer/project tabs and public website reels. |
 | Files / notifications | draft/final/poster Media references, approval subdocuments; approval entries are stored history, not guaranteed email messages. |
-| Assessment | Active; the Jobs board stages come from `jobs/pipeline.js` (checked against the API statuses since R4-D); the dashboard summary is a deliberate roll-up; the Productions pages keep their own stage lists (drift recorded for the Jobs/Productions migration); state transitions are not one central workflow engine. |
+| Assessment | Active; migrated to the PUI patterns in the PI tail (complete): server-paginated list, board, permission-gated actions, detail without its own stage list. The Jobs board stages come from `jobs/pipeline.js` (checked against the API statuses since R4-D); the dashboard summary is a deliberate roll-up; the Productions pages keep their own stage lists (drift recorded for the Jobs/Productions migration); state transitions are not one central workflow engine. |
 
 Source: [client/src/portal/features/jobs](../../client/src/portal/features/jobs).
 

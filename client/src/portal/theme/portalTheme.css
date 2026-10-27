@@ -1130,3 +1130,27 @@ textarea.px-input { height: auto; padding: 9px 12px; line-height: 1.5; resize: v
 .px-thread-who { display: flex; gap: 8px; align-items: baseline; font-size: 12.5px; font-weight: 600; color: var(--px-ink-2); }
 .px-thread-who time, .px-thread-event time { font-weight: 400; color: var(--px-muted); font-size: 12px; }
 .px-thread-event { justify-self: center; font-size: 12.5px; color: var(--px-muted); text-align: center; }
+
+/* Jobs (PI tail): assigned-staff chips, the list's selection column and the
+   stage strip on a job. The board reuses .px-board (PUI-3). */
+.px-chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.px-filter-chip[data-static="true"] { cursor: default; padding-right: 10px; }
+.px-filter-chip[data-static="true"]:hover { border-color: var(--px-line); color: var(--px-ink-2); }
+.px-chip-x { display: inline-flex; align-items: center; border: 0; background: none; padding: 2px; margin: 0; color: inherit; cursor: pointer; border-radius: 50%; }
+.px-chip-x:hover { color: var(--px-bad); }
+.px-select-cell { width: 40px; }
+.px-select-cell input { width: 16px; height: 16px; accent-color: var(--px-lotus-600); }
+.px-bulk-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--px-line); background: var(--px-lotus-50); font: 500 13.5px var(--px-font); color: var(--px-ink); }
+.px-bulk-bar > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.px-board-card .px-board-moves { display: flex; justify-content: space-between; gap: 6px; }
+.px-stage-strip { display: grid; grid-template-columns: repeat(var(--px-stage-n, 7), minmax(0, 1fr)); gap: 4px; }
+.px-stage-strip span { display: grid; gap: 4px; font-size: 12px; color: var(--px-muted); min-width: 0; }
+.px-stage-strip span::before { content: ""; height: 6px; border-radius: 99px; background: var(--px-surface-2); }
+.px-stage-strip span[data-on="true"]::before { background: var(--px-lotus-600); }
+.px-stage-strip span[aria-current="step"] { color: var(--px-ink); font-weight: 600; }
+/* Phones: only the current stage keeps its label under the bar. */
+@media (max-width: 640px) {
+  .px-stage-strip span { font-size: 0; }
+  .px-stage-strip span[aria-current="step"] { font-size: 12px; white-space: nowrap; }
+}
+.px-steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 14px; color: var(--px-ink); }

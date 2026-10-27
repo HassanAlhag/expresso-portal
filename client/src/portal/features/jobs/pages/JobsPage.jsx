@@ -1,1175 +1,465 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { LayoutGrid, List, Plus, RefreshCw, Trash2, UserPlus, X } from "lucide-react";
 
-import PageHeader from "../../../shared/ui/PageHeader";
-import { useToast } from "../../../shared/ui/Toast";
+import PageFrame from "../../../shared/ui/PageFrame";
+import Panel from "../../../shared/ui/Panel";
 import Button from "../../../shared/ui/Button";
-import Skeleton from "../../../shared/ui/Skeleton";
-import EmptyState from "../../../shared/ui/EmptyState";
-import StatCard from "../../../shared/ui/StatCard";
-import FilterBar from "../../../shared/ui/FilterBar";
-import ViewToggle from "../../../shared/ui/ViewToggle";
-import Modal from "../../../shared/ui/Modal";
-import Input from "../../../shared/ui/Input";
+import Alert from "../../../shared/ui/Alert";
+import ErrorState from "../../../shared/ui/ErrorState";
+import MetricsStrip from "../../../shared/ui/MetricsStrip";
+import SearchField from "../../../shared/ui/SearchField";
+import SelectField from "../../../shared/ui/SelectField";
+import ConfirmDialog from "../../../shared/ui/ConfirmDialog";
+import { useToast } from "../../../shared/ui/Toast";
+import { useAccess } from "../../../shared/hooks/useAccess";
 
+import JobsList from "../components/JobsList";
 import JobsPipelineBoard from "../components/JobsPipelineBoard";
 import NewJobModal from "../components/NewJobModal";
-
-import {
-  Plus,
-  RefreshCw,
-  ClipboardList,
-  LayoutList,
-  PanelsTopLeft,
-  Building2,
-  FolderKanban,
-  Pencil,
-  Trash2,
-  AlertCircle,
-  Check,
-  X,
-  ChevronRight,
-  UserPlus,
-} from "lucide-react";
-
-import {
-  bulkAssignJobs,
-  bulkDeleteJobs,
-  createJob,
-  listJobs,
-  updateJob,
-  deleteJob,
-} from "../api";
+import { JobEditDialog, BulkAssignDialog } from "../components/JobDialogs";
+import { bulkAssignJobs, bulkDeleteJobs, createJob, deleteJob, listJobs, updateJob } from "../api";
 import { listCustomers } from "../../customers/api";
 import { listProjects } from "../../projects/api";
 import { listEnrollments } from "../../enrollments/api";
-import { listUsers } from "../../iam/users/api";
-import { JOB_SORT_OPTIONS, JOB_STATUSES, JOB_TYPES } from "../constants";
-import { JOB_STAGES, getColumnKey } from "../pipeline";
+import { JOB_SORT_OPTIONS, JOB_STATUSES, JOB_STATUS_GROUPS, JOB_TYPES } from "../constants";
 
-// ── Constants ──────────────────────────────────────────────────────────────────
+// Jobs (PI tail, PUI patterns). General delivery work: everything except
+// video production, which has its own Production workspace (same Job
+// records, workflowType "video"). The list is server-paginated; the board
+// shows the newest matching jobs and says so when there are more. Actions
+// follow the user's effective permissions (R4-A): jobs.write to create, edit,
+// move and assign; jobs.delete to delete. The API enforces the same rules.
+const LIST_LIMIT = 20;
+const BOARD_LIMIT = 100;
+const DEFAULT_SORT = "-createdAt";
+const VIEW_KEY = "portal_jobs_view";
+// URL filters (?status=, ?type=, ?q=, ?workflow=all) let links open a view.
+// workflow=all also shows video jobs (used by dashboard links, which count
+// every job); the result bar says so and it can be cleared.
 
-const PRIORITY_DOT = {
-  urgent: "bg-rose-500",
-  high: "bg-orange-400",
-  normal: "bg-slate-300",
-  low: "bg-slate-200",
-};
+const GROUP_OPTIONS = Object.values(JOB_STATUS_GROUPS).map((g) => ({ value: g.statuses.join(","), label: g.label }));
+const STATUS_OPTIONS = [JOB_STATUSES[0], ...GROUP_OPTIONS, ...JOB_STATUSES.slice(1)];
+const KNOWN_STATUS = new Set(STATUS_OPTIONS.map((o) => o.value));
+const KNOWN_TYPE = new Set(JOB_TYPES.map((o) => o.value));
 
-const PRIORITY_LABEL = {
-  urgent: "text-rose-600 bg-rose-50 border-rose-200",
-  high: "text-orange-600 bg-orange-50 border-orange-200",
-  normal: "text-slate-500 bg-slate-50 border-slate-200",
-  low: "text-slate-400 bg-slate-50 border-slate-200",
-};
-
-const STATUS_CLS = {
-  brief: "bg-slate-100 text-slate-600",
-  content_ready: "bg-sky-50 text-sky-700",
-  script: "bg-sky-50 text-sky-700",
-  pre_production: "bg-sky-50 text-sky-700",
-  designing: "bg-indigo-50 text-indigo-700",
-  shooting: "bg-indigo-50 text-indigo-700",
-  editing: "bg-indigo-50 text-indigo-700",
-  internal_review: "bg-amber-50 text-amber-700",
-  client_review: "bg-orange-50 text-orange-700",
-  approved: "bg-emerald-50 text-emerald-700",
-  scheduled: "bg-teal-50 text-teal-700",
-  published: "bg-violet-50 text-violet-700",
-  delivered: "bg-emerald-100 text-emerald-800",
-  on_hold: "bg-rose-50 text-rose-600",
-  archived: "bg-slate-100 text-slate-500",
-};
-
-const TYPE_CLS = {
-  reel: "border-violet-200 bg-violet-50 text-violet-700",
-  video: "border-blue-200 bg-blue-50 text-blue-700",
-  photo: "border-amber-200 bg-amber-50 text-amber-700",
-  task: "border-slate-200 bg-slate-50 text-slate-600",
-  post: "border-slate-200 bg-slate-50 text-slate-600",
-  story: "border-pink-200 bg-pink-50 text-pink-700",
-  carousel: "border-sky-200 bg-sky-50 text-sky-700",
-  design: "border-indigo-200 bg-indigo-50 text-indigo-700",
-  page: "border-cyan-200 bg-cyan-50 text-cyan-700",
-  case_study: "border-teal-200 bg-teal-50 text-teal-700",
-  other: "border-slate-200 bg-slate-50 text-slate-500",
-};
-
-const EDIT_STATUS_OPTIONS = [
-  { value: "brief", label: "Brief" },
-  { value: "content_ready", label: "Content ready" },
-  { value: "script", label: "Scripting" },
-  { value: "pre_production", label: "Pre-production" },
-  { value: "designing", label: "Designing" },
-  { value: "shooting", label: "Shooting" },
-  { value: "editing", label: "Editing" },
-  { value: "internal_review", label: "Internal review" },
-  { value: "client_review", label: "Client review" },
-  { value: "approved", label: "Approved" },
-  { value: "scheduled", label: "Scheduled" },
-  { value: "published", label: "Published" },
-  { value: "delivered", label: "Delivered" },
-  { value: "on_hold", label: "On hold" },
-  { value: "archived", label: "Archived" },
-];
-
-const EDIT_PRIORITY_OPTIONS = ["low", "normal", "high", "urgent"];
-
-const PLATFORM_OPTIONS = [
-  { value: "", label: "Any / unset" },
-  { value: "instagram", label: "Instagram" },
-  { value: "facebook", label: "Facebook" },
-  { value: "tiktok", label: "TikTok" },
-  { value: "linkedin", label: "LinkedIn" },
-  { value: "youtube", label: "YouTube" },
-  { value: "website", label: "Website" },
-];
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-function formatDate(v) {
-  if (!v) return "";
-  const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
-}
-
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-function AvatarStack({ assignees = [], size = 6 }) {
-  if (!assignees.length) {
-    return <span className="text-xs text-slate-400">Unassigned</span>;
+function readView() {
+  try {
+    return localStorage.getItem(VIEW_KEY) === "list" ? "list" : "board";
+  } catch {
+    return "board";
   }
-  const shown = assignees.slice(0, 4);
-  const rest = assignees.length - shown.length;
-  return (
-    <div className="flex items-center">
-      {shown.map((a, i) => (
-        <div
-          key={a._id || i}
-          title={a.fullName || a.name || "Staff"}
-          style={{ marginLeft: i === 0 ? 0 : -6 }}
-          className={`flex h-${size} w-${size} flex-shrink-0 items-center justify-center rounded-full border-2 border-white bg-indigo-100 text-[9px] font-black text-indigo-700`}
-        >
-          {(a.fullName || a.name || "?").charAt(0).toUpperCase()}
-        </div>
-      ))}
-      {rest > 0 && (
-        <span className="ml-1 text-[10px] font-bold text-slate-400">+{rest}</span>
-      )}
-    </div>
-  );
 }
 
-function MiniPipelineStage({ status }) {
-  const col = getColumnKey(status || "brief");
-  const idx = JOB_STAGES.findIndex((s) => s.key === col);
-  return (
-    <div className="flex items-center gap-0.5">
-      {JOB_STAGES.map((s, i) => (
-        <div
-          key={s.key}
-          title={s.label}
-          className={[
-            "h-1.5 rounded-full transition-all",
-            i < idx ? "w-3 bg-indigo-400" : i === idx ? "w-4 bg-indigo-600" : "w-2 bg-slate-200",
-          ].join(" ")}
-        />
-      ))}
-    </div>
-  );
-}
-
-function DeleteConfirm({ onConfirm, onCancel, busy }) {
-  return (
-    <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2">
-      <AlertCircle size={13} className="flex-shrink-0 text-rose-500" />
-      <span className="text-xs font-semibold text-rose-700">Delete?</span>
-      <button
-        type="button"
-        onClick={onConfirm}
-        disabled={busy}
-        className="rounded-lg bg-rose-500 px-2.5 py-1 text-[11px] font-black text-white hover:bg-rose-600 disabled:opacity-60"
-      >
-        Yes
-      </button>
-      <button
-        type="button"
-        onClick={onCancel}
-        className="rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-[11px] font-black text-rose-600 hover:bg-rose-50"
-      >
-        No
-      </button>
-    </div>
-  );
-}
-
-// ── Quick Edit Modal ───────────────────────────────────────────────────────────
-
-function JobEditModal({ open, job, onClose, onSaved }) {
-  const [form, setForm] = useState({
-    title: "", status: "brief", priority: "normal",
-    type: "video", platform: "", dueDate: "", assignees: [],
-  });
-  const [users, setUsers] = useState([]);
-  const [staffQ, setStaffQ] = useState("");
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
+function useDebounced(value, ms = 300) {
+  const [v, setV] = useState(value);
   useEffect(() => {
-    if (!open || !job) return;
-    setForm({
-      title: job.title || "",
-      status: job.status || "brief",
-      priority: job.priority || "normal",
-      type: job.type || "video",
-      platform: job.platform || "",
-      dueDate: formatDate(job.dueDate),
-      assignees: Array.isArray(job.assignees) ? job.assignees : [],
-    });
-    setError("");
-    setStaffQ("");
-  }, [open, job]);
-
-  useEffect(() => {
-    if (!open) return;
-    setLoadingUsers(true);
-    listUsers({ isInternal: "true", isActive: "true", limit: 100 })
-      .then((res) => setUsers(Array.isArray(res?.items) ? res.items : res?.users || []))
-      .catch(() => setUsers([]))
-      .finally(() => setLoadingUsers(false));
-  }, [open]);
-
-  const filteredUsers = useMemo(() => {
-    if (!staffQ) return users;
-    const lq = staffQ.toLowerCase();
-    return users.filter(
-      (u) => (u.fullName || u.name || "").toLowerCase().includes(lq)
-    );
-  }, [users, staffQ]);
-
-  const isAssigned = (u) =>
-    form.assignees.some((a) => (a._id || a) === u._id);
-
-  const toggleAssignee = (u) => {
-    setForm((f) => ({
-      ...f,
-      assignees: isAssigned(u)
-        ? f.assignees.filter((a) => (a._id || a) !== u._id)
-        : [...f.assignees, u],
-    }));
-  };
-
-  const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  const handleSave = async () => {
-    if (!form.title.trim()) { setError("Title is required."); return; }
-    setBusy(true);
-    setError("");
-    try {
-      await updateJob(job._id, {
-        title: form.title.trim(),
-        status: form.status,
-        priority: form.priority,
-        platform: form.platform || "",
-        dueDate: form.dueDate || null,
-        assignees: form.assignees.map((a) => a._id || a),
-      });
-      onSaved?.();
-    } catch (e) {
-      setError(e?.response?.data?.message || e?.message || "Update failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Edit Job"
-      subtitle="Update status, team assignment, and scheduling."
-      width="760px"
-      footer={
-        <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
-          <Button onClick={handleSave} disabled={busy}>
-            {busy ? "Saving…" : "Save changes"}
-          </Button>
-        </div>
-      }
-    >
-      <div className="grid gap-6">
-        {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
-            {error}
-          </div>
-        )}
-
-        {/* Title */}
-        <Input
-          label="TITLE"
-          value={form.title}
-          onChange={(e) => setField("title", e.target.value)}
-          placeholder="Job title"
-        />
-
-        {/* Status + Priority + Type */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <label className="grid gap-1.5">
-            <span className="text-[10.5px] font-black uppercase tracking-[0.22em] text-slate-400">Status</span>
-            <select
-              value={form.status}
-              onChange={(e) => setField("status", e.target.value)}
-              className="h-11 rounded-2xl border border-black/10 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-            >
-              {EDIT_STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="grid gap-1.5">
-            <span className="text-[10.5px] font-black uppercase tracking-[0.22em] text-slate-400">Priority</span>
-            <div className="flex gap-1.5">
-              {EDIT_PRIORITY_OPTIONS.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setField("priority", p)}
-                  className={[
-                    "flex-1 rounded-xl border py-2.5 text-[11px] font-bold capitalize transition",
-                    form.priority === p
-                      ? PRIORITY_LABEL[p]
-                      : "border-black/5 bg-slate-50 text-slate-400 hover:bg-white",
-                  ].join(" ")}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-          </label>
-
-          <label className="grid gap-1.5">
-            <span className="text-[10.5px] font-black uppercase tracking-[0.22em] text-slate-400">Platform</span>
-            <select
-              value={form.platform}
-              onChange={(e) => setField("platform", e.target.value)}
-              className="h-11 rounded-2xl border border-black/10 bg-white px-4 text-sm outline-none focus:ring-4 focus:ring-black/5"
-            >
-              {PLATFORM_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        {/* Due date */}
-        <Input
-          label="DUE DATE"
-          type="date"
-          value={form.dueDate}
-          onChange={(e) => setField("dueDate", e.target.value)}
-        />
-
-        {/* Assign staff */}
-        <div>
-          <div className="mb-3 text-[10.5px] font-black uppercase tracking-[0.22em] text-slate-400">
-            Assigned staff
-          </div>
-
-          {form.assignees.length > 0 && (
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              {form.assignees.map((a) => (
-                <button
-                  key={a._id || a}
-                  type="button"
-                  onClick={() => toggleAssignee(a)}
-                  className="flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
-                >
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-indigo-400 text-[8px] font-black text-white">
-                    {(a.fullName || a.name || "?").charAt(0).toUpperCase()}
-                  </span>
-                  {a.fullName || a.name || "Staff"}
-                  <X size={9} />
-                </button>
-              ))}
-            </div>
-          )}
-
-          <input
-            value={staffQ}
-            onChange={(e) => setStaffQ(e.target.value)}
-            placeholder="Search staff by name…"
-            className="mb-2 h-9 w-full rounded-xl border border-black/10 bg-slate-50 px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
-          />
-          <div className="max-h-44 divide-y divide-black/5 overflow-y-auto rounded-xl border border-black/10">
-            {loadingUsers ? (
-              <div className="p-3 text-center text-xs text-slate-400">Loading staff…</div>
-            ) : filteredUsers.length === 0 ? (
-              <div className="p-3 text-center text-xs text-slate-400">No staff found</div>
-            ) : (
-              filteredUsers.map((u) => {
-                const active = isAssigned(u);
-                return (
-                  <button
-                    key={u._id}
-                    type="button"
-                    onClick={() => toggleAssignee(u)}
-                    className={[
-                      "flex w-full items-center gap-3 px-3 py-2.5 text-left transition",
-                      active ? "bg-indigo-50" : "hover:bg-slate-50",
-                    ].join(" ")}
-                  >
-                    <div
-                      className={[
-                        "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-black",
-                        active ? "bg-indigo-500 text-white" : "bg-slate-100 text-slate-600",
-                      ].join(" ")}
-                    >
-                      {(u.fullName || u.name || "?").charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold text-slate-800">
-                        {u.fullName || u.name}
-                      </div>
-                      <div className="truncate text-xs text-slate-400">
-                        {String(u.role || "").replace(/_/g, " ")}
-                      </div>
-                    </div>
-                    {active && <Check size={13} className="flex-shrink-0 text-indigo-600" />}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-    </Modal>
-  );
+    const t = setTimeout(() => setV(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
 }
 
-function BulkAssignModal({ open, count, busy, onClose, onSubmit }) {
-  const [users, setUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [staffQ, setStaffQ] = useState("");
-  const [selected, setSelected] = useState([]);
-  const [mode, setMode] = useState("add");
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!open) return;
-    setSelected([]);
-    setStaffQ("");
-    setMode("add");
-    setError("");
-    setLoadingUsers(true);
-    listUsers({ isInternal: "true", isActive: "true", limit: 100 })
-      .then((res) => setUsers(Array.isArray(res?.items) ? res.items : res?.users || []))
-      .catch(() => setUsers([]))
-      .finally(() => setLoadingUsers(false));
-  }, [open]);
-
-  const filteredUsers = useMemo(() => {
-    if (!staffQ) return users;
-    const lq = staffQ.toLowerCase();
-    return users.filter(
-      (u) =>
-        (u.fullName || u.name || "").toLowerCase().includes(lq) ||
-        (u.email || "").toLowerCase().includes(lq)
-    );
-  }, [users, staffQ]);
-
-  const isSelected = (user) =>
-    selected.some((item) => String(item._id || item) === String(user._id));
-
-  const toggleUser = (user) => {
-    setSelected((prev) =>
-      isSelected(user)
-        ? prev.filter((item) => String(item._id || item) !== String(user._id))
-        : [...prev, user]
-    );
-  };
-
-  const submit = () => {
-    if (!selected.length) {
-      setError("Select at least one staff member.");
-      return;
-    }
-    onSubmit?.({
-      assignees: selected.map((item) => item._id || item),
-      mode,
-    });
-  };
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Bulk assign staff"
-      subtitle={`Assign staff to ${count} selected job${count === 1 ? "" : "s"}.`}
-      width="720px"
-      footer={
-        <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={onClose} disabled={busy}>
-            Cancel
-          </Button>
-          <Button onClick={submit} disabled={busy || !selected.length}>
-            {busy ? "Assigning..." : "Assign staff"}
-          </Button>
-        </div>
-      }
-    >
-      <div className="grid gap-5">
-        {error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
-            {error}
-          </div>
-        ) : null}
-
-        <div className="grid gap-2">
-          <div className="text-[10.5px] font-black uppercase tracking-[0.22em] text-slate-400">
-            Assignment mode
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {[
-              { value: "add", label: "Add to existing staff" },
-              { value: "replace", label: "Replace current staff" },
-            ].map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setMode(option.value)}
-                className={[
-                  "rounded-2xl border px-4 py-3 text-left text-sm font-black transition",
-                  mode === option.value
-                    ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
-                ].join(" ")}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {selected.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {selected.map((user) => (
-              <button
-                key={user._id || user}
-                type="button"
-                onClick={() => toggleUser(user)}
-                className="flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
-              >
-                {user.fullName || user.name || "Staff"}
-                <X size={9} />
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        <div>
-          <input
-            value={staffQ}
-            onChange={(e) => setStaffQ(e.target.value)}
-            placeholder="Search staff by name or email..."
-            className="mb-2 h-10 w-full rounded-xl border border-black/10 bg-slate-50 px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
-          />
-
-          <div className="max-h-72 divide-y divide-black/5 overflow-y-auto rounded-xl border border-black/10">
-            {loadingUsers ? (
-              <div className="p-4 text-center text-xs text-slate-400">
-                Loading staff...
-              </div>
-            ) : filteredUsers.length === 0 ? (
-              <div className="p-4 text-center text-xs text-slate-400">
-                No staff found
-              </div>
-            ) : (
-              filteredUsers.map((user) => {
-                const active = isSelected(user);
-                return (
-                  <button
-                    key={user._id}
-                    type="button"
-                    onClick={() => toggleUser(user)}
-                    className={[
-                      "flex w-full items-center gap-3 px-3 py-2.5 text-left transition",
-                      active ? "bg-indigo-50" : "hover:bg-slate-50",
-                    ].join(" ")}
-                  >
-                    <div
-                      className={[
-                        "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-black",
-                        active ? "bg-indigo-500 text-white" : "bg-slate-100 text-slate-600",
-                      ].join(" ")}
-                    >
-                      {(user.fullName || user.name || "?").charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold text-slate-800">
-                        {user.fullName || user.name}
-                      </div>
-                      <div className="truncate text-xs text-slate-400">
-                        {user.email || String(user.role || "").replace(/_/g, " ")}
-                      </div>
-                    </div>
-                    {active ? <Check size={14} className="flex-shrink-0 text-indigo-600" /> : null}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-    </Modal>
-  );
+/** List params for the current filters. */
+export function buildJobParams({ q, status, type, sort, allWorkflows }) {
+  const params = { q, status, type, sort };
+  if (!allWorkflows) params.notWorkflowType = "video";
+  return params;
 }
 
-// ── Advanced List Table ────────────────────────────────────────────────────────
-
-function JobsTable({
-  items,
-  onOpen,
-  onRefresh,
-  onEdit,
-  selectedIds = new Set(),
-  onToggleSelected,
-  onToggleAll,
-}) {
+export default function JobsPage() {
+  const nav = useNavigate();
   const toast = useToast();
-  const [confirmDeleteId, setConfirmDeleteId] = useState("");
-  const [busyId, setBusyId] = useState("");
-  const allSelected = items.length > 0 && items.every((item) => selectedIds.has(item._id));
-  const someSelected = items.some((item) => selectedIds.has(item._id));
+  const access = useAccess();
+  const canWrite = access.can("jobs.write");
+  const canDelete = access.can("jobs.delete");
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const handleDelete = async (id) => {
-    setBusyId(id);
+  const initialStatus = searchParams.get("status") || "";
+  const initialType = searchParams.get("type") || "";
+  const [q, setQ] = useState(searchParams.get("q") || "");
+  const debouncedQ = useDebounced(q);
+  const [status, setStatus] = useState(KNOWN_STATUS.has(initialStatus) ? initialStatus : "");
+  const [type, setType] = useState(KNOWN_TYPE.has(initialType) ? initialType : "");
+  const [allWorkflows, setAllWorkflows] = useState(searchParams.get("workflow") === "all");
+  const [sort, setSort] = useState(DEFAULT_SORT);
+  const [page, setPage] = useState(1);
+  const [view, setView] = useState(readView);
+
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0, limit: LIST_LIMIT });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [counts, setCounts] = useState(null);
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editJob, setEditJob] = useState(null);
+  const [toDelete, setToDelete] = useState(null);
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [busyId, setBusyId] = useState("");
+
+  const base = useMemo(() => buildJobParams({ q: debouncedQ.trim(), status, type, sort, allWorkflows }), [debouncedQ, status, type, sort, allWorkflows]);
+
+  // Keep the address in step with the filters, so a view can be shared.
+  useEffect(() => {
+    const next = {};
+    if (status) next.status = status;
+    if (type) next.type = type;
+    if (debouncedQ.trim()) next.q = debouncedQ.trim();
+    if (allWorkflows) next.workflow = "all";
+    setSearchParams(next, { replace: true });
+  }, [status, type, debouncedQ, allWorkflows, setSearchParams]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
-      await deleteJob(id);
-      setConfirmDeleteId("");
-      await onRefresh?.();
+      const params = view === "list" ? { ...base, page, limit: LIST_LIMIT } : { ...base, page: 1, limit: BOARD_LIMIT };
+      const res = await listJobs(params);
+      setItems(Array.isArray(res?.items) ? res.items : []);
+      setMeta({ page: res?.page || 1, pages: res?.pages || 1, total: res?.total ?? 0, limit: res?.limit || params.limit });
     } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Delete failed");
+      setItems([]);
+      setError(e?.response?.data?.message || "The server didn't respond. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [base, page, view]);
+
+  // Exact counts for the summary: one small request per figure (limit 1,
+  // the API's total), across this workspace's jobs, not just one page.
+  const loadCounts = useCallback(async () => {
+    const scope = allWorkflows ? {} : { notWorkflowType: "video" };
+    const count = (s) => listJobs({ ...scope, status: s, limit: 1, page: 1 }).then((r) => r?.total ?? 0);
+    try {
+      const [review, production, onHold] = await Promise.all([
+        count(JOB_STATUS_GROUPS.review.statuses.join(",")),
+        count(JOB_STATUS_GROUPS.production.statuses.join(",")),
+        count("on_hold"),
+      ]);
+      setCounts({ review, production, onHold });
+    } catch {
+      setCounts(null); // the summary is optional; the jobs still load
+    }
+  }, [allWorkflows]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+  useEffect(() => {
+    loadCounts();
+  }, [loadCounts]);
+
+  // A new search starts from the first page; selection is per page.
+  useEffect(() => setPage(1), [debouncedQ]);
+  useEffect(() => setSelected(new Set()), [base, page, view]);
+
+  const set = (setter) => (v) => {
+    setter(v);
+    setPage(1);
+  };
+  const changeView = (v) => {
+    setView(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      // per-browser convenience only
+    }
+  };
+
+  const filtersActive = Boolean(debouncedQ.trim() || status || type || allWorkflows);
+  const clearFilters = () => {
+    setQ("");
+    setStatus("");
+    setType("");
+    setAllWorkflows(false);
+    setPage(1);
+  };
+  const statusLabel = STATUS_OPTIONS.find((o) => o.value === status)?.label;
+  const chips = [
+    debouncedQ.trim() && { key: "q", label: `Search: ${debouncedQ.trim()}`, clear: () => setQ("") },
+    status && { key: "status", label: statusLabel, clear: () => set(setStatus)("") },
+    type && { key: "type", label: JOB_TYPES.find((o) => o.value === type)?.label, clear: () => set(setType)("") },
+    allWorkflows && { key: "wf", label: "Including video production jobs", clear: () => set(setAllWorkflows)(false) },
+  ].filter(Boolean);
+
+  const metrics = useMemo(() => {
+    const toggle = (value) => () => set(setStatus)(status === value ? "" : value);
+    const review = JOB_STATUS_GROUPS.review.statuses.join(",");
+    const production = JOB_STATUS_GROUPS.production.statuses.join(",");
+    return [
+      {
+        key: "total",
+        label: "Matching jobs",
+        value: loading ? "…" : error ? "—" : meta.total,
+        note: filtersActive ? "With the current filters" : allWorkflows ? "All jobs" : "All jobs except video production",
+      },
+      counts && { key: "review", label: "In review", value: counts.review, note: "Internal or client review", noteTone: counts.review ? "warn" : undefined, onClick: toggle(review), pressed: status === review },
+      counts && { key: "production", label: "In production", value: counts.production, note: "Design, shoot or edit", onClick: toggle(production), pressed: status === production },
+      counts && { key: "hold", label: "On hold", value: counts.onHold, note: counts.onHold ? "Paused jobs" : "Nothing paused", onClick: toggle("on_hold"), pressed: status === "on_hold" },
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [counts, status, meta.total, loading, error, filtersActive, allWorkflows]);
+
+  const refresh = () => Promise.all([load(), loadCounts()]);
+
+  const createFromModal = async (payload) => {
+    const res = await createJob(payload); // a failure throws: the dialog stays open
+    toast.success("Job created.");
+    const id = res?.item?._id || res?._id;
+    if (id) nav(`/portal/jobs/${id}`);
+    else refresh();
+    return res;
+  };
+
+  const saveEdit = async (patch) => {
+    await updateJob(editJob._id, patch); // throws on failure: the dialog shows it
+    setEditJob(null);
+    toast.success("Job saved.");
+    await refresh();
+  };
+
+  const moveJob = async (job, nextStatus) => {
+    if (!job?._id || !nextStatus || nextStatus === job.status) return;
+    setBusyId(job._id);
+    try {
+      await updateJob(job._id, { status: nextStatus });
+      await refresh();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "The job wasn't moved. Try again.");
     } finally {
       setBusyId("");
     }
   };
 
-  return (
-    <div className="overflow-hidden rounded-[20px] border border-black/[0.08] bg-white">
-      {/* Header row */}
-      <div className="grid grid-cols-[36px_2.2fr_1.4fr_180px_130px_80px_140px] gap-2 border-b border-black/[0.06] bg-slate-50 px-5 py-3 text-[10.5px] font-black uppercase tracking-[0.18em] text-slate-400">
-        <label className="flex items-center justify-center">
-          <input
-            type="checkbox"
-            checked={allSelected}
-            ref={(node) => {
-              if (node) node.indeterminate = someSelected && !allSelected;
-            }}
-            onChange={() => onToggleAll?.()}
-            className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-            aria-label="Select all jobs"
-          />
-        </label>
-        <div>Job</div>
-        <div>Client / Project</div>
-        <div>Pipeline</div>
-        <div>Assigned</div>
-        <div>Due</div>
-        <div>Actions</div>
-      </div>
+  const confirmDelete = async () => {
+    try {
+      await deleteJob(toDelete._id);
+      toast.success(`${toDelete.title || "Job"} deleted.`);
+      setToDelete(null);
+      await refresh();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "The job wasn't deleted. Try again.");
+    }
+  };
 
-      <div className="divide-y divide-black/[0.05]">
-        {items.map((j) => {
-          const isBusy = busyId === j._id;
-          const confirming = confirmDeleteId === j._id;
-          const assignees = Array.isArray(j.assignees) ? j.assignees : [];
-          const colKey = getColumnKey(j.status || "brief");
-          const stageLabel = JOB_STAGES.find((s) => s.key === colKey)?.label || "Brief";
-          const statusCls = STATUS_CLS[j.status] || "bg-slate-100 text-slate-600";
-          const typeCls = TYPE_CLS[j.type] || TYPE_CLS.other;
-          const dot = PRIORITY_DOT[j.priority] || PRIORITY_DOT.normal;
-          const isOverdue =
-            j.dueDate && !["published", "delivered", "archived"].includes(j.status) &&
-            new Date(j.dueDate) < new Date();
+  const bulkAssign = async ({ assignees, mode }) => {
+    const res = await bulkAssignJobs({ ids: [...selected], assignees, mode }); // throws: dialog shows it
+    toast.success(`Staff assigned on ${res?.modified ?? selected.size} job${selected.size === 1 ? "" : "s"}.`);
+    setBulkAssignOpen(false);
+    setSelected(new Set());
+    await refresh();
+  };
 
-          return (
-            <div
-              key={j._id}
-              className={[
-                "grid grid-cols-[36px_2.2fr_1.4fr_180px_130px_80px_140px] items-center gap-2 px-5 py-4 transition hover:bg-slate-50/60",
-                selectedIds.has(j._id) ? "bg-indigo-50/30" : "",
-              ].join(" ")}
-            >
-              <label
-                className="flex items-center justify-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(j._id)}
-                  onChange={() => onToggleSelected?.(j._id)}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-                  aria-label={`Select ${j.title || "job"}`}
-                />
-              </label>
+  const bulkDelete = async () => {
+    try {
+      const res = await bulkDeleteJobs([...selected]);
+      toast.success(`${res?.deleted ?? selected.size} job${selected.size === 1 ? "" : "s"} deleted.`);
+      setBulkDeleteOpen(false);
+      setSelected(new Set());
+      await refresh();
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "The jobs weren't deleted. Try again.");
+    }
+  };
 
-              {/* Job info */}
-              <button
-                type="button"
-                className="min-w-0 text-left"
-                onClick={() => onOpen?.(j)}
-              >
-                <div className="flex items-center gap-2">
-                  <span className={`h-2 w-2 flex-shrink-0 rounded-full ${dot}`} />
-                  <span
-                    className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[9.5px] font-black uppercase tracking-wide ${typeCls}`}
-                  >
-                    {j.type || "—"}
-                  </span>
-                  {j.priority && j.priority !== "normal" && (
-                    <span
-                      className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[9px] font-black uppercase ${PRIORITY_LABEL[j.priority]}`}
-                    >
-                      {j.priority}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-1 truncate text-[13.5px] font-black text-slate-900">
-                  {j.title || "Untitled job"}
-                </div>
-                <div className="mt-0.5 flex items-center gap-1.5">
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9.5px] font-bold ${statusCls}`}>
-                    {String(j.status || "brief").replace(/_/g, " ")}
-                  </span>
-                  {j.platform && (
-                    <span className="text-[10px] capitalize text-slate-400">{j.platform}</span>
-                  )}
-                </div>
-              </button>
+  const selectable = view === "list" && (canWrite || canDelete);
+  const toggle = (id) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const toggleAll = () =>
+    setSelected((prev) => (items.length && items.every((j) => prev.has(j._id)) ? new Set() : new Set(items.map((j) => j._id))));
 
-              {/* Client / Project */}
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <Building2 size={11} className="flex-shrink-0 text-slate-300" />
-                  <span className="truncate text-sm font-semibold text-slate-700">
-                    {j.customerId?.companyName || j.customerId?.contactName || "—"}
-                  </span>
-                </div>
-                <div className="mt-0.5 flex items-center gap-1.5">
-                  <FolderKanban size={11} className="flex-shrink-0 text-slate-300" />
-                  <span className="truncate text-xs text-slate-500">
-                    {j.projectId?.name || "—"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Pipeline */}
-              <div className="flex flex-col gap-1.5">
-                <MiniPipelineStage status={j.status} />
-                <span className="text-[9.5px] font-semibold text-slate-400">{stageLabel}</span>
-              </div>
-
-              {/* Assigned */}
-              <div>
-                <AvatarStack assignees={assignees} />
-              </div>
-
-              {/* Due date */}
-              <div
-                className={[
-                  "text-xs font-semibold",
-                  isOverdue ? "text-rose-500" : "text-slate-500",
-                ].join(" ")}
-              >
-                {j.dueDate
-                  ? new Date(j.dueDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  : "—"}
-                {isOverdue && (
-                  <div className="text-[9px] font-bold text-rose-400">overdue</div>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div
-                className="flex items-center gap-1.5"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {confirming ? (
-                  <DeleteConfirm
-                    busy={isBusy}
-                    onConfirm={() => handleDelete(j._id)}
-                    onCancel={() => setConfirmDeleteId("")}
-                  />
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => onOpen?.(j)}
-                      className="flex h-8 items-center gap-1 rounded-xl border border-black/10 bg-white px-2.5 text-[11px] font-bold text-slate-600 transition hover:bg-slate-50"
-                    >
-                      Open <ChevronRight size={11} />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isBusy}
-                      onClick={() => onEdit?.(j)}
-                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-black/10 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
-                      title="Edit"
-                    >
-                      <Pencil size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isBusy}
-                      onClick={() => setConfirmDeleteId(j._id)}
-                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 text-rose-400 transition hover:bg-rose-100 hover:text-rose-600"
-                      title="Delete"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+  const toolbar = (
+    <div className="px-toolbar" role="search" aria-label="Filter jobs">
+      <SearchField label="Search jobs" value={q} onChange={setQ} placeholder="Title, notes, brief, script, caption or location" />
+      <SelectField label="Status" value={status} onChange={set(setStatus)} options={STATUS_OPTIONS} />
+      <SelectField label="Type" value={type} onChange={set(setType)} options={JOB_TYPES} />
+      {view === "list" ? <SelectField label="Sort by" value={sort} onChange={set(setSort)} options={JOB_SORT_OPTIONS.some((o) => o.value === sort) ? JOB_SORT_OPTIONS : [...JOB_SORT_OPTIONS, { value: sort, label: "Custom" }]} /> : null}
     </div>
   );
-}
 
-// ── Page ───────────────────────────────────────────────────────────────────────
+  const resultText = loading
+    ? "Loading jobs…"
+    : error
+      ? "Jobs unavailable"
+      : view === "board"
+        ? `${items.length} of ${meta.total} job${meta.total === 1 ? "" : "s"} on the board, newest first`
+        : `${meta.total} job${meta.total === 1 ? "" : "s"}`;
 
-export default function JobsPage() {
-  const nav = useNavigate();
-  const toast = useToast();
+  const resultBar = (
+    <div className="px-result-bar">
+      <span aria-live="polite">{resultText}</span>
+      {chips.length ? (
+        <div className="px-active-filters">
+          {chips.map((c) => (
+            <button key={c.key} type="button" className="px-filter-chip" onClick={c.clear} aria-label={`Remove filter ${c.label}`}>
+              {c.label}
+              <X size={12} aria-hidden="true" />
+            </button>
+          ))}
+          <button type="button" className="px-btn px-btn--ghost px-btn--sm" onClick={clearFilters}>
+            Clear all
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
 
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState("");
-  const [type, setType] = useState("");
-  const [sort, setSort] = useState("-createdAt");
+  const bulkBar =
+    selectable && selected.size ? (
+      <div className="px-bulk-bar" role="region" aria-label="Selected jobs">
+        <span>{`${selected.size} job${selected.size === 1 ? "" : "s"} selected`}</span>
+        <div>
+          {canWrite ? (
+            <Button variant="outline" size="sm" onClick={() => setBulkAssignOpen(true)}>
+              <UserPlus size={14} aria-hidden="true" />
+              Assign staff
+            </Button>
+          ) : null}
+          {canDelete ? (
+            <Button variant="outline" size="sm" onClick={() => setBulkDeleteOpen(true)}>
+              <Trash2 size={14} aria-hidden="true" />
+              Delete selected
+            </Button>
+          ) : null}
+          <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>
+            Clear selection
+          </Button>
+        </div>
+      </div>
+    ) : null;
 
-  const [items, setItems] = useState([]);
-  const [meta, setMeta] = useState({ page: 1, pages: 1, total: 0 });
-
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editJob, setEditJob] = useState(null);
-  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [selectedJobIds, setSelectedJobIds] = useState([]);
-  const [view, setView] = useState("pipeline");
-
-  const load = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await listJobs({ q, status, type, sort, limit: 100, page: 1, notWorkflowType: "video" });
-      const rows = res?.items || [];
-      setItems(rows);
-      setSelectedJobIds((prev) =>
-        prev.filter((id) => rows.some((row) => String(row._id) === String(id)))
-      );
-      setMeta({ page: res?.page || 1, pages: res?.pages || 1, total: res?.total ?? rows.length });
-    } catch (e) {
-      setError(e?.response?.data?.message || e?.message || "Failed to load jobs");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, [q, status, type, sort]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const counts = useMemo(() => {
-    const IN_PROD = new Set(["brief", "content_ready", "script", "pre_production", "designing", "shooting", "editing"]);
-    const IN_REV = new Set(["internal_review", "client_review"]);
-    const APPR = new Set(["approved", "scheduled"]);
-    const LIVE = new Set(["published", "delivered"]);
-    return {
-      production: items.filter((x) => IN_PROD.has(x.status)).length,
-      review: items.filter((x) => IN_REV.has(x.status)).length,
-      approved: items.filter((x) => APPR.has(x.status)).length,
-      live: items.filter((x) => LIVE.has(x.status)).length,
-    };
-  }, [items]);
-
-  const selectedSet = useMemo(() => new Set(selectedJobIds), [selectedJobIds]);
-
-  const toggleSelectedJob = (id) => {
-    setSelectedJobIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  let content;
+  if (view === "board") {
+    content = error ? (
+      <ErrorState title="Jobs didn't load" message={error} onRetry={load} />
+    ) : !loading && !items.length ? (
+      <JobsList items={[]} filtered={filtersActive} onClearFilters={clearFilters} onCreate={canWrite ? () => setCreateOpen(true) : undefined} onOpen={() => {}} />
+    ) : (
+      <>
+        {!loading && meta.total > items.length ? (
+          <Alert title={`The board shows the ${items.length} newest of ${meta.total} matching jobs`}>
+            Column counts are for the jobs shown. Use the list to see every job, or narrow the filters.
+          </Alert>
+        ) : null}
+        <JobsPipelineBoard items={items} loading={loading} canMove={canWrite} onMove={moveJob} busyId={busyId} />
+      </>
     );
-  };
-
-  const toggleAllVisibleJobs = () => {
-    setSelectedJobIds((prev) => {
-      const visibleIds = items.map((item) => item._id);
-      const allVisibleSelected =
-        visibleIds.length > 0 && visibleIds.every((id) => prev.includes(id));
-      if (allVisibleSelected) {
-        return prev.filter((id) => !visibleIds.includes(id));
-      }
-      return Array.from(new Set([...prev, ...visibleIds]));
-    });
-  };
-
-  const onCreate = async (payload) => {
-    setBusy(true);
-    try {
-      const res = await createJob(payload);
-      setCreateOpen(false);
-      await load();
-      const id = res?.item?._id || res?._id;
-      if (id) nav(`/portal/jobs/${id}`);
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Create failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const moveJob = async (job, nextStatus) => {
-    if (!job?._id || !nextStatus) return;
-    setBusy(true);
-    try { await updateJob(job._id, { status: nextStatus }); await load(); }
-    catch (e) { toast.error(e?.response?.data?.message || e?.message || "Move failed"); }
-    finally { setBusy(false); }
-  };
-
-  const handleBulkAssign = async ({ assignees, mode }) => {
-    if (!selectedJobIds.length) return;
-    setBusy(true);
-    try {
-      const res = await bulkAssignJobs({
-        ids: selectedJobIds,
-        assignees,
-        mode,
-      });
-      toast.success(
-        `Assigned staff on ${res?.modified ?? selectedJobIds.length} job(s).`
-      );
-      setBulkAssignOpen(false);
-      setSelectedJobIds([]);
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Bulk assign failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (!selectedJobIds.length) return;
-    setBusy(true);
-    try {
-      const res = await bulkDeleteJobs(selectedJobIds);
-      toast.success(`Deleted ${res?.deleted ?? selectedJobIds.length} job(s).`);
-      setBulkDeleteOpen(false);
-      setSelectedJobIds([]);
-      await load();
-    } catch (e) {
-      toast.error(e?.response?.data?.message || e?.message || "Bulk delete failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const listProjectsForModal = async ({ customerId = "", q: pq = "" } = {}) => {
-    const res = await listProjects({ q: pq, customerId, limit: 50, page: 1, sort: "-createdAt" });
-    return { items: res?.items || [] };
-  };
+  } else {
+    content = (
+      <JobsList
+        items={items}
+        meta={meta}
+        loading={loading}
+        error={error}
+        onRetry={load}
+        sort={sort}
+        onSort={set(setSort)}
+        onPage={setPage}
+        filtered={filtersActive}
+        onClearFilters={clearFilters}
+        onCreate={canWrite ? () => setCreateOpen(true) : undefined}
+        onOpen={(j) => nav(`/portal/jobs/${j._id}`)}
+        onEdit={canWrite ? setEditJob : undefined}
+        onDelete={canDelete ? setToDelete : undefined}
+        selectable={selectable}
+        selected={selected}
+        onToggle={toggle}
+        onToggleAll={toggleAll}
+      />
+    );
+  }
 
   return (
     <>
-      <div className="grid gap-6">
-        <PageHeader
-          eyebrow="CONTENT / EXECUTION"
-          title="Jobs"
-          subtitle="Manage production work across projects, clients, and enrolled scopes."
-          breadcrumb={[{ label: "Portal", to: "/portal" }, { label: "Jobs" }]}
-          right={
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={load} disabled={loading || busy}>
-                <RefreshCw size={15} />
-                Refresh
-              </Button>
-              <Button onClick={() => setCreateOpen(true)} disabled={busy}>
-                <Plus size={15} />
-                New job
-              </Button>
+      <PageFrame
+        title="Jobs"
+        description={
+          <>
+            Design, photo, post, page and task work for clients. Video and reel production is in <Link to="/portal/productions">Production</Link>.
+          </>
+        }
+        breadcrumb={[{ label: "Jobs" }]}
+        secondaryActions={
+          <>
+            <div className="px-choice-row" role="radiogroup" aria-label="View">
+              <button type="button" role="radio" aria-checked={view === "board"} className="px-choice" onClick={() => changeView("board")}>
+                <LayoutGrid size={14} aria-hidden="true" />
+                By stage
+              </button>
+              <button type="button" role="radio" aria-checked={view === "list"} className="px-choice" onClick={() => changeView("list")}>
+                <List size={14} aria-hidden="true" />
+                List
+              </button>
             </div>
-          }
-        />
-
-        {/* Stats */}
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <StatCard icon={ClipboardList} label="Total" value={meta.total} color="indigo" />
-          <StatCard icon={ClipboardList} label="In Production" value={counts.production} color="amber" />
-          <StatCard icon={ClipboardList} label="In Review" value={counts.review} color="rose" />
-          <StatCard icon={ClipboardList} label="Approved" value={counts.approved} color="violet" />
-          <StatCard icon={ClipboardList} label="Live" value={counts.live} color="emerald" />
-        </div>
-
-        {/* Filter bar */}
-        <FilterBar
-          searchValue={q}
-          onSearchChange={setQ}
-          searchPlaceholder="Search by title, client, project…"
-          filters={[
-            { label: "status", value: status, onChange: setStatus, options: JOB_STATUSES },
-            { label: "type", value: type, onChange: setType, options: JOB_TYPES },
-            { label: "sort", value: sort, onChange: setSort, options: JOB_SORT_OPTIONS },
-          ]}
-          onClear={() => { setQ(""); setStatus(""); setType(""); setSort("-createdAt"); }}
-          right={
-            <ViewToggle
-              value={view}
-              onChange={setView}
-              options={[
-                { value: "pipeline", icon: PanelsTopLeft, label: "Pipeline" },
-                { value: "list", icon: LayoutList, label: "List" },
-              ]}
-            />
-          }
-        />
-
-        {selectedJobIds.length > 0 ? (
-          <div className="flex flex-col gap-3 rounded-[20px] border border-indigo-100 bg-indigo-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm font-black text-indigo-800">
-              {selectedJobIds.length} job{selectedJobIds.length === 1 ? "" : "s"} selected
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setBulkAssignOpen(true)}
-                disabled={busy}
-              >
-                <UserPlus size={15} />
-                Assign staff
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setBulkDeleteOpen(true)}
-                disabled={busy}
-              >
-                <Trash2 size={15} />
-                Delete selected
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setSelectedJobIds([])}
-                disabled={busy}
-              >
-                Clear
-              </Button>
-            </div>
-          </div>
-        ) : view === "pipeline" && items.length > 0 ? (
-          <div className="rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-            Bulk assign and bulk delete are available in List view.
-          </div>
-        ) : null}
-
-        {/* Content */}
-        {loading ? (
-          <div className="grid gap-3">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full rounded-2xl" />
-            ))}
-          </div>
-        ) : error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
-            {error}
-          </div>
-        ) : items.length === 0 ? (
-          <EmptyState
-            icon={ClipboardList}
-            title="No jobs yet"
-            message="Create a job under a project to start tracking execution."
-            actionLabel="New job"
-            onAction={() => setCreateOpen(true)}
-          />
-        ) : view === "pipeline" ? (
-          <JobsPipelineBoard
-            items={items}
-            busy={busy}
-            onOpen={(j) => nav(`/portal/jobs/${j._id}`)}
-            onMove={moveJob}
-          />
-        ) : (
-          <JobsTable
-            items={items}
-            onOpen={(j) => nav(`/portal/jobs/${j._id}`)}
-            onRefresh={load}
-            onEdit={setEditJob}
-            selectedIds={selectedSet}
-            onToggleSelected={toggleSelectedJob}
-            onToggleAll={toggleAllVisibleJobs}
-          />
-        )}
-      </div>
-
-      {/* Modals */}
-      <NewJobModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        listCustomers={listCustomers}
-        listProjects={listProjectsForModal}
-        listEnrollments={listEnrollments}
-        createJob={onCreate}
-      />
-
-
-      <JobEditModal
-        open={!!editJob}
-        job={editJob}
-        onClose={() => setEditJob(null)}
-        onSaved={async () => { setEditJob(null); await load(); }}
-      />
-
-      <BulkAssignModal
-        open={bulkAssignOpen}
-        count={selectedJobIds.length}
-        busy={busy}
-        onClose={() => setBulkAssignOpen(false)}
-        onSubmit={handleBulkAssign}
-      />
-
-      <Modal
-        open={bulkDeleteOpen}
-        onClose={() => setBulkDeleteOpen(false)}
-        title="Delete selected jobs"
-        subtitle={`This will permanently delete ${selectedJobIds.length} selected job${selectedJobIds.length === 1 ? "" : "s"}.`}
-        width="520px"
-        footer={
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={() => setBulkDeleteOpen(false)}
-              disabled={busy}
-            >
-              Cancel
+            <Button variant="outline" onClick={refresh} disabled={loading}>
+              <RefreshCw size={14} aria-hidden="true" />
+              Refresh
             </Button>
-            <Button onClick={handleBulkDelete} disabled={busy}>
-              {busy ? "Deleting..." : "Delete jobs"}
+          </>
+        }
+        primaryAction={
+          canWrite ? (
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus size={14} aria-hidden="true" />
+              New job
             </Button>
-          </div>
+          ) : null
         }
       >
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
-          This action cannot be undone. Generated delivery jobs can be created
-          again from the enrolled service if needed.
-        </div>
-      </Modal>
+        <MetricsStrip label="Jobs summary" items={metrics} />
+        <Panel flush bare label="Job list" className="px-list-panel">
+          {toolbar}
+          {resultBar}
+          {bulkBar}
+          {content}
+        </Panel>
+      </PageFrame>
+
+      {canWrite ? (
+        <NewJobModal
+          open={createOpen}
+          onClose={() => setCreateOpen(false)}
+          listCustomers={listCustomers}
+          listProjects={(p) => listProjects({ ...p, page: 1, sort: "-createdAt" })}
+          listEnrollments={listEnrollments}
+          createJob={createFromModal}
+        />
+      ) : null}
+      {canWrite ? <JobEditDialog open={Boolean(editJob)} job={editJob} onClose={() => setEditJob(null)} onSubmit={saveEdit} /> : null}
+      {canWrite ? <BulkAssignDialog open={bulkAssignOpen} count={selected.size} onClose={() => setBulkAssignOpen(false)} onSubmit={bulkAssign} /> : null}
+
+      <ConfirmDialog
+        open={Boolean(toDelete)}
+        title="Delete this job?"
+        confirmLabel="Delete job"
+        icon={Trash2}
+        danger
+        onConfirm={confirmDelete}
+        onClose={() => setToDelete(null)}
+        details={["It is removed permanently, with its notes and approval history.", "To keep it but take it off the board, set its status to Archived instead."]}
+      >
+        {`"${toDelete?.title || "This job"}" will be deleted.`}
+      </ConfirmDialog>
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        title={`Delete ${selected.size} job${selected.size === 1 ? "" : "s"}?`}
+        confirmLabel="Delete jobs"
+        icon={Trash2}
+        danger
+        onConfirm={bulkDelete}
+        onClose={() => setBulkDeleteOpen(false)}
+        details={["They are removed permanently, with their notes and approval history.", "Jobs generated from a service enrollment can be generated again from it."]}
+      >
+        The selected jobs will be deleted.
+      </ConfirmDialog>
     </>
   );
 }

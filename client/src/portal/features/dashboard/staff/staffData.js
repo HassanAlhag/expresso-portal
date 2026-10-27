@@ -89,6 +89,10 @@ export function deriveStaff(data, access) {
   const pendingExpenses = Number(data.expenses?.totals?.pending || 0);
   const submittedLeaves = Number(data.leaves?.totals?.submitted || 0);
   const go = (path) => (access.canOpen(path) ? path : undefined);
+  // Job links open the Jobs list filtered to the statuses counted here,
+  // including video jobs (the dashboard counts every job; PI tail). The
+  // Production workspace shows video jobs only, so it was the wrong target.
+  const goJobs = (statuses) => (access.canOpen("/portal/jobs") ? `/portal/jobs?status=${statuses.join(",")}&workflow=all` : undefined);
 
   // 1. What needs my attention? Real counts only, most severe first.
   const attention = [];
@@ -125,7 +129,7 @@ export function deriveStaff(data, access) {
       short: plural(reviewJobs.length, "job") + " in review",
       title: `${plural(reviewJobs.length, "job is", "jobs are")} waiting for review`,
       sub: names.length ? `${names.join(", ")}${reviewJobs.length > names.length ? ` and ${reviewJobs.length - names.length} more` : ""}` : "Internal or client review",
-      to: go("/portal/productions"),
+      to: goJobs([...REVIEW]),
       actionLabel: "Review",
     });
   }
@@ -217,7 +221,7 @@ export function deriveStaff(data, access) {
       label: "Jobs in production",
       value: jobs.filter((j) => JOB_STAGES[1].statuses.includes(j.status)).length,
       note: `${reviewJobs.length} waiting for review`,
-      to: go("/portal/productions"),
+      to: goJobs(JOB_STAGES[1].statuses),
     },
   ]
     .filter(Boolean)
@@ -263,7 +267,7 @@ export function deriveStaff(data, access) {
 export const SHORTCUTS = [
   { key: "projects", label: "Projects", sub: "Delivery and milestones", to: "/portal/projects" },
   { key: "clients", label: "Clients", sub: "Accounts and contacts", to: "/portal/customers" },
-  { key: "productions", label: "Production", sub: "Jobs and approvals", to: "/portal/productions" },
+  { key: "productions", label: "Production", sub: "Video and reel production", to: "/portal/productions" },
   { key: "billing", label: "Billing", sub: "Invoices and payments", to: "/portal/billing" },
   { key: "crm", label: "CRM deals", sub: "Pipeline and conversions", to: "/portal/crm/deals" },
   { key: "procurement", label: "Procurement", sub: "Requests and vendors", to: "/portal/procurement" },

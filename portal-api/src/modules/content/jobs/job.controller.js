@@ -3,6 +3,9 @@ import Job from "./job.model.js";
 import Media from "../media/media.model.js";
 import Project from "../../projects/project.model.js";
 import Enrollment from "../../enrollments/enrollment.model.js";
+import Customer from "../../customers/customer.model.js";
+import User from "../../iam/users/user.model.js";
+import { resolveRoleContext } from "../../../utils/roleRegistry.js";
 import {
   getWorkflowTypeFromJobType,
   isValidJobPriority,
@@ -31,6 +34,100 @@ function validIds(values = []) {
     ? values.map((x) => String(x || "").trim()).filter(validId)
     : [];
 }
+
+// ── Write-path validation (PI tail, Jobs) ─────────────────────────────────
+// Each helper returns { value } or { error } so callers answer 400 instead of
+// letting a bad value reach Mongoose (an Invalid Date used to surface as 500).
+
+/** A supplied date must parse; empty means "no date". */
+function parseDateInput(raw, name) {
+  if (raw === null || typeof raw === "undefined" || raw === "") return { value: null };
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return { error: `${name} is not a valid date` };
+  return { value: d };
+}
+
+function idOf(x) {
+  return String(x && typeof x === "object" ? x._id || "" : x || "").trim();
+}
+
+/**
+ * Job assignees must be active internal (Expresso staff) users. Invalid,
+ * unknown, inactive or external ids are rejected, never silently dropped.
+ * `keep` lists ids already on the job: they stay valid even if the user has
+ * since been deactivated, so editing a job never strips an old assignment.
+ */
+async function resolveAssignees(raw, keep = []) {
+  if (!Array.isArray(raw)) return { error: "assignees must be a list of staff user ids" };
+  const ids = [...new Set(raw.map(idOf))];
+  if (ids.some((id) => !validId(id))) return { error: "Invalid assignee id" };
+  const kept = new Set(keep.map(idOf));
+  const toCheck = ids.filter((id) => !kept.has(id));
+  if (toCheck.length) {
+    const users = await User.find({ _id: { $in: toCheck } }).select("role isActive").lean();
+    if (users.length !== toCheck.length) return { error: "Assignee not found" };
+    const internalByRole = new Map();
+    for (const u of users) {
+      if (u.isActive === false) return { error: "Assignees must be active staff members" };
+      if (!internalByRole.has(u.role)) internalByRole.set(u.role, (await resolveRoleContext(u.role)).isInternal);
+      if (!internalByRole.get(u.role)) return { error: "Assignees must be Expresso staff members" };
+    }
+  }
+  return { value: ids };
+}
+
+/** Media references must point at existing Media Library items (or be cleared). */
+async function resolveMediaRefs(body, fields) {
+  const out = {};
+  const wanted = [];
+  for (const f of fields) {
+    if (typeof body[f] === "undefined") continue;
+    const id = idOf(body[f]);
+    if (!id) { out[f] = null; continue; }
+    if (!validId(id)) return { error: `${f} is not a valid media id` };
+    out[f] = id;
+    wanted.push(id);
+  }
+  if (wanted.length) {
+    const unique = [...new Set(wanted)];
+    const found = await Media.find({ _id: { $in: unique } }).select("_id").lean();
+    if (found.length !== unique.length) return { error: "Media not found" };
+  }
+  return { value: out };
+}
+
+/**
+ * What a public website reel needs, and nothing else. An allowlist: fields
+ * added to the Job model later never reach the public endpoint by accident.
+ * Matches the only consumer, client/src/utils/mapWebsiteReels.js.
+ */
+const PUBLIC_MEDIA_FIELDS = "url fileUrl thumbnailUrl";
+function publicMedia(m) {
+  if (!m || typeof m !== "object") return null;
+  return { url: m.url || "", fileUrl: m.fileUrl || "", thumbnailUrl: m.thumbnailUrl || "" };
+}
+export function toPublicReel(job) {
+  return {
+    _id: job._id,
+    title: job.title || "",
+    platform: job.platform || "",
+    type: job.type || "",
+    publishedAt: job.publishedAt || null,
+    externalPostUrl: job.externalPostUrl || "",
+    customerId: job.customerId && typeof job.customerId === "object" && job.customerId.companyName
+      ? { companyName: job.customerId.companyName }
+      : null,
+    posterMediaId: publicMedia(job.posterMediaId),
+    coverMedia: publicMedia(job.coverMedia),
+    finalMediaId: publicMedia(job.finalMediaId),
+  };
+}
+
+/** The rule POST /:id/publish applies: a final file (or attached media) or an external URL. */
+function hasPublishableMedia({ finalMediaId, media = [], externalPostUrl }) {
+  return Boolean(finalMediaId || (Array.isArray(media) && media.length) || String(externalPostUrl || "").trim());
+}
+const PUBLISH_MEDIA_MESSAGE = "Attach a video file or set an external URL before publishing.";
 
 export async function listJobs(req, res) {
   try {
@@ -65,8 +162,12 @@ export async function listJobs(req, res) {
     if (validId(enrollmentId)) filter.enrollmentId = enrollmentId;
     if (validId(assigneeId)) filter.assignees = assigneeId;
 
-    if (status && isValidJobStatus(status)) {
-      filter.status = normalizeJobStatus(status);
+    // One status, or a comma-separated list (PI tail: the portal's "in review"
+    // and "in production" views). Unknown values are ignored, as before.
+    if (status) {
+      const wanted = [...new Set(String(status).split(",").map((x) => x.trim()).filter(isValidJobStatus).map(normalizeJobStatus))];
+      if (wanted.length === 1) filter.status = wanted[0];
+      else if (wanted.length > 1) filter.status = { $in: wanted };
     }
 
     if (type && isValidJobType(type)) {
@@ -91,9 +192,13 @@ export async function listJobs(req, res) {
     if (websiteVisible === "false") filter.websiteVisible = false;
 
     if (dueDateFrom || dueDateTo) {
+      const from = parseDateInput(dueDateFrom, "dueDateFrom");
+      const to = parseDateInput(dueDateTo, "dueDateTo");
+      const bad = from.error || to.error;
+      if (bad) return res.status(400).json({ ok: false, message: bad });
       filter.dueDate = {};
-      if (dueDateFrom) filter.dueDate.$gte = new Date(dueDateFrom);
-      if (dueDateTo)   filter.dueDate.$lte = new Date(dueDateTo);
+      if (from.value) filter.dueDate.$gte = from.value;
+      if (to.value) filter.dueDate.$lte = to.value;
     }
 
     if (projectType && !validId(projectId)) {
@@ -182,13 +287,14 @@ export async function listPublicWebsiteJobs(req, res) {
       filter.type = normalizeJobType(type);
     }
 
-    const [total, items] = await Promise.all([
+    const [total, rows] = await Promise.all([
       Job.countDocuments(filter),
       Job.find(filter)
-        .populate("customerId", "companyName contactName")
-        .populate("posterMediaId", "url fileUrl thumbnailUrl")
-        .populate("finalMediaId", "url fileUrl thumbnailUrl")
-        .populate("coverMedia", "url fileUrl thumbnailUrl")
+        .select("title platform type publishedAt externalPostUrl customerId posterMediaId coverMedia finalMediaId")
+        .populate("customerId", "companyName")
+        .populate("posterMediaId", PUBLIC_MEDIA_FIELDS)
+        .populate("finalMediaId", PUBLIC_MEDIA_FIELDS)
+        .populate("coverMedia", PUBLIC_MEDIA_FIELDS)
         .sort({ publishedAt: -1 })
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
@@ -197,7 +303,8 @@ export async function listPublicWebsiteJobs(req, res) {
 
     return res.json({
       ok: true,
-      items,
+      // Public allowlist (PI tail): never the whole Job document.
+      items: rows.map(toPublicReel),
       page: pageNum,
       pages: Math.max(1, Math.ceil(total / limitNum)),
       total,
@@ -302,7 +409,6 @@ export async function createJob(req, res) {
       script = "",
       shotList = "",
       location = "",
-      websiteVisible = false,
       websiteFeatured = false,
       assignees = [],
     } = req.body || {};
@@ -399,6 +505,21 @@ export async function createJob(req, res) {
       });
     }
 
+    // The client must exist (a bare customerId was never checked before).
+    if (!(await Customer.exists({ _id: resolvedCustomerId }))) {
+      return res.status(404).json({ ok: false, message: "Customer not found" });
+    }
+
+    const dates = {};
+    for (const [field, raw] of [["startDate", startDate], ["dueDate", dueDate], ["shootDate", shootDate]]) {
+      const parsed = parseDateInput(raw, field);
+      if (parsed.error) return res.status(400).json({ ok: false, message: parsed.error });
+      dates[field] = parsed.value;
+    }
+
+    const assigned = await resolveAssignees(assignees ?? []);
+    if (assigned.error) return res.status(400).json({ ok: false, message: assigned.error });
+
     const normalizedType = isValidJobType(type)
       ? normalizeJobType(type)
       : "other";
@@ -427,8 +548,8 @@ export async function createJob(req, res) {
       platform: String(platform || "")
         .trim()
         .toLowerCase(),
-      startDate: startDate ? new Date(startDate) : null,
-      dueDate: dueDate ? new Date(dueDate) : null,
+      startDate: dates.startDate,
+      dueDate: dates.dueDate,
       durationDays: Number(durationDays || 0),
       timeEstimate: String(timeEstimate || "").trim(),
       effort: String(effort || "").trim(),
@@ -448,7 +569,7 @@ export async function createJob(req, res) {
       parentGoalId: String(parentGoalId || "").trim(),
       parentGoalName: String(parentGoalName || "").trim(),
       parentGoalUrl: String(parentGoalUrl || "").trim(),
-      shootDate: shootDate ? new Date(shootDate) : null,
+      shootDate: dates.shootDate,
 
       caption: String(caption || "").trim(),
       concept: String(concept || "").trim(),
@@ -458,12 +579,12 @@ export async function createJob(req, res) {
       location: String(location || "").trim(),
       notes: String(notes || "").trim(),
 
-      websiteVisible: !!websiteVisible,
+      // A new job is never public: only POST /:id/publish (or a later
+      // explicit, checked visibility change) puts a job on the website.
+      websiteVisible: false,
       websiteFeatured: !!websiteFeatured,
 
-      assignees: Array.isArray(assignees)
-        ? assignees.filter((x) => validId(x))
-        : [],
+      assignees: assigned.value,
     });
 
     return res.status(201).json({ ok: true, item });
@@ -542,10 +663,11 @@ export async function updateJob(req, res) {
       const nextStatus = normalizeJobStatus(body.status);
       patch.status = isValidJobStatus(nextStatus) ? nextStatus : current.status;
 
+      // Status and website visibility are separate (PI tail): moving a job to
+      // "published" records the status only; it does not make it public.
       if (patch.status === "published") {
-        patch.publishedAt = new Date();
+        if (current.status !== "published") patch.publishedAt = new Date();
         patch.publishStatus = "published";
-        patch.websiteVisible = true;
       } else if (current.status === "published") {
         patch.publishStatus = ["approved", "scheduled"].includes(patch.status)
           ? "ready"
@@ -567,12 +689,11 @@ export async function updateJob(req, res) {
         .toLowerCase();
     }
 
-    if (typeof body.dueDate !== "undefined") {
-      patch.dueDate = body.dueDate ? new Date(body.dueDate) : null;
-    }
-
-    if (typeof body.startDate !== "undefined") {
-      patch.startDate = body.startDate ? new Date(body.startDate) : null;
+    for (const field of ["dueDate", "startDate", "shootDate"]) {
+      if (typeof body[field] === "undefined") continue;
+      const parsed = parseDateInput(body[field], field);
+      if (parsed.error) return res.status(400).json({ ok: false, message: parsed.error });
+      patch[field] = parsed.value;
     }
 
     if (typeof body.durationDays !== "undefined") {
@@ -597,10 +718,6 @@ export async function updateJob(req, res) {
         : [];
     }
 
-    if (typeof body.shootDate !== "undefined") {
-      patch.shootDate = body.shootDate ? new Date(body.shootDate) : null;
-    }
-
     if (typeof body.websiteVisible !== "undefined") {
       patch.websiteVisible = !!body.websiteVisible;
     }
@@ -609,36 +726,18 @@ export async function updateJob(req, res) {
       patch.websiteFeatured = !!body.websiteFeatured;
     }
 
-    if (typeof body.draftMediaId !== "undefined") {
-      patch.draftMediaId = validId(body.draftMediaId)
-        ? body.draftMediaId
-        : null;
-    }
-
-    if (typeof body.finalMediaId !== "undefined") {
-      patch.finalMediaId = validId(body.finalMediaId)
-        ? body.finalMediaId
-        : null;
-    }
-
-    if (typeof body.posterMediaId !== "undefined") {
-      patch.posterMediaId = validId(body.posterMediaId)
-        ? body.posterMediaId
-        : null;
-    }
+    const mediaRefs = await resolveMediaRefs(body, ["draftMediaId", "finalMediaId", "posterMediaId", "coverMedia"]);
+    if (mediaRefs.error) return res.status(400).json({ ok: false, message: mediaRefs.error });
+    Object.assign(patch, mediaRefs.value);
 
     if (typeof body.externalPostUrl !== "undefined") {
       patch.externalPostUrl = String(body.externalPostUrl || "").trim();
     }
 
-    if (typeof body.coverMedia !== "undefined") {
-      patch.coverMedia = validId(body.coverMedia) ? body.coverMedia : null;
-    }
-
     if (typeof body.assignees !== "undefined") {
-      patch.assignees = Array.isArray(body.assignees)
-        ? body.assignees.filter((x) => validId(x))
-        : [];
+      const assigned = await resolveAssignees(body.assignees, current.assignees || []);
+      if (assigned.error) return res.status(400).json({ ok: false, message: assigned.error });
+      patch.assignees = assigned.value;
     }
 
     if (typeof body.deliverables !== "undefined") {
@@ -688,6 +787,28 @@ export async function updateJob(req, res) {
       }
     }
 
+    // Website visibility (PI tail). A job is public only when it is published
+    // AND websiteVisible. Status changes never turn visibility on; an explicit
+    // websiteVisible: true is accepted only for a published job that meets the
+    // publish rule (same as POST /:id/publish); otherwise 400. A job that is
+    // not published is never left marked visible, so a later status change
+    // cannot expose it.
+    const nextStatus = patch.status ?? current.status;
+    if (patch.websiteVisible === true && !current.websiteVisible) {
+      if (nextStatus !== "published") {
+        return res.status(400).json({ ok: false, message: "Only a published job can be shown on the website. Use Publish." });
+      }
+      const ready = hasPublishableMedia({
+        finalMediaId: "finalMediaId" in patch ? patch.finalMediaId : current.finalMediaId,
+        media: current.media,
+        externalPostUrl: "externalPostUrl" in patch ? patch.externalPostUrl : current.externalPostUrl,
+      });
+      if (!ready) return res.status(400).json({ ok: false, message: PUBLISH_MEDIA_MESSAGE });
+    }
+    if (nextStatus !== "published" && (patch.websiteVisible === true || current.websiteVisible)) {
+      patch.websiteVisible = false;
+    }
+
     const item = await Job.findByIdAndUpdate(id, patch, { new: true })
       .populate("customerId", "companyName contactName")
       .populate("projectId", "name status type")
@@ -695,6 +816,7 @@ export async function updateJob(req, res) {
         path: "enrollmentId",
         populate: { path: "serviceTemplateId", select: "name slug summary" },
       })
+      .populate("assignees", "fullName email role")
       .populate(
         "coverMedia",
         "url thumbnailUrl fileUrl type title mimeType status"
@@ -746,18 +868,22 @@ export async function deleteJob(req, res) {
 export async function bulkAssignJobs(req, res) {
   try {
     const ids = validIds(req.body?.ids);
-    const assignees = validIds(req.body?.assignees);
     const mode = String(req.body?.mode || "add").trim().toLowerCase();
 
     if (!ids.length) {
       return res.status(400).json({ ok: false, message: "No valid job ids" });
     }
 
-    if (!assignees.length) {
+    if (!Array.isArray(req.body?.assignees) || !req.body.assignees.length) {
       return res
         .status(400)
         .json({ ok: false, message: "Select at least one staff member" });
     }
+
+    // Same rule as single-job writes: active internal staff only.
+    const assigned = await resolveAssignees(req.body.assignees);
+    if (assigned.error) return res.status(400).json({ ok: false, message: assigned.error });
+    const assignees = assigned.value;
 
     const update =
       mode === "replace"
@@ -948,6 +1074,8 @@ export async function publishToWebsite(req, res) {
     }
 
     const body = req.body || {};
+    const bodyMedia = await resolveMediaRefs(body, ["finalMediaId", "posterMediaId"]);
+    if (bodyMedia.error) return res.status(400).json({ ok: false, message: bodyMedia.error });
 
     // Prefer approved/published media for the final video, fall back to any attached media
     const approvedMedia = (job.media || []).filter(
@@ -969,7 +1097,7 @@ export async function publishToWebsite(req, res) {
     if (!finalMediaId && !externalPostUrl) {
       return res.status(400).json({
         ok: false,
-        message: "Attach a video file or set an external URL before publishing.",
+        message: PUBLISH_MEDIA_MESSAGE,
       });
     }
 

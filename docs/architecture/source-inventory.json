@@ -14873,6 +14873,14 @@
           "line": 258
         },
         {
+          "file": "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
+          "line": 64
+        },
+        {
+          "file": "client/src/portal/features/jobs/pages/JobsPage.jsx",
+          "line": 74
+        },
+        {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
           "line": 69
         }
@@ -14889,7 +14897,16 @@
           "line": 52
         }
       ],
-      "ui": []
+      "ui": [
+        {
+          "file": "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
+          "line": 65
+        },
+        {
+          "file": "client/src/portal/features/jobs/pages/JobsPage.jsx",
+          "line": 75
+        }
+      ]
     },
     "social.metrics.read": {
       "api": [
@@ -16501,6 +16518,10 @@
         {
           "file": "client/src/portal/features/hr/components/StaffFormModal.jsx",
           "line": 42
+        },
+        {
+          "file": "client/src/portal/features/jobs/components/JobStaffField.jsx",
+          "line": 17
         },
         {
           "file": "client/src/portal/features/procurement/components/SourcingDialog.jsx",
@@ -19309,7 +19330,10 @@
           "client/src/portal/features/jobs/components/CreativeReviewPanel.jsx",
           "client/src/portal/features/jobs/components/CustomerSelect.jsx",
           "client/src/portal/features/jobs/components/EnrollmentSelect.jsx",
+          "client/src/portal/features/jobs/components/JobDialogs.jsx",
+          "client/src/portal/features/jobs/components/JobsList.jsx",
           "client/src/portal/features/jobs/components/JobsPipelineBoard.jsx",
+          "client/src/portal/features/jobs/components/JobStaffField.jsx",
           "client/src/portal/features/jobs/components/NewJobModal.jsx",
           "client/src/portal/features/jobs/components/ProjectSelect.jsx",
           "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
@@ -19652,7 +19676,10 @@
           "client/src/portal/features/jobs/components/CreativeReviewPanel.jsx",
           "client/src/portal/features/jobs/components/CustomerSelect.jsx",
           "client/src/portal/features/jobs/components/EnrollmentSelect.jsx",
+          "client/src/portal/features/jobs/components/JobDialogs.jsx",
+          "client/src/portal/features/jobs/components/JobsList.jsx",
           "client/src/portal/features/jobs/components/JobsPipelineBoard.jsx",
+          "client/src/portal/features/jobs/components/JobStaffField.jsx",
           "client/src/portal/features/jobs/components/NewJobModal.jsx",
           "client/src/portal/features/jobs/components/ProjectSelect.jsx",
           "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
@@ -20004,6 +20031,8 @@
           "client/src/portal/features/hr/staff/StaffWorkTab.jsx",
           "client/src/portal/features/iam/users/components/UserTable.jsx",
           "client/src/portal/features/iam/users/pages/UserDetailsPage.jsx",
+          "client/src/portal/features/jobs/components/JobsList.jsx",
+          "client/src/portal/features/jobs/components/JobsPipelineBoard.jsx",
           "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
           "client/src/portal/features/jobs/pages/JobsPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioDetailsPage.jsx",
