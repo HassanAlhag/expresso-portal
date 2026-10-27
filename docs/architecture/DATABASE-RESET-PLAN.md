@@ -3,6 +3,8 @@
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Database map](DATABASE-MAP.md) · Baseline `58b8f86c`.
 
 > **No reset has been performed.** This audit did not connect to any database, read any `.env` value, or run any seed or script. Nothing here is approved to run. It describes what a clean Expresso installation needs, and a controlled lifecycle to build later.
+>
+> **R5-D1 (complete / committed):** the read-only lifecycle safety foundation exists — target identity checks, a versioned manifest model with offline validation, a read-only inventory, catalog/protection metadata and an append-only evidence format ([runbook](../../portal-api/docs/lifecycle.md)). It provides **no** backup, restore, reset or seed. R5-D2 to R5-D5 are not started.
 
 ## 1. What a fresh installation actually needs
 
@@ -106,7 +108,7 @@ Treat the result as a list for the owner to approve, not as an automatic filter.
 
 Any future reset needs a matching storage step: list objects, match them to surviving references, and delete or archive the rest.
 
-## 6. Proposed future lifecycle (not implemented)
+## 6. Proposed future lifecycle (R5-D1 foundation only; the rest not implemented)
 
 ```mermaid
 flowchart LR
@@ -134,6 +136,8 @@ flowchart LR
 | `db:seed-demo` | Demo customers, projects, invoices, HR KPI data | **Never on production**; every row tagged `demo: true` so it can be removed later |
 
 All of these should reuse the existing `_guard.js` (local by default; staging must be declared; production refused unless explicitly allowed).
+
+**Update (R5-D1).** The lifecycle commands use their own, stricter target check instead of `_guard.js` (which is unchanged and still guards the existing seeds): a declared profile must match the observed connection identity exactly, `localhost`, `DB_ENVIRONMENT` and database names are never trusted alone, and there is no production override. Of the commands above only a read-only `db:inventory` exists (catalog-only, or against a captured snapshot; no live database connection), plus `db:manifest-check` for the future backup manifest. `db:backup`, `db:verify-backup`, `db:reset` and the `db:seed-*` commands do not exist; they are R5-D2–D5. In the R5-D1 catalog every collection is protected and none is reset-eligible; section 8 remains a proposal for the owner, not a policy.
 
 ## 7. What would break if MongoDB were emptied today
 

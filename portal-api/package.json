@@ -7,7 +7,9 @@
     "dev": "node --watch src/server.js",
     "seed": "node src/scripts/seedUser.js",
     "seed:hr-kpi": "node src/scripts/seedHRKPI.js",
-    "test": "node --test \"test/**/*.test.js\""
+    "test": "node --test \"test/**/*.test.js\"",
+    "db:inventory": "node src/scripts/lifecycle/cli.js inventory",
+    "db:manifest-check": "node src/scripts/lifecycle/cli.js manifest-check"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",
