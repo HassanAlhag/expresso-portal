@@ -54,7 +54,7 @@ API prefixes in this table are relative to `/api`. Controller files: [web-conten
 | Technology landing | Explicit loading/error/genuine empty state; groups and cards only for actual Technology records; CAS remains excluded. |
 | Services | Loading, HTTP/network/invalid-response error with retry, genuine empty and success are distinct (W4). Service detail handling is unchanged. |
 | Portfolio | Published-items helper rejects HTTP/network/invalid responses (never cached); `/portfolio` and `/case-studies` show error with retry, distinct from empty; case detail shows Not Found only for HTTP 404 (W4). |
-| Site settings | Cached/default UI can render on failure; GET creates a blank singleton if missing. Multiple caches can delay visible edits. |
+| Site settings | Cached/default UI can render on failure; If the singleton is missing, both reads return the model defaults without writing; the first admin save creates it (R4-B, P2-6). Multiple caches can delay visible edits. |
 | Homepage slides | Published HeroSlide records in `order`, then newest first; one code fallback slide when none load. Blank eyebrows stay blank on the website, in the portal form and preview, and when a slide is created through the API; records without eyebrow fields keep the old defaults (W4). |
 | Navigation | Successful CMS reads are session-cached; uncached failures retry on focus; core Digital discovery always remains available. |
 

@@ -2,7 +2,7 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · [Cleanup audit](CODE-CLEANUP-AUDIT.md) · [Reset plan](DATABASE-RESET-PLAN.md)
 
-**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is committed (`23425ab8`). **Website Stage 4: code complete and committed (`feat: complete website stage 4`); homepage CMS content pending manual entry.** **R4 is in progress: R4-A (P3-5 / P3-6 access consistency) complete and committed (`refactor: align portal access controls`); R4-B, R4-C and R4-D not started. R5 has not started.** Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
+**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is committed (`23425ab8`). **Website Stage 4: code complete and committed (`feat: complete website stage 4`); homepage CMS content pending manual entry.** **R4 is in progress: R4-A (P3-5 / P3-6 access consistency) complete and committed (`refactor: align portal access controls`); R4-B (P2-6 / P3-8) complete and committed (`fix: remove R4 read and schema inconsistencies`); R4-C and R4-D not started. R5 has not started.** Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
 
 **Baseline:** branch `website/integrated-solutions`. Application code is at `58b8f86c`; the architecture docs were committed at `e867d95f`.
 
@@ -29,7 +29,7 @@ The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → 
 | R2 Access model & vendor journey | P1-1, P1-3, P1-4, P1-5, P2-1, P2-3 RFQs, P2-4, P2-5, P3-4 | Code complete; one part deferred | `26a2cca6`; P2-4 and the RFQ counter in `91a0c0bc`. **Deferred:** RFQ unique index (needs the read-only duplicate check). Deployment checks pending |
 | R3 Housekeeping | P3-3, P3-9, audit corrections | Code complete (R1/R3 closure committed in `23425ab8`) | Audit corrections were applied with the baseline. P3-3 and P3-9 in the R1/R3 closure. **Note:** commit `91a0c0bc`, labelled R3, delivered R1/R2 items (P2-3, P2-4, `seedUser.js`), not the original R3 housekeeping |
 | Website Stage 4 | Homepage and remaining public pages | **W4 code: complete and committed. W4 CMS content: pending manual entry** | No detailed W4 specification existed; scope settled in the W4 pre-flight (26 Oct 2026). See [Website Stage 4](#website-stage-4-w4-code-complete-and-committed-cms-content-pending) |
-| R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **In progress (not complete)** | Split into passes (26 Oct 2026): **R4-A** P3-5 / P3-6 complete and committed; **R4-B** P2-6 + P3-8, **R4-C** P2-2, **R4-D** P3-7 not started. See [R4](#r4-consistency-refactors-in-progress-r4-a-complete-and-committed) |
+| R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **In progress (not complete)** | Split into passes (26 Oct 2026): **R4-A** P3-5 / P3-6 complete and committed; **R4-B** P2-6 + P3-8 complete and committed; **R4-C** P2-2, **R4-D** P3-7 not started. See [R4](#r4-consistency-refactors-in-progress-r4-a-and-r4-b-committed) |
 | R5 Verified cleanup & data lifecycle | P3-2, P4-2, P4-4, P4-5, P4-6, P2-7 pipeline | **Not started** | Needs backup with tested restore, database export and access-log review first |
 | Design study | Offline prototype and component specification | **Done** | `f0d9bc02` |
 | Portal implementation | Shared components, then Dashboard, CRM, Projects, Finance, HR, Procurement, absorbing P3-5 and P3-6 | **Partial** | PUI-1 to PUI-5 cover all listed modules plus client and vendor views. Open: the Jobs board page (legacy UI), and the P3-5 / P3-6 remainder |
@@ -50,6 +50,7 @@ The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → 
 | `23425ab8` | R1/R3 closure | P1-2, P4-1, P4-3, P3-1 `reports.export`, P3-3, P3-9, status update | No |
 | `feat: complete website stage 4` | Website Stage 4 | Digital Solutions catalogue and Business Suite page; Services and Portfolio load states; homepage eyebrow rule; placeholder badges removed | No |
 | `refactor: align portal access controls` | R4-A | P3-5 / P3-6 access consistency: no `admin` name bypass in the route guard or navigation, session refresh on focus, menu/route alignment, permission-gated delete actions, internal-only file deletion, one role-hierarchy helper | No |
+| `fix: remove R4 read and schema inconsistencies` | R4-B | P2-6 settings reads never write; P3-8 one access-request `status` index and a `vendor` comment author type | No |
 
 No deployment gate listed under R2, R3 or section 8 has been performed.
 
@@ -68,14 +69,14 @@ The repository defined W4 only as "the next website implementation stage (homepa
 | Contact form `?interest=` capture | Not in W4 (optional future enhancement) | The Business Suite CTA keeps `/contact-us?interest=business-suite-demo` |
 | Dynamic sitemap | Not in W4 | The static sitemap remains; it lists the Business Suite route |
 
-### R4 consistency refactors (in progress; R4-A complete and committed)
+### R4 consistency refactors (in progress; R4-A and R4-B committed)
 
 The original R4 is P2-2, P2-6, P3-5, P3-6, P3-7 and P3-8 (section 10). None is deferred; it is delivered in four controlled passes. **R4 is not complete.**
 
 | Pass | Items | Status |
 |---|---|---|
 | R4-A | P3-5, P3-6 (access consistency) | **Complete and committed** |
-| R4-B | P2-6 (settings read without write), P3-8 (duplicate index, ticket comment role) | Not started |
+| R4-B | P2-6 (settings read without write), P3-8 (duplicate index, ticket comment role) | **Complete and committed** |
 | R4-C | P2-2 (CRM conversion atomicity and link field) | Not started |
 | R4-D | P3-7 (duplicated sources of truth) | Not started |
 
@@ -97,6 +98,14 @@ Kept as intentional: the API's `super_admin` bypass, protected-role and self-man
 Found, not changed in R4-A: the legacy staff ticket page's `isAdminRole` list of internal role names (gates staff tools; custom internal roles do not get them) and save/delete controls on about 27 older pages that are not permission-gated; both belong to those modules' migration (PI tail). `billing.delete` is catalogued but has no route (decision, outside R4).
 
 **Deployment gate (still open):** role-editor round trip with a real session (edit and save a stored role, including keys the editor does not list, reopen and compare).
+
+**R4-B detail** (complete and committed; code only, no database operation or data change).
+
+| Item | Change | Tests |
+|---|---|---|
+| P2-6 | `settings.controller.js` `readSettings` replaces `getOrCreate`: both `GET /api/site-settings/public` and `GET /api/site-settings` return the stored `site` document, or the model defaults built in memory (`new SiteSettings({ _id: "site" }).toObject()`) without saving. The response is still `{ ok: true, settings }`. `updateSettings` is unchanged: its upsert (`setDefaultsOnInsert`) creates the singleton on the first admin save. This also removes the duplicate-key 500 two simultaneous first reads could cause | `portal-api/test/r4b-consistency.test.js`: no-record public and admin reads (no write of any kind), repeated reads, stored values, first and later PATCH upsert the same singleton. The no-write tests fail against the previous code |
+| P3-8 index | Removed `AccessRequestSchema.index({ status: 1 })`; `status` keeps `index: true`. Same single `status_1` index in MongoDB, so no index operation. The Mongoose duplicate-index warning (the only one in the API) is gone | Schema metadata (one each of status, workEmail, createdAt) and a fresh-process load with no warning; both fail against the previous model |
+| P3-8 comment author | `authorRole` is the author type, not the RBAC role. Enum widened to `client`, `admin`, `vendor`. Internal users (super_admin, admin, staff, custom internal roles) stay `admin`; an external user with an active vendor profile (the API's vendor rule, R2) is `vendor`; other external users stay `client`. Status-change and approval entries stay `admin`. Staff thread labels: Team / Vendor / Client. The client and vendor view needs no change (staff → "Expresso", colleagues → "Your team", own → "You"). Historical vendor comments keep `client` (no migration). Known edge case (kept by decision): an external user whose vendor profile is inactive is not an active vendor under the R2 rule, so new comments from them are labelled `client` | API: each persona, schema validation, status and approval entries, company and internal-ticket boundaries. Client: `features/tickets/ticketAuthors.test.jsx` |
 
 ### R1/R3 closure (committed in `23425ab8`; not deployed)
 
@@ -578,6 +587,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Tests** | Missing singleton: public GET → 200 with empty settings and no document created; admin PATCH creates it |
 | **Data change** | None |
 | **Order** | Stage 4 |
+| **Status (R4-B)** | Implemented and committed: reads return the stored singleton or in-memory model defaults and never write; the existing upsert creates it on the first admin save |
 
 ### P2-7 Database reset and seed architecture
 
@@ -723,6 +733,7 @@ R2 keeps ordered writes with compensation; it does not add a MongoDB transaction
 | **Tests** | Model tests; ticket comment rendering |
 | **Data change** | Index: none needed (same key). Enum: existing values remain valid |
 | **Order** | Stage 4 |
+| **Status (R4-B)** | Implemented and committed: duplicate `status` index declaration removed (no index operation); comment author type adds `vendor` for approved vendors, internal users stay `admin`, no migration |
 
 ### P3-9 Stale endpoint spreadsheet and root planning files
 

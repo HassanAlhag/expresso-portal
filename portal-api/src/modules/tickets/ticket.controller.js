@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Ticket from "./ticket.model.js";
 import { canSeeAllTenantRecords, getUserClientId } from "../../utils/accessControl.js";
+import { findActiveVendorProfile } from "../procurement/vendorAccess.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -345,10 +346,18 @@ export async function addComment(req, res) {
       ticket.firstResponseAt = new Date();
     }
 
+    // Author type (P3-8): internal users are "admin"; an external user with an
+    // active vendor profile (the API's vendor rule, R2) is "vendor"; others "client".
+    const authorRole = admin
+      ? "admin"
+      : (await findActiveVendorProfile(req.user.id))
+        ? "vendor"
+        : "client";
+
     ticket.comments.push({
       body: body.trim(),
       authorId: req.user.id,
-      authorRole: admin ? "admin" : "client",
+      authorRole,
       visibility: admin ? visibility : "client",
     });
 

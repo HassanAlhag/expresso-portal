@@ -2,19 +2,18 @@ import SiteSettings from "./settings.model.js";
 
 const SINGLETON_ID = "site";
 
-async function getOrCreate() {
-  let doc = await SiteSettings.findById(SINGLETON_ID).lean();
-  if (!doc) {
-    doc = await SiteSettings.create({ _id: SINGLETON_ID });
-    doc = doc.toObject();
-  }
-  return doc;
+// Reads never write (P2-6). A missing singleton is returned as the model's
+// defaults, built in memory and not saved; the first admin save
+// (updateSettings, upsert) creates the document.
+async function readSettings() {
+  const doc = await SiteSettings.findById(SINGLETON_ID).lean();
+  return doc || new SiteSettings({ _id: SINGLETON_ID }).toObject();
 }
 
 // GET /api/site-settings/public  (no auth)
 export async function getPublicSettings(req, res) {
   try {
-    const doc = await getOrCreate();
+    const doc = await readSettings();
     res.json({ ok: true, settings: doc });
   } catch (e) {
     console.error("getPublicSettings:", e);
@@ -25,7 +24,7 @@ export async function getPublicSettings(req, res) {
 // GET /api/site-settings  (admin)
 export async function getSettings(req, res) {
   try {
-    const doc = await getOrCreate();
+    const doc = await readSettings();
     res.json({ ok: true, settings: doc });
   } catch (e) {
     console.error("getSettings:", e);

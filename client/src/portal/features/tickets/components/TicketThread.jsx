@@ -26,6 +26,9 @@ function EventEntry({ comment }) {
   );
 }
 
+// authorRole is the author type: "admin" = Expresso team, "vendor", "client".
+const AUTHOR_LABELS = { admin: "Team", vendor: "Vendor", client: "Client" };
+
 function CommentEntry({ comment, isAdmin }) {
   const internal = comment.visibility === "internal";
   const isAdminAuthor = comment.authorRole === "admin";
@@ -41,7 +44,7 @@ function CommentEntry({ comment, isAdmin }) {
                 isAdminAuthor ? "bg-indigo-100 text-indigo-800" : "bg-slate-100 text-slate-700",
               ].join(" ")}
             >
-              {isAdminAuthor ? "Team" : "Client"}
+              {AUTHOR_LABELS[comment.authorRole] || "Client"}
             </div>
             <span className="text-xs text-slate-400">{fmt(comment.createdAt)}</span>
           </div>

@@ -49,7 +49,7 @@ Internal ServiceTemplate records are business configuration, not public DigitalS
 - Public CMS service/Technology detail pages would have no records; galleries, vacancies and reels would be empty. Static sitemap/detail links could then lead to missing content.
 - Vendor category selection/matching would be unusable without the category tree. Restoring data alone would not resolve the existing vendor RFQ authorization mismatch.
 - CAS/core product discovery and its dedicated static page would survive. Core marketing/brand defaults can still render; that is not a complete restoration of approved website content.
-- Storage objects and external configuration would remain, but many ownership/reference records would be gone. SiteSettings GET can recreate a **blank** singleton; it cannot recover approved settings.
+- Storage objects and external configuration would remain, but many ownership/reference records would be gone. SiteSettings reads no longer recreate a singleton (R4-B): they return model defaults until an admin saves, and cannot recover approved settings.
 
 ## What is safe to reset?
 

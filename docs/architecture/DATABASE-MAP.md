@@ -74,7 +74,7 @@ The source inventory records fields, explicit refs, enums and index declarations
 
 | Model → expected collection | Class | Relationships and reset note | Source |
 |---|---|---|---|
-| SiteSettings → `sitesettings` | CONFIGURATION | Refs: Media. Singleton `_id: site`; branding/media/settings should survive a business reset. GET can create a blank singleton. | [portal-api/src/modules/homepage/settings.model.js](../../portal-api/src/modules/homepage/settings.model.js) L375 |
+| SiteSettings → `sitesettings` | CONFIGURATION | Refs: Media. Singleton `_id: site`; branding/media/settings should survive a business reset. Reads never create it: a missing singleton is returned as model defaults without saving; the first admin save creates it (P2-6, R4-B). | [portal-api/src/modules/homepage/settings.model.js](../../portal-api/src/modules/homepage/settings.model.js) L375 |
 | HeroSlide → `heroslides` | CMS | Refs: Media, User. Editable public content; preserve approved publication metadata and referenced assets. | [portal-api/src/modules/homepage/slide.model.js](../../portal-api/src/modules/homepage/slide.model.js) L107 |
 
 ## Hr

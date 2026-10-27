@@ -40,7 +40,8 @@ const AccessRequestSchema = new mongoose.Schema(
 );
 
 AccessRequestSchema.index({ workEmail: 1 });
-AccessRequestSchema.index({ status: 1 });
+// status is indexed on the field itself (index: true); a second declaration
+// here duplicated the same status_1 index (P3-8).
 AccessRequestSchema.index({ createdAt: -1 });
 
 const AccessRequest =

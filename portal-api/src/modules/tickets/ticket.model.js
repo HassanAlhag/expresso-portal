@@ -7,7 +7,9 @@ const CommentSchema = new Schema(
   {
     body: { type: String, required: true, trim: true },
     authorId: { type: OID, ref: "User", required: true },
-    authorRole: { type: String, enum: ["client", "admin"], required: true },
+    // Author type, not the RBAC role: "admin" = any internal Expresso user,
+    // "client" = a client user, "vendor" = an approved vendor (P3-8).
+    authorRole: { type: String, enum: ["client", "admin", "vendor"], required: true },
     visibility: { type: String, enum: ["client", "internal"], default: "client" },
     // System-generated activity events (status changes, approvals, assignments)
     event: { type: String, default: null },
