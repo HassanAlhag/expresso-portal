@@ -57,7 +57,16 @@ export function buildLeadPayload(body = {}, actorUserId = null) {
   };
 }
 
-export async function ensureAccountForLead(leadInput, actorUserId = null) {
+// Create one document, inside the caller's transaction when a session is given
+// (Model.create needs the array form to accept options).
+async function createOne(Model, doc, session) {
+  if (!session) return Model.create(doc);
+  const [created] = await Model.create([doc], { session });
+  return created;
+}
+
+export async function ensureAccountForLead(leadInput, actorUserId = null, options = {}) {
+  const session = options.session || null;
   const lead =
     typeof leadInput?.toObject === "function" ? leadInput.toObject() : leadInput;
   const name = accountNameForLead(lead);
@@ -65,7 +74,7 @@ export async function ensureAccountForLead(leadInput, actorUserId = null) {
   if (!lead?._id || !name) return null;
 
   if (objectId(lead.convertedToAccountId)) {
-    const linked = await Account.findById(objectId(lead.convertedToAccountId));
+    const linked = await Account.findById(objectId(lead.convertedToAccountId)).session(session);
     if (linked) return linked;
   }
 
@@ -73,7 +82,7 @@ export async function ensureAccountForLead(leadInput, actorUserId = null) {
   const exactName = new RegExp(`^${escapeRegex(name)}$`, "i");
   const match = await Account.findOne({
     $or: [email ? { email } : null, { name: exactName }].filter(Boolean),
-  });
+  }).session(session);
 
   const notes = [
     `Created from lead: ${cleanString(lead.fullName)}`,
@@ -89,10 +98,10 @@ export async function ensureAccountForLead(leadInput, actorUserId = null) {
     };
     if (!match.email && email) patch.email = email;
     if (!match.phone && cleanString(lead.phone)) patch.phone = cleanString(lead.phone);
-    return Account.findByIdAndUpdate(match._id, patch, { new: true });
+    return Account.findByIdAndUpdate(match._id, patch, { new: true, session });
   }
 
-  return Account.create({
+  return createOne(Account, {
     name,
     email,
     phone: cleanString(lead.phone),
@@ -101,7 +110,7 @@ export async function ensureAccountForLead(leadInput, actorUserId = null) {
     notes,
     createdBy: validId(actorUserId) ? actorUserId : null,
     updatedBy: validId(actorUserId) ? actorUserId : null,
-  });
+  }, session);
 }
 
 export async function ensureContactForLead(
@@ -113,19 +122,20 @@ export async function ensureContactForLead(
     typeof leadInput?.toObject === "function" ? leadInput.toObject() : leadInput;
 
   if (!lead?._id || !cleanString(lead.fullName)) return null;
+  const session = options.session || null;
 
   const leadId = lead._id;
   const email = cleanEmail(lead.email);
   const phone = cleanString(lead.phone);
 
-  let existing = await Contact.findOne({ leadId }).lean();
+  let existing = await Contact.findOne({ leadId }).session(session).lean();
 
   if (!existing && email) {
-    existing = await Contact.findOne({ email, leadId: null }).lean();
+    existing = await Contact.findOne({ email, leadId: null }).session(session).lean();
   }
 
   if (!existing && !email && phone) {
-    existing = await Contact.findOne({ phone, leadId: null }).lean();
+    existing = await Contact.findOne({ phone, leadId: null }).session(session).lean();
   }
 
   const service = cleanString(lead.service);
@@ -153,11 +163,11 @@ export async function ensureContactForLead(
   if (accountId) payload.accountId = accountId;
 
   if (existing?._id) {
-    return Contact.findByIdAndUpdate(existing._id, payload, { new: true }).lean();
+    return Contact.findByIdAndUpdate(existing._id, payload, { new: true, session }).lean();
   }
 
-  return Contact.create({
+  return createOne(Contact, {
     ...payload,
     createdBy: validId(actorUserId) ? actorUserId : null,
-  });
+  }, session);
 }

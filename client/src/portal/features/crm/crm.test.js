@@ -171,7 +171,27 @@ describe("Leads", () => {
     await interact(() => fireEvent.click(screen.getByRole("button", { name: /Convert to deal/ })));
     await interact(() => fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: /Convert to deal/ })));
     expect(within(screen.getByRole("dialog")).getByRole("alert").textContent).toMatch(/already linked to a deal/);
-    expect(conversionError({ response: { status: 500 } }, "deal")).toMatch(/part of it may have been saved/);
+  });
+
+  test("conversion messages match the all-or-nothing behaviour (R4-C)", () => {
+    const all = [...LEAD_CONVERSION_DETAILS, ...DEAL_CONVERSION_DETAILS].join(" ");
+    expect(all).not.toMatch(/not atomic|from the portal|part of it/i);
+    expect(conversionError({ response: { status: 500 } }, "deal")).toBe("The conversion didn't complete. Nothing was saved.");
+    expect(conversionError({ response: { status: 500, data: { message: "The conversion didn't complete. Nothing was saved." } } }, "lead")).not.toMatch(/part of it/i);
+    const unavailable = "Conversion is unavailable: the database does not support transactions. Nothing was changed.";
+    expect(conversionError({ response: { status: 503, data: { message: unavailable } } }, "lead")).toBe(unavailable);
+    expect(conversionError(new Error("Network Error"), "lead")).toMatch(/didn't respond.*trying again is safe/);
+    for (const status of [500, 503]) expect(conversionError({ response: { status } }, "lead")).not.toMatch(/may have been saved/);
+  });
+
+  test("retrying a lead that the server reports as already converted opens the existing deal", async () => {
+    signIn("sales", CRM_ALL);
+    api.getLead.mockResolvedValue({ ok: true, item: lead() });
+    api.convertLeadToDeal.mockResolvedValue({ ok: true, alreadyConverted: true, message: "This lead is already converted", item: { _id: "d7" } });
+    await mount(<LeadDetailsPage />);
+    await interact(() => fireEvent.click(screen.getByRole("button", { name: /Convert to deal/ })));
+    await interact(() => fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: /Convert to deal/ })));
+    expect(mockNavigate).toHaveBeenCalledWith("/portal/crm/deals/d7");
   });
 });
 
@@ -198,6 +218,16 @@ describe("Deal to client conversion", () => {
     });
     expect(api.convertDealToCustomer).toHaveBeenCalledTimes(1);
     expect(mockToast.success).toHaveBeenCalledWith("Acme Company is linked to this deal.");
+  });
+
+  test("retrying a deal the server reports as already converted shows the linked client", async () => {
+    signIn("sales", CRM_ALL);
+    api.convertDealToCustomer.mockResolvedValue({ ok: true, alreadyConverted: true, customer: { _id: "c7", companyName: "Acme Company" } });
+    await renderDeal(deal());
+    await interact(() => fireEvent.click(screen.getByRole("button", { name: /Convert to client/ })));
+    await interact(() => fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Convert to client" })));
+    expect(mockToast.success).toHaveBeenCalledWith("Acme Company is linked to this deal.");
+    expect(mockToast.error).not.toHaveBeenCalled();
   });
 
   test("a deal that is not won shows the prerequisite instead of the action", async () => {

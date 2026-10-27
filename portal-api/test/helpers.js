@@ -14,7 +14,7 @@ mongoose.set("bufferCommands", false);
 /** A chainable, awaitable stand-in for a Mongoose query. */
 export function q(result) {
   const c = {};
-  for (const m of ["select", "lean", "populate", "sort", "skip", "limit", "collation"]) {
+  for (const m of ["select", "lean", "populate", "sort", "skip", "limit", "collation", "session"]) {
     c[m] = () => c;
   }
   const value = () => (typeof result === "function" ? result() : result);

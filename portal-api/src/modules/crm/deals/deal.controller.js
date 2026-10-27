@@ -6,6 +6,7 @@ import Contact from "../contacts/contact.model.js";
 import { normalizeDealStage, safeDealSort } from "./deal.constants.js";
 import Customer from "../../customers/customer.model.js";
 import Enrollment from "../../enrollments/enrollment.model.js";
+import { runInTransaction, TransactionUnsupportedError } from "../../../utils/transaction.js";
 
 function validId(id) {
   return id && mongoose.Types.ObjectId.isValid(id);
@@ -31,149 +32,186 @@ function slugify(s) {
     .replace(/(^-|-$)+/g, "");
 }
 
-async function uniqueCustomerSlug(base) {
+async function uniqueCustomerSlug(base, session = null) {
   let slug = slugify(base) || `customer-${Date.now()}`;
-  let exists = await Customer.findOne({ slug }).lean();
+  let exists = await Customer.findOne({ slug }).session(session).lean();
   let i = 2;
   while (exists) {
     slug = `${slugify(base)}-${i++}`;
-    exists = await Customer.findOne({ slug }).lean();
+    exists = await Customer.findOne({ slug }).session(session).lean();
   }
   return slug;
 }
 
+// Thrown inside a conversion transaction when the deal's client link changed
+// between the read and the claim; the transaction is aborted (nothing saved).
+class DealConversionConflict extends Error {}
+
+// POST /api/crm/deals/:id/convert-to-customer (R4-C, P2-2)
+// One transaction: claim the deal (customerId set only if it has no client yet),
+// create its CRM account if it has none and store it on the deal, create or
+// reuse the client (same email/company-name rule as before), link the account,
+// and add a primary contact if the client has none. A deal that already has a
+// client returns it with alreadyConverted: true and writes nothing. The stage is
+// still set to "won" (existing behaviour).
 export async function convertDealToCustomer(req, res) {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ ok: false, message: "Invalid deal id" });
+  }
+
+  const actorId = req.user?.id || null;
+  let outcome;
   try {
-    const { id } = req.params;
+    outcome = await runInTransaction(async (session) => {
+      const deal = await Deal.findById(id)
+        .populate("accountId")
+        .populate("leadId")
+        .session(session)
+        .lean();
+      if (!deal) return { status: 404 };
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ ok: false, message: "Invalid deal id" });
-    }
+      if (deal.customerId) {
+        const linked = await Customer.findById(deal.customerId).session(session);
+        if (linked) return { status: 200, alreadyConverted: true, customer: linked };
+        throw new DealConversionConflict("This deal is linked to a client that no longer exists.");
+      }
 
-    const deal = await Deal.findById(id)
-      .populate("accountId")
-      .populate("leadId")
-      .lean();
+      const companyName =
+        deal.accountId?.name || deal.companyName || deal.leadId?.companyName || deal.title || "New Client";
+      const contactName =
+        deal.contactName || deal.leadId?.fullName || deal.accountId?.contactName || "Client Contact";
+      const primaryEmail = deal.email || deal.leadId?.email || deal.accountId?.email || "";
+      const phone = deal.phone || deal.leadId?.phone || deal.accountId?.phone || "";
 
-    if (!deal) {
-      return res.status(404).json({ ok: false, message: "Deal not found" });
-    }
+      const existingCustomer = await Customer.findOne({
+        $or: [primaryEmail ? { primaryEmail } : null, companyName ? { companyName } : null].filter(Boolean),
+      })
+        .session(session)
+        .lean();
 
-    const companyName =
-      deal.accountId?.name ||
-      deal.companyName ||
-      deal.leadId?.companyName ||
-      deal.title ||
-      "New Client";
+      // Claim: only one conversion can link this deal. A simultaneous request
+      // conflicts here and is retried by the driver, then finds the client above.
+      const customerId = existingCustomer?._id || new mongoose.Types.ObjectId();
+      const claimed = await Deal.findOneAndUpdate(
+        { _id: deal._id, customerId: null },
+        { $set: { stage: "won", customerId, convertedAt: new Date(), updatedBy: actorId } },
+        { new: true, session }
+      ).lean();
+      if (!claimed) throw new DealConversionConflict("This deal was converted at the same time. Refresh to see its client.");
 
-    const contactName =
-      deal.contactName ||
-      deal.leadId?.fullName ||
-      deal.accountId?.contactName ||
-      "Client Contact";
+      let crmAccountId = deal.accountId?._id || null;
+      const crmDealId = deal._id;
 
-    const primaryEmail =
-      deal.email || deal.leadId?.email || deal.accountId?.email || "";
+      // Create a CRM account if the deal has none, and store it on the deal
+      // (previously it was not, so a repeat created another account).
+      if (!crmAccountId && companyName) {
+        const [newAcct] = await Account.create(
+          [
+            {
+              name: companyName,
+              email: primaryEmail || "",
+              phone: phone || "",
+              industry: deal.industry || "",
+              country: deal.country || "",
+              status: "active",
+              ownerUserId: actorId,
+              createdBy: actorId,
+              updatedBy: actorId,
+            },
+          ],
+          { session }
+        );
+        crmAccountId = newAcct._id;
+        await Deal.updateOne({ _id: deal._id }, { $set: { accountId: crmAccountId } }, { session });
+      }
 
-    const phone =
-      deal.phone || deal.leadId?.phone || deal.accountId?.phone || "";
+      let customer;
+      if (!existingCustomer) {
+        const slug = await uniqueCustomerSlug(companyName, session);
+        [customer] = await Customer.create(
+          [
+            {
+              _id: customerId,
+              companyName,
+              contactName,
+              slug,
+              primaryEmail,
+              phone,
+              industry: deal.industry || "",
+              country: deal.country || "",
+              notes: deal.notes || "",
+              isActive: true,
+              crmAccountId,
+              crmDealId,
+              createdBy: actorId,
+              updatedBy: actorId,
+            },
+          ],
+          { session }
+        );
+      } else {
+        customer = await Customer.findByIdAndUpdate(
+          existingCustomer._id,
+          {
+            crmAccountId: existingCustomer.crmAccountId || crmAccountId,
+            crmDealId: existingCustomer.crmDealId || crmDealId,
+            updatedBy: actorId,
+          },
+          { new: true, session }
+        );
+      }
 
-    const existingCustomer = await Customer.findOne({
-      $or: [
-        primaryEmail ? { primaryEmail } : null,
-        companyName ? { companyName } : null,
-      ].filter(Boolean),
-    }).lean();
+      if (crmAccountId) {
+        await Account.findByIdAndUpdate(crmAccountId, { customerId: customer._id, updatedBy: actorId }, { session });
+      }
 
-    let crmAccountId = deal.accountId?._id || null;
-    const crmDealId = deal._id;
+      // Primary CRM contact if the client has none.
+      const existingContact = await Contact.findOne({ customerId: customer._id }).session(session).lean();
+      if (!existingContact && contactName) {
+        await Contact.create(
+          [
+            {
+              fullName: contactName,
+              email: primaryEmail || "",
+              phone: phone || "",
+              accountId: crmAccountId || null,
+              customerId: customer._id,
+              isPrimary: true,
+              source: "deal_converted",
+              createdBy: actorId,
+              updatedBy: actorId,
+            },
+          ],
+          { session }
+        );
+      }
 
-    // Auto-create a CRM Account if the deal has none
-    if (!crmAccountId && companyName) {
-      const newAcct = await Account.create({
-        name: companyName,
-        email: primaryEmail || "",
-        phone: phone || "",
-        industry: deal.industry || "",
-        country: deal.country || "",
-        status: "active",
-        ownerUserId: req.user?.id || null,
-        createdBy: req.user?.id || null,
-        updatedBy: req.user?.id || null,
-      });
-      crmAccountId = newAcct._id;
-    }
-
-    let customer = existingCustomer;
-
-    if (!customer) {
-      const slug = await uniqueCustomerSlug(companyName);
-      customer = await Customer.create({
-        companyName,
-        contactName,
-        slug,
-        primaryEmail,
-        phone,
-        industry: deal.industry || "",
-        country: deal.country || "",
-        notes: deal.notes || "",
-        isActive: true,
-        crmAccountId,
-        crmDealId,
-        createdBy: req.user?.id || null,
-        updatedBy: req.user?.id || null,
-      });
-    } else {
-      customer = await Customer.findByIdAndUpdate(
-        customer._id,
-        {
-          crmAccountId: customer.crmAccountId || crmAccountId,
-          crmDealId: customer.crmDealId || crmDealId,
-          updatedBy: req.user?.id || null,
-        },
-        { new: true }
-      );
-    }
-
-    await Deal.findByIdAndUpdate(id, {
-      stage: "won",
-      customerId: customer._id,
-      convertedAt: new Date(),
-      updatedBy: req.user?.id || null,
-    });
-
-    if (crmAccountId) {
-      await Account.findByIdAndUpdate(crmAccountId, {
-        customerId: customer._id,
-        updatedBy: req.user?.id || null,
-      });
-    }
-
-    // Auto-create primary CRM Contact if none exists for this customer
-    const existingContact = await Contact.findOne({ customerId: customer._id }).lean();
-    if (!existingContact && contactName) {
-      await Contact.create({
-        fullName: contactName,
-        email: primaryEmail || "",
-        phone: phone || "",
-        accountId: crmAccountId || null,
-        customerId: customer._id,
-        isPrimary: true,
-        source: "deal_converted",
-        createdBy: req.user?.id || null,
-        updatedBy: req.user?.id || null,
-      });
-    }
-
-    return res.json({
-      ok: true,
-      message: "Deal converted to customer",
-      customer,
+      return { status: 200, customer };
     });
   } catch (e) {
+    if (e instanceof TransactionUnsupportedError) {
+      return res.status(503).json({
+        ok: false,
+        code: e.code,
+        message: "Conversion is unavailable: the database does not support transactions. Nothing was changed.",
+      });
+    }
+    if (e instanceof DealConversionConflict) {
+      return res.status(409).json({ ok: false, message: `${e.message} Nothing was saved.` });
+    }
     console.error("convertDealToCustomer:", e);
-    return res.status(500).json({ ok: false, message: "Server error" });
+    return res.status(500).json({ ok: false, message: "The conversion didn't complete. Nothing was saved." });
   }
+
+  if (outcome.status === 404) {
+    return res.status(404).json({ ok: false, message: "Deal not found" });
+  }
+  if (outcome.alreadyConverted) {
+    return res.json({ ok: true, message: "This deal is already converted", customer: outcome.customer, alreadyConverted: true });
+  }
+  return res.json({ ok: true, message: "Deal converted to customer", customer: outcome.customer });
 }
 
 export async function listDeals(req, res) {

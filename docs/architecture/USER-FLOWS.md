@@ -126,7 +126,7 @@ flowchart LR
 3. **Convert deal → customer** creates the account if missing, creates or updates the operational **Customer**, and marks the deal `won`.
 4. Staff create client logins from the customer page. There are **two overlapping endpoints**, `create-login` and `POST /customers/:id/users`. Credentials are shown to the operator; no welcome email is sent.
 
-**Gaps:** each conversion is a series of separate writes with no transaction. Two lead fields (`convertedDealId`, `convertedToDealId`) record the same link. CRM activities record calls and tasks but send nothing.
+**Conversions (R4-C):** each conversion runs in one database transaction (all or nothing) and repeating it returns the record already linked; without transaction support the API refuses with 503. `convertedDealId` is the lead → deal link; the legacy `convertedToDealId` is no longer written. **Gaps:** CRM activities record calls and tasks but send nothing.
 
 ## 7. Projects / delivery — PARTIAL
 

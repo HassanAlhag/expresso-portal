@@ -9,6 +9,7 @@ import {
   normalizeLeadSource,
   PLAN_BUILDER_SOURCE,
 } from "./lead.service.js";
+import { runInTransaction, TransactionUnsupportedError } from "../../../utils/transaction.js";
 
 function escapeRegex(s) {
   return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -274,86 +275,128 @@ export async function deleteLead(req, res) {
   }
 }
 
-export async function convertLeadToDeal(req, res) {
+// Thrown inside a conversion transaction when the lead's link changed between
+// the read and the claim; the transaction is aborted (nothing saved).
+class LeadConversionConflict extends Error {}
+
+async function populatedDeal(id) {
   try {
-    const { id } = req.params;
-    const body = req.body || {};
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ ok: false, message: "Invalid id" });
-    }
-
-    const lead = await Lead.findById(id).lean();
-    if (!lead) {
-      return res.status(404).json({ ok: false, message: "Lead not found" });
-    }
-
-    const existingDeal = await Deal.findOne({ leadId: lead._id })
-      .select("_id")
-      .lean();
-
-    if (existingDeal) {
-      return res.status(409).json({
-        ok: false,
-        message: "This lead is already linked to a deal",
-      });
-    }
-
-    const account = await ensureAccountForLead(lead, req.user?.id);
-    const contact = await ensureContactForLead(lead, req.user?.id, {
-      accountId: account?._id,
-    });
-
-    const item = await Deal.create({
-      title:
-        String(body.title || "").trim() ||
-        (lead.companyName
-          ? `${lead.companyName} Opportunity`
-          : `${lead.fullName} Opportunity`),
-      pipeline: "sales",
-      stage: "discovery",
-      status: "open",
-      leadId: lead._id,
-      accountId: account?._id || null,
-      contactId: contact?._id || null,
-      value: Number(body.value || 0),
-      currency: String(body.currency || "AED")
-        .trim()
-        .toUpperCase(),
-      source: String(lead.source || "manual")
-        .trim()
-        .toLowerCase(),
-      ownerUserId: lead.ownerUserId || null,
-      notes: String(lead.notes || "").trim(),
-      createdBy: req.user?.id || null,
-      updatedBy: req.user?.id || null,
-    });
-
-    await Lead.findByIdAndUpdate(lead._id, {
-      status: "converted",
-      convertedDealId: item._id,
-      convertedToDealId: item._id,
-      convertedToAccountId: account?._id || null,
-      convertedAt: new Date(),
-      updatedBy: req.user?.id || null,
-    });
-
-    const populated = await Deal.findById(item._id)
+    return await Deal.findById(id)
       .populate("ownerUserId", "fullName email role")
       .populate("accountId", "name email phone status")
       .populate("contactId", "fullName email phone")
       .populate("leadId", "fullName companyName email phone service source")
       .lean();
+  } catch (e) {
+    // The conversion is already committed; the response only loses display fields.
+    console.warn("convertLeadToDeal: response population failed:", e?.message);
+    return null;
+  }
+}
 
-    return res.status(201).json({
-      ok: true,
-      message: "Lead converted to deal successfully",
-      item: populated || item,
-      account,
-      contact,
+// POST /api/crm/leads/:id/convert (R4-C, P2-2)
+// One transaction: claim the lead (convertedDealId set only if no deal is linked
+// yet), find or create the account and contact, create the deal. A repeat or
+// late retry returns the existing deal with alreadyConverted: true and writes
+// nothing. convertedDealId is the canonical link; convertedToDealId (legacy) is
+// read for older records but no longer written.
+export async function convertLeadToDeal(req, res) {
+  const { id } = req.params;
+  const body = req.body || {};
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ ok: false, message: "Invalid id" });
+  }
+
+  const actorId = req.user?.id || null;
+  let outcome;
+  try {
+    outcome = await runInTransaction(async (session) => {
+      const lead = await Lead.findById(id).session(session).lean();
+      if (!lead) return { status: 404 };
+
+      const linkedId = lead.convertedDealId || lead.convertedToDealId;
+      let existing = linkedId ? await Deal.findById(linkedId).session(session).lean() : null;
+      if (!existing) existing = await Deal.findOne({ leadId: lead._id }).session(session).lean();
+      if (existing) return { status: 200, alreadyConverted: true, deal: existing };
+
+      // Claim: only one conversion can link this lead. A simultaneous request
+      // conflicts here and is retried by the driver, then finds the deal above.
+      const dealId = new mongoose.Types.ObjectId();
+      const claimed = await Lead.findOneAndUpdate(
+        { _id: lead._id, convertedDealId: null, convertedToDealId: null },
+        { $set: { status: "converted", convertedDealId: dealId, convertedAt: new Date(), updatedBy: actorId } },
+        { new: true, session }
+      ).lean();
+      if (!claimed) throw new LeadConversionConflict();
+
+      const account = await ensureAccountForLead(lead, actorId, { session });
+      const contact = await ensureContactForLead(lead, actorId, { accountId: account?._id, session });
+
+      const [deal] = await Deal.create(
+        [
+          {
+            _id: dealId,
+            title:
+              String(body.title || "").trim() ||
+              (lead.companyName ? `${lead.companyName} Opportunity` : `${lead.fullName} Opportunity`),
+            pipeline: "sales",
+            stage: "discovery",
+            status: "open",
+            leadId: lead._id,
+            accountId: account?._id || null,
+            contactId: contact?._id || null,
+            value: Number(body.value || 0),
+            currency: String(body.currency || "AED").trim().toUpperCase(),
+            source: String(lead.source || "manual").trim().toLowerCase(),
+            ownerUserId: lead.ownerUserId || null,
+            notes: String(lead.notes || "").trim(),
+            createdBy: actorId,
+            updatedBy: actorId,
+          },
+        ],
+        { session }
+      );
+
+      await Lead.updateOne(
+        { _id: lead._id },
+        { $set: { convertedToAccountId: account?._id || null } },
+        { session }
+      );
+
+      return { status: 201, deal: deal.toObject(), account, contact };
     });
   } catch (e) {
+    if (e instanceof TransactionUnsupportedError) {
+      return res.status(503).json({
+        ok: false,
+        code: e.code,
+        message: "Conversion is unavailable: the database does not support transactions. Nothing was changed.",
+      });
+    }
+    if (e instanceof LeadConversionConflict) {
+      return res.status(409).json({
+        ok: false,
+        message: "This lead's deal link changed during conversion. Refresh to see it; nothing was saved.",
+      });
+    }
     console.error("convertLeadToDeal:", e);
-    return res.status(500).json({ ok: false, message: "Server error" });
+    return res.status(500).json({ ok: false, message: "The conversion didn't complete. Nothing was saved." });
   }
+
+  if (outcome.status === 404) {
+    return res.status(404).json({ ok: false, message: "Lead not found" });
+  }
+
+  const item = (await populatedDeal(outcome.deal._id)) || outcome.deal;
+  if (outcome.alreadyConverted) {
+    return res.status(200).json({ ok: true, message: "This lead is already converted", item, alreadyConverted: true });
+  }
+  return res.status(201).json({
+    ok: true,
+    message: "Lead converted to deal successfully",
+    item,
+    account: outcome.account,
+    contact: outcome.contact,
+  });
 }

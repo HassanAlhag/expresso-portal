@@ -20315,7 +20315,8 @@
           "portal-api/src/scripts/seedPortfolio.js",
           "portal-api/src/scripts/seedProcurementCategories.js",
           "portal-api/src/scripts/seedRoles.js",
-          "portal-api/src/utils/ownership.js"
+          "portal-api/src/utils/ownership.js",
+          "portal-api/src/utils/transaction.js"
         ]
       },
       {

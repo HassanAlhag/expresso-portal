@@ -214,7 +214,7 @@ erDiagram
     CRMContact }o--o| User : ownerUserId
     CRMLead }o--o| User : ownerUserId
     CRMLead }o--o| CRMAccount : convertedToAccountId
-    CRMLead }o--o| CRMDeal : convertedToDealId
+    CRMLead }o--o| CRMDeal : convertedDealId
     CRMDeal }o--o| CRMAccount : accountId
     CRMDeal }o--o| CRMContact : contactId
     CRMDeal }o--o| CRMLead : leadId
@@ -475,7 +475,7 @@ Actor refs are included here even when omitted from diagrams. The machine-readab
 | CRMActivity | `assignedTo` → User; `createdBy` → User; `updatedBy` → User |
 | CRMContact | `accountId` → CRMAccount; `customerId` → Customer; `leadId` → CRMLead; `ownerUserId` → User; `createdBy` → User; `updatedBy` → User |
 | CRMDeal | `accountId` → CRMAccount; `contactId` → CRMContact; `leadId` → CRMLead; `customerId` → Customer; `ownerUserId` → User; `createdBy` → User; `updatedBy` → User |
-| CRMLead | `ownerUserId` → User; `convertedToAccountId` → CRMAccount; `convertedToDealId` → CRMDeal; `createdBy` → User; `updatedBy` → User; `convertedDealId` → CRMDeal |
+| CRMLead | `ownerUserId` → User; `convertedToAccountId` → CRMAccount; `convertedDealId` → CRMDeal (canonical lead → deal link); `convertedToDealId` → CRMDeal (legacy, no longer written since R4-C; kept in the schema and read for older records); `createdBy` → User; `updatedBy` → User |
 | Customer | `ownerUserId` → User; `logoMediaId` → Media; `crmAccountId` → CRMAccount; `crmDealId` → CRMDeal; `createdBy` → User; `updatedBy` → User |
 | Enrollment | `customerId` → Customer; `serviceTemplateId` → ServiceTemplate; `projectId` → Project; `accountOwnerId` → User; `executionLeadId` → User; `createdBy` → User; `updatedBy` → User |
 | File | `customerId` → Customer; `projectId` → Project; `jobId` → Job; `productionId` → Production; `createdBy` → User; `updatedBy` → User |
