@@ -32,6 +32,8 @@ export const EVENT_TYPES = Object.freeze({
   "backup.manifest-written": ["succeeded"],
   "backup.completed": ["succeeded"],
   "backup.failed": ["failed"],
+  "restore.requested": ["requested"],
+  "restore.identity-verified": ["succeeded"],
   "restore.started": ["started"],
   "restore.completed": ["succeeded"],
   "restore.failed": ["failed"],
@@ -45,7 +47,7 @@ export const EVENT_TYPES = Object.freeze({
 });
 
 const EVENT_FIELDS = ["operationId", "eventType", "targetFingerprint", "digests", "operator", "toolVersion", "result", "counts", "failureCategory"];
-const DIGEST_KINDS = ["manifest", "backup", "plan"];
+const DIGEST_KINDS = ["manifest", "backup", "plan", "verification"];
 
 const bad = (msg) => {
   throw new LifecycleError("INVALID_EVENT", msg, EXIT.VALIDATION_FAILURE);

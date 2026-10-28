@@ -61,9 +61,11 @@ test("the database adapter exposes read operations only", () => {
   assert.doesNotMatch(code, /\.(insert|update|delete|replace|drop|rename|createIndex|createCollection|bulkWrite|aggregate|find|watch|admin|runCommand|createUser|grantRoles)[A-Za-z]*\(/);
 });
 
-test("only cli.js (read-only git), backup.js (mongodump) and secretpipe.js (mkfifo) run child processes", () => {
+const RESTORE = "restoreverify.js";
+
+test("only cli.js (read-only git), backup.js (mongodump), restoreverify.js (mongorestore) and secretpipe.js (mkfifo) run child processes", () => {
   for (const { f, code } of sources) {
-    if (f !== "cli.js" && f !== "backup.js" && f !== PIPE) assert.doesNotMatch(code, /child_process/, f);
+    if (f !== "cli.js" && f !== "backup.js" && f !== PIPE && f !== RESTORE) assert.doesNotMatch(code, /child_process/, f);
   }
   const pipe = codeOnly(sources.find((s) => s.f === PIPE).code);
   assert.deepEqual([...pipe.matchAll(/\bexecFileSync\(([^,]+),\s*\[([^\]]*)\]/g)].map((m) => `${m[1]}:${m[2]}`), ['mkfifo:"-m", "600", fifo']);
@@ -78,17 +80,32 @@ test("only cli.js (read-only git), backup.js (mongodump) and secretpipe.js (mkfi
   assert.deepEqual(execs, ['binary:"--version"']);
   // No child inherits the caller's environment (which holds LIFECYCLE_TARGET_URI).
   assert.match(backup, /execFileSync\(binary, \["--version"\], \{[^}]*env: childEnvironment\(\) \}\)/);
+  assert.match(backup, /spawn\(binary, \[[^\n]+\], \{[^\n]*env: childEnvironment\(\) \}\)/);
   assert.match(pipe, /execFileSync\(mkfifo, \["-m", "600", fifo\], \{[^}]*env: \{\} \}\)/);
+  // R5-D3: restoreverify.js runs mongorestore only: one spawn, argument array, no
+  // shell, filtered environment, version probe through backup.js's toolVersionOf.
+  const restore = codeOnly(sources.find((s) => s.f === RESTORE).code);
+  assert.doesNotMatch(restore, /shell:\s*true|\bexec\(|execSync\(|spawnSync\(|execFileSync\(|(locateTool|toolVersionOf)\(\s*["'`]mongodump/);
+  assert.match(restore, /const TOOL = "mongorestore";/);
+  assert.equal([...restore.matchAll(/\bspawn\(/g)].length, 1);
+  assert.match(restore, /\bspawn\(binary, mongorestoreArgs\(\{ configPath, archivePath, sourceDb, targetDb \}\), \{ stdio: \["ignore", "ignore", "pipe"\], shell: false, env: childEnvironment\(\) \}\)/);
+  // Its argument list: config pipe, archive, gzip, one exact namespace mapping, stop on error. Never --drop or a URI.
+  assert.match(restore, /return \[`--config=\$\{configPath\}`, `--archive=\$\{archivePath\}`, "--gzip", \.\.\.namespaceArgs\(sourceDb, targetDb\), "--stopOnError", "--quiet"\];/);
+  assert.doesNotMatch(restore, /["'`]--(drop|uri|db|oplogReplay|restoreDbUsersAndRoles|preserveUUID|username|password)\b/);
   const cli = sources.find((s) => s.f === "cli.js").code;
   const gitCalls = [...cli.matchAll(/git\(\[([^\]]*)\]\)/g)].map((m) => m[1]);
   assert.deepEqual(gitCalls.sort(), ['"rev-parse", "HEAD"', '"status", "--porcelain", "--untracked-files=no"'].sort());
   assert.doesNotMatch(cli, /exec\(|spawn\(|execSync\(/);
+  assert.equal([...cli.matchAll(/\bexecFileSync\(/g)].length, 1);
+  assert.match(cli, /execFileSync\("git", \["-C", root, \.\.\.args\], \{ encoding: "utf8", stdio: \["ignore", "pipe", "ignore"\], env: \{ PATH: process\.env\.PATH \} \}\)/);
+  for (const source of [cli, backup, pipe, restore]) assert.doesNotMatch(codeOnly(source), /(?:execFileSync|spawn)\([^\n]+env:\s*(?:process\.env|\{\s*\.\.\.process\.env)/);
 });
 
-test("package scripts expose only the read-only lifecycle commands", () => {
+test("package scripts expose only the read-only lifecycle commands and the restore-verification command", () => {
   const scripts = JSON.parse(readFileSync(PKG, "utf8")).scripts;
   const db = Object.keys(scripts).filter((k) => k.startsWith("db:")).sort();
-  assert.deepEqual(db, ["db:backup", "db:inventory", "db:manifest-check"]);
+  assert.deepEqual(db, ["db:backup", "db:inventory", "db:manifest-check", "db:restore-verify"]);
+  assert.match(scripts["db:restore-verify"], /lifecycle\/restoreverify\.js$/);
   assert.match(scripts["db:backup"], /lifecycle\/backup\.js$/);
   assert.match(scripts["db:inventory"], /lifecycle\/cli\.js inventory$/);
   assert.match(scripts["db:manifest-check"], /lifecycle\/cli\.js manifest-check$/);

@@ -71,6 +71,8 @@ test("only read operations exist; write/destructive operations are refused", () 
   assert.equal(code(() => authorizeOperation(id, "backup")), "OPERATION_NOT_ALLOWED");
   assert.equal(id.writeCapable, false);
   assert.deepEqual(id.allowedOperations, ["inventory"]);
+  // R5-D3: restore-verify is never implied by inventory or backup.
+  assert.equal(code(() => authorizeOperation(id, "restore-verify")), "OPERATION_NOT_ALLOWED");
 });
 
 test("credentials are never kept or printed", () => {
@@ -124,4 +126,23 @@ test("host categories", () => {
   assert.equal(hostCategory("10.0.0.5"), "private-network");
   assert.equal(hostCategory("cluster0.abc.mongodb.net"), "managed-cloud");
   assert.equal(hostCategory("db.example.com"), "remote");
+});
+
+test("R5-D3: restore-verify is the only write operation; it must be listed explicitly and stays local/disposable-only", async () => {
+  const { OPERATIONS, NAMED_WRITE_OPERATIONS } = await import("../../src/scripts/lifecycle/target.js");
+  assert.deepEqual(OPERATIONS, { inventory: "read", backup: "read", "restore-verify": "write-nonproduction" });
+  assert.deepEqual(NAMED_WRITE_OPERATIONS, ["restore-verify"]);
+  const doc = (cls, hosts, ops) => ({ schemaVersion: "expresso.lifecycle.profiles/1", profiles: [{ alias: "verify", class: cls, connection: { scheme: "mongodb", hosts, database: "expresso_verify", replicaSet: "rsv" }, operations: ops }] });
+  const uri = (h) => `mongodb://u:p@${h}/expresso_verify?replicaSet=rsv`;
+  const ok = resolveTarget({ profiles: validateProfiles(doc("disposable", ["127.0.0.1:27996"], ["restore-verify"])), alias: "verify", uri: uri("127.0.0.1:27996") });
+  assert.equal(authorizeOperation(ok, "restore-verify"), true);
+  assert.equal(ok.writeCapable, true);
+  const backupOnly = resolveTarget({ profiles: validateProfiles(doc("disposable", ["127.0.0.1:27996"], ["backup"])), alias: "verify", uri: uri("127.0.0.1:27996") });
+  assert.equal(code(() => authorizeOperation(backupOnly, "restore-verify")), "OPERATION_NOT_ALLOWED");
+  assert.equal(backupOnly.writeCapable, false);
+  for (const cls of ["staging", "production", "shared-development"]) {
+    assert.equal(code(() => resolveTarget({ profiles: validateProfiles(doc(cls, ["127.0.0.1:27996"], ["restore-verify"])), alias: "verify", uri: uri("127.0.0.1:27996") })), "UNSUPPORTED_PROFILE");
+  }
+  assert.equal(code(() => resolveTarget({ profiles: validateProfiles(doc("disposable", ["10.1.2.3:27017"], ["restore-verify"])), alias: "verify", uri: uri("10.1.2.3:27017") })), "PROFILE_MISMATCH");
+  for (const op of ["restore", "drop", "reset", "cleanup", "write-nonproduction"]) assert.equal(code(() => authorizeOperation(ok, op)), "UNSUPPORTED_OPERATION");
 });

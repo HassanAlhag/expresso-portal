@@ -1,11 +1,11 @@
 # Database backup — R5-D2 (runbook)
 
-Status: **R5-D2 complete / committed.** R5-D3 (restore verification) is **not started**.
+Status: **R5-D2 complete / committed / pushed.** R5-D3 (restore verification) is **complete / committed**: see [restore-verify.md](restore-verify.md).
 
 ## Read this first
 
 - **D2 proves backup creation only.** It produces a MongoDB archive, a sealed manifest and evidence for one database. The manifest always says `restoreVerified: false`.
-- **D2 does not prove the backup restores.** No restore is ever run. Recovery may only be called verified after R5-D3 restores the artifact into a disposable target and checks it.
+- **D2 does not prove the backup restores.** No restore is ever run. Recovery may only be called verified after R5-D3 restores the artifact into a disposable target and checks it ([restore-verify.md](restore-verify.md)); that result is a separate `restore-verification.json`, and this manifest keeps `restoreVerified: false`.
 - **Local and disposable targets only.** Staging, production, `mongodb+srv`, managed-cloud hosts and anything not declared in a D1 profile are refused. There is no override flag.
 - **The archive contains real database content.** Treat every artifact directory as sensitive data (see below).
 
@@ -62,15 +62,22 @@ There is no restore, drop, delete, reset, seed, repair or migrate command.
 - **Environment.** mongodump and the `--version` probe get our environment minus `LIFECYCLE_TARGET_URI` and any value containing `mongodb://` or `mongodb+srv://`.
 - Verified with mongodump 100.13.0 (`--help` lists `--config=<filename>`; a `uri:` key with user and password authenticates; a `username:` key is not accepted by this version, so the user name travels inside the URI).
 - **Minimum privileges: the built-in `read` role on the target database** (listCollections, listIndexes, find/count and `dbHash` are all included). No write, admin or backup role is needed; D2 never creates or changes users.
+  - Views require no extra privilege. D2 and D3 share the same metadata inventory: a view's `type` and `options` (`viewOn`, ordered `pipeline`, collation) come from `listCollections`. No view result data is queried. `system.views` is never counted or index-inspected directly: its definition count is derived from the number of listed views; its indexes are explicitly not inspected. Ordinary collections are always counted and index-inspected normally.
+- **Git metadata.** Both lifecycle git calls (`rev-parse HEAD`, `status --porcelain --untracked-files=no`) receive an explicit environment containing only `PATH`. No parent MongoDB URI, credential, arbitrary secret variable or Git configuration environment is inherited. `mkfifo` still receives `{}`; mongodump and its version probe still receive the filtered environment above.
 
 ## Consistency guarantee: `quiescent-verified`
 
-`mongodump --oplog` only works for whole-instance dumps, so a single-database dump cannot be oplog-consistent. Instead D2 records each collection's content hash (`dbHash`) and count, plus the index list, immediately before and after the dump:
+`mongodump --oplog` only works for whole-instance dumps, so a single-database dump cannot be oplog-consistent. D2 compares the following observations immediately before and after capture, failing with `SOURCE_CHANGED_DURING_BACKUP` if any differ:
 
-- identical before and after: no write changed the database during capture, so the archive reflects that one state; the manifest records `time.consistency.method = "quiescent-verified"`;
-- different: the run **fails** (`SOURCE_CHANGED_DURING_BACKUP`) and no manifest is written. D2 never silently downgrades.
+| Evidence | Ordinary collections | Views / `system.views` |
+|---|---|---|
+| Namespace set and type | Exact match | Exact match, including each view and the metadata namespace |
+| Options / definitions | Order-sensitive options (including validators, capped settings, collation) | Order-sensitive `viewOn`, pipeline (including compound `$sort` field order), collation and other returned options |
+| Counts | Real document counts | Views: `null`, `countSemantics: "not-applicable"`; `system.views`: number of definitions from `listCollections`, `countSemantics: "view-definitions"` |
+| Indexes | Names, ordered key fields and uniqueness | Views have no stored indexes; `system.views` is server-managed, `indexes: []`, `indexesInspected: false` |
+| Hashes | Per-collection `dbHash` plus database md5 | Available `system.views` hash and database md5 compared on the same source namespace; views themselves have no stored-content hash |
 
-Limits: a write that is exactly undone during the capture would not be detected; `dbHash` takes shared locks and reads every document, so on large databases schedule backups for a quiet period. Writes to other databases are not relevant to this guarantee.
+Matching observations establish `time.consistency.method = "quiescent-verified"`: evidence of a quiescent source at the observations, **not an atomic snapshot or proof that no intervening writes occurred**. A write or definition change exactly undone between observations, or concurrent changes during the separate inventory reads, may escape detection. Keep the disposable source idle throughout capture. `dbHash` reads stored documents and takes shared locks; it does not evaluate view result data. Writes to other databases are outside this check. Index properties beyond name, key order and uniqueness are not compared.
 
 ## Output directory and artifacts
 
@@ -85,11 +92,13 @@ Limits: a write that is exactly undone during the capture would not be detected;
 The manifest is the D1 schema (`expresso.lifecycle.manifest/1`), extended compatibly:
 
 - `source` (profile alias, class, target fingerprint; no credentials), `time` (UTC start/end, consistency), `application` (git commit, dirty flag, catalog version, D2 and mongodump versions, `package-lock.json` digest);
-- `database`: name, topology, server version, and per collection: type, options, count, indexes (name, key, unique), a fingerprint of its content hash and count, and whether the repository knows the collection (unknown collections are included, never skipped);
+- `database`: name, topology, server version, and per collection: type, options, count and explicit `countSemantics`, indexes (name, key, unique) and `indexesInspected`, a fingerprint of its content hash and count, and whether the repository knows the collection (unknown collections are included, never skipped);
 - `artifacts`: the archive's relative path, size and SHA-256;
 - `completion`: database and application metadata completed; public and private object storage **excluded** (D2 is database-only);
 - `status`: `{ backupCreated: true, artifactChecksumsValid: true, restoreVerified: false }`. The validator rejects `restoreVerified: true` in this schema version;
 - `seal`: SHA-256 of the canonical manifest.
+
+The additive v1 extension permits `count: null` only for `type: "view"` with `countSemantics: "not-applicable"`. Ordinary collection counts stay numeric. `system.views` has a numeric definition count, not a queried document count. The namespace type and options show view presence/definitions explicitly. Document totals exclude views and `system.views`. Existing manifests without the new optional fields remain valid; D3 accepts the older numeric view-count format, evaluating view results only when needed to verify that legacy claim. D3 never changes a D2 manifest.
 
 `npm run db:manifest-check -- --manifest <dir>/manifest.json` validates it offline. `verifyBackupArtifact(dir)` (in `backup.js`) also checks the files: missing manifest, INCOMPLETE marker, missing, extra, truncated or modified files and checksum mismatches.
 
@@ -99,6 +108,8 @@ Appended to `<evidence-dir>/lifecycle-evidence.jsonl` (D1 format: append-only, h
 
 ## How D2 was verified
 
+- Authenticated view regression (`test/lifecycle/backup.views.integration.test.js`): synthetic ordinary documents, compound index, view and unknown collection; built-in `read` only, denied direct `system.views` count/index access, D2 succeeds, the exact artifact restores/verifies on a separate D3 target, source and D2 manifest remain unchanged, and a harness-only `collMod` during capture is detected. Uses `LIFECYCLE_D2_AUTH_HOST` / `_ADMIN_URI`, `LIFECYCLE_D3_TARGET_HOST` / `_RS` / `_ADMIN_URI`, `LIFECYCLE_MONGODUMP`, `LIFECYCLE_MONGORESTORE`; loopback disposable servers only. Users and view mutations exist only in the test harness, never lifecycle code.
+- Git child environment regression (`test/lifecycle/git-environment.test.js`): both real child invocations see only `PATH` (macOS may inject its OS text-encoding variable), no synthetic credential-bearing `LIFECYCLE_TARGET_URI` or arbitrary `TEST_SECRET`; real Git metadata still works. Static safety tests pin every lifecycle child environment.
 - Unit tests with a fake read-only adapter and fake mongodump (`test/lifecycle/backup.test.js`).
 - Opt-in process-list security test (`test/lifecycle/backup.argv.integration.test.js`, Linux) against an explicitly started disposable standalone `mongod --auth` on loopback: set `LIFECYCLE_D2_AUTH_HOST`, `LIFECYCLE_D2_AUTH_ADMIN_URI` (an administrator on that disposable server, used only to create and drop the test's own database and user) and `LIFECYCLE_MONGODUMP`. It creates a read-only user whose name and password contain `: @ / # ? % & = +`, space and non-ASCII characters, and while the real mongodump runs reads only that child's `/proc` argv and environment (found from the CLI's own child list), reducing them to booleans at once. It asserts no user name, password (raw or encoded) or `mongodb://` URI is present; that the pipe is a 0600 FIFO of size 0 in a 0700 directory; and that after success, SIGINT (exit 130, INCOMPLETE marker) and SIGKILL nothing in output, manifest, evidence, artifacts or temporary space contains credential bytes and the source is unchanged.
 - Opt-in integration test (`test/lifecycle/backup.integration.test.js`) against an explicitly started disposable local replica set (`mongod --replSet rs0 --bind_ip 127.0.0.1 --port 27999`, data directory outside the repository, no authentication, synthetic data only): set `LIFECYCLE_D2_TEST_HOST=127.0.0.1:27999`, `LIFECYCLE_D2_TEST_RS=rs0`, `LIFECYCLE_MONGODUMP=/abs/path/mongodump`. It seeds a uniquely named synthetic database, backs it up through the real CLI, checks manifest, counts, indexes, checksums, evidence and that the source is unchanged, then drops only that synthetic database. It never restores.
@@ -107,8 +118,8 @@ Appended to `<evidence-dir>/lifecycle-evidence.jsonl` (D1 format: append-only, h
 
 | Phase | Status |
 |---|---|
-| R5-D1 identity, manifests, inventory, evidence | Complete / committed |
-| R5-D2 backup creation | Complete / committed |
-| R5-D3 restore into a disposable target and verification | Not started |
+| R5-D1 identity, manifests, inventory, evidence | Complete / committed / pushed |
+| R5-D2 backup creation | Complete / committed / pushed |
+| R5-D3 restore into a disposable target and verification | Complete / committed |
 | R5-D4 seed separation | Not started |
 | R5-D5 bounded nonproduction reset | Not started |

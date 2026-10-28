@@ -30,8 +30,14 @@ export const OPERATION_CLASSES = Object.freeze(["read", "write-nonproduction", "
 export const D1_ALLOWED_OPERATION_CLASSES = Object.freeze(["read"]);
 // Operations a profile may list, and the class each belongs to. "backup"
 // (R5-D2) only reads the database; its writes are local artifact files.
+// "restore-verify" (R5-D3) is the only write operation: it restores a
+// verified D2 artifact into a NEW, EMPTY verification database on a
+// local/disposable target and checks it. It is never implied by "backup".
 // A profile must list an operation explicitly before it can run.
-export const OPERATIONS = Object.freeze({ inventory: "read", backup: "read" });
+export const OPERATIONS = Object.freeze({ inventory: "read", backup: "read", "restore-verify": "write-nonproduction" });
+// Write operations exist only by name; no operation class is opened as a whole.
+export const NAMED_WRITE_OPERATIONS = Object.freeze(["restore-verify"]);
+const permittedOperation = (op) => D1_ALLOWED_OPERATION_CLASSES.includes(OPERATIONS[op]) || NAMED_WRITE_OPERATIONS.includes(op);
 
 const DEFAULT_PORT = 27017;
 const SUPPORTED_SCHEMES = new Set(["mongodb", "mongodb+srv"]);
@@ -234,16 +240,16 @@ export function resolveTarget({ profiles, alias, uri, role = "target" }) {
     // Kept off the default output; printed only when explicitly requested.
     restricted: { database: observed.database },
     fingerprint,
-    allowedOperations: profile.operations.filter((o) => D1_ALLOWED_OPERATION_CLASSES.includes(OPERATIONS[o])),
-    writeCapable: false,
+    allowedOperations: profile.operations.filter(permittedOperation),
+    writeCapable: profile.operations.some((o) => permittedOperation(o) && OPERATIONS[o] !== "read"),
   };
 }
 
-/** Refuse any operation class R5-D1 does not provide. */
+/** Refuse any operation the lifecycle tooling does not provide. */
 export function authorizeOperation(identity, operation) {
   const opClass = OPERATIONS[operation];
-  if (!opClass) fail("UNSUPPORTED_OPERATION", "operation is not provided by R5-D1");
-  if (!D1_ALLOWED_OPERATION_CLASSES.includes(opClass)) fail("UNSUPPORTED_OPERATION", "only read operations exist in R5-D1");
+  if (!opClass) fail("UNSUPPORTED_OPERATION", "operation is not provided by the lifecycle tooling");
+  if (!permittedOperation(operation)) fail("UNSUPPORTED_OPERATION", "only read operations and the named restore-verify operation exist");
   if (!identity || !identity.fingerprint) fail("MISSING_TARGET", "operation needs a resolved target identity");
   if (!identity.allowedOperations.includes(operation)) fail("OPERATION_NOT_ALLOWED", "the declared profile does not allow this operation");
   return true;

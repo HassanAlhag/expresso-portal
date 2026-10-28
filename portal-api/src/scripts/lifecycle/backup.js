@@ -104,8 +104,12 @@ function readJsonFile(file, label) {
 }
 
 /* ----------------------------------------------------------------- tool */
-/** Locate mongodump: an explicit absolute path, or a controlled PATH lookup (absolute entries only). */
-export function locateMongodump(explicit, envPath = "") {
+/**
+ * Locate a MongoDB Database Tools binary (`name`): an explicit absolute path,
+ * or a controlled PATH lookup (absolute entries only). Never downloads.
+ */
+export function locateTool(name, explicit, envPath = "") {
+  if (!/^mongo[a-z]{2,20}$/.test(String(name))) throw fail("TOOL_UNAVAILABLE", "unsupported tool name", EXIT.VALIDATION_FAILURE, "tooling");
   const usable = (p) => {
     try {
       const st = statSync(p);
@@ -116,27 +120,31 @@ export function locateMongodump(explicit, envPath = "") {
     }
   };
   if (explicit !== undefined) {
-    if (!path.isAbsolute(explicit)) throw fail("TOOL_UNAVAILABLE", "--mongodump must be an absolute path", EXIT.VALIDATION_FAILURE, "tooling");
-    if (!usable(explicit)) throw fail("TOOL_UNAVAILABLE", "mongodump was not found at the given path", EXIT.VALIDATION_FAILURE, "tooling");
+    if (!path.isAbsolute(explicit)) throw fail("TOOL_UNAVAILABLE", `--${name} must be an absolute path`, EXIT.VALIDATION_FAILURE, "tooling");
+    if (!usable(explicit)) throw fail("TOOL_UNAVAILABLE", `${name} was not found at the given path`, EXIT.VALIDATION_FAILURE, "tooling");
     return explicit;
   }
   for (const dir of String(envPath).split(path.delimiter)) {
     if (!dir || !path.isAbsolute(dir)) continue;
-    const p = path.join(dir, "mongodump");
+    const p = path.join(dir, name);
     if (usable(p)) return p;
   }
-  throw fail("TOOL_UNAVAILABLE", "mongodump is not installed (it is never downloaded automatically)", EXIT.VALIDATION_FAILURE, "tooling");
+  throw fail("TOOL_UNAVAILABLE", `${name} is not installed (it is never downloaded automatically)`, EXIT.VALIDATION_FAILURE, "tooling");
 }
-export function mongodumpVersion(binary) {
+export const locateMongodump = (explicit, envPath = "") => locateTool("mongodump", explicit, envPath);
+
+/** The version a Database Tools binary reports, with the filtered child environment. */
+export function toolVersionOf(name, binary) {
   try {
     const out = execFileSync(binary, ["--version"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000, env: childEnvironment() });
-    const m = out.match(/mongodump version:\s*([0-9][0-9A-Za-z.+-]*)/);
+    const m = out.match(new RegExp(`^${name} version:\\s*([0-9][0-9A-Za-z.+-]*)`, "m"));
     if (m) return m[1];
   } catch {
     // fall through
   }
-  throw fail("TOOL_UNAVAILABLE", "mongodump did not report a version", EXIT.VALIDATION_FAILURE, "tooling");
+  throw fail("TOOL_UNAVAILABLE", `${name} did not report a version`, EXIT.VALIDATION_FAILURE, "tooling");
 }
+export const mongodumpVersion = (binary) => toolVersionOf("mongodump", binary);
 
 /** The child's environment: ours, minus anything carrying a MongoDB connection string. */
 export function childEnvironment(env = process.env) {
@@ -178,7 +186,7 @@ export function dumpFailureCategory(stderr = "") {
 }
 
 /* ----------------------------------------------------------------- files */
-function writeExclusive(file, text) {
+export function writeExclusive(file, text) {
   const fd = openSync(file, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | (constants.O_NOFOLLOW ?? 0), 0o600);
   try {
     writeSync(fd, text);
@@ -278,22 +286,34 @@ export function checkLiveIdentity(hello, profile) {
 }
 
 /* ----------------------------------------------------------------- inventory */
-async function captureState(adapter) {
+/**
+ * Shared D2/D3 read-only inventory. Views have definitions, not stored document
+ * counts. system.views cannot be counted/index-inspected with read/readWrite:
+ * derive its definition count from listCollections, as D3 already does.
+ * dbHash remains read-only evidence, including system.views on the source.
+ */
+export async function captureState(adapter) {
   const collections = await adapter.listCollections();
   const hash = await adapter.dbHash();
+  const viewCount = collections.filter((c) => c.type === "view").length;
   const out = [];
   for (const c of collections) {
-    const count = await adapter.countDocuments(c.name);
+    const isViews = c.name === "system.views";
+    const isView = c.type === "view";
+    const count = isViews ? viewCount : isView ? null : await adapter.countDocuments(c.name);
+    const countSemantics = isViews ? "view-definitions" : isView ? "not-applicable" : "documents";
     let indexes = [];
-    if (c.type !== "view") {
+    if (!isView && !isViews) {
       indexes = (await adapter.listIndexes(c.name)).map((ix) => ({ name: ix.name, key: ix.key, unique: ix.unique === true })).sort((a, b) => a.name.localeCompare(b.name));
     }
     const md5 = hash?.collections?.[c.name] ?? null;
-    out.push({ name: c.name, type: c.type, options: c.options || {}, count, indexes, contentHash: md5 });
+    out.push({ name: c.name, type: c.type, options: c.options || {}, count, countSemantics, indexes, indexesInspected: !isViews && !isView, contentHash: md5 });
   }
   return { collections: out, databaseHash: hash?.md5 ?? null };
 }
-const stateDigest = (s) => digestOf(s.collections.map((c) => ({ name: c.name, count: c.count, indexes: c.indexes, contentHash: c.contentHash })));
+// Preserve object order: compound index keys and pipeline $sort order matter.
+// Sort namespace/index lists only; compare types, options and definitions too.
+const stateDigest = (s) => sha256Hex(JSON.stringify([...s.collections].sort((a, b) => a.name.localeCompare(b.name))));
 
 /* ----------------------------------------------------------------- run */
 /**
@@ -367,6 +387,7 @@ export async function runBackup(argv, deps = {}) {
     const live = checkLiveIdentity(await ctx.adapter.hello(), profile);
     const serverVersion = String((await ctx.adapter.buildInfo()).version);
     const before = await captureState(ctx.adapter);
+    const beforeDigest = stateDigest(before);
     if (!before.collections.length) throw fail("EMPTY_DATABASE", "the declared database has no collections; refusing to back up an empty (possibly wrong) target", EXIT.INVALID_ARGS_OR_IDENTITY, "identity");
     evidence({ eventType: "backup.identity-verified", result: "succeeded", counts: { collections: before.collections.length, members: live.memberCount } });
     guard();
@@ -390,7 +411,7 @@ export async function runBackup(argv, deps = {}) {
 
     // Consistency: the database must be unchanged across the capture.
     const after = await captureState(ctx.adapter);
-    if (stateDigest(before) !== stateDigest(after) || before.databaseHash !== after.databaseHash) {
+    if (beforeDigest !== stateDigest(after) || before.databaseHash !== after.databaseHash) {
       throw fail("SOURCE_CHANGED_DURING_BACKUP", "the database changed during capture; this artifact is not consistent and is not a valid backup", EXIT.VALIDATION_FAILURE, "integrity");
     }
     guard();
@@ -423,8 +444,10 @@ export async function runBackup(argv, deps = {}) {
           type: c.type,
           options: c.options,
           count: c.count,
+          countSemantics: c.countSemantics,
           fingerprint: digestOf({ contentHash: c.contentHash, count: c.count }),
           indexes: c.indexes,
+          indexesInspected: c.indexesInspected,
           knownToRepository: known.has(c.name),
         })),
       },
@@ -452,7 +475,7 @@ export async function runBackup(argv, deps = {}) {
     const artifactCheck = verifyBackupArtifact(ctx.artifactDir);
     if (!artifactCheck.ok) throw fail("ARTIFACT_CHECK_FAILED", "the written artifact did not verify against its manifest", EXIT.VALIDATION_FAILURE, "integrity");
     evidence({ eventType: "backup.manifest-written", result: "succeeded", digests: { manifest: manifest.seal.digest } });
-    const documents = before.collections.reduce((n, c) => n + c.count, 0);
+    const documents = before.collections.filter((c) => c.countSemantics === "documents").reduce((n, c) => n + c.count, 0);
     evidence({ eventType: "backup.completed", result: "succeeded", digests: { manifest: manifest.seal.digest, backup: archive.sha256 }, counts: { collections: before.collections.length, documents } });
     const chain = verifyEvidence(evidencePath(ctx.evidence.dir));
     if (!chain.ok) throw fail("EVIDENCE_INVALID", "the evidence chain did not verify", EXIT.VALIDATION_FAILURE, "integrity");
@@ -465,7 +488,7 @@ export async function runBackup(argv, deps = {}) {
       artifactDirectory: ctx.artifactDir,
       manifestDigest: manifest.seal.digest,
       archive: { file: ARCHIVE_NAME, bytes: archive.bytes, sha256: archive.sha256 },
-      consistency: "quiescent-verified (database dbHash identical before and after capture)",
+      consistency: "quiescent-verified (matching before/after hashes, types, options, view definitions, counts and inspectable indexes; not an atomic snapshot)",
       tool: { name: "mongodump", version: toolVersion },
       target: publicIdentity(identity),
       live,

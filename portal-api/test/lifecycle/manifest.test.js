@@ -22,6 +22,17 @@ test("an unsupported schema version is reported as such", () => {
   assert.equal(r.status, STATUS.UNSUPPORTED_VERSION);
 });
 
+test("view count extension keeps legacy manifests valid and allows null only with explicit view semantics", () => {
+  assert.equal(validateManifest(sealed()).status, STATUS.VALID);
+  const view = { name: "brief_jobs", type: "view", options: { viewOn: "jobs", pipeline: [] }, count: null, countSemantics: "not-applicable", indexes: [] };
+  assert.equal(validateManifest(sealed((m) => m.database.collections.push(view))).status, STATUS.VALID);
+  assert.equal(validateManifest(sealed((m) => m.database.collections.push({ ...view, count: 4, countSemantics: undefined }))).status, STATUS.VALID, "legacy numeric view count");
+  for (const change of [{ countSemantics: undefined }, { type: "collection" }, { count: 0 }, { countSemantics: "documents" }]) {
+    assert.equal(validateManifest(sealed((m) => m.database.collections.push({ ...view, ...change }))).status, STATUS.INVALID);
+  }
+  assert.equal(validateManifest(sealed((m) => (m.database.collections[0].count = null))).status, STATUS.INVALID);
+});
+
 test("missing required fields are INVALID", () => {
   for (const k of ["operationId", "source", "time", "application", "database", "objectStorage", "artifacts", "completion"]) {
     const r = validateManifest(sealed((m) => delete m[k]));

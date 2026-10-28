@@ -27,7 +27,8 @@ export const COMPLETION_STATES = Object.freeze(["complete", "incomplete", "faile
 export const FAILURE_CATEGORIES = Object.freeze(["identity", "validation", "connectivity", "permission", "capacity", "integrity", "timeout", "interrupted", "tooling", "unknown"]);
 const TOPOLOGIES = ["standalone", "replica-set", "sharded"];
 // "quiescent-verified" (R5-D2): the database's per-collection dbHash was
-// identical before and after capture, so no write changed it during the dump.
+// identical before and after capture, alongside inventory metadata. This is
+// endpoint evidence of quiescence, not an atomic snapshot or proof of no writes.
 const CONSISTENCY = ["point-in-time-snapshot", "oplog-consistent", "quiescent-verified", "best-effort", "none"];
 const PROFILE_CLASS_NAMES = ["local", "disposable", "shared-development", "staging", "production"];
 
@@ -147,7 +148,14 @@ export function validateManifest(manifest) {
         if (!isPlainObject(c)) return err(at, "must be an object");
         if (typeof c.name !== "string" || !/^[A-Za-z0-9_.-]{1,120}$/.test(c.name)) err(`${at}.name`, "invalid collection name");
         if (!isPlainObject(c.options)) err(`${at}.options`, "must be an object");
-        if (!Number.isInteger(c.count) || c.count < 0) err(`${at}.count`, "must be a non-negative integer");
+        // Additive v1 extension: old numeric counts remain valid. Only a view
+        // explicitly marked not-applicable may have null (never a made-up 0).
+        if (!(c.type === "view" && c.count === null && c.countSemantics === "not-applicable") && (!Number.isInteger(c.count) || c.count < 0)) err(`${at}.count`, "must be a non-negative integer, or null for a view with not-applicable count semantics");
+        if (c.countSemantics !== undefined) {
+          const semantics = c.type === "view" ? "not-applicable" : c.name === "system.views" ? "view-definitions" : "documents";
+          if (c.countSemantics !== semantics || (c.type === "view" && c.count !== null)) err(`${at}.countSemantics`, "must describe the namespace's count semantics");
+        }
+        if (c.indexesInspected !== undefined && typeof c.indexesInspected !== "boolean") err(`${at}.indexesInspected`, "must be a boolean");
         if (c.fingerprint !== undefined && c.fingerprint !== null && !isSha256(c.fingerprint)) err(`${at}.fingerprint`, "must be a sha256 hex digest");
         if (!Array.isArray(c.indexes)) err(`${at}.indexes`, "must be an array");
         else {

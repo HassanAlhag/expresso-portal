@@ -6,7 +6,7 @@ import { mkdtempSync, rmSync, writeFileSync, readFileSync, readdirSync, symlinkS
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { runBackup, verifyBackupArtifact, checkLiveIdentity, parseBackupArgs, locateMongodump, childEnvironment, ARCHIVE_NAME, MANIFEST_NAME, INCOMPLETE_NAME, EXIT_INTERRUPTED } from "../../src/scripts/lifecycle/backup.js";
+import { runBackup, captureState, verifyBackupArtifact, checkLiveIdentity, parseBackupArgs, locateMongodump, childEnvironment, ARCHIVE_NAME, MANIFEST_NAME, INCOMPLETE_NAME, EXIT_INTERRUPTED } from "../../src/scripts/lifecycle/backup.js";
 import { validateManifest, sealManifest } from "../../src/scripts/lifecycle/manifest.js";
 import { verifyEvidence } from "../../src/scripts/lifecycle/evidence.js";
 import { REPO_ROOT } from "../../src/scripts/lifecycle/catalog.js";
@@ -56,7 +56,7 @@ function fakeAdapter({ hello = {}, collections = COLLECTIONS(), mutateAfterDump 
     hello: async () => (calls.push("hello"), { isWritablePrimary: true, setName: "rs0", hosts: ["127.0.0.1:27999"], me: "127.0.0.1:27999", ...hello }),
     buildInfo: async () => (calls.push("buildInfo"), { version: "8.3.7" }),
     dbHash: async () => (calls.push("dbHash"), { collections: Object.fromEntries(state().map((c) => [c.name, c.hash])), md5: state().map((c) => c.hash).join("").slice(0, 32) }),
-    listCollections: async () => (calls.push("listCollections"), collections.map((c) => ({ name: c.name, type: "collection", options: {} }))),
+    listCollections: async () => (calls.push("listCollections"), collections.map((c) => ({ name: c.name, type: c.type ?? "collection", options: c.options ?? {} }))),
     countDocuments: async (n) => (calls.push("countDocuments"), collections.find((c) => c.name === n).count),
     listIndexes: async (n) => (calls.push("listIndexes"), collections.find((c) => c.name === n).indexes),
     serverInfo: async () => ({ version: "8.3.7", topology: "replica-set" }),
@@ -310,6 +310,66 @@ test("27. the source is only read, and a source that changes during capture fail
   assert.equal(existsSync(path.join(artifact("bk-test-0004"), MANIFEST_NAME)), false);
 });
 
+const VIEW_COLLECTIONS = () => [
+  ...COLLECTIONS(),
+  { name: "brief_jobs", type: "view", options: { viewOn: "jobs", pipeline: [{ $match: { status: "brief" } }, { $sort: { customerId: 1, status: 1 } }], collation: { locale: "simple" } }, hash: null },
+  { name: "system.views", type: "collection", options: {}, hash: "e".repeat(32) },
+];
+function metadataOnlyAdapter(collections) {
+  const fake = fakeAdapter({ collections });
+  for (const method of ["countDocuments", "listIndexes"]) {
+    const inner = fake.adapter[method];
+    fake.adapter[method] = async (name) => {
+      assert.ok(name !== "system.views" && name !== "brief_jobs", "never read system.views or evaluate view data");
+      return inner(name);
+    };
+  }
+  return fake;
+}
+test("views: D2 uses metadata only, preserves definitions and ordinary counts, and reports honest count/index semantics", async () => {
+  const collections = VIEW_COLLECTIONS();
+  const fake = metadataOnlyAdapter(collections);
+  const state = await captureState(fake.adapter);
+  assert.equal(state.collections.find((c) => c.name === "brief_jobs").count, null);
+  const r = await run(args(), { adapter: fake });
+  assert.equal(r.code, 0, r.stderr);
+  const m = JSON.parse(readFileSync(path.join(artifact(), MANIFEST_NAME), "utf8"));
+  assert.equal(validateManifest(m).status, "VALID");
+  const by = Object.fromEntries(m.database.collections.map((c) => [c.name, c]));
+  assert.equal(by.jobs.count, 7);
+  assert.equal(by.jobs.countSemantics, "documents");
+  assert.equal(by.brief_jobs.type, "view");
+  assert.equal(by.brief_jobs.count, null);
+  assert.equal(by.brief_jobs.countSemantics, "not-applicable");
+  assert.deepEqual(by.brief_jobs.options, collections.find((c) => c.type === "view").options);
+  assert.equal(by["system.views"].count, 1);
+  assert.equal(by["system.views"].countSemantics, "view-definitions");
+  assert.equal(by["system.views"].indexesInspected, false);
+  assert.deepEqual(by["system.views"].indexes, []);
+  assert.equal(JSON.parse(r.stdout).collections.documents, 12, "exclude view definitions/results from document totals");
+});
+test("consistency: view definitions, ordered sort/index keys, types, collection options and metadata hashes cannot change across capture", async () => {
+  const mutations = [
+    (cs) => { cs.find((c) => c.type === "view").options.pipeline[0].$match.status = "done"; },
+    (cs) => { cs.find((c) => c.type === "view").options.pipeline[1].$sort = { status: 1, customerId: 1 }; },
+    (cs) => { cs[1].indexes[1].key = { status: 1, customerId: 1 }; },
+    (cs) => { cs[1].options = { validator: { status: { $type: "string" } } }; },
+    (cs) => { cs[1].type = "timeseries"; },
+    (cs) => { cs.find((c) => c.name === "system.views").hash = "f".repeat(32); },
+    (cs) => { cs.splice(cs.findIndex((c) => c.type === "view"), 1); },
+  ];
+  for (const [i, mutate] of mutations.entries()) {
+    const collections = VIEW_COLLECTIONS();
+    const fake = metadataOnlyAdapter(collections);
+    const id = `bk-view-change-${i}`;
+    const r = await run(args({ "--artifact-id": id }), { adapter: fake, dump: fakeDump(fake.adapter, { onRun: () => mutate(collections) }) });
+    assert.equal(r.code, 4, `${i}: ${r.stderr}`);
+    assert.match(r.stderr, /SOURCE_CHANGED_DURING_BACKUP/);
+    assert.equal(existsSync(path.join(artifact(id), MANIFEST_NAME)), false);
+    assert.equal(existsSync(path.join(artifact(id), INCOMPLETE_NAME)), true);
+  }
+});
+
 test("32–35. metadata is deterministic and records counts, indexes and unknown collections", async () => {
   await run(args({ "--artifact-id": "bk-test-0005" }));
   await run(args({ "--artifact-id": "bk-test-0006" }));
@@ -357,7 +417,8 @@ test("an empty target database is refused as a likely wrong target", async () =>
 test("28–31. no restore/reset/seed/delete/repair/migrate path, no shell, no command strings", () => {
   for (const f of readdirSync(SRC).filter((x) => x.endsWith(".js"))) {
     const code = readFileSync(path.join(SRC, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`])\/\/.*$/gm, "$1");
-    assert.doesNotMatch(code, /mongorestore|shell:\s*true|\bexecSync\(|\bexec\(|spawnSync\(/, f);
+    // R5-D3: only restoreverify.js may name mongorestore (its exact use is pinned in safety.test.js).
+    assert.doesNotMatch(code, f === "restoreverify.js" ? /shell:\s*true|\bexecSync\(|\bexec\(|spawnSync\(/ : /mongorestore|shell:\s*true|\bexecSync\(|\bexec\(|spawnSync\(/, f);
     assert.doesNotMatch(code, /["'](restore|reset|seed|repair|migrate|drop|delete)["']\s*:\s*["']/, f);
   }
   const backup = readFileSync(path.join(SRC, "backup.js"), "utf8");

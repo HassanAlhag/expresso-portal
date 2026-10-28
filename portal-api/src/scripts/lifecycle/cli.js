@@ -77,7 +77,7 @@ function readJsonFile(file, label, exitCode) {
 
 /** Read-only git facts about the application checkout. */
 export function gitApplicationInfo(root = REPO_ROOT) {
-  const git = (args) => execFileSync("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  const git = (args) => execFileSync("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], env: { PATH: process.env.PATH } }).trim();
   try {
     const gitCommit = git(["rev-parse", "HEAD"]);
     const dirty = git(["status", "--porcelain", "--untracked-files=no"]).length > 0;
