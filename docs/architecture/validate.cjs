@@ -17,13 +17,17 @@ try {
 try {
   execFileSync(process.execPath, [path.join(dir, 'generate-endpoint-evidence.cjs'), '--check'], { stdio: 'pipe' });
 } catch (e) { fail.push('endpoint-evidence.json is stale: run node docs/architecture/generate-endpoint-evidence.cjs'); }
+// 1c. R5-B3 asset evidence is offline and must track asset/reference/schema drift.
+try {
+  execFileSync(process.execPath, [path.join(dir, 'generate-asset-evidence.cjs'), '--check'], { stdio: 'pipe', env: { PATH: process.env.PATH } });
+} catch { fail.push('asset evidence is stale: run node docs/architecture/generate-asset-evidence.cjs'); }
 const inv = JSON.parse(read('source-inventory.json'));
 const c = inv.counts;
 
 // 2. Required deliverables exist.
 const required = ['README.md', 'SYSTEM-ARCHITECTURE.md', 'PUBLIC-WEBSITE-MAP.md', 'PORTAL-MODULE-MAP.md', 'DATABASE-MAP.md',
   'RBAC-MAP.md', 'API-MAP.md', 'API-ENDPOINTS.md', 'USER-FLOWS.md', 'CODE-CLEANUP-AUDIT.md', 'DATABASE-RESET-PLAN.md',
-  'EXPRESSO-SYSTEM-BLUEPRINT.html', 'collection-classification.json', 'module-catalog.json', 'REMEDIATION-PLAN.md'];
+  'EXPRESSO-SYSTEM-BLUEPRINT.html', 'collection-classification.json', 'module-catalog.json', 'REMEDIATION-PLAN.md', 'ASSET-RECONCILIATION-B3.md', 'ASSET-EVIDENCE-PLAN.md'];
 for (const f of required) ok(fs.existsSync(path.join(dir, f)), `missing ${f}`);
 
 // 3. Headline counts quoted in the summary match the code.

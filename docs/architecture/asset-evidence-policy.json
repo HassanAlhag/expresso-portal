@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "expresso.lifecycle.asset-policy/1",
+  "scope": {
+    "publicRoots": [
+      "client/public"
+    ],
+    "sourceAssetRoots": [
+      "client/src/assets",
+      "portal-api/public"
+    ],
+    "fontLicensePaths": [
+      "client/public/Barlow/OFL.txt"
+    ],
+    "excludedOperationalSources": [
+      "client/public/index.html",
+      "client/public/manifest.json",
+      "client/public/robots.txt",
+      "client/public/sitemap.xml"
+    ]
+  },
+  "protectedAssets": [
+    {
+      "path": "client/public/images/homepage/expresso-hero-01-one-digital-partner.webp",
+      "sha256": "2d1585185616b46eb9680ad3eab0a2292f05e07a88207020cb9c1c73016101cb",
+      "reason": "Approved W4 homepage slide; CMS entry still an evidence requirement, not permission to delete.",
+      "evidence": {
+        "file": "docs/architecture/REMEDIATION-PLAN.md",
+        "anchor": "Four new homepage slides",
+        "commit": "3d0fd7853c2c524c3a42202b1007cc0d8581684d"
+      }
+    },
+    {
+      "path": "client/public/images/homepage/expresso-hero-02-digital-services.webp",
+      "sha256": "960ce1f1e849fc5d230bad6346c8a368e337a6c3e5cfba54c91d6600e8af0de8",
+      "reason": "Approved W4 homepage slide; CMS entry still an evidence requirement, not permission to delete.",
+      "evidence": {
+        "file": "docs/architecture/REMEDIATION-PLAN.md",
+        "anchor": "Four new homepage slides",
+        "commit": "3d0fd7853c2c524c3a42202b1007cc0d8581684d"
+      }
+    },
+    {
+      "path": "client/public/images/homepage/expresso-hero-03-digital-solutions.webp",
+      "sha256": "fbc2d1ce967b9bb938475b62cd8f617da1cd2a208fa8dc6a11170b3b74e240e9",
+      "reason": "Approved W4 homepage slide; CMS entry still an evidence requirement, not permission to delete.",
+      "evidence": {
+        "file": "docs/architecture/REMEDIATION-PLAN.md",
+        "anchor": "Four new homepage slides",
+        "commit": "3d0fd7853c2c524c3a42202b1007cc0d8581684d"
+      }
+    },
+    {
+      "path": "client/public/images/homepage/expresso-hero-04-technology-solutions.webp",
+      "sha256": "d3b0b87748aab3857a9ab10dbfeba94bd1cdc4ae417fa60afc5fb2841beecfda",
+      "reason": "Approved W4 homepage slide; CMS entry still an evidence requirement, not permission to delete.",
+      "evidence": {
+        "file": "docs/architecture/REMEDIATION-PLAN.md",
+        "anchor": "Four new homepage slides",
+        "commit": "3d0fd7853c2c524c3a42202b1007cc0d8581684d"
+      }
+    },
+    {
+      "path": "client/public/Barlow/OFL.txt",
+      "sha256": "6f931351c6b4a1732c099c5261138dbdb37f26456ab933ab9a66ecda162e240c",
+      "reason": "Font license shipped with retained Barlow fonts; retain the license with the font package.",
+      "evidence": {
+        "file": "client/public/Barlow/OFL.txt",
+        "anchor": "SIL OPEN FONT LICENSE"
+      }
+    }
+  ],
+  "operationalProtectionSources": [
+    "client/public/index.html",
+    "client/public/manifest.json"
+  ],
+  "referencePlan": {
+    "cmsModels": [
+      "SiteSettings",
+      "HeroSlide",
+      "Solution",
+      "DigitalService",
+      "Portfolio",
+      "Career",
+      "ProcurementCategory"
+    ],
+    "richTextFields": [
+      "description",
+      "introDescription",
+      "bannerDesc",
+      "body",
+      "notes",
+      "caption",
+      "concept",
+      "storyboard",
+      "script",
+      "shotList",
+      "summary",
+      "responsibilities",
+      "requirements",
+      "problems",
+      "solutions",
+      "result",
+      "coverLetter",
+      "instructions",
+      "text",
+      "comment",
+      "content",
+      "html",
+      "markdown"
+    ],
+    "legacyOwnership": [
+      "Production.coverMedia",
+      "Production.gallery[]",
+      "File.productionId",
+      "Job.productionId"
+    ],
+    "opaqueDiscoveredKeys": [
+      "src",
+      "srcset",
+      "href",
+      "url",
+      "imageUrl",
+      "image",
+      "video",
+      "poster",
+      "attachment",
+      "mediaId",
+      "fileId",
+      "key",
+      "s3Key",
+      "thumbnailS3Key",
+      "mediumS3Key",
+      "media",
+      "file",
+      "uploads",
+      "mediaRefs",
+      "defaultUrl"
+    ]
+  },
+  "storageEvidenceSources": [
+    "client/src/utils/websiteImages.js",
+    "client/src/portal/shared/utils/assetUrl.js",
+    "client/src/data/websiteImageRegistry.js",
+    "portal-api/src/utils/s3.js",
+    "portal-api/src/utils/uploadPolicy.js",
+    "portal-api/src/modules/content/media/media.controller.js",
+    "portal-api/src/modules/services/serviceTemplate.controller.js",
+    "portal-api/src/modules/careers/career.controller.js",
+    "portal-api/src/utils/privateStorage.js",
+    "portal-api/src/modules/files/files.controller.js",
+    "portal-api/src/modules/careers/application.controller.js"
+  ],
+  "deletionAuthorized": false
+}

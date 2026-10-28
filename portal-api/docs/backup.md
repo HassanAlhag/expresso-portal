@@ -1,6 +1,6 @@
 # Database backup — R5-D2 (runbook)
 
-Status: **R5-D2 complete / committed / pushed.** R5-D3 (restore verification) is **complete / committed**: see [restore-verify.md](restore-verify.md).
+Status: **R5-D2 complete / committed / pushed.** R5-D3 (restore verification) is **complete / committed / pushed**: see [restore-verify.md](restore-verify.md).
 
 ## Read this first
 
@@ -120,6 +120,6 @@ Appended to `<evidence-dir>/lifecycle-evidence.jsonl` (D1 format: append-only, h
 |---|---|
 | R5-D1 identity, manifests, inventory, evidence | Complete / committed / pushed |
 | R5-D2 backup creation | Complete / committed / pushed |
-| R5-D3 restore into a disposable target and verification | Complete / committed |
+| R5-D3 restore into a disposable target and verification | Complete / committed / pushed |
 | R5-D4 seed separation | Not started |
 | R5-D5 bounded nonproduction reset | Not started |

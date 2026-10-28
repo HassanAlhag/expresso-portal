@@ -1,6 +1,6 @@
 # Data lifecycle — R5-D1 safety foundation (runbook)
 
-Status: **R5-D1 complete / committed / pushed.** R5-D2 (backup creation) is **complete / committed / pushed**: see [backup.md](backup.md). R5-D3 (restore verification) is **complete / committed**: see [restore-verify.md](restore-verify.md). R5-D4 and R5-D5 are **not started**.
+Status: **R5-D1 complete / committed / pushed.** R5-D2 (backup creation) is **complete / committed / pushed**: see [backup.md](backup.md). R5-D3 (restore verification) is **complete / committed / pushed**: see [restore-verify.md](restore-verify.md). R5-D4 and R5-D5 are **not started**.
 
 ## Read this first
 
@@ -132,7 +132,7 @@ D1 executes none of these operations and has no CLI command that writes evidence
 |---|---|---|
 | R5-D1 | Identity, manifests, inventory, catalog, evidence foundation | **Complete / committed / pushed** |
 | R5-D2 | Backup creation from a local/disposable target (no restore) | **Complete / committed / pushed** ([backup.md](backup.md)) |
-| R5-D3 | Restore verification into a new, empty disposable database | **Complete / committed** ([restore-verify.md](restore-verify.md)) |
+| R5-D3 | Restore verification into a new, empty disposable database | **Complete / committed / pushed** ([restore-verify.md](restore-verify.md)) |
 | R5-D4 | Seed separation (system / config / CMS / demo) | Not started |
 | R5-D5 | Bounded nonproduction reset | Not started |
 

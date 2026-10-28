@@ -1,6 +1,6 @@
 # Restore verification — R5-D3 (runbook)
 
-Status: **R5-D3 complete / committed**. R5-D4 and R5-D5 are **not started**.
+Status: **R5-D3 complete / committed / pushed**. R5-D4 and R5-D5 are **not started**.
 
 ## Read this first
 
@@ -99,6 +99,6 @@ Appended to `<evidence-dir>/lifecycle-evidence.jsonl` (D1 format: append-only, h
 |---|---|
 | R5-D1 identity, manifests, inventory, evidence | Complete / committed / pushed |
 | R5-D2 backup creation | Complete / committed / pushed |
-| R5-D3 restore verification (disposable targets) | Complete / committed |
+| R5-D3 restore verification (disposable targets) | Complete / committed / pushed |
 | R5-D4 seed separation | Not started |
 | R5-D5 bounded nonproduction reset | Not started |

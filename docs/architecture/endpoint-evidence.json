@@ -9,7 +9,7 @@
       "annotations": "339f13a475d0ecba42ec13eea8aea87e92aebf6d31cc49bd7573833380c2b738",
       "clientSources": "2304ac4901e4d6b57489d0432fd33c1af9ba377b0811e6148b85d381f8365cdf",
       "serverSources": "ad122c7427891e956ac261b40b46119cfa399e6ef106a4f5a4cccec4d92c182b",
-      "apiTests": "d7cf7dbe0ef5bba85c955e54f303b4bd4ba2516cdf98a93343d00b4d4cb0dc6d"
+      "apiTests": "d31c90875cae9aca938d59952daed8b0b36840957cefc6c39d14118eaff06b91"
     },
     "note": "Content digests rather than a commit id, so the register is reproducible from the commit that contains it. No timestamp is recorded."
   },
