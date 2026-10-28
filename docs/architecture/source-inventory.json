@@ -20280,6 +20280,7 @@
           "portal-api/src/modules/web-content/digitalService.model.js",
           "portal-api/src/modules/web-content/solution.model.js",
           "portal-api/src/modules/web-content/webContent.controller.js",
+          "portal-api/src/scripts/lifecycle/mongoread.js",
           "portal-api/src/scripts/listUnclassifiedRoles.js",
           "portal-api/src/scripts/migrateConfidentialFiles.js",
           "portal-api/src/scripts/seedDigitalSolutions.js",

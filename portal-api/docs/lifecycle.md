@@ -1,6 +1,6 @@
 # Data lifecycle — R5-D1 safety foundation (runbook)
 
-Status: **R5-D1 complete / committed.** R5-D2 to R5-D5 are **not started**.
+Status: **R5-D1 complete / committed.** R5-D2 (backup creation) is **complete / committed**: see [backup.md](backup.md). R5-D3 to R5-D5 are **not started**.
 
 ## Read this first
 
@@ -35,7 +35,7 @@ LIFECYCLE_TARGET_URI='<connection string>' npm run db:inventory -- \
 npm run db:manifest-check -- --manifest <manifest.json>
 ```
 
-There is no `db:backup`, `db:restore`, `db:reset` or `db:seed`. Asking the CLI for `backup`, `restore`, `reset`, `seed` or any unknown command or option exits with code 2. There is no production override flag of any kind.
+This D1 CLI has no backup, restore, reset or seed command. Backup creation is the separate R5-D2 command `db:backup` ([backup.md](backup.md)); there is still no `db:restore`, `db:reset` or `db:seed`. Asking the CLI for `backup`, `restore`, `reset`, `seed` or any unknown command or option exits with code 2. There is no production override flag of any kind.
 
 ### Exit codes
 
@@ -131,9 +131,9 @@ D1 executes none of these operations and has no CLI command that writes evidence
 | Phase | Scope | Status |
 |---|---|---|
 | R5-D1 | Identity, manifests, inventory, catalog, evidence foundation | **Complete / committed** |
-| R5-D2 | Backup + restore into a disposable target | Not started |
+| R5-D2 | Backup creation from a local/disposable target (no restore) | **Complete / committed** ([backup.md](backup.md)) |
 | R5-D3 | Restore verification | Not started |
 | R5-D4 | Seed separation (system / config / CMS / demo) | Not started |
 | R5-D5 | Bounded nonproduction reset | Not started |
 
-Nothing in D2–D5 exists yet. The existing seed scripts and `src/scripts/_guard.js` are unchanged and are not used by the lifecycle CLI.
+Nothing in D3–D5 exists yet; D2 creates backups only and never restores. The existing seed scripts and `src/scripts/_guard.js` are unchanged and are not used by the lifecycle CLI.

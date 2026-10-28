@@ -5,11 +5,11 @@
     "routeSource": "docs/architecture/source-inventory.json (apiRoutes)",
     "annotations": "docs/architecture/endpoint-evidence-annotations.json",
     "digests": {
-      "sourceInventory": "8e8153cdc365125934b82501e95df049cf780cec7a2cff246b71b4d29aae5962",
+      "sourceInventory": "4fe774bba59f2e3b622141cf463a0ccdd7fce11c22ccf51c18bfedf757d2794c",
       "annotations": "339f13a475d0ecba42ec13eea8aea87e92aebf6d31cc49bd7573833380c2b738",
       "clientSources": "2304ac4901e4d6b57489d0432fd33c1af9ba377b0811e6148b85d381f8365cdf",
-      "serverSources": "67a7c4e9938c90b927b75b89554ed995cc2af3ef88d03b6f6c0a8cd248fdffd1",
-      "apiTests": "c46e35e622e147e397ed86226efa2b73557fafe69859b96f88430c7332d9e9cf"
+      "serverSources": "306dc51e797871423f3683bb79b3dd21cd7ab7907e064add3b67e3c88c21e2d9",
+      "apiTests": "37848bbace3d3ca1e7cc8fe6e8321c93c1818005b6f4280c263eeefd4661a895"
     },
     "note": "Content digests rather than a commit id, so the register is reproducible from the commit that contains it. No timestamp is recorded."
   },

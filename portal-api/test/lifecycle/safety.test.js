@@ -17,24 +17,68 @@ test("lifecycle sources contain no database mutation calls", () => {
   for (const { f, code } of sources) assert.doesNotMatch(codeOnly(code), re, f);
 });
 
+// R5-D2: secretpipe.js may remove exactly the FIFO and private directory it
+// created (never recursively); no other lifecycle file removes anything.
+const PIPE = "secretpipe.js";
+
 test("lifecycle sources contain no storage mutation", () => {
   const re = /(PutObject|DeleteObject|DeleteObjects|CopyObject|Upload\b|@aws-sdk|unlinkSync|unlink\(|rmSync|rmdirSync|\brm\(|truncate|writeFileSync|renameSync|copyFileSync)/;
-  for (const { f, code } of sources) assert.doesNotMatch(codeOnly(code), re, f);
+  for (const { f, code } of sources) {
+    const c = codeOnly(code);
+    if (f === PIPE) {
+      const removals = [...c.matchAll(/\b(unlinkSync|rmdirSync|rmSync|unlink|rm)\(([^)]*)\)/g)].map((m) => `${m[1]}(${m[2]})`);
+      assert.deepEqual(removals, ["unlinkSync(fifo)", "rmdirSync(dir)"]);
+      assert.doesNotMatch(c, /recursive|PutObject|DeleteObject|CopyObject|@aws-sdk|truncate|writeFileSync|renameSync|copyFileSync/);
+      continue;
+    }
+    assert.doesNotMatch(c, re, f);
+  }
 });
+
+// R5-D2: mongoread.js is the single read-only database adapter. It may import
+// the driver bundled with mongoose (an existing dependency) and nothing else
+// outside Node; every other lifecycle file stays database-free.
+const DB_ADAPTER = "mongoread.js";
 
 test("lifecycle sources import only Node built-ins and each other (no app, db, env, seeds)", () => {
   for (const { f, code } of sources) {
     const specs = [...code.matchAll(/^\s*import\s[^;]*?from\s+["']([^"']+)["']/gm), ...code.matchAll(/import\(\s*["']([^"']+)["']\s*\)/g)].map((m) => m[1]);
-    for (const s of specs) assert.ok(s.startsWith("node:") || /^\.\/[a-z]+\.js$/.test(s), `${f} imports ${s}`);
+    for (const s of specs) assert.ok(s.startsWith("node:") || /^\.\/[a-z]+\.js$/.test(s) || (f === DB_ADAPTER && s === "mongoose"), `${f} imports ${s}`);
     assert.doesNotMatch(code, /\brequire\(/, f);
-    assert.doesNotMatch(code, /dotenv|mongoose|["']express["']|\.\.\/(config|modules|utils|app|server)|seed[A-Z]/, f);
+    assert.doesNotMatch(code, /dotenv|["']express["']|\.\.\/(config|modules|utils|app|server)|seed[A-Z]/, f);
+    if (f !== DB_ADAPTER) assert.doesNotMatch(code, /mongoose|MongoClient/, f);
   }
 });
 
-test("only cli.js runs a child process, and only read-only git", () => {
+test("the database adapter exposes read operations only", () => {
+  const code = codeOnly(sources.find((s) => s.f === DB_ADAPTER).code);
+  const commands = [...code.matchAll(/new Set\(\[([^\]]*)\]\)/g)].map((m) => m[1]).join();
+  assert.equal(commands, '"hello", "buildInfo", "dbHash"');
+  const onCollection = [...code.matchAll(/\.collection\([^)]*\)\.([a-zA-Z]+)\(/g)].map((m) => m[1]).sort();
+  assert.deepEqual(onCollection, ["countDocuments", "listIndexes"]);
+  const onDbOrClient = [...code.matchAll(/\b(?:db|client)\.([a-zA-Z]+)\(/g)].map((m) => m[1]);
+  assert.deepEqual([...new Set(onDbOrClient)].sort(), ["close", "collection", "command", "connect", "db", "listCollections"]);
+  assert.doesNotMatch(code, /\.(insert|update|delete|replace|drop|rename|createIndex|createCollection|bulkWrite|aggregate|find|watch|admin|runCommand|createUser|grantRoles)[A-Za-z]*\(/);
+});
+
+test("only cli.js (read-only git), backup.js (mongodump) and secretpipe.js (mkfifo) run child processes", () => {
   for (const { f, code } of sources) {
-    if (f !== "cli.js") assert.doesNotMatch(code, /child_process/, f);
+    if (f !== "cli.js" && f !== "backup.js" && f !== PIPE) assert.doesNotMatch(code, /child_process/, f);
   }
+  const pipe = codeOnly(sources.find((s) => s.f === PIPE).code);
+  assert.deepEqual([...pipe.matchAll(/\bexecFileSync\(([^,]+),\s*\[([^\]]*)\]/g)].map((m) => `${m[1]}:${m[2]}`), ['mkfifo:"-m", "600", fifo']);
+  assert.match(pipe, /MKFIFO_PATHS = \["\/usr\/bin\/mkfifo", "\/bin\/mkfifo"\]/);
+  assert.doesNotMatch(pipe, /shell:\s*true|\bspawn\(|\bexec\(|execSync\(/);
+  // R5-D2: backup.js runs mongodump only, by absolute path, with an argument array and no shell.
+  const backup = codeOnly(sources.find((s) => s.f === "backup.js").code);
+  assert.doesNotMatch(backup, /shell:\s*true|\bexec\(|execSync\(|spawnSync\(|mongorestore/);
+  const spawns = [...backup.matchAll(/\bspawn\(([^,]+),\s*\[/g)].map((m) => m[1]);
+  assert.deepEqual(spawns, ["binary"]);
+  const execs = [...backup.matchAll(/\bexecFileSync\(([^,]+),\s*\[([^\]]*)\]/g)].map((m) => `${m[1]}:${m[2]}`);
+  assert.deepEqual(execs, ['binary:"--version"']);
+  // No child inherits the caller's environment (which holds LIFECYCLE_TARGET_URI).
+  assert.match(backup, /execFileSync\(binary, \["--version"\], \{[^}]*env: childEnvironment\(\) \}\)/);
+  assert.match(pipe, /execFileSync\(mkfifo, \["-m", "600", fifo\], \{[^}]*env: \{\} \}\)/);
   const cli = sources.find((s) => s.f === "cli.js").code;
   const gitCalls = [...cli.matchAll(/git\(\[([^\]]*)\]\)/g)].map((m) => m[1]);
   assert.deepEqual(gitCalls.sort(), ['"rev-parse", "HEAD"', '"status", "--porcelain", "--untracked-files=no"'].sort());
@@ -44,7 +88,8 @@ test("only cli.js runs a child process, and only read-only git", () => {
 test("package scripts expose only the read-only lifecycle commands", () => {
   const scripts = JSON.parse(readFileSync(PKG, "utf8")).scripts;
   const db = Object.keys(scripts).filter((k) => k.startsWith("db:")).sort();
-  assert.deepEqual(db, ["db:inventory", "db:manifest-check"]);
+  assert.deepEqual(db, ["db:backup", "db:inventory", "db:manifest-check"]);
+  assert.match(scripts["db:backup"], /lifecycle\/backup\.js$/);
   assert.match(scripts["db:inventory"], /lifecycle\/cli\.js inventory$/);
   assert.match(scripts["db:manifest-check"], /lifecycle\/cli\.js manifest-check$/);
 });

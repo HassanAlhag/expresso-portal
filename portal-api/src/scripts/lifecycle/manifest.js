@@ -24,12 +24,19 @@ export const STATUS = Object.freeze({
 export const MANIFEST_KINDS = Object.freeze(["backup"]);
 export const COMPONENTS = Object.freeze(["database", "object-storage-public", "object-storage-private", "application-metadata"]);
 export const COMPLETION_STATES = Object.freeze(["complete", "incomplete", "failed"]);
-export const FAILURE_CATEGORIES = Object.freeze(["identity", "validation", "connectivity", "permission", "capacity", "integrity", "timeout", "interrupted", "unknown"]);
+export const FAILURE_CATEGORIES = Object.freeze(["identity", "validation", "connectivity", "permission", "capacity", "integrity", "timeout", "interrupted", "tooling", "unknown"]);
 const TOPOLOGIES = ["standalone", "replica-set", "sharded"];
-const CONSISTENCY = ["point-in-time-snapshot", "oplog-consistent", "best-effort", "none"];
+// "quiescent-verified" (R5-D2): the database's per-collection dbHash was
+// identical before and after capture, so no write changed it during the dump.
+const CONSISTENCY = ["point-in-time-snapshot", "oplog-consistent", "quiescent-verified", "best-effort", "none"];
 const PROFILE_CLASS_NAMES = ["local", "disposable", "shared-development", "staging", "production"];
 
 const TOP_LEVEL = ["schemaVersion", "operationId", "kind", "source", "time", "application", "database", "objectStorage", "artifacts", "completion", "seal"];
+// Optional (R5-D2): what the producing run established. restoreVerified can
+// never be true in this schema version: only a successful restore check (R5-D3)
+// may establish recoverability.
+const OPTIONAL_TOP_LEVEL = ["status"];
+const STATUS_KEYS = ["backupCreated", "artifactChecksumsValid", "restoreVerified"];
 
 /** The digest a manifest is sealed with: everything except `seal`. */
 export function computeSeal(manifest) {
@@ -75,7 +82,12 @@ export function validateManifest(manifest) {
     return result(STATUS.UNSUPPORTED_VERSION);
   }
 
-  for (const k of Object.keys(manifest)) if (!TOP_LEVEL.includes(k)) err(k, "unknown field");
+  for (const k of Object.keys(manifest)) if (!TOP_LEVEL.includes(k) && !OPTIONAL_TOP_LEVEL.includes(k)) err(k, "unknown field");
+  if ("status" in manifest) {
+    const st = manifest.status;
+    if (!isPlainObject(st) || Object.keys(st).some((k) => !STATUS_KEYS.includes(k)) || STATUS_KEYS.some((k) => typeof st[k] !== "boolean")) err("status", "must be { backupCreated, artifactChecksumsValid, restoreVerified } booleans");
+    else if (st.restoreVerified !== false) err("status.restoreVerified", "cannot be true: restore verification is not established by this schema version (R5-D3)");
+  }
   for (const k of TOP_LEVEL) if (!(k in manifest)) err(k, "required");
 
   for (const f of findSecrets(withoutIndexKeys(manifest), { allowKeys: ["keyRef"] })) err(f.path, `prohibited secret-like content (${f.reason})`);

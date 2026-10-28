@@ -66,7 +66,9 @@ test("localhost alone authorises nothing", () => {
 test("only read operations exist; write/destructive operations are refused", () => {
   const id = resolveTarget({ profiles, alias: "local-fixture", uri: LOCAL_URI });
   assert.equal(authorizeOperation(id, "inventory"), true);
-  for (const op of ["backup", "restore", "reset", "seed", "delete"]) assert.equal(code(() => authorizeOperation(id, op)), "UNSUPPORTED_OPERATION");
+  for (const op of ["restore", "reset", "seed", "delete"]) assert.equal(code(() => authorizeOperation(id, op)), "UNSUPPORTED_OPERATION");
+  // R5-D2: backup is a read operation, allowed only when the profile lists it.
+  assert.equal(code(() => authorizeOperation(id, "backup")), "OPERATION_NOT_ALLOWED");
   assert.equal(id.writeCapable, false);
   assert.deepEqual(id.allowedOperations, ["inventory"]);
 });

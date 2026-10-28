@@ -25,7 +25,11 @@ export const DEFAULT_EVIDENCE_FILE = "lifecycle-evidence.jsonl";
 
 // Event type → allowed results.
 export const EVENT_TYPES = Object.freeze({
+  "backup.requested": ["requested"],
+  "backup.identity-verified": ["succeeded"],
   "backup.started": ["started"],
+  "backup.artifact-checksummed": ["succeeded"],
+  "backup.manifest-written": ["succeeded"],
   "backup.completed": ["succeeded"],
   "backup.failed": ["failed"],
   "restore.started": ["started"],

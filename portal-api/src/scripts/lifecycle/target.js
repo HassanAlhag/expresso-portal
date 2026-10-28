@@ -28,8 +28,10 @@ export const PROFILE_CLASSES = Object.freeze({
 // Operation classes for this and later phases. D1 permits only "read".
 export const OPERATION_CLASSES = Object.freeze(["read", "write-nonproduction", "destructive-nonproduction"]);
 export const D1_ALLOWED_OPERATION_CLASSES = Object.freeze(["read"]);
-// Operations a profile may list, and the class each belongs to.
-export const OPERATIONS = Object.freeze({ inventory: "read" });
+// Operations a profile may list, and the class each belongs to. "backup"
+// (R5-D2) only reads the database; its writes are local artifact files.
+// A profile must list an operation explicitly before it can run.
+export const OPERATIONS = Object.freeze({ inventory: "read", backup: "read" });
 
 const DEFAULT_PORT = 27017;
 const SUPPORTED_SCHEMES = new Set(["mongodb", "mongodb+srv"]);

@@ -334,6 +334,25 @@ test("drift: a removed, retargeted or new reference field forces review", () => 
   assert.ok(catalogDrift(enumChanged).some((p) => p.includes("entityType enum")));
 });
 
+test("drift: an array reference that becomes a scalar, or a scalar that becomes an array, forces review", () => {
+  // array → scalar: Job.media and Production.gallery[] are arrays of Media ids.
+  const arrayToScalar = clone();
+  model(arrayToScalar, "Job").fields.find((f) => f.path === "media").type = "mongoose.Schema.Types.ObjectId";
+  model(arrayToScalar, "Production").fields.find((f) => f.path === "gallery").type = "mongoose.Schema.Types.ObjectId";
+  const a = catalogDrift(arrayToScalar);
+  assert.ok(a.includes("job.media: jobs.media array shape changed"), a.join("\n"));
+  assert.ok(a.includes("production.gallery: productions.gallery array shape changed"), a.join("\n"));
+  // scalar → array: Job.customerId and File.productionId are single ids.
+  const scalarToArray = clone();
+  model(scalarToArray, "Job").fields.find((f) => f.path === "customerId").type = "Array";
+  model(scalarToArray, "File").fields.find((f) => f.path === "productionId").type = "Array";
+  const b = catalogDrift(scalarToArray);
+  assert.ok(b.includes("job.customer: jobs.customerId array shape changed"), b.join("\n"));
+  assert.ok(b.includes("file.production: files.productionId array shape changed"), b.join("\n"));
+  // The unchanged inventory still has no drift.
+  assert.deepEqual(catalogDrift(INVENTORY), []);
+});
+
 /* ----------------------------------------------------------- snapshot format & CLI */
 test("snapshot format: version, provenance, capture metadata and unknown collections are enforced", () => {
   assert.throws(() => validateReferenceSnapshot({ ...snap(base()), schemaVersion: "v0" }, catalog), (e) => e.exitCode === 5);
