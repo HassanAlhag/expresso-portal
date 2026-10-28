@@ -13,6 +13,10 @@ const read = (f) => fs.readFileSync(path.join(dir, f), 'utf8');
 try {
   execFileSync(process.execPath, [path.join(dir, 'generate-inventory.cjs'), '--check'], { stdio: 'pipe' });
 } catch (e) { fail.push('source-inventory.json is stale: run node docs/architecture/generate-inventory.cjs'); }
+// 1b. Endpoint evidence register (R5-C1) is fresh against the same source.
+try {
+  execFileSync(process.execPath, [path.join(dir, 'generate-endpoint-evidence.cjs'), '--check'], { stdio: 'pipe' });
+} catch (e) { fail.push('endpoint-evidence.json is stale: run node docs/architecture/generate-endpoint-evidence.cjs'); }
 const inv = JSON.parse(read('source-inventory.json'));
 const c = inv.counts;
 

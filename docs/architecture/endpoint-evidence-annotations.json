@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "expresso.endpoint-evidence-annotations/1",
+  "note": "Reviewed, explicit owner intent only. An annotation can retain a route; nothing here can authorise retirement.",
+  "entries": [
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "classification": "OPERATOR_RETAIN",
+      "reason": "Liveness check for hosting and monitoring; called by infrastructure, not by the frontend."
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/system-status",
+      "classification": "OPERATOR_RETAIN",
+      "reason": "Operator diagnostics endpoint."
+    },
+    {
+      "method": "POST",
+      "path": "/api/users/:id/force-logout",
+      "classification": "OPERATOR_RETAIN",
+      "reason": "Security control: revokes a user's sessions during an incident."
+    }
+  ]
+}
