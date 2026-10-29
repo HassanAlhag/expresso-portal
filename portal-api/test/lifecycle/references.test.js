@@ -319,6 +319,15 @@ test("the catalog matches the current models: no drift, every reference covered 
   assert.ok(Object.values(EXCLUDED).every((reason) => typeof reason === "string" && reason.length > 5));
 });
 
+test("work items: optional case-study links resolve, and missing stories remain evidence gaps", () => {
+  const linked = { portfolios: [{ _id: P1 }], workitems: [{ _id: J1, caseStudy: P1 }] };
+  assert.deepEqual(find(run(snap(linked)), "work.case-study"), []);
+  assert.deepEqual(find(run(snap({ portfolios: [], workitems: [{ _id: J1, caseStudy: null }] })), "work.case-study"), []);
+  const missing = one(run(snap({ portfolios: [], workitems: linked.workitems })), "work.case-study");
+  assert.equal(missing.state, "MISSING_TARGET");
+  assert.ok(missing.cleanupBlocker.includes("asset-cleanup"));
+});
+
 test("drift: a removed, retargeted or new reference field forces review", () => {
   const removed = clone();
   model(removed, "Job").fields = model(removed, "Job").fields.filter((f) => f.path !== "productionId");

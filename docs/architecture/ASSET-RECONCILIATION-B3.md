@@ -1,6 +1,6 @@
 # R5-B3 — asset reconciliation evidence
 
-Status: **COMPLETE / COMMITTED**. R5-B is IN PROGRESS. Asset deletion, Production retirement, endpoint retirement and persisted cleanup remain BLOCKED. No asset is authorized for deletion. No database/CMS/storage/deployed API/log was contacted.
+Status: **CLOSED — offline evidence foundation**. [Blueprint closure](BLUEPRINT-CLOSURE.md) is authoritative. Asset cleanup, legacy Production retirement, evidence-dependent endpoint retirement and persisted cleanup are DEFERRED; no such operation is authorized. No asset is authorized for deletion. This B3 report uses repository evidence only; no real database/CMS/storage/deployed API/log evidence was collected.
 
 Generated offline by `node docs/architecture/generate-asset-evidence.cjs`; freshness: `node docs/architecture/generate-asset-evidence.cjs --check`. Sources: [asset register](asset-evidence.json), [complete field inventory/capture plan](asset-reference-plan.json), [reviewed policy](asset-evidence-policy.json), [evidence procedure](ASSET-EVIDENCE-PLAN.md).
 
@@ -12,14 +12,14 @@ Public/source asset roots and supported media/font/document extensions are expli
 |---|---:|---:|---:|
 | B3 total | 326 | 140887425 | 134.36 |
 | Historical media/font scope | 325 | 140883047 | 134.36 |
-| Historical basename/text comparison | 180 | — | — |
-| Historical without basename/text match | 145 | 46489487 | 44.34 |
-| Resolved runtime-module/public-config references | 178 | 94327004 | 89.96 |
-| Resolved code incl. unreachable/operator | 178 | 94327004 | 89.96 |
+| Historical basename/text comparison | 186 | — | — |
+| Historical without basename/text match | 139 | 41431690 | 39.51 |
+| Resolved runtime-module/public-config references | 184 | 99384801 | 94.78 |
+| Resolved code incl. unreachable/operator | 184 | 99384801 | 94.78 |
 | Protected | 11 | 939362 | 0.90 |
-| Candidate pending evidence (no runtime reference/protection) | 143 | 45765971 | 43.65 |
+| Candidate pending evidence (no runtime reference/protection) | 137 | 40708174 | 38.82 |
 
-The prior 325/180/145 count is reproduced by its coarse filename-substring comparison. The four W4 homepage assets are still protected independently of that detector; subtracting them leaves 141 historical candidates, with no deletion authority. B3's extra font license and stricter path/provenance rules explain its different totals. Coarse substring-only matches without resolved runtime evidence: client/public/3.png, client/public/4.png. These are not silently counted as references. A declaration in a reachable module is static evidence, not proof of current rendered/deployed use.
+The prior 325/180/145 count is not reproduced by its coarse filename-substring comparison. The four W4 homepage assets are still protected independently of that detector; subtracting them leaves 135 historical candidates, with no deletion authority. B3's extra font license and stricter path/provenance rules explain its different totals. Coarse substring-only matches without resolved runtime evidence: client/public/3.png, client/public/4.png. These are not silently counted as references. A declaration in a reachable module is static evidence, not proof of current rendered/deployed use.
 
 ## Classifications and candidate bytes
 
@@ -27,14 +27,14 @@ Classifications overlap; byte columns must not be summed across rows. Primary cl
 
 | Classification | All assets | All bytes | Candidate assets | Candidate bytes |
 |---|---:|---:|---:|---:|
-| STATICALLY_REFERENCED | 178 | 94327004 | 0 | 0 |
+| STATICALLY_REFERENCED | 184 | 99384801 | 0 | 0 |
 | PROTECTED | 11 | 939362 | 0 | 0 |
-| DYNAMIC_REFERENCE_POSSIBLE | 326 | 140887425 | 143 | 45765971 |
-| DATABASE_EVIDENCE_REQUIRED | 326 | 140887425 | 143 | 45765971 |
-| CMS_EVIDENCE_REQUIRED | 307 | 139032283 | 130 | 44423995 |
-| STORAGE_EVIDENCE_REQUIRED | 326 | 140887425 | 143 | 45765971 |
-| EXTERNAL_CONSUMER_POSSIBLE | 326 | 140887425 | 143 | 45765971 |
-| UNRESOLVED | 143 | 45765971 | 143 | 45765971 |
+| DYNAMIC_REFERENCE_POSSIBLE | 326 | 140887425 | 137 | 40708174 |
+| DATABASE_EVIDENCE_REQUIRED | 326 | 140887425 | 137 | 40708174 |
+| CMS_EVIDENCE_REQUIRED | 307 | 139032283 | 124 | 39366198 |
+| STORAGE_EVIDENCE_REQUIRED | 326 | 140887425 | 137 | 40708174 |
+| EXTERNAL_CONSUMER_POSSIBLE | 326 | 140887425 | 137 | 40708174 |
+| UNRESOLVED | 137 | 40708174 | 137 | 40708174 |
 
 ## Protected paths
 
@@ -56,9 +56,11 @@ The four homepage paths and exact bytes were confirmed against W4 commit 3d0fd78
 
 ## Reference method and gaps
 
+Assets remain Git-tracked. Reference inputs include tracked text plus current application source below client/src and portal-api/src, including review-before-commit modules; ignored builds, dependencies, hidden files and symlinks are excluded from that source walk. This keeps offline evidence consistent with source-inventory.json without staging files.
+
 JS/JSX/TS/TSX are parsed without execution; lexical constants, concatenations and resolvable templates, imports/require, JSX/HTML attributes, CSS URLs, JSON values and Markdown links are normalized. Bare names resolve only to an exact public-root path under a documented convention; nested assets are never matched by basename. Tests, comments, documentation, unreachable modules and operator sources have separate provenance. Stable source/context anchors avoid unrelated line-number churn. Public URLs can be used by bookmarks, search, emails, social links, external websites or CDNs even with no repository reference. External origins never become local paths without an approved alias map. No ignored build is counted as independent evidence; tracked entry configuration/imports describe expected build behavior only.
 
-There are 178 dynamic source sites and 0 unresolved source parses. Finite computed paths, cross-module values, generated content and opaque runtime values can exceed this bounded static analysis. No absence conclusion is permitted.
+There are 203 dynamic source sites and 0 unresolved source parses. Finite computed paths, cross-module values, generated content and opaque runtime values can exceed this bounded static analysis. No absence conclusion is permitted.
 
 ## Integrity (separate from unused candidates)
 
@@ -73,10 +75,30 @@ Findings describe repository resolution, not a proven deployed 404. Runtime uplo
 | NOT_IN_TRACKED_ASSETS | RUNTIME_SOURCE | client/src/data/websiteImageRegistry.js | client/public/82.jpg |
 | NOT_IN_TRACKED_ASSETS | RUNTIME_SOURCE | client/src/data/websiteImageRegistry.js | client/public/creatives/posts/post1.jpg |
 | NOT_IN_TRACKED_ASSETS | RUNTIME_SOURCE | client/src/data/websiteImageRegistry.js | client/public/gal2.webp |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/hooks/portfolioPages.test.jsx | client/public/gal2.webp |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/hooks/portfolioPages.test.jsx | client/public/gal2.webp |
 | NOT_IN_TRACKED_ASSETS | RUNTIME_SOURCE | client/src/pages/AboutUs/aboutUs.jsx | client/public/gal2.webp |
 | NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/DigitalSolutions/DigitalSolutionsPage.test.jsx | client/public/approved-cas.webp |
 | NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/DigitalSolutions/DigitalSolutionsPage.test.jsx | client/public/approved-suite.webp |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/PortfolioGallery/portfolioWork.test.jsx | client/public/legacy.mp4 |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/PortfolioGallery/portfolioWork.test.jsx | client/public/reel-1.mp4 |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/PortfolioGallery/portfolioWork.test.jsx | client/public/legacy.mp4 |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/PortfolioGallery/portfolioWork.test.jsx | client/public/reel-1.mp4 |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/PortfolioGallery/portfolioWork.test.jsx | client/public/s.png |
 | NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Products/BusinessSuitePage.test.jsx | client/public/approved-suite.webp |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/p1.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/p2.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/p5.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/p.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/s1.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/p1.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/p2.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/p5.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/s1.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/s5.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/b.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/p.png |
+| NOT_IN_TRACKED_ASSETS | TEST | client/src/pages/Services/ServiceDetailPage.test.jsx | client/public/s.png |
 | NOT_IN_TRACKED_ASSETS | TEST | client/src/portal/app/r4aAccess.test.jsx | client/public/brief.pdf |
 | NOT_IN_TRACKED_ASSETS | TEST | client/src/portal/app/r4aAccess.test.jsx | client/public/brief.pdf |
 | NOT_IN_TRACKED_ASSETS | TEST | client/src/portal/features/dashboard/client/clientPortal.test.js | client/public/brief.pdf |
@@ -85,7 +107,7 @@ Findings describe repository resolution, not a proven deployed 404. Runtime uplo
 | UNSUPPORTED_SCHEME | TEST | client/src/portal/features/procurement/procurement.test.js | property:url |
 | UNSUPPORTED_SCHEME | TEST | client/src/portal/features/procurement/vendor/vendorPortal.test.js | property:url |
 | MALFORMED_URL | UI_PLACEHOLDER | client/src/portal/features/website/pages/WebsiteSettingsPage.jsx | property:placeholder |
-| NOT_IN_TRACKED_ASSETS | RUNTIME_SOURCE | client/src/utils/mapWebsiteReels.js | client/public/placeholder-reel.jpg |
+| NOT_IN_TRACKED_ASSETS | RUNTIME_SOURCE | client/src/utils/websiteImages.js | client/public/gal2.webp |
 | NOT_IN_TRACKED_ASSETS | OPERATOR_SOURCE | portal-api/src/scripts/checkPrivateStorage.js | client/public/check.txt |
 | NOT_IN_TRACKED_ASSETS | OPERATOR_SOURCE | portal-api/src/scripts/checkPrivateStorage.js | client/public/check.txt |
 | NOT_IN_TRACKED_ASSETS | TEST | portal-api/test/files.test.js | client/public/contract.pdf |
@@ -122,7 +144,7 @@ Exact duplicate groups: **12**; repeated bytes after one copy per group: **13758
 
 ## Persisted field inventory and future capture
 
-All **45 models**, **965 schema leaf fields** and **258 selected reference/context surfaces** are inventoried in asset-reference-plan.json. SiteSettings helper-returned image URL/Media fields are expanded. Generic Mixed/Object/Map values, arrays, rich text/HTML/Markdown and unknown legacy fields require bounded local token extraction; never export complete documents or raw blobs. Each selected surface defines its expected type, normalization, target kind, nesting, rich-text requirement, context and sanitized unresolved reporting. No future capture command is implemented or authorized by B3.
+All **46 models**, **994 schema leaf fields** and **267 selected reference/context surfaces** are inventoried in asset-reference-plan.json. SiteSettings helper-returned image URL/Media fields are expanded. Generic Mixed/Object/Map values, arrays, rich text/HTML/Markdown and unknown legacy fields require bounded local token extraction; never export complete documents or raw blobs. Each selected surface defines its expected type, normalization, target kind, nesting, rich-text requirement, context and sanitized unresolved reporting. No future capture command is implemented or authorized by B3.
 
 | Model / collection | Exact fields requiring later evidence |
 |---|---|
@@ -171,9 +193,10 @@ All **45 models**, **965 schema leaf fields** and **258 selected reference/conte
 | Ticket / tickets | comments[].body; comments[].eventMeta; description |
 | User / users | avatarMediaId; avatarUrl; notes |
 | VendorApplication / vendorapplications | notes; website |
+| WorkItem / workitems | cover.media; cover.src; gallery[].media; gallery[].src; shortDescription; video.media; video.src; videos[].media; videos[].src |
 
 Production.coverMedia/gallery, File.productionId and Job.productionId remain legacy ownership evidence requiring B4 and real-data approval. Production models/routes/permissions/assets are untouched. Additional current surfaces include Enrollment scope URLs/instructions, Ticket comments.eventMeta, Audit.meta, and CRM/content text/URLs. Private CV/application and customer/user references must be minimized locally; output matched known repository paths or HMAC handles, never names/emails, raw private keys or signed URL queries.
 
-## Next bounded step
+## Deferred follow-up
 
-Review this register, normalization policy, integrity findings and the exact capture plan first. Then separately authorize a minimized read-only capture of the listed fields and Media/File joins in an explicitly approved environment. Reconcile storage/CDN aliases and obtain an external-consumer/archive decision. Continue to block all asset deletion until complete evidence and explicit separate approval. B4, C2+, D4/D5, R5-E, Operating Model and Portal Implementation are not started here.
+This offline foundation is closed. Only if later prioritized and separately authorized, consider a minimized read-only capture of the listed fields and Media/File joins in an explicitly approved environment. Reconcile storage/CDN aliases and obtain an external-consumer/archive decision. All asset deletion remains unauthorized until complete evidence and explicit separate approval. B4, C2+, D4/D5, R5-E, Operating Model and Portal Implementation are not started here.

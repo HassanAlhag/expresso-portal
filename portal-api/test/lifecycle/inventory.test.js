@@ -40,7 +40,7 @@ test("known present, known absent and unknown collections are distinguished", as
   assert.deepEqual(by.users.indexes.map((i) => i.name), ["_id_", "email_1"]);
   assert.equal(by.teams.status, "known-absent");
   assert.equal(by.legacy_imports.status, "unknown");
-  assert.deepEqual(r.summary, { known: 22, present: 3, knownAbsent: 19, unknown: 1, notObserved: 0 });
+  assert.deepEqual(r.summary, { known: 23, present: 3, knownAbsent: 20, unknown: 1, notObserved: 0 });
   assert.equal(r.generatedAt, "2026-10-27T09:00:00.000Z");
   assert.equal(r.readOnly, true);
   assert.ok(r.warnings.some((w) => /not known to the repository/.test(w)));
@@ -80,7 +80,8 @@ test("classification output: classes A–F and protection flags; nothing is rese
 
 test("the real repository catalog loads from the existing inventory and classification", () => {
   const real = loadCatalog();
-  assert.equal(real.entries.length, 45);
+  assert.equal(real.entries.length, 46);
+  assert.equal(real.byCollection.get("workitems").storage, "public");
   assert.match(real.catalogVersion, /^[0-9a-f]{64}$/);
   assert.equal(real.byCollection.get("counters").lifecycleClass, "A");
   assert.equal(real.byCollection.get("productions").lifecycleClass, "C");

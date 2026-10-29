@@ -17,7 +17,7 @@ export function mapWebsiteReels(items = []) {
       poster:
         getMediaUrl(item.posterMediaId) ||
         getMediaUrl(item.coverMedia) ||
-        "/placeholder-reel.jpg",
+        "",
       src:
         getMediaUrl(item.finalMediaId) ||
         item.externalPostUrl ||

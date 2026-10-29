@@ -4,234 +4,239 @@
   "counts": {
     "backendDomains": 21,
     "portalFeatureAreas": 26,
-    "mountedRouters": 44,
-    "apiRoutes": 283,
-    "models": 45,
-    "modelFiles": 45,
+    "mountedRouters": 45,
+    "apiRoutes": 290,
+    "models": 46,
+    "modelFiles": 46,
     "defaultRoles": 14,
-    "permissionKeys": 73,
+    "permissionKeys": 76,
     "frontendCatalogKeys": 0
   },
   "mounts": [
     {
       "prefix": "/api/auth",
       "file": "portal-api/src/modules/iam/auth/auth.routes.js",
-      "line": 127
+      "line": 128
     },
     {
       "prefix": "/api/users",
       "file": "portal-api/src/modules/iam/users/user.routes.js",
-      "line": 130
+      "line": 131
     },
     {
       "prefix": "/api/roles",
       "file": "portal-api/src/modules/iam/roles/role.routes.js",
-      "line": 131
+      "line": 132
     },
     {
       "prefix": "/api/invites",
       "file": "portal-api/src/modules/iam/invites/invite.routes.js",
-      "line": 132
+      "line": 133
     },
     {
       "prefix": "/api/access-requests",
       "file": "portal-api/src/modules/iam/access-requests/accessRequest.routes.js",
-      "line": 133
+      "line": 134
     },
     {
       "prefix": "/api/permissions",
       "file": "portal-api/src/modules/iam/permissions/permissions.routes.js",
-      "line": 134
+      "line": 135
     },
     {
       "prefix": "/api/tickets",
       "file": "portal-api/src/modules/tickets/ticket.routes.js",
-      "line": 136
+      "line": 137
     },
     {
       "prefix": "/api/projects",
       "file": "portal-api/src/modules/projects/project.routes.js",
-      "line": 137
+      "line": 138
     },
     {
       "prefix": "/api/service",
       "file": "portal-api/src/modules/services/serviceTemplate.routes.js",
-      "line": 138
+      "line": 139
     },
     {
       "prefix": "/api/enrollments",
       "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-      "line": 139
+      "line": 140
     },
     {
       "prefix": "/api/customers",
       "file": "portal-api/src/modules/customers/customers.routes.js",
-      "line": 140
+      "line": 141
     },
     {
       "prefix": "/api/media",
       "file": "portal-api/src/modules/content/media/media.routes.js",
-      "line": 142
+      "line": 143
     },
     {
       "prefix": "/api/portfolio",
       "file": "portal-api/src/modules/portfolio/portfolio.routes.js",
-      "line": 143
+      "line": 144
+    },
+    {
+      "prefix": "/api/work",
+      "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+      "line": 145
     },
     {
       "prefix": "/api/productions",
       "file": "portal-api/src/modules/content/productions/production.routes.js",
-      "line": 144
+      "line": 146
     },
     {
       "prefix": "/api/jobs",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 145
+      "line": 147
     },
     {
       "prefix": "/api/social-metrics",
       "file": "portal-api/src/modules/content/social-metrics/socialMetrics.routes.js",
-      "line": 146
+      "line": 148
     },
     {
       "prefix": "/api/messaging",
       "file": "portal-api/src/modules/messaging/message.routes.js",
-      "line": 147
+      "line": 149
     },
     {
       "prefix": "/api/brand-kit",
       "file": "portal-api/src/modules/brand-kit/brandAsset.routes.js",
-      "line": 148
+      "line": 150
     },
     {
       "prefix": "/api/teams",
       "file": "portal-api/src/modules/iam/teams/team.routes.js",
-      "line": 149
+      "line": 151
     },
     {
       "prefix": "/api/billing",
       "file": "portal-api/src/modules/billing/billing.routes.js",
-      "line": 151
+      "line": 153
     },
     {
       "prefix": "/api/files",
       "file": "portal-api/src/modules/files/files.routes.js",
-      "line": 152
+      "line": 154
     },
     {
       "prefix": "/api/private-files",
       "file": "portal-api/src/modules/private-files/privateFiles.routes.js",
-      "line": 153
+      "line": 155
     },
     {
       "prefix": "/api/admin",
       "file": "portal-api/src/modules/admin/systemStatus.routes.js",
-      "line": 154
+      "line": 156
     },
     {
       "prefix": "/api",
       "file": "portal-api/src/modules/iam/audit/audit.routes.js",
-      "line": 155
+      "line": 157
     },
     {
       "prefix": "/api/crm/deals",
       "file": "portal-api/src/modules/crm/deals/deal.routes.js",
-      "line": 157
+      "line": 159
     },
     {
       "prefix": "/api/crm/leads",
       "file": "portal-api/src/modules/crm/leads/lead.routes.js",
-      "line": 158
+      "line": 160
     },
     {
       "prefix": "/api/crm/accounts",
       "file": "portal-api/src/modules/crm/accounts/account.routes.js",
-      "line": 159
+      "line": 161
     },
     {
       "prefix": "/api/crm/activities",
       "file": "portal-api/src/modules/crm/activities/activity.routes.js",
-      "line": 160
+      "line": 162
     },
     {
       "prefix": "/api/crm/contacts",
       "file": "portal-api/src/modules/crm/contacts/contact.routes.js",
-      "line": 161
+      "line": 163
     },
     {
       "prefix": "/api/hr/expenses",
       "file": "portal-api/src/modules/hr/expenses/expense.routes.js",
-      "line": 164
+      "line": 166
     },
     {
       "prefix": "/api/hr/staff",
       "file": "portal-api/src/modules/hr/staff/staff.routes.js",
-      "line": 165
+      "line": 167
     },
     {
       "prefix": "/api/hr/leaves",
       "file": "portal-api/src/modules/hr/leaves/leave.routes.js",
-      "line": 166
+      "line": 168
     },
     {
       "prefix": "/api/hr/scorecard-templates",
       "file": "portal-api/src/modules/hr/scorecard-templates/template.routes.js",
-      "line": 167
+      "line": 169
     },
     {
       "prefix": "/api/hr/kpi",
       "file": "portal-api/src/modules/hr/kpi/kpi.routes.js",
-      "line": 168
+      "line": 170
     },
     {
       "prefix": "/api/web-content",
       "file": "portal-api/src/modules/web-content/webContent.routes.js",
-      "line": 170
+      "line": 172
     },
     {
       "prefix": "/api/public",
       "file": "portal-api/src/modules/public/public.routes.js",
-      "line": 171
+      "line": 173
     },
     {
       "prefix": "/api/careers",
       "file": "portal-api/src/modules/careers/career.routes.js",
-      "line": 172
+      "line": 174
     },
     {
       "prefix": "/api/homepage/slides",
       "file": "portal-api/src/modules/homepage/slide.routes.js",
-      "line": 173
+      "line": 175
     },
     {
       "prefix": "/api/site-settings",
       "file": "portal-api/src/modules/homepage/settings.routes.js",
-      "line": 174
+      "line": 176
     },
     {
       "prefix": "/api/procurement/categories",
       "file": "portal-api/src/modules/procurement/category.routes.js",
-      "line": 176
+      "line": 178
     },
     {
       "prefix": "/api/procurement/vendors",
       "file": "portal-api/src/modules/procurement/vendor.routes.js",
-      "line": 177
+      "line": 179
     },
     {
       "prefix": "/api/procurement/requests",
       "file": "portal-api/src/modules/procurement/request.routes.js",
-      "line": 178
+      "line": 180
     },
     {
       "prefix": "/api/vendor-applications",
       "file": "portal-api/src/modules/procurement/vendor-application.routes.js",
-      "line": 179
+      "line": 181
     },
     {
       "prefix": "/api/procurement/rfqs",
       "file": "portal-api/src/modules/procurement/rfq.routes.js",
-      "line": 180
+      "line": 182
     }
   ],
   "models": [
@@ -5134,6 +5139,187 @@
       ]
     },
     {
+      "name": "WorkItem",
+      "collection": "workitems",
+      "domain": "portfolio",
+      "file": "portal-api/src/modules/portfolio/workItem.model.js",
+      "line": 74,
+      "fields": [
+        {
+          "path": "title",
+          "type": "String",
+          "line": 31,
+          "required": "true"
+        },
+        {
+          "path": "slug",
+          "type": "String",
+          "line": 32,
+          "required": "true",
+          "unique": "true",
+          "index": "true"
+        },
+        {
+          "path": "clientName",
+          "type": "String",
+          "line": 33
+        },
+        {
+          "path": "workType",
+          "type": "String",
+          "line": 34,
+          "enum": "WORK_TYPE_KEYS",
+          "required": "true",
+          "index": "true"
+        },
+        {
+          "path": "industry",
+          "type": "String",
+          "line": 35
+        },
+        {
+          "path": "year",
+          "type": "Number",
+          "line": 36
+        },
+        {
+          "path": "shortDescription",
+          "type": "String",
+          "line": 37
+        },
+        {
+          "path": "cover.src",
+          "type": "String",
+          "line": 40
+        },
+        {
+          "path": "cover.alt",
+          "type": "String",
+          "line": 41
+        },
+        {
+          "path": "cover.media",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 42,
+          "ref": "Media"
+        },
+        {
+          "path": "gallery",
+          "type": "Array",
+          "line": 44
+        },
+        {
+          "path": "gallery[].src",
+          "type": "String",
+          "line": 12
+        },
+        {
+          "path": "gallery[].alt",
+          "type": "String",
+          "line": 13
+        },
+        {
+          "path": "gallery[].media",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 14,
+          "ref": "Media"
+        },
+        {
+          "path": "videos",
+          "type": "Array",
+          "line": 47
+        },
+        {
+          "path": "videos[].src",
+          "type": "String",
+          "line": 21
+        },
+        {
+          "path": "videos[].poster",
+          "type": "String",
+          "line": 22
+        },
+        {
+          "path": "videos[].title",
+          "type": "String",
+          "line": 23
+        },
+        {
+          "path": "videos[].media",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 24,
+          "ref": "Media"
+        },
+        {
+          "path": "video.src",
+          "type": "String",
+          "line": 51
+        },
+        {
+          "path": "video.poster",
+          "type": "String",
+          "line": 52
+        },
+        {
+          "path": "video.media",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 53,
+          "ref": "Media"
+        },
+        {
+          "path": "services",
+          "type": "Array",
+          "line": 56
+        },
+        {
+          "path": "technologies",
+          "type": "Array",
+          "line": 57
+        },
+        {
+          "path": "featured",
+          "type": "Boolean",
+          "line": 59,
+          "index": "true"
+        },
+        {
+          "path": "sortOrder",
+          "type": "Number",
+          "line": 60,
+          "index": "true"
+        },
+        {
+          "path": "status",
+          "type": "String",
+          "line": 61,
+          "enum": "WORK_STATUSES",
+          "index": "true"
+        },
+        {
+          "path": "publishedAt",
+          "type": "Date",
+          "line": 62
+        },
+        {
+          "path": "caseStudy",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 64,
+          "ref": "Portfolio"
+        },
+        {
+          "path": "seo.metaTitle",
+          "type": "String",
+          "line": 67
+        },
+        {
+          "path": "seo.metaDesc",
+          "type": "String",
+          "line": 68
+        }
+      ],
+      "indexes": []
+    },
+    {
       "name": "ProcurementCategory",
       "collection": "procurementcategories",
       "domain": "procurement",
@@ -8690,7 +8876,7 @@
       "path": "/api/health",
       "domain": "system",
       "file": "portal-api/src/app.js",
-      "line": 118,
+      "line": 119,
       "globalGuards": [],
       "handlers": [
         {
@@ -13002,642 +13188,818 @@
           "source": "portal-api/src/modules/web-content/webContent.controller.js"
         }
       ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/work",
+      "domain": "portfolio",
+      "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+      "line": 17,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "listWorkItems",
+          "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/work",
+      "domain": "portfolio",
+      "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+      "line": 21,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requirePermission(\"work.write\")",
+          "source": "portal-api/src/modules/portfolio/workItem.routes.js"
+        },
+        {
+          "label": "createWorkItem",
+          "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/work/:id",
+      "domain": "portfolio",
+      "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+      "line": 25,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requirePermission(\"work.delete\")",
+          "source": "portal-api/src/modules/portfolio/workItem.routes.js"
+        },
+        {
+          "label": "deleteWorkItem",
+          "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/work/:id",
+      "domain": "portfolio",
+      "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+      "line": 24,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requirePermission(\"work.write\")",
+          "source": "portal-api/src/modules/portfolio/workItem.routes.js"
+        },
+        {
+          "label": "updateWorkItem",
+          "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/work/:slug",
+      "domain": "portfolio",
+      "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+      "line": 18,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "optionalAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "getWorkItem",
+          "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/work/from-case-study/:caseStudyId",
+      "domain": "portfolio",
+      "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+      "line": 22,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requirePermission(\"work.write\")",
+          "source": "portal-api/src/modules/portfolio/workItem.routes.js"
+        },
+        {
+          "label": "createWorkItemFromCaseStudy",
+          "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/work/reorder",
+      "domain": "portfolio",
+      "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+      "line": 23,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requirePermission(\"work.write\")",
+          "source": "portal-api/src/modules/portfolio/workItem.routes.js"
+        },
+        {
+          "label": "reorderWorkItems",
+          "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+        }
+      ]
     }
   ],
   "frontendRoutes": [
     {
       "file": "client/src/App.js",
-      "line": 114,
+      "line": 115,
       "path": "/portal/*",
       "element": "{<PortalRoutes />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 117,
+      "line": 118,
       "path": "/",
       "element": "{<Home />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 118,
+      "line": 119,
       "path": "/about-us",
       "element": "{<AboutUsPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 119,
+      "line": 120,
       "path": "/case-studies",
       "element": "{<PortfolioPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 120,
+      "line": 121,
       "path": "/portfolio",
       "element": "{<PortfolioGalleryPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 121,
+      "line": 122,
+      "path": "/portfolio/:slug",
+      "element": "{<PortfolioWorkPage />}"
+    },
+    {
+      "file": "client/src/App.js",
+      "line": 123,
       "path": "/case-studies/:id",
       "element": "{<PrtofolioSingleViewPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 125,
+      "line": 127,
       "path": "/contact-us",
       "element": "{<ContactPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 126,
+      "line": 128,
       "path": "/services",
       "element": "{<ServiceMainPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 128,
+      "line": 130,
       "path": "/service/:slug",
       "element": "{<ServiceDetailPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 130,
+      "line": 132,
       "path": "/pricing/web-dev",
       "element": "{<WebPricingPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 131,
+      "line": 133,
       "path": "/pricing/seo",
       "element": "{<SeoPricingPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 132,
+      "line": 134,
       "path": "/pricing/google-ads",
       "element": "{<GoogleAdsPricingPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 136,
+      "line": 138,
       "path": "/pricing/social-media",
       "element": "{<SocialMediaPricingPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 141,
+      "line": 143,
       "path": "/build-your-plan",
       "element": "{<PlanBuilderPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 142,
+      "line": 144,
       "path": "/marketing-solutions",
       "element": "{<WebMarketing />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 143,
+      "line": 145,
       "path": "/greetings",
       "element": "{<ThankYouPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 145,
+      "line": 147,
       "path": "/careers",
       "element": "{<CareerPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 146,
+      "line": 148,
       "path": "/it-solutions",
       "element": "{<ITSolutionsPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 147,
+      "line": 149,
       "path": "/it-solutions/:slug",
       "element": "{<ITSolutionDetailsPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 151,
+      "line": 153,
       "path": "/digital-solutions",
       "element": "{<DigitalSolutionsPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 152,
+      "line": 154,
       "path": "/digital-solutions/:slug",
       "element": "{<DigitalSolutionDetailPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 157,
+      "line": 159,
       "path": "/products/cas",
       "element": "{<Navigate to=\"/digital-solutions/cas\" replace />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 161,
+      "line": 163,
       "path": "/vendor-registration",
       "element": "{<VendorRegistrationPage />}"
     },
     {
       "file": "client/src/App.js",
-      "line": 166,
+      "line": 168,
       "path": "*",
       "element": "{<NotFoundPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 232,
+      "line": 240,
       "path": "login",
       "element": "{<PortalLogin />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 233,
+      "line": 241,
       "path": "forgot-password",
       "element": "{<ForgotPassword />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 234,
+      "line": 242,
       "path": "reset-password",
       "element": "{<ResetPassword />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 235,
+      "line": 243,
       "path": "request-access",
       "element": "{<RequestAccess />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 236,
+      "line": 244,
       "path": "accept-invite",
       "element": "{<AcceptInvite />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 238,
+      "line": 246,
       "path": "/",
       "element": "{ <ProtectedRoute> <ToastProvider> <CommandBarProvider getItems={() => [ { id: \"go-clients\", label: \"Go to Clients\", to: \"/portal/customers\", hint: \"Accounts\", keywords: \"clients customers accounts\", "
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 412,
+      "line": 427,
       "path": "(index/layout)",
       "element": "{<DashboardPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 413,
+      "line": 428,
       "path": "customers",
       "element": "{<CustomersPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 414,
+      "line": 429,
       "path": "customers/:id",
       "element": "{<CustomerDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 415,
+      "line": 430,
       "path": "projects",
       "element": "{<ProjectsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 416,
+      "line": 431,
       "path": "projects/:id",
       "element": "{<ProjectDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 419,
+      "line": 434,
       "path": "crm",
       "element": "{<CRMDashboardPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 420,
+      "line": 435,
       "path": "crm/leads",
       "element": "{<LeadsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 421,
+      "line": 436,
       "path": "crm/leads/:id",
       "element": "{<LeadDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 422,
+      "line": 437,
       "path": "crm/deals",
       "element": "{<DealsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 423,
+      "line": 438,
       "path": "crm/deals/:id",
       "element": "{<DealDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 424,
+      "line": 439,
       "path": "crm/accounts",
       "element": "{<AccountsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 425,
+      "line": 440,
       "path": "crm/accounts/:id",
       "element": "{<AccountDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 426,
+      "line": 441,
       "path": "crm/contacts",
       "element": "{<ContactsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 427,
+      "line": 442,
       "path": "crm/contacts/:id",
       "element": "{<ContactDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 430,
+      "line": 445,
       "path": "jobs",
       "element": "{<JobsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 431,
+      "line": 446,
       "path": "jobs/:id",
       "element": "{<JobDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 432,
+      "line": 447,
       "path": "service-delivery",
       "element": "{<ServiceDeliveryPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 433,
+      "line": 448,
       "path": "productions",
       "element": "{<ProductionsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 434,
+      "line": 449,
       "path": "productions/:id",
       "element": "{<ProductionDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 435,
+      "line": 450,
       "path": "media-library",
       "element": "{<MediaLibraryPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 436,
+      "line": 451,
       "path": "files",
       "element": "{<FilesPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 439,
+      "line": 454,
       "path": "services",
       "element": "{<ServicesPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 440,
+      "line": 455,
       "path": "services/new",
       "element": "{<ServiceBuilderPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 441,
+      "line": 456,
       "path": "services/:id/edit",
       "element": "{<ServiceBuilderPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 442,
+      "line": 457,
       "path": "services/:id",
       "element": "{<ServiceDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 443,
+      "line": 458,
       "path": "enrollments",
       "element": "{<EnrollmentsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 444,
+      "line": 459,
       "path": "enrollments/:id",
       "element": "{<EnrollmentDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 445,
+      "line": 460,
       "path": "portfolio",
-      "element": "{<Navigate to=\"/portal/website/portfolio\" replace />}"
+      "element": "{<Navigate to=\"/portal/website/case-studies\" replace />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 449,
+      "line": 464,
       "path": "portfolio/:id",
-      "element": "{<LegacyPortfolioDetailsRedirect />}"
+      "element": "{<LegacyCaseStudyRedirect />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 453,
+      "line": 468,
       "path": "billing",
       "element": "{<BillingPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 454,
+      "line": 469,
       "path": "billing/:id",
       "element": "{<InvoiceDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 457,
+      "line": 472,
       "path": "procurement",
       "element": "{<ProcurementDashboardPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 458,
+      "line": 473,
       "path": "procurement/requests",
       "element": "{<ProcurementRequestsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 462,
+      "line": 477,
       "path": "procurement/requests/:id",
       "element": "{<ProcurementRequestDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 466,
+      "line": 481,
       "path": "procurement/vendors",
       "element": "{<ProcurementVendorsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 470,
+      "line": 485,
       "path": "procurement/categories",
       "element": "{<ProcurementCategoriesPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 474,
+      "line": 489,
       "path": "procurement/vendor-applications",
       "element": "{<VendorApplicationsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 478,
+      "line": 493,
       "path": "procurement/rfqs",
       "element": "{<RFQsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 479,
+      "line": 494,
       "path": "procurement/rfqs/new",
       "element": "{<RFQFormPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 480,
+      "line": 495,
       "path": "procurement/rfqs/:id/edit",
       "element": "{<RFQFormPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 481,
+      "line": 496,
       "path": "procurement/rfqs/:id",
       "element": "{<RFQDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 484,
+      "line": 499,
       "path": "hr",
       "element": "{<HRDashboardPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 485,
+      "line": 500,
       "path": "hr/staff",
       "element": "{<StaffPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 486,
+      "line": 501,
       "path": "hr/staff/:id",
       "element": "{<StaffDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 487,
+      "line": 502,
       "path": "hr/expenses",
       "element": "{<ExpenseClaimsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 488,
+      "line": 503,
       "path": "hr/expenses/:id",
       "element": "{<ExpenseClaimDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 489,
+      "line": 504,
       "path": "hr/monthly-expenses",
       "element": "{<MonthlyExpensesPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 490,
+      "line": 505,
       "path": "hr/leaves",
       "element": "{<LeaveRequestsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 491,
+      "line": 506,
       "path": "hr/skills",
       "element": "{<SkillMatrixPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 492,
+      "line": 507,
       "path": "hr/kpi",
       "element": "{<KPIDashboardPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 493,
+      "line": 508,
       "path": "hr/kpi/indicators",
       "element": "{<KPIIndicatorsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 494,
+      "line": 509,
       "path": "hr/kpi/goals",
       "element": "{<KPIGoalsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 495,
+      "line": 510,
       "path": "content-calendar",
       "element": "{<ContentCalendarPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 496,
+      "line": 511,
       "path": "messages",
       "element": "{<MessagesPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 497,
+      "line": 512,
       "path": "brand-kit",
       "element": "{<BrandKitPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 500,
+      "line": 515,
       "path": "reports",
       "element": "{<ReportsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 501,
+      "line": 516,
       "path": "activity",
       "element": "{<ActivityPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 504,
+      "line": 519,
       "path": "users",
       "element": "{<UsersListPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 505,
+      "line": 520,
       "path": "users/invites",
       "element": "{<InvitesPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 506,
+      "line": 521,
       "path": "users/access-requests",
       "element": "{<AccessRequestsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 507,
+      "line": 522,
       "path": "users/:id",
       "element": "{<UserDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 508,
+      "line": 523,
       "path": "roles",
       "element": "{<RolesPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 509,
+      "line": 524,
       "path": "teams",
       "element": "{<TeamsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 512,
+      "line": 527,
       "path": "careers",
       "element": "{<CareersAdminPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 513,
-      "path": "website/portfolio",
+      "line": 528,
+      "path": "website/case-studies",
       "element": "{<PortfolioPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 514,
-      "path": "website/portfolio/:id",
+      "line": 529,
+      "path": "website/case-studies/:id",
       "element": "{<PortfolioDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 515,
+      "line": 530,
+      "path": "website/portfolio",
+      "element": "{<Navigate to=\"/portal/website/case-studies\" replace />}"
+    },
+    {
+      "file": "client/src/portal/app/PortalRoutes.jsx",
+      "line": 531,
+      "path": "website/portfolio/:id",
+      "element": "{<LegacyCaseStudyRedirect />}"
+    },
+    {
+      "file": "client/src/portal/app/PortalRoutes.jsx",
+      "line": 532,
+      "path": "website/work",
+      "element": "{<WorkItemsPage />}"
+    },
+    {
+      "file": "client/src/portal/app/PortalRoutes.jsx",
+      "line": 533,
+      "path": "website/work/:id",
+      "element": "{<WorkItemDetailsPage />}"
+    },
+    {
+      "file": "client/src/portal/app/PortalRoutes.jsx",
+      "line": 534,
       "path": "website/slides",
       "element": "{<HomepageSlidersPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 516,
+      "line": 535,
       "path": "website/settings",
       "element": "{<WebsiteSettingsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 517,
+      "line": 536,
       "path": "website/digital-services",
       "element": "{<DigitalServicesPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 518,
+      "line": 537,
       "path": "website/solutions",
       "element": "{<TechSolutionsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 521,
+      "line": 540,
       "path": "profile",
       "element": "{<ProfilePage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 522,
+      "line": 541,
       "path": "settings",
       "element": "{<SettingsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 525,
+      "line": 544,
       "path": "tickets",
       "element": "{<TicketsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 526,
+      "line": 545,
       "path": "tickets/:id",
       "element": "{<TicketDetailsPage />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 528,
+      "line": 547,
       "path": "*",
       "element": "{<Navigate to=\"/portal\" replace />}"
     },
     {
       "file": "client/src/portal/app/PortalRoutes.jsx",
-      "line": 531,
+      "line": 550,
       "path": "*",
       "element": "{<Navigate to=\"/portal\" replace />}"
     }
@@ -13788,22 +14150,43 @@
       },
       {
         "domain": "portfolio",
-        "label": "Portfolio",
+        "label": "Case Studies",
         "permissions": [
           {
             "key": "portfolio.read",
             "label": "View",
-            "description": "View portfolio case studies"
+            "description": "View case studies, including drafts"
           },
           {
             "key": "portfolio.write",
             "label": "Edit",
-            "description": "Create and update portfolio entries"
+            "description": "Create and update case studies"
           },
           {
             "key": "portfolio.delete",
             "label": "Delete",
-            "description": "Permanently delete portfolio entries"
+            "description": "Permanently delete case studies"
+          }
+        ]
+      },
+      {
+        "domain": "work",
+        "label": "Portfolio",
+        "permissions": [
+          {
+            "key": "work.read",
+            "label": "View",
+            "description": "View portfolio work items, including drafts"
+          },
+          {
+            "key": "work.write",
+            "label": "Edit",
+            "description": "Create, update, publish and archive portfolio work items"
+          },
+          {
+            "key": "work.delete",
+            "label": "Delete",
+            "description": "Permanently delete draft or archived portfolio work items"
           }
         ]
       },
@@ -14185,6 +14568,9 @@
         "portfolio.read",
         "portfolio.write",
         "portfolio.delete",
+        "work.read",
+        "work.write",
+        "work.delete",
         "services.read",
         "services.write",
         "services.delete",
@@ -14260,6 +14646,9 @@
         "portfolio.read",
         "portfolio.write",
         "portfolio.delete",
+        "work.read",
+        "work.write",
+        "work.delete",
         "services.read",
         "services.write",
         "services.delete",
@@ -14345,7 +14734,8 @@
         "activity.read",
         "iam.users.read",
         "iam.teams.read",
-        "website.read"
+        "website.read",
+        "work.read"
       ],
       "finance": [
         "customers.read",
@@ -14545,7 +14935,7 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 140
+          "line": 144
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -14577,7 +14967,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 52
+          "line": 53
         }
       ],
       "ui": [
@@ -14599,7 +14989,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 51
+          "line": 52
         }
       ],
       "ui": [
@@ -14627,11 +15017,11 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 150
+          "line": 154
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 169
+          "line": 173
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -14679,7 +15069,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 60
+          "line": 61
         }
       ],
       "ui": [
@@ -14705,7 +15095,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 61
+          "line": 62
         }
       ],
       "ui": [
@@ -14768,15 +15158,15 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 160
+          "line": 164
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 178
+          "line": 182
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 187
+          "line": 191
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -14953,11 +15343,11 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 196
+          "line": 200
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 688
+          "line": 704
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -15031,7 +15421,7 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 205
+          "line": 209
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -15100,16 +15490,20 @@
         {
           "file": "portal-api/src/modules/portfolio/portfolio.controller.js",
           "line": 7
+        },
+        {
+          "file": "portal-api/src/modules/portfolio/workItem.controller.js",
+          "line": 298
         }
       ],
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 215
+          "line": 221
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 689
+          "line": 705
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -15118,6 +15512,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 32
+        },
+        {
+          "file": "client/src/portal/app/ProtectedRoute.jsx",
+          "line": 33
         }
       ]
     },
@@ -15161,6 +15559,76 @@
         }
       ]
     },
+    "work.read": {
+      "api": [
+        {
+          "file": "portal-api/src/modules/portfolio/workItem.controller.js",
+          "line": 12
+        }
+      ],
+      "ui": [
+        {
+          "file": "client/src/portal/app/portalNav.js",
+          "line": 231
+        },
+        {
+          "file": "client/src/portal/app/portalNav.js",
+          "line": 706
+        },
+        {
+          "file": "client/src/portal/app/ProtectedRoute.jsx",
+          "line": 34
+        }
+      ]
+    },
+    "work.write": {
+      "api": [
+        {
+          "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+          "line": 21
+        },
+        {
+          "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+          "line": 22
+        },
+        {
+          "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+          "line": 23
+        },
+        {
+          "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+          "line": 24
+        }
+      ],
+      "ui": [
+        {
+          "file": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+          "line": 76
+        },
+        {
+          "file": "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+          "line": 187
+        }
+      ]
+    },
+    "work.delete": {
+      "api": [
+        {
+          "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+          "line": 25
+        }
+      ],
+      "ui": [
+        {
+          "file": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+          "line": 77
+        },
+        {
+          "file": "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+          "line": 188
+        }
+      ]
+    },
     "services.read": {
       "api": [
         {
@@ -15179,15 +15647,15 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 224
+          "line": 240
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 690
+          "line": 707
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 33
+          "line": 35
         }
       ]
     },
@@ -15253,15 +15721,15 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 233
+          "line": 249
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 691
+          "line": 708
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 34
+          "line": 36
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -15331,11 +15799,11 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 242
+          "line": 258
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 35
+          "line": 37
         },
         {
           "file": "client/src/portal/features/dashboard/client/clientOverview.js",
@@ -15383,7 +15851,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 55
+          "line": 56
         }
       ],
       "ui": [
@@ -15401,7 +15869,7 @@
       "api": [
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 56
+          "line": 57
         }
       ],
       "ui": []
@@ -15424,11 +15892,11 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 333
+          "line": 349
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 36
+          "line": 38
         },
         {
           "file": "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
@@ -15502,7 +15970,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 62
+          "line": 63
         }
       ],
       "ui": [
@@ -15562,31 +16030,31 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 344
+          "line": 360
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 353
+          "line": 369
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 362
+          "line": 378
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 371
+          "line": 387
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 380
+          "line": 396
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 683
+          "line": 699
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 37
+          "line": 39
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -15792,27 +16260,27 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 435
+          "line": 451
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 445
+          "line": 461
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 455
+          "line": 471
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 464
+          "line": 480
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 482
+          "line": 498
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 39
+          "line": 41
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
@@ -15910,7 +16378,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 54
+          "line": 55
         }
       ],
       "ui": [
@@ -15964,17 +16432,17 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 53
+          "line": 54
         }
       ],
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 473
+          "line": 489
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 38
+          "line": 40
         },
         {
           "file": "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
@@ -16012,31 +16480,31 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 492
+          "line": 508
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 501
+          "line": 517
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 537
+          "line": 553
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 684
+          "line": 700
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 40
+          "line": 42
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 45
+          "line": 47
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 48
+          "line": 50
         },
         {
           "file": "client/src/portal/features/hr/lib/hrOverview.js",
@@ -16126,15 +16594,15 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 510
+          "line": 526
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 684
+          "line": 700
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 41
+          "line": 43
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -16206,11 +16674,11 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 519
+          "line": 535
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 42
+          "line": 44
         },
         {
           "file": "client/src/portal/features/hr/components/expenseActions.js",
@@ -16274,15 +16742,15 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 528
+          "line": 544
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 684
+          "line": 700
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 43
+          "line": 45
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -16378,7 +16846,7 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 684
+          "line": 700
         },
         {
           "file": "client/src/portal/features/hr/staff/staffTabs.js",
@@ -16454,23 +16922,23 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 547
+          "line": 563
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 556
+          "line": 572
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 565
+          "line": 581
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 684
+          "line": 700
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 47
+          "line": 49
         },
         {
           "file": "client/src/portal/features/hr/staff/staffTabs.js",
@@ -16541,11 +17009,11 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 252
+          "line": 268
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 49
+          "line": 51
         }
       ]
     },
@@ -16563,15 +17031,15 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 262
+          "line": 278
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 686
+          "line": 702
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 50
+          "line": 52
         },
         {
           "file": "client/src/portal/features/hr/staff/staffTabs.js",
@@ -16597,11 +17065,11 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 272
+          "line": 288
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 685
+          "line": 701
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -16695,11 +17163,11 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 281
+          "line": 297
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 685
+          "line": 701
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -16743,11 +17211,11 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 290
+          "line": 306
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 685
+          "line": 701
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -16819,15 +17287,15 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 299
+          "line": 315
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 308
+          "line": 324
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 685
+          "line": 701
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -16861,7 +17329,7 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 574
+          "line": 590
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -16893,7 +17361,7 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 584
+          "line": 600
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
@@ -16957,35 +17425,35 @@
       "ui": [
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 389
+          "line": 405
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 398
+          "line": 414
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 407
+          "line": 423
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 416
+          "line": 432
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 425
+          "line": 441
         },
         {
           "file": "client/src/portal/app/portalNav.js",
-          "line": 687
+          "line": 703
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 51
+          "line": 53
         },
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
-          "line": 52
+          "line": 54
         }
       ]
     },
@@ -17075,7 +17543,7 @@
         },
         {
           "file": "client/src/portal/features/website/pages/WebsiteSettingsPage.jsx",
-          "line": 1747
+          "line": 1749
         }
       ]
     }
@@ -17173,6 +17641,20 @@
       "reachable": true
     },
     {
+      "file": "client/src/hooks/useWorkItems.js",
+      "line": 15,
+      "call": "fetch",
+      "url": "`${BASE}/work?limit=100&sort=sortOrder`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/hooks/useWorkItems.js",
+      "line": 63,
+      "call": "fetch",
+      "url": "`${BASE}/work/${encodeURIComponent(slug)}`",
+      "reachable": true
+    },
+    {
       "file": "client/src/pages/ITSolutions/ITSolutionDetailsPage.jsx",
       "line": 43,
       "call": "fetch",
@@ -17195,7 +17677,7 @@
     },
     {
       "file": "client/src/pages/Services/ServiceDetailPage.jsx",
-      "line": 232,
+      "line": 237,
       "call": "fetch",
       "url": "`${API}/web-content/services/${slug}`",
       "reachable": true
@@ -18475,6 +18957,55 @@
       "reachable": true
     },
     {
+      "file": "client/src/portal/features/portfolio/workApi.js",
+      "line": 6,
+      "call": "api.get",
+      "url": "\"/work\"",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/features/portfolio/workApi.js",
+      "line": 11,
+      "call": "api.get",
+      "url": "`/work/${id}`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/features/portfolio/workApi.js",
+      "line": 16,
+      "call": "api.post",
+      "url": "\"/work\"",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/features/portfolio/workApi.js",
+      "line": 21,
+      "call": "api.post",
+      "url": "`/work/from-case-study/${caseStudyId}`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/features/portfolio/workApi.js",
+      "line": 26,
+      "call": "api.patch",
+      "url": "`/work/${id}`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/features/portfolio/workApi.js",
+      "line": 31,
+      "call": "api.patch",
+      "url": "\"/work/reorder\"",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/features/portfolio/workApi.js",
+      "line": 36,
+      "call": "api.delete",
+      "url": "`/work/${id}`",
+      "reachable": true
+    },
+    {
       "file": "client/src/portal/features/procurement/api.js",
       "line": 8,
       "call": "api.get",
@@ -19235,7 +19766,6 @@
           "client/src/components/WebDevolopmentProcess/webDevelopmentProcess.jsx",
           "client/src/components/WhyExpressoGrid/WhyExpressoGrid.jsx",
           "client/src/pages/Career/CareerPage.jsx",
-          "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
           "client/src/pages/Products/components/CASBookingJourney.jsx",
           "client/src/pages/Products/components/CASBuiltBy.jsx",
           "client/src/pages/Products/components/CASPlatformSummary.jsx",
@@ -19360,6 +19890,9 @@
           "client/src/portal/features/messaging/pages/MessagesPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioDetailsPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioPage.jsx",
+          "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+          "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+          "client/src/portal/features/portfolio/workAdminShared.jsx",
           "client/src/portal/features/procurement/components/CategoryFormDialog.jsx",
           "client/src/portal/features/procurement/components/RequestFormDialog.jsx",
           "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
@@ -19531,6 +20064,7 @@
           "client/src/hooks/usePortfolioItem.js",
           "client/src/hooks/usePortfolioItems.js",
           "client/src/hooks/useSiteSettings.js",
+          "client/src/hooks/useWorkItems.js",
           "client/src/index.js",
           "client/src/pages/404Page/NotFoundPage.jsx",
           "client/src/pages/AboutUs/aboutUs.jsx",
@@ -19550,6 +20084,8 @@
           "client/src/pages/PlanBuilder/planBuilderPage.jsx",
           "client/src/pages/Portfolio/portfolio.jsx",
           "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+          "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+          "client/src/pages/PortfolioGallery/workShared.jsx",
           "client/src/pages/Pricing/googleAdsPage.jsx",
           "client/src/pages/Pricing/seoPricingPage.jsx",
           "client/src/pages/Pricing/socialMediaMarketingPage.jsx",
@@ -19562,6 +20098,7 @@
           "client/src/pages/Products/components/CASPlatformSummary.jsx",
           "client/src/pages/Products/components/CASProviderScheduling.jsx",
           "client/src/pages/ServiceMain/serviceMain.jsx",
+          "client/src/pages/Services/BrandedServiceDetail.jsx",
           "client/src/pages/Services/ServiceDetailPage.jsx",
           "client/src/pages/SingleViewPortfolio/singleViewPortfolio.jsx",
           "client/src/pages/ThankYou/ThankYouPage.jsx",
@@ -19678,6 +20215,9 @@
           "client/src/portal/features/messaging/pages/MessagesPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioDetailsPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioPage.jsx",
+          "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+          "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+          "client/src/portal/features/portfolio/workAdminShared.jsx",
           "client/src/portal/features/procurement/components/CategoryFormDialog.jsx",
           "client/src/portal/features/procurement/components/RequestFormDialog.jsx",
           "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
@@ -19840,6 +20380,8 @@
         "importFiles": [
           "client/src/App.js",
           "client/src/pages/DigitalSolutions/DigitalSolutionsPage.jsx",
+          "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+          "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
           "client/src/pages/Products/BusinessSuitePage.jsx",
           "client/src/pages/Products/CASPage.jsx"
         ]
@@ -19889,6 +20431,8 @@
           "client/src/pages/ErrorBoundary/errorBoundary.jsx",
           "client/src/pages/ITSolutions/ITSolutionDetailsPage.jsx",
           "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+          "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+          "client/src/pages/PortfolioGallery/workShared.jsx",
           "client/src/pages/Pricing/googleAdsPage.jsx",
           "client/src/pages/Pricing/seoPricingPage.jsx",
           "client/src/pages/Pricing/socialMediaMarketingPage.jsx",
@@ -19897,6 +20441,7 @@
           "client/src/pages/Products/components/CASBookingJourney.jsx",
           "client/src/pages/Products/components/CASHero.jsx",
           "client/src/pages/Products/components/CASPlatformSummary.jsx",
+          "client/src/pages/Services/BrandedServiceDetail.jsx",
           "client/src/pages/SingleViewPortfolio/singleViewPortfolio.jsx",
           "client/src/pages/VendorRegistration/VendorRegistrationPage.jsx",
           "client/src/pages/WebMarketing/webMarketing.jsx",
@@ -19947,10 +20492,12 @@
           "client/src/pages/Home/home.jsx",
           "client/src/pages/ITSolutions/ITSolutionDetailsPage.jsx",
           "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+          "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
           "client/src/pages/Products/BusinessSuitePage.jsx",
           "client/src/pages/Products/CASPage.jsx",
           "client/src/pages/Products/components/CASHero.jsx",
           "client/src/pages/ServiceMain/serviceMain.jsx",
+          "client/src/pages/Services/BrandedServiceDetail.jsx",
           "client/src/pages/Services/ServiceDetailPage.jsx",
           "client/src/pages/SingleViewPortfolio/singleViewPortfolio.jsx",
           "client/src/pages/ThankYou/ThankYouPage.jsx",
@@ -20005,6 +20552,8 @@
           "client/src/portal/features/jobs/pages/JobsPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioDetailsPage.jsx",
           "client/src/portal/features/portfolio/pages/PortfolioPage.jsx",
+          "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+          "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
           "client/src/portal/features/procurement/components/RfqStaffDetail.jsx",
           "client/src/portal/features/procurement/components/RfqStaffList.jsx",
           "client/src/portal/features/procurement/pages/ProcurementDashboardPage.jsx",
@@ -20113,6 +20662,7 @@
           "portal-api/src/scripts/seedRoles.js",
           "portal-api/src/scripts/seedUser.js",
           "portal-api/src/scripts/seedWebContent.js",
+          "portal-api/src/scripts/seedWorkItems.js",
           "portal-api/src/scripts/sendTestEmail.js",
           "portal-api/src/server.js"
         ]
@@ -20155,6 +20705,7 @@
           "portal-api/src/modules/iam/users/user.routes.js",
           "portal-api/src/modules/messaging/message.routes.js",
           "portal-api/src/modules/portfolio/portfolio.routes.js",
+          "portal-api/src/modules/portfolio/workItem.routes.js",
           "portal-api/src/modules/private-files/privateFiles.routes.js",
           "portal-api/src/modules/procurement/category.routes.js",
           "portal-api/src/modules/procurement/request.routes.js",
@@ -20260,6 +20811,8 @@
           "portal-api/src/modules/messaging/message.model.js",
           "portal-api/src/modules/portfolio/portfolio.controller.js",
           "portal-api/src/modules/portfolio/portfolio.model.js",
+          "portal-api/src/modules/portfolio/workItem.controller.js",
+          "portal-api/src/modules/portfolio/workItem.model.js",
           "portal-api/src/modules/procurement/category.controller.js",
           "portal-api/src/modules/procurement/category.model.js",
           "portal-api/src/modules/procurement/quotation.model.js",
@@ -20288,6 +20841,7 @@
           "portal-api/src/scripts/seedPortfolio.js",
           "portal-api/src/scripts/seedProcurementCategories.js",
           "portal-api/src/scripts/seedRoles.js",
+          "portal-api/src/scripts/seedWorkItems.js",
           "portal-api/src/utils/ownership.js",
           "portal-api/src/utils/transaction.js"
         ]

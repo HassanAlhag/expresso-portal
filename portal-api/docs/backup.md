@@ -1,5 +1,7 @@
 # Database backup — R5-D2 (runbook)
 
+**Blueprint closure:** D1–D3 are CLOSED foundations; D4 seed and D5 reset are DEFERRED post-Blueprint. No reset/seed operation is authorized. See [final code closure and deployment acceptance](../../docs/architecture/BLUEPRINT-CLOSURE.md).
+
 Status: **R5-D2 complete / committed / pushed.** R5-D3 (restore verification) is **complete / committed / pushed**: see [restore-verify.md](restore-verify.md).
 
 ## Read this first

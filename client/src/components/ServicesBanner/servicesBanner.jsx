@@ -1,6 +1,6 @@
 import React from "react";
 import { FiArrowUpRight } from "react-icons/fi";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useSiteSettings } from "../../hooks/useSiteSettings";
 import { resolveWebsiteImage, toWebsiteImageUrl } from "../../utils/websiteImages";
@@ -128,28 +128,37 @@ const Copy = ({
   );
 };
 
-const Logos = () => {
+// The moving technology ribbon. Exported for the /service/web-dev brand
+// reference layout, which places it under its own hero. `respectReducedMotion`
+// is opt-in so every existing page renders exactly as before.
+export function ServiceTechRibbon(props) {
+  return <Logos {...props} />;
+}
+
+const Logos = ({ respectReducedMotion = false }) => {
+  const reduceMotion = useReducedMotion();
+  const still = respectReducedMotion && reduceMotion;
   return (
     <div className="relative -mt-2 -rotate-1 scale-[1.01] border-y-2 border-zinc-900 bg-white">
       <div className="relative z-0 flex overflow-hidden border-b-2 border-zinc-900">
-        <TranslateWrapper>
+        <TranslateWrapper still={still}>
           <LogoItemsTop />
         </TranslateWrapper>
-        <TranslateWrapper>
+        <TranslateWrapper still={still}>
           <LogoItemsTop />
         </TranslateWrapper>
-        <TranslateWrapper>
+        <TranslateWrapper still={still}>
           <LogoItemsTop />
         </TranslateWrapper>
       </div>
       <div className="relative z-0 flex overflow-hidden">
-        <TranslateWrapper reverse>
+        <TranslateWrapper reverse still={still}>
           <LogoItemsBottom />
         </TranslateWrapper>
-        <TranslateWrapper reverse>
+        <TranslateWrapper reverse still={still}>
           <LogoItemsBottom />
         </TranslateWrapper>
-        <TranslateWrapper reverse>
+        <TranslateWrapper reverse still={still}>
           <LogoItemsBottom />
         </TranslateWrapper>
       </div>
@@ -159,7 +168,8 @@ const Logos = () => {
   );
 };
 
-const TranslateWrapper = ({ children, reverse }) => {
+const TranslateWrapper = ({ children, reverse, still = false }) => {
+  if (still) return <div className="flex px-2">{children}</div>;
   return (
     <motion.div
       initial={{ translateX: reverse ? "-100%" : "0%" }}

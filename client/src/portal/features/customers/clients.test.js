@@ -3,7 +3,7 @@
 // checks read stacked-record structure from the DOM directly.
 /* eslint-disable testing-library/no-node-access, testing-library/no-unnecessary-act */
 import React from "react";
-import { render, screen, fireEvent, within, act } from "@testing-library/react";
+import { render, screen, fireEvent, within, act, waitFor } from "@testing-library/react";
 
 const mockNavigate = jest.fn();
 let mockParams = { id: "c1" };
@@ -270,6 +270,9 @@ test("client form department choice is a real radio group: one Tab stop, arrow k
   await act(async () => {
     render(<CustomerFormModal open mode="create" onClose={() => {}} onSubmit={() => {}} />);
   });
+  // FormDialog queues its opening focus. Wait for it before moving focus
+  // into the radio group, so that startup cannot race the keyboard check.
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("textbox", { name: /Company name/ })));
   const group = screen.getByRole("radiogroup", { name: "Department" });
   const radios = within(group).getAllByRole("radio");
   expect(radios.filter((r) => r.tabIndex === 0)).toHaveLength(1);

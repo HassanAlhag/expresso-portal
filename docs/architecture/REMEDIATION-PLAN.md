@@ -2,7 +2,8 @@
 
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Executive summary](README.md) · [Cleanup audit](CODE-CLEANUP-AUDIT.md) · [Reset plan](DATABASE-RESET-PLAN.md)
 
-**Status: approved planning baseline (`852369df`).** The original plan below (sections 1–11: item timings, the five-stage sequence R1 → R2 → R3 → Website Stage 4 → R4 → R5, then the design study and portal implementation) is kept as written. What was actually built, in what order, and which original stages remain open is recorded in [Implementation status](#implementation-status): the work did not follow the planned order. Committed: R1 (`b2958e76`), R2 (`26a2cca6`), the design study (`f0d9bc02`), the reliability stage labelled R3 (`91a0c0bc`) and portal implementation PUI-1 to PUI-5 (`516cc002`, `83bc9017`, `ffc5005c`, `ed68bb5c`, `3106b267`). The **R1/R3 closure** is committed (`23425ab8`). **Website Stage 4: code complete and committed (`feat: complete website stage 4`); homepage CMS content pending manual entry.** **R4 is in progress: R4-A (P3-5 / P3-6 access consistency) complete and committed (`refactor: align portal access controls`); R4-B (P2-6 / P3-8) complete and committed (`fix: remove R4 read and schema inconsistencies`); R4-C (P2-2 CRM conversion atomicity and link integrity) complete and committed (`fix: make CRM conversions atomic`); R4-D (P3-7 duplicated sources of truth) complete and committed (`refactor: consolidate duplicated sources of truth`). R4 implementation is complete; R4 closure is pending its final gates. **R5-A repository cleanup is complete / committed. R5-D (data lifecycle) is in progress: R5-D1 safety foundation complete / committed / pushed (`feat: add R5-D1 lifecycle safety foundation`); R5-D2 verified backup creation complete / committed / pushed (`feat: add R5-D2 verified backup foundation`); R5-D3 restore verification complete / committed / pushed; R5-D4 and R5-D5 not started; persisted cleanup blocked pending review/approval. R5-C (endpoint evidence) is in progress: R5-C1 offline endpoint/caller evidence register complete / committed / pushed (`feat: add R5-C1 endpoint evidence register`); R5-C2 onwards not started. R5-B (reference integrity, assets, Production) is in progress: R5-B2 offline reference-integrity reporting complete / committed / pushed (`feat: add R5-B2 reference integrity reporting`); R5-B3 complete / committed; Production retirement (R5-B4) and asset deletion blocked. The rest of R5 remains blocked or deferred.** **Portal implementation tail — Jobs: complete and committed (`feat: complete jobs portal migration`).** **Portal implementation — final closure pass (older-page permission / action alignment): complete and committed (`fix: complete portal permission alignment`). Portal Implementation: COMPLETE / COMMITTED. P3-5 and P3-6: COMPLETE.** Still open outside it: the Jobs/Productions migration, R5-B/C/D/E, the Operating Model and the project-end gates. Nothing has been deployed, no deployment gate has been run, and no database data, infrastructure, storage, configuration or `.env` file has been changed by any stage.
+**Final combined scope (29 October 2026):** user-approved Services/seed and Work Items changes are included in closure review. Work Items adds seven routes, three permission keys and one model: current totals are 290 / 76 / 46. The 283 / 73 / 45 tables below record earlier stage snapshots. Current B3 has 137 candidates (all original 143 retained), with zero deletion authority.
+**Final Blueprint code: CLOSED / CODE COMPLETE. Deployment acceptance: BLOCKED-EXTERNAL.** [BLUEPRINT-CLOSURE.md](BLUEPRINT-CLOSURE.md) is the one authoritative final status, local validation, acceptance and deferred register. R1–R4, W4 code, Design Study, Portal/Jobs PI, R5-A/B2/B3/C1/D1–D3 are delivered foundations. Evidence-dependent cleanup and D4/D5 are DEFERRED post-Blueprint. The original planning baseline and dated implementation details below are retained as historical evidence, not additional code-closure blockers. This closure pass is uncommitted and awaiting review.
 
 **Baseline:** branch `website/integrated-solutions`. Application code is at `58b8f86c`; the architecture docs were committed at `e867d95f`.
 
@@ -17,7 +18,7 @@ One finding was **narrower** than first described: invoice numbers fail with an 
 
 Status words used here: **Implemented** = code changed in the working tree · **Verified** = covered by automated tests that pass, and that fail against the pre-R1 code · **Pending** = not done yet (code, decision or runtime check).
 
-### Original plan versus actual implementation (reconciled 26 Oct 2026)
+### Original plan versus actual implementation (code closure reconciled 28 Oct 2026)
 
 The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → R4 → R5, with the design study in parallel and portal implementation after both the study and R4. The actual order was R1 → R2 → design study → a reliability stage labelled "R3" → PUI-1 to PUI-5 → R1/R3 closure → Website Stage 4. R4 and R5 have not started, so portal implementation ran **before** R4, the reverse of the plan; the R4 items it was meant to absorb (P3-5, P3-6) are only partly done.
 
@@ -25,14 +26,14 @@ The original sequence (section 10) was R1 → R2 → R3 → Website Stage 4 → 
 
 | Original stage | Original contents | Status | Evidence / what remains |
 |---|---|---|---|
-| R1 Security hardening | P0-1–P0-4, P1-2, P2-3 invoices, `seedUser.js`, P3-1 meanings, P4-1, P4-3 | Code complete (R1/R3 closure committed in `23425ab8`) | P0-1–P0-4 in `b2958e76`; P2-3 invoices and `seedUser.js` in `91a0c0bc`; P1-2, P4-1, P4-3 and the `reports.export` part of P3-1 in the R1/R3 closure (`23425ab8`). Deployment checks pending |
-| R2 Access model & vendor journey | P1-1, P1-3, P1-4, P1-5, P2-1, P2-3 RFQs, P2-4, P2-5, P3-4 | Code complete; one part deferred | `26a2cca6`; P2-4 and the RFQ counter in `91a0c0bc`. **Deferred:** RFQ unique index (needs the read-only duplicate check). Deployment checks pending |
-| R3 Housekeeping | P3-3, P3-9, audit corrections | Code complete (R1/R3 closure committed in `23425ab8`) | Audit corrections were applied with the baseline. P3-3 and P3-9 in the R1/R3 closure. **Note:** commit `91a0c0bc`, labelled R3, delivered R1/R2 items (P2-3, P2-4, `seedUser.js`), not the original R3 housekeeping |
-| Website Stage 4 | Homepage and remaining public pages | **W4 code: complete and committed. W4 CMS content: pending manual entry** | No detailed W4 specification existed; scope settled in the W4 pre-flight (26 Oct 2026). See [Website Stage 4](#website-stage-4-w4-code-complete-and-committed-cms-content-pending) |
-| R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **Implementation complete; final gates open (not closed)** | Split into passes (26 Oct 2026): **R4-A** P3-5 / P3-6 complete and committed; **R4-B** P2-6 + P3-8 complete and committed; **R4-C** P2-2 complete and committed; **R4-D** P3-7 complete and committed. See [R4](#r4-consistency-refactors-in-progress-r4-a-r4-b-and-r4-c-committed) |
-| R5 Verified cleanup & data lifecycle | P3-2, P4-2, P4-4, P4-5, P4-6, P2-7 pipeline | **R5-A complete / committed; R5-D in progress (R5-D1 complete / committed / pushed; R5-D2 complete / committed / pushed; R5-D3 complete / committed / pushed); R5-C in progress (R5-C1 complete / committed / pushed); R5-B in progress (R5-B2 complete / committed / pushed; R5-B3 complete / committed); R5 not complete** | Bounded P4-2 and P4-4 repository-only cleanup; see R5-A below. R5-D1 lifecycle safety foundation (read-only); see R5-D1 below. Production retirement, assets, endpoints, Strapi and lifecycle work remain blocked/deferred pending their evidence and approvals |
-| Design study | Offline prototype and component specification | **Done** | `f0d9bc02` |
-| Portal implementation | Shared components, then Dashboard, CRM, Projects, Finance, HR, Procurement, absorbing P3-5 and P3-6 | **COMPLETE / COMMITTED** | PUI-1 to PUI-5 cover all listed modules plus client and vendor views. The Jobs pages are complete and committed in the PI tail (see [PI tail — Jobs](#pi-tail--jobs-complete-and-committed)). The older-page permission and action cleanup (P3-5 / P3-6 remainder) is reconciled and implemented in the [PI closure pass](#pi-closure--older-page-permission-and-action-alignment-complete-and-committed): complete and committed. **Outside Portal implementation and still open:** the Productions pages (Jobs/Productions migration), R5-B/C/D/E, the Operating Model and the project-end gates |
+| R1 Security hardening | P0-1–P0-4, P1-2, P2-3 invoices, `seedUser.js`, P3-1 meanings, P4-1, P4-3 | **CLOSED** — code; external acceptance/deferred exceptions in [final closure](BLUEPRINT-CLOSURE.md) | P0-1–P0-4 in `b2958e76`; P2-3 invoices and `seedUser.js` in `91a0c0bc`; P1-2, P4-1, P4-3 and the `reports.export` part of P3-1 in the R1/R3 closure (`23425ab8`). Deployment checks pending |
+| R2 Access model & vendor journey | P1-1, P1-3, P1-4, P1-5, P2-1, P2-3 RFQs, P2-4, P2-5, P3-4 | **CLOSED** — code; external acceptance/deferred exceptions in [final closure](BLUEPRINT-CLOSURE.md) | `26a2cca6`; P2-4 and the RFQ counter in `91a0c0bc`. **Deferred:** RFQ unique index (needs the read-only duplicate check). Deployment checks pending |
+| R3 Housekeeping | P3-3, P3-9, audit corrections | **CLOSED** — code; external acceptance/deferred exceptions in [final closure](BLUEPRINT-CLOSURE.md) | Audit corrections were applied with the baseline. P3-3 and P3-9 in the R1/R3 closure. **Note:** commit `91a0c0bc`, labelled R3, delivered R1/R2 items (P2-3, P2-4, `seedUser.js`), not the original R3 housekeeping |
+| Website Stage 4 | Homepage and remaining public pages | **CLOSED** — code; external acceptance/deferred exceptions in [final closure](BLUEPRINT-CLOSURE.md) | No detailed W4 specification existed; scope settled in the W4 pre-flight (26 Oct 2026). See [Website Stage 4](#website-stage-4-w4-code-complete-and-committed-cms-content-pending) |
+| R4 Consistency refactors | P2-2, P2-6, P3-5, P3-6, P3-7, P3-8 | **CLOSED** — code; external acceptance/deferred exceptions in [final closure](BLUEPRINT-CLOSURE.md) | Split into passes (26 Oct 2026): **R4-A** P3-5 / P3-6 complete and committed; **R4-B** P2-6 + P3-8 complete and committed; **R4-C** P2-2 complete and committed; **R4-D** P3-7 complete and committed. See [R4](#r4-consistency-refactors-in-progress-r4-a-r4-b-and-r4-c-committed) |
+| R5 Verified cleanup & data lifecycle | P3-2, P4-2, P4-4, P4-5, P4-6, P2-7 pipeline | **CLOSED** — code; external acceptance/deferred exceptions in [final closure](BLUEPRINT-CLOSURE.md) | R5-A/B2/B3/C1/D1–D3 are delivered foundations. Evidence-dependent Production/assets/endpoints/storage cleanup, Strapi and D4/D5 are DEFERRED post-Blueprint; no cleanup is authorized |
+| Design study | Offline prototype and component specification | **CLOSED** — code; external acceptance/deferred exceptions in [final closure](BLUEPRINT-CLOSURE.md) | `f0d9bc02` |
+| Portal implementation | Shared components, then Dashboard, CRM, Projects, Finance, HR, Procurement, absorbing P3-5 and P3-6 | **CLOSED** — code; external acceptance/deferred exceptions in [final closure](BLUEPRINT-CLOSURE.md) | PUI-1–5, Jobs PI and permission alignment delivered; final closure corrects current Productions status presentation. Remaining presentation debt is DEFERRED; the Operating Model remains future work |
 
 **Actual implementation history (commits on `website/integrated-solutions`)**
 
@@ -69,18 +70,18 @@ Approved scope only, based on `64a444a35865a746732f6162bce6e6119178b735`; R5-A i
 | Validation | API: 357 passed / 6 opt-in database tests skipped; client clean-cache full suite: 308/308, 29 suites; lint: 0 errors / 1 existing warning in protected AttachmentPicker; production build, architecture validator and `git diff --check` passed | Two cached client runs failed the unchanged radio-group focus assertion; isolated Clients suite and baseline-source control passed. Timing-sensitive test reported without changing live code/tests. No new unresolved runtime/test imports; missing extensionless import in retained, unreachable `usePortalProfile.js` and image-registry source-path metadata retained. See the cleanup audit for commands/evidence |
 | Boundaries | No API source, database/schema, public asset, endpoint, permission, current/old Production stack, Operating Model or PI reconciliation changes | Operating Manuals retained untouched; R4 environment/deployment gates and W4 CMS content remain open |
 
-**R5 is not complete.** P3-2 old Production retirement, P4-5 asset cleanup, P4-6 endpoint retirement, P4-7 local Strapi and P2-7 backup/restore/inventory/reset/seed remainder are still blocked/deferred. No data cleanup has started; the lifecycle tooling is the read-only R5-D1 foundation, R5-D2 backup creation and R5-D3 restore verification (local/disposable targets only), below. **Still open:** R5-B — database-dependent Production/assets/orphan cleanup (**in progress**: R5-B2 offline reference-integrity reporting complete / committed / pushed; R5-B3 complete / committed; R5-B4 Production retirement and asset deletion blocked); R5-C — endpoint/access-log/environment evidence (**in progress**: R5-C1 complete / committed / pushed; R5-C2 onwards not started); R5-D — backup/restore/reset/seed lifecycle (**in progress**: R5-D1 complete / committed / pushed; R5-D2 complete / committed / pushed; R5-D3 complete / committed / pushed; R5-D4–D5 not started); R5-E — Strapi and retained manual/deferred candidates.
+**R5 Blueprint foundations are CLOSED.** R5-A repository cleanup, B2 reference integrity, B3 asset evidence, C1 endpoint evidence and D1–D3 lifecycle/recovery foundations are delivered. Legacy Production retirement, asset/endpoint/object cleanup, real persisted/usage capture, D4 seed, D5 reset and R5-E are **DEFERRED** post-Blueprint; none is implemented or authorized by closure. Deployment acceptance remains **BLOCKED-EXTERNAL** as listed in [BLUEPRINT-CLOSURE.md](BLUEPRINT-CLOSURE.md).
 
 ### R5-D3 — verified restore (complete / committed / pushed)
 
 | Item | Status |
 |---|---|
-| **R5-D** | **IN PROGRESS** |
+| **R5-D** | **CLOSED** — D1–D3 foundations; D4/D5 DEFERRED |
 | R5-D1 | COMPLETE / COMMITTED / PUSHED |
 | R5-D2 backup creation | COMPLETE / COMMITTED / PUSHED |
 | R5-D3 restore verification | **COMPLETE / COMMITTED / PUSHED** |
-| Persisted cleanup | **BLOCKED** pending review/approval |
-| Production retirement · asset deletion | **BLOCKED** |
+| Persisted cleanup | **DEFERRED** — separate evidence and approval required |
+| Production retirement · asset deletion | **DEFERRED** — no retirement/deletion authorization |
 
 `npm run db:restore-verify` (`portal-api/src/scripts/lifecycle/restoreverify.js`; runbook [`portal-api/docs/restore-verify.md`](../../portal-api/docs/restore-verify.md)). It takes ONE explicitly named D2 artifact directory and checks it completely offline (canonical non-symlink path, regular files only, no `INCOMPLETE` marker, D1-valid sealed manifest, status `backupCreated`/`artifactChecksumsValid` true and `restoreVerified` false, one archive whose size and SHA-256 match). It reads the source identity from the manifest only: the source is never contacted and needs no credentials. The verification target must be a D1-declared `local`/`disposable` loopback replica set whose profile lists the new, explicitly named `restore-verify` operation (the only write operation; never implied by `backup`), pass D2's live identity checks, be provably not the source (different database name, different fingerprint, and the target server — declared and live — never re-fingerprints to the source; a standalone target is refused as ambiguous) and have no collections. Only then does it run `mongorestore --archive --gzip` with the exact mapping `--nsInclude/--nsFrom=<source>.*`, `--nsTo=<verification>.*` and `--stopOnError` (argument array, no shell, no `--drop`; credentials only through the same private FIFO `--config` as D2; filtered child environment). It re-checks the artifact, then compares the restored database with the manifest: collection set (missing and unexpected), types, order-sensitive options, counts, indexes (name, key order, uniqueness) and per-collection content hashes, plus the database-level hash when the backup has no views. Only if everything matches does it write a separate sealed `restore-verification.json` with `restoreSucceeded`, `contentVerified` and `restoreVerified` true; otherwise it writes `NOT-VERIFIED.json`, exits non-zero and leaves the verification database for review (it has no drop or clean-up capability). The D2 manifest is never modified and keeps `restoreVerified: false`.
 
@@ -108,12 +109,12 @@ D1 changes are narrow extensions: the `backup` operation (read class, must be li
 
 | Item | Scope | Status |
 |---|---|---|
-| **R5-B** | Database-dependent reference integrity, assets and legacy Production | **IN PROGRESS** |
+| **R5-B** | Reference/asset evidence foundations | **CLOSED**; evidence-dependent cleanup DEFERRED |
 | R5-B2 | Offline reference-integrity reporting over an explicitly supplied snapshot | **COMPLETE / COMMITTED / PUSHED** |
 | Real snapshot capture | Reading any real database | NOT IMPLEMENTED; needs separate authorisation |
 | R5-B3 | Offline asset reconciliation study and evidence foundation | **COMPLETE / COMMITTED** |
-| R5-B4 | Legacy Production retirement | **BLOCKED / NOT STARTED** |
-| Asset deletion | Storage objects | **BLOCKED** |
+| R5-B4 | Legacy Production retirement | **DEFERRED** — insufficient retirement evidence |
+| Asset deletion | Repository/storage assets | **DEFERRED** — no deletion authorization |
 
 Code in `portal-api/src/scripts/lifecycle/` (`references.js` catalog and engine, `refcheck.js` CLI), runbook [`portal-api/docs/reference-integrity.md`](../../portal-api/docs/reference-integrity.md), tests in `portal-api/test/lifecycle/references.test.js`. It reuses the R5-D1 helpers and exit codes and sits under the D1 static safety tests; no D1 file changed. No package script, no new dependency, no route, permission, model, schema, index or client change.
 
@@ -125,15 +126,15 @@ Code in `portal-api/src/scripts/lifecycle/` (`references.js` catalog and engine,
 
 Offline implementation: [`generate-asset-evidence.cjs`](generate-asset-evidence.cjs), reviewed [`asset-evidence-policy.json`](asset-evidence-policy.json), generated [`asset-evidence.json`](asset-evidence.json), complete model/field [`asset-reference-plan.json`](asset-reference-plan.json), [reconciliation report](ASSET-RECONCILIATION-B3.md) and [future evidence procedure](ASSET-EVIDENCE-PLAN.md). The historical 325 media/font / 180 textual matches / 145 non-matches is reproduced under its coarse basename method; four W4 homepage images remain protected. The B3 report distinguishes stricter resolved runtime evidence, other provenance, the font-license companion, dynamic/persisted gaps, duplicates and path integrity.
 
-**No deletion authorization.** No asset/database/storage/runtime change or real-data capture. Every record remains incomplete for persisted/storage/external use; generic dynamic surfaces indicate possibilities, not observed bindings. Production links require B4/real-data evidence; Production retirement, asset deletion, endpoint retirement and persisted cleanup remain **BLOCKED**. B3 is complete / committed and not pushed; persisted/CMS/storage/external evidence remains NOT_COLLECTED; B2 and C1 conclusions and D1-D3 behavior are unchanged. R5-B and R5-D remain **IN PROGRESS**; C2 and D4/D5 are not started; blueprint is **not complete**.
+**No deletion authorization.** No asset/database/storage/runtime change or real-data capture. Every record remains incomplete for persisted/storage/external use; generic dynamic surfaces indicate possibilities, not observed bindings. Production links require B4/real-data evidence; Production retirement, asset deletion, endpoint retirement and persisted cleanup are **DEFERRED**, with no such operation authorized. B3 is complete / committed / pushed; persisted/CMS/storage/external evidence remains NOT_COLLECTED; B2 and C1 conclusions and D1-D3 behavior are unchanged. Blueprint code foundations are **CLOSED**; C2/retirement, D4/D5 and evidence-dependent cleanup are **DEFERRED**. [Final closure](BLUEPRINT-CLOSURE.md) separates code completion from **BLOCKED-EXTERNAL** deployment acceptance.
 
 ### R5-C1 — offline endpoint / caller evidence register (complete / committed / pushed)
 
 | Phase | Scope | Status |
 |---|---|---|
-| **R5-C** | Endpoint, access-log and environment evidence | **IN PROGRESS** |
+| **R5-C** | Delivered C1 endpoint evidence foundation | **CLOSED**; usage-dependent retirement DEFERRED |
 | R5-C1 | Offline endpoint/caller evidence register from repository source | **COMPLETE / COMMITTED / PUSHED** |
-| R5-C2 onwards | Access-log evidence readiness and collection; environment evidence | NOT STARTED |
+| R5-C2 onwards | Access-log evidence and evidence-dependent retirement | **DEFERRED** post-Blueprint |
 
 Generator [`generate-endpoint-evidence.cjs`](generate-endpoint-evidence.cjs) writes [`endpoint-evidence.json`](endpoint-evidence.json); reviewed operator/security annotations live in [`endpoint-evidence-annotations.json`](endpoint-evidence-annotations.json); tests in `portal-api/test/endpoint-evidence.test.js`. Routes come from the existing source inventory (283 registrations), so there is no competing endpoint list. The validator fails if the register is stale. Deterministic: no timestamps; provenance is content digests; records sorted by path, then method. No new dependency; no route, permission, model, controller or client change.
 
@@ -166,12 +167,12 @@ Production retirement remains R5-B/C dependent; the legacy Production module, `p
 
 | Phase | Scope | Status |
 |---|---|---|
-| **R5-D** | Backup / restore / reset / seed lifecycle (P2-7 pipeline) | **IN PROGRESS** |
+| **R5-D** | Delivered D1–D3 recovery foundations | **CLOSED**; D4/D5 DEFERRED |
 | R5-D1 | Target identity, versioned manifests, read-only inventory, catalog/protection metadata, append-only evidence format, offline manifest check | **COMPLETE / COMMITTED / PUSHED** |
 | R5-D2 | Verified backup creation (disposable/local targets; no restore) | **COMPLETE / COMMITTED / PUSHED** |
 | R5-D3 | Restore verification into a new, empty disposable database | **COMPLETE / COMMITTED / PUSHED** |
-| R5-D4 | Seed separation | NOT STARTED |
-| R5-D5 | Bounded nonproduction reset | NOT STARTED |
+| R5-D4 | Seed separation | **DEFERRED** post-Blueprint |
+| R5-D5 | Bounded nonproduction reset | **DEFERRED** post-Blueprint |
 
 Code in `portal-api/src/scripts/lifecycle/` (`common`, `target`, `manifest`, `catalog`, `inventory`, `evidence`, `cli`), runbook [`portal-api/docs/lifecycle.md`](../../portal-api/docs/lifecycle.md), tests in `portal-api/test/lifecycle/`. Package scripts `db:inventory` and `db:manifest-check` only; no new dependency.
 
@@ -247,9 +248,11 @@ Kept as intentional: the HR `super_admin` self-approval exception (mirrors the A
 
 **Tests.** `client/src/portal/app/piClosureCms.test.jsx`, `piClosureIam.test.jsx`, `piClosureDelivery.test.jsx`, `piClosureTickets.test.jsx` (read-only, write and delete users; Generate jobs, social metrics and media upload; a custom internal role with the permission works and a built-in role without it does not; custom external roles in Messages and Brand Kit; ticket rules) and `piClosureSource.test.js` (no `isAdminRole`, `readCurrentUser` or internal role-name lists; aligned pages use `useAccess` with the API's keys). Client suite 34 suites / 351 tests, API suite 363 tests (357 pass, 6 replica-set tests skipped without `MONGO_TEST_URI`; all 6 pass against a disposable local replica set), lint, build, validator and `git diff --check` pass.
 
-### R4 consistency refactors (in progress; R4-A, R4-B and R4-C committed)
+<a id="r4-consistency-refactors-in-progress-r4-a-r4-b-and-r4-c-committed"></a>
 
-The original R4 is P2-2, P2-6, P3-5, P3-6, P3-7 and P3-8 (section 10). None is deferred; it is delivered in four controlled passes. **All four passes are complete and committed; R4 is not closed until its final gates are run.**
+### R4 consistency refactors (CLOSED)
+
+The original R4 is P2-2, P2-6, P3-5, P3-6, P3-7 and P3-8 (section 10). None is deferred; it is delivered in four controlled passes. **All four passes are CLOSED for code delivery. Environment acceptance gates are BLOCKED-EXTERNAL under [final closure](BLUEPRINT-CLOSURE.md), not outstanding R4 implementation.**
 
 | Pass | Items | Status |
 |---|---|---|
@@ -311,13 +314,13 @@ Found, not changed in R4-A: the legacy staff ticket page's `isAdminRole` list of
 | Job stages | **Board owner kept; drift-checked** | `jobs/pipeline.js` owns the Jobs board columns. The old `DashboardPage` `STAGES` copy is gone (PUI-2). The staff dashboard summary (`staffData.js`) is intentionally a different 5-bucket view. The API `JOB_STATUSES` is authoritative; the separately deployed client keeps its own copies, compared by `validate.cjs` (no runtime import of API code) | `validate.cjs` §11: every API status has a board column (exactly one) and a client label, no client status the API lacks, move statuses stay in their column, no dashboard `STAGES`; `jobs/pipeline.test.js` for columns, neighbour moves, next/previous |
 | Public data caches | **Intentional separation, no code change** | Site settings (storage-backed, 30 s, cross-tab), navigation (session memory, failures shown as an empty menu) and portfolio (memory, failures reported to the page) cache different resources with deliberately different lifetimes and error handling; pages keep their own load and error states (W4). No shared data layer | — |
 
-**Handed off.** (1) **Productions stage drift → Jobs/Productions migration:** the Productions board (`ProductionsPage.jsx` `PROD_STAGES`) has six columns; `on_hold` and `archived` match none and appear under Brief (the Jobs board puts them in Done), and `published`/`delivered` share "Live"; the detail tracker (`ProductionDetailsPage.jsx`) has no step for `content_ready`, `pre_production`, `shooting`, `delivered`, `on_hold` or `archived`. Not changed. (2) **Deprecated bucket aliases → removal after the compatibility period.**
+**Historical handoff (status drift resolved in final closure; action-control presentation remains deferred).** (1) **Productions stage drift → Jobs/Productions migration:** the Productions board (`ProductionsPage.jsx` `PROD_STAGES`) has six columns; `on_hold` and `archived` match none and appear under Brief (the Jobs board puts them in Done), and `published`/`delivered` share "Live"; the detail tracker (`ProductionDetailsPage.jsx`) has no step for `content_ready`, `pre_production`, `shooting`, `delivered`, `on_hold` or `archived`. Not changed. (2) **Deprecated bucket aliases → removal after the compatibility period.**
 
 **Found, not changed (outside P3-7):** the client-role list copy in `user.controller.js` (user list filter); client `JOB_TYPES` vs API `JOB_TYPES` (the client has `event`, the API has `reel` and `video`).
 
 **Deployment gate (new, read-only):** confirm which public bucket variable **name** staging and production set (names only, never values); a host using an alias logs the deprecation warning and should move to `AWS_S3_BUCKET`.
 
-**R4 gates still open:** staging and production MongoDB transaction support, the CRM conversion integrity audit, the role-editor real-session round trip, and the bucket variable-name check.
+**R4 environment acceptance — BLOCKED-EXTERNAL:** staging and production MongoDB transaction support, the CRM conversion integrity audit, the role-editor real-session round trip, and the bucket variable-name check.
 
 ### R1/R3 closure (committed in `23425ab8`; not deployed)
 

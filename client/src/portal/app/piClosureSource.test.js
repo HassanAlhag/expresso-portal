@@ -60,6 +60,8 @@ it("aligned pages read effective permissions through useAccess", () => {
     "website/pages/TechSolutionsPage.jsx": ["website.write"],
     "portfolio/pages/PortfolioPage.jsx": ["portfolio.write", "portfolio.delete"],
     "portfolio/pages/PortfolioDetailsPage.jsx": ["portfolio.write", "portfolio.delete"],
+    "portfolio/pages/WorkItemsPage.jsx": ["work.write", "work.delete"],
+    "portfolio/pages/WorkItemDetailsPage.jsx": ["work.write", "work.delete"],
     "tickets/pages/TicketDetailsPage.jsx": ["tickets.write", "tickets.delete"],
   };
   for (const [rel, perms] of Object.entries(expected)) {

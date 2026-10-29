@@ -2,13 +2,15 @@
 // messages, brand kit) follow the API's permissions, and Messages / Brand Kit
 // use the internal/external classification instead of a role-name list.
 import React from "react";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { signIn, renderPage, fillApi, setupDom, CUSTOM_INTERNAL, CUSTOM_EXTERNAL } from "./piClosure.test.helpers";
 import ServicesPage from "../features/services/pages/ServicesPage";
 import EnrollmentDetailsPage from "../features/enrollments/pages/EnrollmentDetailsPage";
 import ContentCalendarPage from "../features/social/pages/ContentCalendarPage";
 import MessagesPage from "../features/messaging/pages/MessagesPage";
 import BrandKitPage from "../features/brand-kit/pages/BrandKitPage";
+import ProductionsPage from "../features/productions/pages/ProductionsPage";
+import ProductionDetailsPage from "../features/productions/pages/ProductionDetailsPage";
 
 jest.mock(
   "react-router-dom",
@@ -25,6 +27,7 @@ jest.mock(
   { virtual: true }
 );
 jest.mock("../features/services/api");
+jest.mock("../features/productions/jobs.api");
 jest.mock("../features/enrollments/api");
 jest.mock("../features/jobs/api");
 jest.mock("../features/customers/api");
@@ -32,6 +35,7 @@ jest.mock("../features/social/api");
 jest.mock("../features/messaging/api");
 jest.mock("../features/brand-kit/api");
 
+const productionsApi = require("../features/productions/jobs.api");
 const servicesApi = require("../features/services/api");
 const enrollmentsApi = require("../features/enrollments/api");
 const jobsApi = require("../features/jobs/api");
@@ -159,5 +163,31 @@ describe("Brand kit", () => {
     renderPage(<BrandKitPage />);
     await waitFor(() => expect(customersApi.listCustomers).toHaveBeenCalled());
     expect(screen.queryByRole("button", { name: /add asset/i })).toBeNull();
+  });
+});
+
+
+describe("Productions workspace backed by Jobs", () => {
+  it("on-hold and archived video jobs stay in Done instead of appearing as new briefs", async () => {
+    signIn({ role: "staff", permissions: ["jobs.read"], isInternal: true });
+    productionsApi.listProductionJobs.mockResolvedValue({ items: [
+      { _id: "p1", title: "Held video", type: "video", status: "on_hold" },
+      { _id: "p2", title: "Archived video", type: "video", status: "archived" },
+    ] });
+    renderPage(<ProductionsPage />);
+    expect(await screen.findByText("Held video")).toBeTruthy();
+    const done = within(screen.getByRole("region", { name: "Done jobs" }));
+    expect(done.getByText("Held video")).toBeTruthy();
+    expect(done.getByText("Archived video")).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Brief jobs" })).queryByText("Held video")).toBeNull();
+    expect(productionsApi.listProductionJobs).toHaveBeenCalledWith(expect.objectContaining({ workflowType: "video" }));
+  });
+
+  it("the detail tracker recognizes a current shooting job", async () => {
+    signIn({ role: "staff", permissions: ["jobs.read"], isInternal: true });
+    productionsApi.getProductionJob.mockResolvedValue({ item: { _id: "e1", title: "Video shoot", type: "video", status: "shooting" } });
+    renderPage(<ProductionDetailsPage />);
+    expect(await screen.findByText("Video shoot")).toBeTruthy();
+    expect(screen.getByTitle("Shooting").getAttribute("aria-current")).toBe("step");
   });
 });

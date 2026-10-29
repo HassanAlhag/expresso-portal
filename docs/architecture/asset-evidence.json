@@ -36,29 +36,29 @@
       "bytes": 140883047
     },
     "staticRuntime": {
-      "assets": 178,
-      "bytes": 94327004
+      "assets": 184,
+      "bytes": 99384801
     },
     "staticCodeIncludingUnreachableAndOperator": {
-      "assets": 178,
-      "bytes": 94327004
+      "assets": 184,
+      "bytes": 99384801
     },
     "protected": {
       "assets": 11,
       "bytes": 939362
     },
     "withoutRuntimeReference": {
-      "assets": 148,
-      "bytes": 46560421
+      "assets": 142,
+      "bytes": 41502624
     },
     "candidatePendingEvidence": {
-      "assets": 143,
-      "bytes": 45765971
+      "assets": 137,
+      "bytes": 40708174
     },
     "byClassification": {
       "STATICALLY_REFERENCED": {
-        "assets": 178,
-        "bytes": 94327004
+        "assets": 184,
+        "bytes": 99384801
       },
       "PROTECTED": {
         "assets": 11,
@@ -85,8 +85,8 @@
         "bytes": 140887425
       },
       "UNRESOLVED": {
-        "assets": 143,
-        "bytes": 45765971
+        "assets": 137,
+        "bytes": 40708174
       }
     },
     "candidateBytesByClassification": {
@@ -99,28 +99,28 @@
         "bytes": 0
       },
       "DYNAMIC_REFERENCE_POSSIBLE": {
-        "assets": 143,
-        "bytes": 45765971
+        "assets": 137,
+        "bytes": 40708174
       },
       "DATABASE_EVIDENCE_REQUIRED": {
-        "assets": 143,
-        "bytes": 45765971
+        "assets": 137,
+        "bytes": 40708174
       },
       "CMS_EVIDENCE_REQUIRED": {
-        "assets": 130,
-        "bytes": 44423995
+        "assets": 124,
+        "bytes": 39366198
       },
       "STORAGE_EVIDENCE_REQUIRED": {
-        "assets": 143,
-        "bytes": 45765971
+        "assets": 137,
+        "bytes": 40708174
       },
       "EXTERNAL_CONSUMER_POSSIBLE": {
-        "assets": 143,
-        "bytes": 45765971
+        "assets": 137,
+        "bytes": 40708174
       },
       "UNRESOLVED": {
-        "assets": 143,
-        "bytes": 45765971
+        "assets": 137,
+        "bytes": 40708174
       }
     },
     "byPrimaryClassification": {
@@ -129,24 +129,24 @@
         "bytes": 939362
       },
       "STATICALLY_REFERENCED": {
-        "assets": 172,
-        "bytes": 94182092
+        "assets": 178,
+        "bytes": 99239889
       },
       "UNRESOLVED": {
-        "assets": 143,
-        "bytes": 45765971
+        "assets": 137,
+        "bytes": 40708174
       }
     },
     "duplicateContentGroups": 12,
     "duplicateContentBytes": 1375870,
     "sameBasenameGroups": 0,
     "possibleLegacyVariantGroups": 92,
-    "referenceSurfaces": 258,
-    "modelsInventoried": 45,
-    "fieldsInventoried": 965,
-    "integrityFindings": 34,
+    "referenceSurfaces": 267,
+    "modelsInventoried": 46,
+    "fieldsInventoried": 994,
+    "integrityFindings": 54,
     "runtimeIntegritySites": 6,
-    "nonRuntimeIntegritySites": 26,
+    "nonRuntimeIntegritySites": 46,
     "unresolvedSourceParses": 0,
     "deletionAuthorized": 0
   },
@@ -714,10 +714,90 @@
     {
       "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
       "form": "jsx-dynamic",
+      "context": "href",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "b63b7b062ba78a16e00c9380c9c38d32b8031e43d6f9c472b96a512ce8695397"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+      "form": "jsx-dynamic",
       "context": "src",
       "provenance": "RUNTIME_SOURCE",
       "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
-      "expressionDigest": "2e71931503d3ee104aa85a9eed0a4fb40902f742d98cfef709e9ec0fb9f18149"
+      "expressionDigest": "f951b14edfbdde5176dc6523c8e2a4732931f3d97cce60feffff89c285b650c7"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+      "form": "jsx-dynamic",
+      "context": "href",
+      "provenance": "TEST",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "ddd13efa505e9c9764d62c365155d7c99405bb98a96d571b4ec2f049e5be6fb0"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "href",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "2c8daaa9ea833d65031578fa5a231ca5c3970b65c76d8455dea7a703363ae769"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "href",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "b63b7b062ba78a16e00c9380c9c38d32b8031e43d6f9c472b96a512ce8695397"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "poster",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "b19b43d0679285f5355da7e74b8765139c656310da3bb3d8c6fe363fe1212c1b"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "poster",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "d631522eb08253b7a7aa5e7385375a1066a8a803753752c02a4cf60f858932a0"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "0f475789ba4a404ee8ecb1d5c2c398e3618a8df07c824cde2c0b33aa4ff221b7"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "2c8daaa9ea833d65031578fa5a231ca5c3970b65c76d8455dea7a703363ae769"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "b19b43d0679285f5355da7e74b8765139c656310da3bb3d8c6fe363fe1212c1b"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "2c8daaa9ea833d65031578fa5a231ca5c3970b65c76d8455dea7a703363ae769"
     },
     {
       "source": "client/src/pages/Products/BusinessSuitePage.jsx",
@@ -793,6 +873,62 @@
       "expressionDigest": "ddd13efa505e9c9764d62c365155d7c99405bb98a96d571b4ec2f049e5be6fb0"
     },
     {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "form": "jsx-dynamic",
+      "context": "href",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "08daf0b37bafde1a24ab6cb3b11f2cf124648bb4be6bab7e6fcee1539d829880"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "2027031c11eb721ab0a338fb76cebe53c21d71421e776c29c46e6e63973186a1"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "272c73399cd2dff022e930ea540fda939033bd3f16aeaa199ca90cc2b61d5620"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "2c8daaa9ea833d65031578fa5a231ca5c3970b65c76d8455dea7a703363ae769"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "b3c91e940eb123611712e06b5f1b14887cd0b832c19b14ba34f5e754527f143a"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "e471915c9d6f7386e899af6bd360baf7d593495a34ccdfd9027399a884f6756f"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "e9b514d02406248a051293f396660b2c3410bb41e324c7dfd3252d727907d56c"
+    },
+    {
       "source": "client/src/pages/Services/ServiceDetailPage.jsx",
       "form": "jsx-dynamic",
       "context": "href",
@@ -815,6 +951,14 @@
       "provenance": "RUNTIME_SOURCE",
       "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
       "expressionDigest": "272c73399cd2dff022e930ea540fda939033bd3f16aeaa199ca90cc2b61d5620"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "jsx-dynamic",
+      "context": "href",
+      "provenance": "TEST",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "ddd13efa505e9c9764d62c365155d7c99405bb98a96d571b4ec2f049e5be6fb0"
     },
     {
       "source": "client/src/pages/SingleViewPortfolio/singleViewPortfolio.jsx",
@@ -1183,6 +1327,62 @@
       "provenance": "RUNTIME_SOURCE",
       "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
       "expressionDigest": "d5a007f09f04d3c83f6d66faf61ba146add2ea02e67de9f34a72d33b9c362705"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "href",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "b4ec4c5b43252a1d20fc11c3c94c1852227165b325ae9265f0d18ba644ba24fd"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "06563ae14a2ae8602b018eadc063b0834759a4757e31a09dba5fc8fe5409b238"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "3499c43d912d191f4feca91ffeed7c77ef423c210a54484b417a87b4541d3159"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "3b6e4e9641455230bde0d6fb6152bd4f01fac4c84097bf0ad69464b33b123622"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "ce4228a39ca189efc091c54b06b601b94d0aba2c0399e6fb506d46e458cdf7d3"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "1ea4b7db59e6fb65a0eb43ef4e6aa4b04f7e825040b1cb245bb502f4042ad851"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+      "form": "jsx-dynamic",
+      "context": "src",
+      "provenance": "RUNTIME_SOURCE",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "expressionDigest": "2ed58d64325e9cbe1f2f4bafea4b5caa400f7210733a8de3b12674d23b4b2c10"
     },
     {
       "source": "client/src/portal/features/procurement/components/CategoryFormDialog.jsx",
@@ -2544,6 +2744,12 @@
     {
       "source": "client/src/components/ReelsShowcase/ReelsShowcase.jsx",
       "field": "poster",
+      "context": "ConditionalExpression",
+      "expressionDigest": "d9b4e0e003b1174f573088f2681f6d7b61d79596fb70311820d4af8868337ef8"
+    },
+    {
+      "source": "client/src/components/ReelsShowcase/ReelsShowcase.jsx",
+      "field": "poster",
       "context": "JSXExpressionContainer",
       "expressionDigest": "134a648ac6b94c490efdcca69cea4601fb61ce5fe65a0d335c201d472933872e"
     },
@@ -3208,6 +3414,24 @@
       "expressionDigest": "beb63879b8dbb3185b5aaec27c79295b1d455ba374421156ed67c32ff6919fee"
     },
     {
+      "source": "client/src/data/workVideos.js",
+      "field": "src",
+      "context": "ArrowFunctionExpression",
+      "expressionDigest": "91e2a8f892a02b07ee6db16584a2a6fbb7cd8d01bc122539e81b72b64aeb576b"
+    },
+    {
+      "source": "client/src/data/workVideos.js",
+      "field": "src",
+      "context": "BinaryExpression",
+      "expressionDigest": "2ca30296906fa44a7e6604c8c1d1441727382c48f56900506b97fb9250eb51d3"
+    },
+    {
+      "source": "client/src/data/workVideos.js",
+      "field": "src",
+      "context": "ConditionalExpression",
+      "expressionDigest": "8b1ddd02926d123e111fc1fafc59b98492788ffbd42dae0a59d1df5973c089f0"
+    },
+    {
       "source": "client/src/features/productions/api.js",
       "field": "baseURL",
       "context": "ObjectExpression",
@@ -3365,6 +3589,12 @@
     },
     {
       "source": "client/src/hooks/usePortfolioItems.js",
+      "field": "REACT_APP_API_URL",
+      "context": "LogicalExpression",
+      "expressionDigest": "d8ba6b40fd17ce17d71b9ecbfac105bd66330a9514d82c1916b483fd1c95fff5"
+    },
+    {
+      "source": "client/src/hooks/useWorkItems.js",
       "field": "REACT_APP_API_URL",
       "context": "LogicalExpression",
       "expressionDigest": "d8ba6b40fd17ce17d71b9ecbfac105bd66330a9514d82c1916b483fd1c95fff5"
@@ -3881,15 +4111,231 @@
     },
     {
       "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
-      "field": "heroImageUrl",
-      "context": "CallExpression",
-      "expressionDigest": "c6964cac5f2d26a41b6d4476ef6c788caa6fa607fccc3c48345557eb6b12f066"
+      "field": "gallery",
+      "context": "OptionalMemberExpression",
+      "expressionDigest": "3eac1848be2573444d2e05bc53bace2589c281de7f3850885ccc1eb2b7100161"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+      "field": "href",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "09e8272d28ea10f27b4eb04944a627d8ea6881a41400e9d19a3e6c17aa318204"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+      "field": "href",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "b837579ac877258d07fc78f281570928cc2c87589ff374804ad46d77d1a277de"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+      "field": "src",
+      "context": "JSXExpressionContainer",
+      "expressionDigest": "539b246d0a3023aea2b16ad9923abd8807f46f0ed3216304fc0c2276ef881e29"
     },
     {
       "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
       "field": "src",
       "context": "JSXOpeningElement",
-      "expressionDigest": "8e5c6e843007f28acba6c10f7ec295dee2a6a1e9661354903a08bf7b9f0914a6"
+      "expressionDigest": "f060dcc3b5fa1955fc48382da90966c508ee18f8b33660c7f11a43372e8bdcc9"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "01d3d0dc56c0b6365fa33017640388e978324fa69ef165b50467e49a9718d64b"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "76f530ac17f9f66778f046f2c628ef4cc7020030a93fe02b22ca80979cb6a66e"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "fallbackPoster",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "b1415540c306a0ad35d75f426fdb31085b1e866fa22454d48fca4a4aab56613e"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "fallbackPoster",
+      "context": "ObjectPattern",
+      "expressionDigest": "dafd7cc9298406813942b044529e4b0fb09bd18f4dfaa72218726ee59c6b602b"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "gallery",
+      "context": "LogicalExpression",
+      "expressionDigest": "7eaab3f280fbb5841a0fe840a8899462b9bac04294604f842071c09a22887e5f"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "href",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "a42ca8776e1547a509c5feb2daf40adcebdb660eeefd9f49f276a12c46372af0"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "href",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "b837579ac877258d07fc78f281570928cc2c87589ff374804ad46d77d1a277de"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "media",
+      "context": "LogicalExpression",
+      "expressionDigest": "32ca202637588d5a9715ce68b4ddbc9b5f9a68419b608da888cc1930ef4dafb1"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "poster",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "24608c5557f2e711e449b9b501aadba2802ed3a83c2ecfa7f0737fb479ed5289"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "poster",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "e60e617f4e109522d75c15ccbed4e834c64f61d7b22131a394720aff917e8f1f"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "poster",
+      "context": "LogicalExpression",
+      "expressionDigest": "aac3eb8b961aad4e5c436ff85b9c3d53e831395a694ed30606516ce15d0531a4"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "poster",
+      "context": "ObjectPattern",
+      "expressionDigest": "2a538489cf26f17acba2acf1e04dc29d8b5a06f9d443ff3547bb88da6c9f6d12"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "ArrowFunctionExpression",
+      "expressionDigest": "6ce117817decae21fdfb8e8645cbd5b5d80ec49956653f6e04f7935bfb164d2e"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "CallExpression",
+      "expressionDigest": "40faba2126bdc432d2f7c4d60e35ec49d20bea6f4c9fc9290c013919429d3581"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "CallExpression",
+      "expressionDigest": "7a346244d857477b8e5bfcaca07e94bd0e59a166f805d6681564377a5ee33b5b"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "08186d257554ea9c12c91db7a783c529c6c371f09f607de2cb0e0f6d9422659f"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "7188df2f576fc7a6b244b7a4d6e8346e3d82fdb1b51fc4be08604fd8b2be424f"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "74ffe3a4e748cbc4cb4562f756f10aab08f83a329f4f48f33bb523da9ca16891"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "9ecae959f516c3d3bc2e1201af2dedbe0192ae4bf6000192c5f245ac5f8d2a7a"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "ObjectPattern",
+      "expressionDigest": "b34a6693fc4c9fdb7adc6065962b8ccbe911728529adf75877e55cabdcdea041"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "TemplateLiteral",
+      "expressionDigest": "c8dcc7043c073197861a637df47820320c3d59e460ce457f337049409eff5a55"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/PortfolioWorkPage.jsx",
+      "field": "src",
+      "context": "TemplateLiteral",
+      "expressionDigest": "ccfd42fd7608b71dd486e66d84cb54fb39631dcd3598e55396360821e4cd3395"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "gallery",
+      "context": "LogicalExpression",
+      "expressionDigest": "b7eaa5da10a4a846011eaf4394b0c0fc590d8c95b4f90526e8b33192e914b019"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "gallery",
+      "context": "OptionalMemberExpression",
+      "expressionDigest": "b7eaa5da10a4a846011eaf4394b0c0fc590d8c95b4f90526e8b33192e914b019"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "74ffe3a4e748cbc4cb4562f756f10aab08f83a329f4f48f33bb523da9ca16891"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "29637e0abfbd7972b09f756bddb460914b2d0a77cf76509445083d8874a77205"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "abf30262183cd4b4c79514795da3f5fad7ef12d3ad1f58b8a55aa1dc51e6da20"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "286cc346ffee06591b135704f9a057ac29e4cacd85d9552265f4a7801d60f509"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "2d1a31e49a824e9a5e833db1018bd1fdce473cbf892e6b17a580984e371bf9af"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "4e939c92bdde7aea3c58dfab7bc347979d74f946e16cfa169b897d07382b7872"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "646d0b6e04aed3540246806588c244aa16088e91b0a53bbb9367517b0c151667"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "79b29087d01d213b27d143c6d9523cbb44d2fc362889cf3f69d83050b4ede7b0"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "874b18af9eab68d9ad5db3429849117bec6e71e88a364fe081011622a75951ae"
     },
     {
       "source": "client/src/pages/Products/BusinessSuitePage.jsx",
@@ -4070,6 +4516,150 @@
       "field": "REACT_APP_API_URL",
       "context": "LogicalExpression",
       "expressionDigest": "d8ba6b40fd17ce17d71b9ecbfac105bd66330a9514d82c1916b483fd1c95fff5"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "blocks",
+      "context": "LogicalExpression",
+      "expressionDigest": "7c34fabea8af2a1ef59a875a1bac561e310b4c10952a48eb1e7fd80f15eb0205"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "heroImageUrl",
+      "context": "LogicalExpression",
+      "expressionDigest": "4b601f1b77eb25b7ad1146de08471dd8991c3b393c6e1fbbe977ffaddd21d15c"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "href",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "29eac8c7be4bac12cdc473b86157db6ddb5bb30d9d3497abd43b5a63f10a893c"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "image",
+      "context": "ConditionalExpression",
+      "expressionDigest": "8da090ec416154d2fc173ae1d4cd0ca69c6b104f759adc9acf95a90e4d39eec5"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "image",
+      "context": "ConditionalExpression",
+      "expressionDigest": "8e8e013e97c4a7ed88241be761d5b010afcb16ab170a0380cc832c868d972573"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "image",
+      "context": "JSXExpressionContainer",
+      "expressionDigest": "be824341eee67f285acce095cc06dc0451fbcfd7d34777457e0bac7be8d6e366"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "image",
+      "context": "ObjectExpression",
+      "expressionDigest": "67c8ff48fc48f12e6a7d027b1637fca5a10882bfea27e0fc0105545fadd93086"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "image",
+      "context": "ObjectProperty",
+      "expressionDigest": "67c8ff48fc48f12e6a7d027b1637fca5a10882bfea27e0fc0105545fadd93086"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "imageUrl",
+      "context": "ConditionalExpression",
+      "expressionDigest": "2cbd03402d03357f45048dc4ff97eb7e6359dac3369290c7adf019bbc1c1cbd4"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "imageUrl",
+      "context": "ConditionalExpression",
+      "expressionDigest": "aa8430ffdf424094aa5897a59b5a899fbc1e25e2f3c07e9c6f269add329f8977"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "imageUrl",
+      "context": "JSXExpressionContainer",
+      "expressionDigest": "10887ed183799fc1c017125cfa7802d4ab9aa683d36d7e986aab609b7c5e3cfa"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "imageUrl",
+      "context": "LogicalExpression",
+      "expressionDigest": "88547b3c5c2d12fe2f01cf3c9c3b6de6938eba5c0b9a4366f20aecf52d1d4ca1"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "imageUrl",
+      "context": "LogicalExpression",
+      "expressionDigest": "96d6748983d56385bbdcbf0252cab6c3b029d7cb1bf618291aed0f4065136e9e"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "imageUrl",
+      "context": "ObjectExpression",
+      "expressionDigest": "d186291fb08ed7f9a0d28f98d9ed6f27c0bc5dedfe7a655185c03b5405650a12"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "imageUrls",
+      "context": "OptionalMemberExpression",
+      "expressionDigest": "f8caf2b73af68c6846c07f28a3482e4ce70056b09a95bead350ac36a05d1df09"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "sectionBgUrl",
+      "context": "LogicalExpression",
+      "expressionDigest": "88547b3c5c2d12fe2f01cf3c9c3b6de6938eba5c0b9a4366f20aecf52d1d4ca1"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "034b586b2ab3a002891dea21865ea595879d20ef9e268553ad722d9826380faa"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "203cc2298fa68adc5a56a90f6f9935fb729ea983326b70e63f3a83085508f341"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "299e64755586f9c07be8570aaf3f9dcb67371d3c45e285ea6ea30f21fcf890a4"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "74ffe3a4e748cbc4cb4562f756f10aab08f83a329f4f48f33bb523da9ca16891"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "a8456d46cbaa061bcf94512179c7d42c1aa06c274fe74c975f3b97dc59499ee6"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "f27acc02a13c618a58f7aab04f196a6ea98da8dcb0cd5689175969499e9636ef"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "40e2dd28a967959706159722253c2a12ede626393d73d3dc0d7a90dd6ae7da42"
+    },
+    {
+      "source": "client/src/pages/Services/BrandedServiceDetail.jsx",
+      "field": "src",
+      "context": "ObjectPattern",
+      "expressionDigest": "b34a6693fc4c9fdb7adc6065962b8ccbe911728529adf75877e55cabdcdea041"
     },
     {
       "source": "client/src/pages/Services/ServiceDetailPage.jsx",
@@ -5642,6 +6232,408 @@
       "field": "url",
       "context": "LogicalExpression",
       "expressionDigest": "506358a9538893d441d026e725b01b56a4e563e58d08d9f54e65f1ca228f5e46"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "LogicalExpression",
+      "expressionDigest": "7eaab3f280fbb5841a0fe840a8899462b9bac04294604f842071c09a22887e5f"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "MemberExpression",
+      "expressionDigest": "3fe23cbb0ea406cd12892bf41157aef896de746e634915ab5e103d8cf312910c"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "MemberExpression",
+      "expressionDigest": "81ae1be192f90af9989e9c64e1fd12f3279d21fb6fb46528e6f06a0ca9b23bd7"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "MemberExpression",
+      "expressionDigest": "aaffffb413c7a607b1915455d490575576f5dbbf6103dc899a9c88d006c204d8"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "ObjectExpression",
+      "expressionDigest": "1060bdfc4aab1541fb16115e58c02657857e734f867bef0c87f4578378e386e5"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "ObjectExpression",
+      "expressionDigest": "838cb7a2afd5551a7b28d2f7386b92807003d73f42603e75713c2cad2785f429"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "ObjectExpression",
+      "expressionDigest": "99e903d7e54b95e0e5affa31f144cae12adba23e99de703aba6fa5e764e8dab2"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "ObjectExpression",
+      "expressionDigest": "cf9406d6c7d15986ab18de447a8b783bee5f6687809e64103faa831225253ce6"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "ObjectExpression",
+      "expressionDigest": "d69bb8614b7561a70f293b15497efcbc8aca545065e7b04b81777d89b0d22e35"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "ObjectProperty",
+      "expressionDigest": "838cb7a2afd5551a7b28d2f7386b92807003d73f42603e75713c2cad2785f429"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "gallery",
+      "context": "SpreadElement",
+      "expressionDigest": "a21e54ebdacda25c293bc5f861e7429114369f643ff66c1fb38d2648279a0275"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "href",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "d156675bd80bdef140c9d4d503cc6b50e52bd9520572165e1d7143e56da6dc18"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "media",
+      "context": "CallExpression",
+      "expressionDigest": "6d5ff56ed24153d732985698f81083e3288e3a852cf53651d36db059ad148f1d"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "media",
+      "context": "CallExpression",
+      "expressionDigest": "96d438a0a9d230f123e1c2e10840ff739b24ead3c730eaec6c6c791fd8f0f4b2"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "media",
+      "context": "CallExpression",
+      "expressionDigest": "a3988e59c01dc240556d2ff539ec50c3504f0c2efe0ee3bb419b0d198d847ae7"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "036d4d4c2077f8b5e631a2aada23302d07cc50727f822fe4fb05b3a58558e93c"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "9e49cc5d1a41a2c28254292874cbdc46d756a589e444401acdce91a6bf454b5b"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "a75cadd2275ce9e1a98f3929662e449e6b84c69b90042226b05a0262a5d90601"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "bedab25626d9abafe9b2b329ac89a3b2c488ad434e2fe4552e1f2419be93e4e8"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "cca3e6b09770952f0761238f0fa6d810a389d2deb89d653a3004c8520689f2a1"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "f45aae3541650f035734c3a691faf7a15a931d731d6d1bc3ce7a3f0c27da9625"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "poster",
+      "context": "ConditionalExpression",
+      "expressionDigest": "861821795dc26efe079c3afd7a483006a430d71c6909a177e9172ab3becef516"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "poster",
+      "context": "ConditionalExpression",
+      "expressionDigest": "a9ab0e94778738e8563815667260f2d97eea8a00f68ed03d298d799dcd29fc88"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "poster",
+      "context": "JSXExpressionContainer",
+      "expressionDigest": "97d0a9e0b75c068710725ef36a38ed5faded633c12d3c4af55f0d5496fed6877"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "poster",
+      "context": "LogicalExpression",
+      "expressionDigest": "61ae9bd4f9ccda1f75cd479d823f327f8c8efc392c8c23981a13fa04e63a3302"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "poster",
+      "context": "ObjectExpression",
+      "expressionDigest": "527f871e801af68614a713e8c8536a46807887e903b7219c09f591bee54d733e"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "poster",
+      "context": "ObjectExpression",
+      "expressionDigest": "87fe9c191f5c2de21108aee5d3aeba79cbc0fdbe02d7038b3d2dc452d3c487a4"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "poster",
+      "context": "ObjectExpression",
+      "expressionDigest": "c6966a41e2fef7ee88ab03381de4258cb9fbbeba65ffde1aaa36dd60b419ddd4"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ArrowFunctionExpression",
+      "expressionDigest": "543aa457b458f4b2eb62386b3c0e515a42cc033264613f4f861feaa2efa6cf2e"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ArrowFunctionExpression",
+      "expressionDigest": "97edcb38cb2f270824299895cbc565079b75c02dca469be53b7aa3818e01966c"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "CallExpression",
+      "expressionDigest": "10dd8a166276231ab281b9a84f42d1794ea82a5589eab18a5122a41abc6c9bbf"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "CallExpression",
+      "expressionDigest": "c02fe18e9f56569fd6cc9cd6de68a6b209caacbd4ecb09625db89a6a5d592023"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ConditionalExpression",
+      "expressionDigest": "3a058760ed817428001a7cc2c16de78cd155d69bbce4f729bd79fe022472e9a0"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ConditionalExpression",
+      "expressionDigest": "9fbceff3b68fa90b8a0fb06c1d33f1a9841c072cd5f5d775bca437d508db96e2"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "JSXExpressionContainer",
+      "expressionDigest": "411c3ca67c043b443d864476b80660832fc39a0d95d37732a302316684959001"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "JSXExpressionContainer",
+      "expressionDigest": "5de3eab8f7b36faf5fadda3814208b6e6f6e801c16e5b31310336b5602a9cb81"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "JSXExpressionContainer",
+      "expressionDigest": "80aeb55de7dabd334592a6465eb51a2760adc3824a5e0a1e2d2f062fa70b9a22"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "4648d4f47605ebdbd00d2a0f475f0d91f23c746f720db3cf2b12f7f4e7c08c90"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "5af17debfce9f165e35216cc3f6bfab0e0e4a15d3be269834e3b4ebdfa50e207"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "75069bed6e157cc2e39fedf41cab952d1815d4bfd5e3c43d4c6cd25c7219352d"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "be848e2c109fc763be0715fbb26bd1bdc149318e0c28b8cd7b42bc638eb92fe3"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "88b7125c2de1c43c103cd016cde683d25f47c43fcfc2f58c6e1bfd005e102b22"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "8b67ec4b077615e87d8bea4d4a39b93a2d7d42f851b9e2e17149b482e3021df4"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "MemberExpression",
+      "expressionDigest": "ca3e42903ba3c15887716e48a8af68ee923cb4899b7679ca36c546025f5c34ea"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "04afbd6a06da2507a90ecebbd186ff74ad5d9bedb9334cb1cd64213111e278d7"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "2a88db9eba156ad918f2946258ec678f11b5670120c54e87fcacec8a5424417a"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "5b086ad4ee57454d5eeeb320fe5ed5f6032a232cc81e91f1d10cefd630054f9d"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "8d383224c885bfb8effc7db481ebc1a41ba1395b3763e3e1abae2dc7301c1119"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "d8d295f2993d35d4afff6a659e1e02eb9bde42e433956bd16246904249de7940"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "d9c881f68cf26344410cc40bb0a4f059488ce73fdf937d37749be285c42a7b51"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "f33cf9bac6cca9c20775a876a11eed3a98eb769ba506db7509830e6df3b2c256"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "f8af397e2e3258b1a9ec96d3df8884c756d531ec5ba64720487b6d9efbe7a8df"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectPattern",
+      "expressionDigest": "b34a6693fc4c9fdb7adc6065962b8ccbe911728529adf75877e55cabdcdea041"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "ObjectProperty",
+      "expressionDigest": "2a88db9eba156ad918f2946258ec678f11b5670120c54e87fcacec8a5424417a"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "src",
+      "context": "TemplateLiteral",
+      "expressionDigest": "ccfd42fd7608b71dd486e66d84cb54fb39631dcd3598e55396360821e4cd3395"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "url",
+      "context": "ArrowFunctionExpression",
+      "expressionDigest": "b236c67cf672813186635ad92413943b40ec4ecc2e0f6ba292f550d4ace504f8"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "url",
+      "context": "ObjectProperty",
+      "expressionDigest": "527f871e801af68614a713e8c8536a46807887e903b7219c09f591bee54d733e"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "url",
+      "context": "ObjectProperty",
+      "expressionDigest": "5b086ad4ee57454d5eeeb320fe5ed5f6032a232cc81e91f1d10cefd630054f9d"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemDetailsPage.jsx",
+      "field": "url",
+      "context": "ObjectProperty",
+      "expressionDigest": "f33cf9bac6cca9c20775a876a11eed3a98eb769ba506db7509830e6df3b2c256"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+      "field": "coverMedia",
+      "context": "OptionalMemberExpression",
+      "expressionDigest": "55fefe3cfa126c7511ccee824080ebbb158146878b87e5264be5682a65177250"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "9fdda8e7b85d4a42247a9cb9e773ee3712fb1cbfacbd66469773a35aaeac9910"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+      "field": "src",
+      "context": "JSXOpeningElement",
+      "expressionDigest": "a418bdff461e03371a28a32de2ffd221b8853a755b391a0807ca7fe571934716"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/pages/WorkItemsPage.jsx",
+      "field": "url",
+      "context": "LogicalExpression",
+      "expressionDigest": "55fefe3cfa126c7511ccee824080ebbb158146878b87e5264be5682a65177250"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/workAdminShared.jsx",
+      "field": "gallery",
+      "context": "OptionalMemberExpression",
+      "expressionDigest": "b7eaa5da10a4a846011eaf4394b0c0fc590d8c95b4f90526e8b33192e914b019"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/workAdminShared.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "29637e0abfbd7972b09f756bddb460914b2d0a77cf76509445083d8874a77205"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/workAdminShared.jsx",
+      "field": "src",
+      "context": "LogicalExpression",
+      "expressionDigest": "abf30262183cd4b4c79514795da3f5fad7ef12d3ad1f58b8a55aa1dc51e6da20"
+    },
+    {
+      "source": "client/src/portal/features/portfolio/workAdminShared.jsx",
+      "field": "src",
+      "context": "UnaryExpression",
+      "expressionDigest": "8b67ec4b077615e87d8bea4d4a39b93a2d7d42f851b9e2e17149b482e3021df4"
     },
     {
       "source": "client/src/portal/features/procurement/components/CategoryFormDialog.jsx",
@@ -7879,7 +8871,7 @@
       "source": "client/src/utils/mapWebsiteReels.js",
       "field": "poster",
       "context": "ObjectExpression",
-      "expressionDigest": "f841a52a57000d06e00986e2f6dec0ba31f79a7b6534d0ec0797be7b01ed9be7"
+      "expressionDigest": "bef4d60cb796cb53c0dc5963873de64b833f54b023c2b189e4316d105829102b"
     },
     {
       "source": "client/src/utils/mapWebsiteReels.js",
@@ -10084,6 +11076,240 @@
       "expressionDigest": "4cb8b2f2c40060d24be635e45dcbea4df33d1aad6d9bff241032a10f6bbf103f"
     },
     {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "gallery",
+      "context": "AssignmentExpression",
+      "expressionDigest": "3f29a3583ae5db98643554dbf438fe5adb3a888de139d7f411e1c7b71960af97"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "gallery",
+      "context": "CallExpression",
+      "expressionDigest": "dd18794d5f89fb40f5b1c23a8dca8252f8dce275922bfd08d55a4bd4ca2f829e"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "media",
+      "context": "CallExpression",
+      "expressionDigest": "564f54c0933d2e6c84c100f4f1b94467b924cca69ba3a5ff6cab37e3abe0befc"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "a67cf0ccb62c3993b9d0f9d2af9ae5a2a0112d38d804494748c16de940890ea9"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "poster",
+      "context": "CallExpression",
+      "expressionDigest": "b0c816f48836adc95982fda28f05171f090553258e0f5fd5cb78245c2faae0ef"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "poster",
+      "context": "ObjectExpression",
+      "expressionDigest": "94dd2ae366c7af472596988bc5681daa4aff49e24b10e2a05de8faae3ec9d0ba"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "src",
+      "context": "ArrowFunctionExpression",
+      "expressionDigest": "488d3dbe8c13e67c4edddffcb50aa1eaebc0768d1c2bc0de6d69b4e539f01d47"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "src",
+      "context": "ArrowFunctionExpression",
+      "expressionDigest": "543aa457b458f4b2eb62386b3c0e515a42cc033264613f4f861feaa2efa6cf2e"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "src",
+      "context": "CallExpression",
+      "expressionDigest": "91e2a8f892a02b07ee6db16584a2a6fbb7cd8d01bc122539e81b72b64aeb576b"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.controller.js",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "b34a6693fc4c9fdb7adc6065962b8ccbe911728529adf75877e55cabdcdea041"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "coverMedia",
+      "context": "OptionalMemberExpression",
+      "expressionDigest": "55fefe3cfa126c7511ccee824080ebbb158146878b87e5264be5682a65177250"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "gallery",
+      "context": "ObjectExpression",
+      "expressionDigest": "c6213b0fda8b111b6f745f41e374086daacecaa649affe4cc6738a4ec6d5ad03"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "imageUrls",
+      "context": "CallExpression",
+      "expressionDigest": "aa9695e7a93b6f8509393104ad21c4f0234698c6c5c1020e924cc5cf532e683d"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "imageUrls",
+      "context": "ConditionalExpression",
+      "expressionDigest": "a7dab4d2ad5f1b760daddde7cc18f1d31d8169619fda92968ecdf897bbcad545"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "9e49cc5d1a41a2c28254292874cbdc46d756a589e444401acdce91a6bf454b5b"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "poster",
+      "context": "ObjectExpression",
+      "expressionDigest": "87fe9c191f5c2de21108aee5d3aeba79cbc0fdbe02d7038b3d2dc452d3c487a4"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "src",
+      "context": "ConditionalExpression",
+      "expressionDigest": "dd07ae12da9b80480461e3c20b1c6e357032db05e94377b7df481eca8cc57902"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "04afbd6a06da2507a90ecebbd186ff74ad5d9bedb9334cb1cd64213111e278d7"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "b34a6693fc4c9fdb7adc6065962b8ccbe911728529adf75877e55cabdcdea041"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "e756d6596d231435fb26f0c69494c15313998e3a8fb1907e994172ca70cc023e"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.fromCaseStudy.js",
+      "field": "url",
+      "context": "CallExpression",
+      "expressionDigest": "55fefe3cfa126c7511ccee824080ebbb158146878b87e5264be5682a65177250"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "field": "gallery",
+      "context": "ObjectExpression",
+      "expressionDigest": "bff3d6bdbde40120d5d7350db084c4e66c957b6a8b7174f1e3f48093b6f67a76"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "bf77a387e580db117e2e86669921463d8ca8a0f2feb86129bd94f895af02ee60"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "field": "poster",
+      "context": "ObjectExpression",
+      "expressionDigest": "8ef13fdbcf4146fadbc63cacf56167441bae1aa52e6e9e1c838b343292c40a25"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "cd64194f7eaf40ef20f178f59ca6ca08780df58cd8f24e23918f1b307be6567c"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "gallery",
+      "context": "ObjectExpression",
+      "expressionDigest": "3418cd359fb1863b902c2a35cf8501130d36479abd5d6c6b32b1734ba89de397"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "images",
+      "context": "ObjectExpression",
+      "expressionDigest": "089db328d99b047ff0e7b5df21376dcf365ccba6a96b1720c848445de703969f"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "images",
+      "context": "ObjectExpression",
+      "expressionDigest": "15d0cc207b6dd3230eaec048e9d3756353e2ff3d201b98292251ccc421c15fdb"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "images",
+      "context": "ObjectExpression",
+      "expressionDigest": "789f82a212b94fd170784a5434d872f65f0019ed031bc40b87b60e16036d0357"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "images",
+      "context": "ObjectExpression",
+      "expressionDigest": "d842c81481faba520527b1495a066accf065e6e141486640b6b5df8e0f1ca3d9"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "images",
+      "context": "ObjectExpression",
+      "expressionDigest": "ed5bcda3540f1bd1ad75bd2a788f8e0674f3fecd4cd374b9cfd491fef76942e7"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "images",
+      "context": "ObjectExpression",
+      "expressionDigest": "ef06024886e8447bdaac3f92096e7a4346be2e07793f462b4cf0e4b532065f51"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "images",
+      "context": "ObjectExpression",
+      "expressionDigest": "f21e3e77b327c87b54ea0d1c09860882e5374c5dc000c5f3df09c55699aebdfd"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "images",
+      "context": "VariableDeclarator",
+      "expressionDigest": "370e024cf4e89fb58dc144cf948d1b223d90a79ab0787a66aa2911301ba1a7fe"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "media",
+      "context": "ObjectExpression",
+      "expressionDigest": "9e49cc5d1a41a2c28254292874cbdc46d756a589e444401acdce91a6bf454b5b"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "poster",
+      "context": "ObjectExpression",
+      "expressionDigest": "87fe9c191f5c2de21108aee5d3aeba79cbc0fdbe02d7038b3d2dc452d3c487a4"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "04afbd6a06da2507a90ecebbd186ff74ad5d9bedb9334cb1cd64213111e278d7"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "990988cfc90c7ce5ea4017fb3f8da1146d692b5cb878669e203962ab90eeff4a"
+    },
+    {
+      "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+      "field": "src",
+      "context": "ObjectExpression",
+      "expressionDigest": "b34a6693fc4c9fdb7adc6065962b8ccbe911728529adf75877e55cabdcdea041"
+    },
+    {
       "source": "portal-api/src/modules/private-files/privateFiles.routes.js",
       "field": "filename",
       "context": "ObjectPattern",
@@ -11722,6 +12948,18 @@
       "expressionDigest": "1cbd7dad69bb80ec85b77a6e013ceaf8ac408bbc83a684a2bf927b1c400ed466"
     },
     {
+      "source": "portal-api/src/scripts/seedWorkItems.js",
+      "field": "href",
+      "context": "BinaryExpression",
+      "expressionDigest": "34420cd5f9e9f0c770eb7daad56a9b56ca922dd17e1900526c8b2d5b2ba4391c"
+    },
+    {
+      "source": "portal-api/src/scripts/seedWorkItems.js",
+      "field": "url",
+      "context": "BinaryExpression",
+      "expressionDigest": "34420cd5f9e9f0c770eb7daad56a9b56ca922dd17e1900526c8b2d5b2ba4391c"
+    },
+    {
       "source": "portal-api/src/server.js",
       "field": "url",
       "context": "CallExpression",
@@ -11824,6 +13062,96 @@
       "status": "EXTERNAL_URL_NOT_MAPPED",
       "origin": "https://demo.casethemes.net",
       "path": "/saira/wp-content/uploads/2023/09/u-bg6.jpg"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/cover.jpg"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/poster.jpg"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "CallExpression",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/clip.mp4"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "CallExpression",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/override.jpg"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "CallExpression",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/poster.jpg"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "CallExpression",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/team.jpg"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "property:url",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/clip.mp4"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "property:url",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/cover.jpg"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "property:url",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/override.jpg"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "property:url",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://example.test",
+      "path": "/poster.jpg"
     },
     {
       "source": "client/src/pages/ServiceMain/serviceMain.jsx",
@@ -11939,6 +13267,24 @@
       "evidenceRole": "RUNTIME_REFERENCE_REVIEW"
     },
     {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "CallExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/gal2.webp",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/hooks/portfolioPages.test.jsx",
+      "form": "string-literal",
+      "context": "property:key",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/gal2.webp",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
       "source": "client/src/pages/AboutUs/aboutUs.jsx",
       "form": "string-literal",
       "context": "CallExpression",
@@ -11966,12 +13312,174 @@
       "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
     },
     {
+      "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/legacy.mp4",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/reel-1.mp4",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+      "form": "string-literal",
+      "context": "property:src",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/legacy.mp4",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+      "form": "string-literal",
+      "context": "property:src",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/reel-1.mp4",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+      "form": "string-literal",
+      "context": "property:src",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/s.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
       "source": "client/src/pages/Products/BusinessSuitePage.test.jsx",
       "form": "string-literal",
       "context": "property:heroImageUrl",
       "provenance": "TEST",
       "code": "NOT_IN_TRACKED_ASSETS",
       "candidate": "client/public/approved-suite.webp",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/p1.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/p2.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/p5.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "CallExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/p.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "CallExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/s1.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "property:image",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/p1.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "property:image",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/p2.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "property:image",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/p5.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "property:image",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/s1.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "property:image",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/s5.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "property:solutionImage",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/b.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "property:solutionImage",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/p.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+      "form": "string-literal",
+      "context": "property:solutionImage",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/s.png",
       "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
     },
     {
@@ -12043,12 +13551,12 @@
       "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
     },
     {
-      "source": "client/src/utils/mapWebsiteReels.js",
+      "source": "client/src/utils/websiteImages.js",
       "form": "string-literal",
-      "context": "LogicalExpression",
+      "context": "property:/gal2.webp",
       "provenance": "RUNTIME_SOURCE",
       "code": "NOT_IN_TRACKED_ASSETS",
-      "candidate": "client/public/placeholder-reel.jpg",
+      "candidate": "client/public/gal2.webp",
       "evidenceRole": "RUNTIME_REFERENCE_REVIEW"
     },
     {
@@ -13098,7 +14606,7 @@
     "path": "asset-reference-plan.json",
     "schemaVersion": "expresso.lifecycle.asset-reference-plan/1",
     "evidenceState": "NOT_COLLECTED",
-    "digest": "b59fb83481df783427eeba1c5078fbd6f019b7f3447010c4e48009d580190083"
+    "digest": "4bc6ecf01f22cd782a38fd5367e90a9ae5f48130efbb8c6f515258fd0e8a59e0"
   },
   "records": [
     {
@@ -15323,19 +16831,11 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/80.jpg",
           "confidence": "HIGH_PUBLIC_ROOT"
-        },
-        {
-          "source": "client/src/pages/PortfolioGallery/PortfolioGalleryPage.jsx",
-          "form": "string-literal",
-          "context": "CallExpression",
-          "provenance": "RUNTIME_SOURCE",
-          "resolvedAssetPath": "client/public/80.jpg",
-          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 3,
-        "codeSitesIncludingUnreachableAndOperator": 3,
+        "runtimeSites": 2,
+        "codeSitesIncludingUnreachableAndOperator": 2,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -16560,6 +18060,14 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/afrid.PNG",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "comment",
+          "context": "comment",
+          "provenance": "COMMENT",
+          "resolvedAssetPath": "client/public/afrid.PNG",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
@@ -16787,11 +18295,19 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/alpha-logo.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/alpha-logo.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 2,
-        "codeSitesIncludingUnreachableAndOperator": 2,
+        "runtimeSites": 3,
+        "codeSitesIncludingUnreachableAndOperator": 3,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -16847,10 +18363,19 @@
       "sha256": "89669be647be084b9c9f3e4a9621f548fded7ba7a50e06e0cad1431df6a7363e",
       "type": "image",
       "publicPath": "/alpha1.png",
-      "referenceEvidence": [],
+      "referenceEvidence": [
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/alpha1.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        }
+      ],
       "staticEvidence": {
-        "runtimeSites": 0,
-        "codeSitesIncludingUnreachableAndOperator": 0,
+        "runtimeSites": 1,
+        "codeSitesIncludingUnreachableAndOperator": 1,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -16874,14 +18399,14 @@
         "Media/File indirection or storage copy (unobserved)"
       ],
       "classification": [
+        "STATICALLY_REFERENCED",
         "DYNAMIC_REFERENCE_POSSIBLE",
         "DATABASE_EVIDENCE_REQUIRED",
         "CMS_EVIDENCE_REQUIRED",
         "STORAGE_EVIDENCE_REQUIRED",
-        "EXTERNAL_CONSUMER_POSSIBLE",
-        "UNRESOLVED"
+        "EXTERNAL_CONSUMER_POSSIBLE"
       ],
-      "primaryClassification": "UNRESOLVED",
+      "primaryClassification": "STATICALLY_REFERENCED",
       "evidenceCompleteness": {
         "staticRepository": "BOUNDED_ANALYSIS_COMPLETE",
         "database": "NOT_COLLECTED",
@@ -16891,7 +18416,7 @@
         "build": "NOT_COLLECTED",
         "complete": false
       },
-      "cleanupBlocker": "CANDIDATE_PENDING_EVIDENCE; absence of a static reference is not proof of non-use",
+      "cleanupBlocker": "STATIC_REFERENCE_PRESENT; no deletion authorization",
       "requiredNextEvidence": [
         "authorized minimized complete DB reference scan + Media/File joins",
         "CMS settings/blocks/overrides, including opaque/nested content",
@@ -16965,10 +18490,19 @@
       "sha256": "795be6737163d01b49d51a1f100c355e0ef347a13aced30467a93e9017c30ce5",
       "type": "image",
       "publicPath": "/alpha2.png",
-      "referenceEvidence": [],
+      "referenceEvidence": [
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/alpha2.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        }
+      ],
       "staticEvidence": {
-        "runtimeSites": 0,
-        "codeSitesIncludingUnreachableAndOperator": 0,
+        "runtimeSites": 1,
+        "codeSitesIncludingUnreachableAndOperator": 1,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -16992,14 +18526,14 @@
         "Media/File indirection or storage copy (unobserved)"
       ],
       "classification": [
+        "STATICALLY_REFERENCED",
         "DYNAMIC_REFERENCE_POSSIBLE",
         "DATABASE_EVIDENCE_REQUIRED",
         "CMS_EVIDENCE_REQUIRED",
         "STORAGE_EVIDENCE_REQUIRED",
-        "EXTERNAL_CONSUMER_POSSIBLE",
-        "UNRESOLVED"
+        "EXTERNAL_CONSUMER_POSSIBLE"
       ],
-      "primaryClassification": "UNRESOLVED",
+      "primaryClassification": "STATICALLY_REFERENCED",
       "evidenceCompleteness": {
         "staticRepository": "BOUNDED_ANALYSIS_COMPLETE",
         "database": "NOT_COLLECTED",
@@ -17009,7 +18543,7 @@
         "build": "NOT_COLLECTED",
         "complete": false
       },
-      "cleanupBlocker": "CANDIDATE_PENDING_EVIDENCE; absence of a static reference is not proof of non-use",
+      "cleanupBlocker": "STATIC_REFERENCE_PRESENT; no deletion authorization",
       "requiredNextEvidence": [
         "authorized minimized complete DB reference scan + Media/File joins",
         "CMS settings/blocks/overrides, including opaque/nested content",
@@ -17107,11 +18641,19 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/angelic1.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/angelic1.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 3,
-        "codeSitesIncludingUnreachableAndOperator": 3,
+        "runtimeSites": 4,
+        "codeSitesIncludingUnreachableAndOperator": 4,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -17260,17 +18802,33 @@
           "confidence": "HIGH_PUBLIC_ROOT"
         },
         {
+          "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/aroma-logo.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
           "source": "client/src/pages/ServiceMain/serviceMain.jsx",
           "form": "string-literal",
           "context": "property:img",
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/aroma-logo.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "comment",
+          "context": "comment",
+          "provenance": "COMMENT",
+          "resolvedAssetPath": "client/public/aroma-logo.png",
+          "confidence": "MEDIUM_PUBLIC_CONVENTION"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 5,
-        "codeSitesIncludingUnreachableAndOperator": 5,
+        "runtimeSites": 6,
+        "codeSitesIncludingUnreachableAndOperator": 6,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -17730,11 +19288,19 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/ayur1.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/ayur1.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 3,
-        "codeSitesIncludingUnreachableAndOperator": 3,
+        "runtimeSites": 4,
+        "codeSitesIncludingUnreachableAndOperator": 4,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -17849,10 +19415,19 @@
       "sha256": "1a33e12f8a690e9b21a6c4c19f7b1b6ca08e6517e441098ed33f047b6ae823a4",
       "type": "image",
       "publicPath": "/ayur2.png",
-      "referenceEvidence": [],
+      "referenceEvidence": [
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/ayur2.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        }
+      ],
       "staticEvidence": {
-        "runtimeSites": 0,
-        "codeSitesIncludingUnreachableAndOperator": 0,
+        "runtimeSites": 1,
+        "codeSitesIncludingUnreachableAndOperator": 1,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -17876,14 +19451,14 @@
         "Media/File indirection or storage copy (unobserved)"
       ],
       "classification": [
+        "STATICALLY_REFERENCED",
         "DYNAMIC_REFERENCE_POSSIBLE",
         "DATABASE_EVIDENCE_REQUIRED",
         "CMS_EVIDENCE_REQUIRED",
         "STORAGE_EVIDENCE_REQUIRED",
-        "EXTERNAL_CONSUMER_POSSIBLE",
-        "UNRESOLVED"
+        "EXTERNAL_CONSUMER_POSSIBLE"
       ],
-      "primaryClassification": "UNRESOLVED",
+      "primaryClassification": "STATICALLY_REFERENCED",
       "evidenceCompleteness": {
         "staticRepository": "BOUNDED_ANALYSIS_COMPLETE",
         "database": "NOT_COLLECTED",
@@ -17893,7 +19468,7 @@
         "build": "NOT_COLLECTED",
         "complete": false
       },
-      "cleanupBlocker": "CANDIDATE_PENDING_EVIDENCE; absence of a static reference is not proof of non-use",
+      "cleanupBlocker": "STATIC_REFERENCE_PRESENT; no deletion authorization",
       "requiredNextEvidence": [
         "authorized minimized complete DB reference scan + Media/File joins",
         "CMS settings/blocks/overrides, including opaque/nested content",
@@ -20420,11 +21995,19 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/baytwaard-logo.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/baytwaard-logo.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 2,
-        "codeSitesIncludingUnreachableAndOperator": 2,
+        "runtimeSites": 3,
+        "codeSitesIncludingUnreachableAndOperator": 3,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -21548,11 +23131,19 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/expresso1.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/expresso1.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 3,
-        "codeSitesIncludingUnreachableAndOperator": 3,
+        "runtimeSites": 4,
+        "codeSitesIncludingUnreachableAndOperator": 4,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -21807,6 +23398,14 @@
           "confidence": "HIGH_PUBLIC_ROOT"
         },
         {
+          "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/floraison-logo.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
           "source": "client/src/pages/ServiceMain/serviceMain.jsx",
           "form": "string-literal",
           "context": "property:img",
@@ -21816,8 +23415,8 @@
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 5,
-        "codeSitesIncludingUnreachableAndOperator": 5,
+        "runtimeSites": 6,
+        "codeSitesIncludingUnreachableAndOperator": 6,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -21956,11 +23555,35 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/floraison1.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/floraison1.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/portal/app/workAdmin.test.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/floraison1.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/floraison1.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 3,
-        "codeSitesIncludingUnreachableAndOperator": 3,
+        "runtimeSites": 4,
+        "codeSitesIncludingUnreachableAndOperator": 4,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -22075,10 +23698,27 @@
       "sha256": "dd7c8a519203db33ed2ecb14158482abf16214d905a4a09ab3d412a2fa79d717",
       "type": "image",
       "publicPath": "/floraison2.png",
-      "referenceEvidence": [],
+      "referenceEvidence": [
+        {
+          "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/floraison2.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/floraison2.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        }
+      ],
       "staticEvidence": {
-        "runtimeSites": 0,
-        "codeSitesIncludingUnreachableAndOperator": 0,
+        "runtimeSites": 1,
+        "codeSitesIncludingUnreachableAndOperator": 1,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -22102,14 +23742,14 @@
         "Media/File indirection or storage copy (unobserved)"
       ],
       "classification": [
+        "STATICALLY_REFERENCED",
         "DYNAMIC_REFERENCE_POSSIBLE",
         "DATABASE_EVIDENCE_REQUIRED",
         "CMS_EVIDENCE_REQUIRED",
         "STORAGE_EVIDENCE_REQUIRED",
-        "EXTERNAL_CONSUMER_POSSIBLE",
-        "UNRESOLVED"
+        "EXTERNAL_CONSUMER_POSSIBLE"
       ],
-      "primaryClassification": "UNRESOLVED",
+      "primaryClassification": "STATICALLY_REFERENCED",
       "evidenceCompleteness": {
         "staticRepository": "BOUNDED_ANALYSIS_COMPLETE",
         "database": "NOT_COLLECTED",
@@ -22119,7 +23759,7 @@
         "build": "NOT_COLLECTED",
         "complete": false
       },
-      "cleanupBlocker": "CANDIDATE_PENDING_EVIDENCE; absence of a static reference is not proof of non-use",
+      "cleanupBlocker": "STATIC_REFERENCE_PRESENT; no deletion authorization",
       "requiredNextEvidence": [
         "authorized minimized complete DB reference scan + Media/File joins",
         "CMS settings/blocks/overrides, including opaque/nested content",
@@ -22338,17 +23978,33 @@
           "confidence": "HIGH_PUBLIC_ROOT"
         },
         {
+          "source": "client/src/hooks/portfolioPages.test.jsx",
+          "form": "string-literal",
+          "context": "CallExpression",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/gal2.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
           "source": "client/src/pages/Home/home.jsx",
           "form": "string-literal",
           "context": "property:src",
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/gal2.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/utils/websiteImages.js",
+          "form": "string-literal",
+          "context": "property:/gal2.webp",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/gal2.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 2,
-        "codeSitesIncludingUnreachableAndOperator": 2,
+        "runtimeSites": 3,
+        "codeSitesIncludingUnreachableAndOperator": 3,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -22708,6 +24364,14 @@
           "confidence": "HIGH_PUBLIC_ROOT"
         },
         {
+          "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/godfel-logo.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
           "source": "client/src/pages/ServiceMain/serviceMain.jsx",
           "form": "string-literal",
           "context": "property:img",
@@ -22725,8 +24389,8 @@
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 5,
-        "codeSitesIncludingUnreachableAndOperator": 6,
+        "runtimeSites": 6,
+        "codeSitesIncludingUnreachableAndOperator": 7,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -27958,17 +29622,33 @@
           "confidence": "HIGH_PUBLIC_ROOT"
         },
         {
+          "source": "client/src/pages/PortfolioGallery/workShared.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/mih-logo.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
           "source": "client/src/pages/ServiceMain/serviceMain.jsx",
           "form": "string-literal",
           "context": "property:img",
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/mih-logo.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "comment",
+          "context": "comment",
+          "provenance": "COMMENT",
+          "resolvedAssetPath": "client/public/mih-logo.png",
+          "confidence": "MEDIUM_PUBLIC_CONVENTION"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 5,
-        "codeSitesIncludingUnreachableAndOperator": 5,
+        "runtimeSites": 6,
+        "codeSitesIncludingUnreachableAndOperator": 6,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -28056,11 +29736,19 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/mih1.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/mih1.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 4,
-        "codeSitesIncludingUnreachableAndOperator": 4,
+        "runtimeSites": 5,
+        "codeSitesIncludingUnreachableAndOperator": 5,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -28175,10 +29863,19 @@
       "sha256": "4562979427ab533383274d3e67189cfa2e43ddd2c08082b53f15e91c426a66da",
       "type": "image",
       "publicPath": "/mih2.png",
-      "referenceEvidence": [],
+      "referenceEvidence": [
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/mih2.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        }
+      ],
       "staticEvidence": {
-        "runtimeSites": 0,
-        "codeSitesIncludingUnreachableAndOperator": 0,
+        "runtimeSites": 1,
+        "codeSitesIncludingUnreachableAndOperator": 1,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -28202,14 +29899,14 @@
         "Media/File indirection or storage copy (unobserved)"
       ],
       "classification": [
+        "STATICALLY_REFERENCED",
         "DYNAMIC_REFERENCE_POSSIBLE",
         "DATABASE_EVIDENCE_REQUIRED",
         "CMS_EVIDENCE_REQUIRED",
         "STORAGE_EVIDENCE_REQUIRED",
-        "EXTERNAL_CONSUMER_POSSIBLE",
-        "UNRESOLVED"
+        "EXTERNAL_CONSUMER_POSSIBLE"
       ],
-      "primaryClassification": "UNRESOLVED",
+      "primaryClassification": "STATICALLY_REFERENCED",
       "evidenceCompleteness": {
         "staticRepository": "BOUNDED_ANALYSIS_COMPLETE",
         "database": "NOT_COLLECTED",
@@ -28219,7 +29916,7 @@
         "build": "NOT_COLLECTED",
         "complete": false
       },
-      "cleanupBlocker": "CANDIDATE_PENDING_EVIDENCE; absence of a static reference is not proof of non-use",
+      "cleanupBlocker": "STATIC_REFERENCE_PRESENT; no deletion authorization",
       "requiredNextEvidence": [
         "authorized minimized complete DB reference scan + Media/File joins",
         "CMS settings/blocks/overrides, including opaque/nested content",
@@ -30432,6 +32129,22 @@
           "confidence": "HIGH_PUBLIC_ROOT"
         },
         {
+          "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/pat-thumb.jpg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/portal/app/workAdmin.test.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/pat-thumb.jpg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
           "source": "portal-api/src/scripts/seedPortfolio.js",
           "form": "string-literal",
           "context": "property:bannerImage",
@@ -30710,6 +32423,22 @@
           "confidence": "HIGH_PUBLIC_ROOT"
         },
         {
+          "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+          "form": "string-literal",
+          "context": "CallExpression",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/pat5.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/pat5.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
           "source": "portal-api/src/scripts/seedPortfolio.js",
           "form": "string-literal",
           "context": "property:src",
@@ -30790,6 +32519,22 @@
           "form": "string-literal",
           "context": "ArrayExpression",
           "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/pat6.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+          "form": "string-literal",
+          "context": "CallExpression",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/pat6.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/pages/PortfolioGallery/portfolioWork.test.jsx",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
           "resolvedAssetPath": "client/public/pat6.png",
           "confidence": "HIGH_PUBLIC_ROOT"
         },
@@ -31958,6 +33703,14 @@
           "confidence": "HIGH_PUBLIC_ROOT"
         },
         {
+          "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+          "form": "string-literal",
+          "context": "property:imageUrl",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/seo4.jpg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
           "source": "portal-api/src/scripts/seedWebContent.js",
           "form": "string-literal",
           "context": "property:imageUrl",
@@ -32300,6 +34053,14 @@
           "form": "string-literal",
           "context": "ArrayExpression",
           "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/seo7.jpg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+          "form": "string-literal",
+          "context": "property:heroImageUrl",
+          "provenance": "TEST",
           "resolvedAssetPath": "client/public/seo7.jpg",
           "confidence": "HIGH_PUBLIC_ROOT"
         },
@@ -33060,11 +34821,19 @@
           "provenance": "RUNTIME_SOURCE",
           "resolvedAssetPath": "client/public/smile1.png",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/smile1.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
-        "runtimeSites": 3,
-        "codeSitesIncludingUnreachableAndOperator": 3,
+        "runtimeSites": 4,
+        "codeSitesIncludingUnreachableAndOperator": 4,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -33179,10 +34948,19 @@
       "sha256": "6f2837f5a84e2ef8838c786c83586b6c95c25021a1e25c6abef4edd26b2d76e8",
       "type": "image",
       "publicPath": "/smile2.png",
-      "referenceEvidence": [],
+      "referenceEvidence": [
+        {
+          "source": "portal-api/src/modules/portfolio/workItem.seedPlan.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/smile2.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        }
+      ],
       "staticEvidence": {
-        "runtimeSites": 0,
-        "codeSitesIncludingUnreachableAndOperator": 0,
+        "runtimeSites": 1,
+        "codeSitesIncludingUnreachableAndOperator": 1,
         "testsAndDocsOnly": false
       },
       "buildEvidence": {
@@ -33206,14 +34984,14 @@
         "Media/File indirection or storage copy (unobserved)"
       ],
       "classification": [
+        "STATICALLY_REFERENCED",
         "DYNAMIC_REFERENCE_POSSIBLE",
         "DATABASE_EVIDENCE_REQUIRED",
         "CMS_EVIDENCE_REQUIRED",
         "STORAGE_EVIDENCE_REQUIRED",
-        "EXTERNAL_CONSUMER_POSSIBLE",
-        "UNRESOLVED"
+        "EXTERNAL_CONSUMER_POSSIBLE"
       ],
-      "primaryClassification": "UNRESOLVED",
+      "primaryClassification": "STATICALLY_REFERENCED",
       "evidenceCompleteness": {
         "staticRepository": "BOUNDED_ANALYSIS_COMPLETE",
         "database": "NOT_COLLECTED",
@@ -33223,7 +35001,7 @@
         "build": "NOT_COLLECTED",
         "complete": false
       },
-      "cleanupBlocker": "CANDIDATE_PENDING_EVIDENCE; absence of a static reference is not proof of non-use",
+      "cleanupBlocker": "STATIC_REFERENCE_PRESENT; no deletion authorization",
       "requiredNextEvidence": [
         "authorized minimized complete DB reference scan + Media/File joins",
         "CMS settings/blocks/overrides, including opaque/nested content",
@@ -35456,6 +37234,14 @@
           "confidence": "HIGH_PUBLIC_ROOT"
         },
         {
+          "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+          "form": "string-literal",
+          "context": "property:imageUrl",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/web6.png",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
           "source": "portal-api/src/scripts/seedWebContent.js",
           "form": "string-literal",
           "context": "property:imageUrl",
@@ -35604,6 +37390,14 @@
           "form": "string-literal",
           "context": "ArrayExpression",
           "provenance": "RUNTIME_SOURCE",
+          "resolvedAssetPath": "client/public/web8.jpg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "client/src/pages/Services/ServiceDetailPage.test.jsx",
+          "form": "string-literal",
+          "context": "property:heroImageUrl",
+          "provenance": "TEST",
           "resolvedAssetPath": "client/public/web8.jpg",
           "confidence": "HIGH_PUBLIC_ROOT"
         },
@@ -35924,9 +37718,9 @@
     "method": "Compatibility recount: filename substring anywhere in tracked client text (including public HTML/manifest) or API source; includes tests/comments/unreachable declarations, so it is not runtime usage evidence.",
     "assets": 325,
     "bytes": 140883047,
-    "textualBasenameMatches": 180,
-    "withoutTextualBasenameMatch": 145,
-    "withoutTextualBasenameMatchBytes": 46489487,
+    "textualBasenameMatches": 186,
+    "withoutTextualBasenameMatch": 139,
+    "withoutTextualBasenameMatchBytes": 41431690,
     "legacySubstringOnlyPaths": [
       "client/public/3.png",
       "client/public/4.png"
@@ -36013,14 +37807,14 @@
     "generator": "docs/architecture/generate-asset-evidence.cjs",
     "schemaVersion": "expresso.lifecycle.asset-evidence/1",
     "digests": {
-      "generator": "772c57baa893b73b5b537a0ef5c58fcada67d3f4517688755c0ab346773fa1c0",
-      "policy": "6fc75a0265bd3857305dde326c74906bc642c0a73578d7a9c65b6c581fe23395",
+      "generator": "003afc528507de465886833e2a76719b8ad70da07413144cfeb50fbca93af7c5",
+      "policy": "5bf1c8bc3de78fff20309815d3d650ef32d321bf22011d646ed28fbb4a2b37d2",
       "assets": "690b9b2806554920f3ddbb464c65ead02ac4c6dfec5adf973575e8701f1c7c74",
-      "referenceEvidence": "22f563e21de0d1523869f3b04980feb07c00eeff631ed3371386f2ca976aff4a",
-      "modelFields": "e0e22ab358e63a8f8652bb14e82241ac674a720bd00a6d2dd4680388d83cc1fa",
-      "storageSemantics": "dc3df86b5439478106cfa48137f3f840892c08612432d18bbe90ee0d25fc6baf"
+      "referenceEvidence": "dc7f2ec148290ef10448aca051aa1a9444cc291a6caad5b4e77c97f446125f4b",
+      "modelFields": "5f819858b360b659de17d4a2ae359630d156a4219b2c159e305e233c04b4b92c",
+      "storageSemantics": "f4a037ff887172db5969ceab5f3eee9e47aa9f310c736237fb0d58d108f4521c"
     },
-    "method": "No timestamp/HEAD id. Asset bytes plus semantic references, all schema field shapes and storage-code AST digests. Unrelated source text/comments/line shifts without reference evidence do not change outputs.",
+    "method": "No timestamp/HEAD id. Git-tracked assets plus current application source (including uncommitted modules), semantic references, all schema field shapes and storage-code AST digests. Unrelated source text/comments/line shifts without reference evidence do not change outputs.",
     "excludedDerivedSources": [
       "docs/architecture/ASSET-EVIDENCE-PLAN.md",
       "docs/architecture/ASSET-RECONCILIATION-B3.md",

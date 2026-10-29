@@ -34,6 +34,7 @@ import {
   Grid3x3,
   Palette,
   MessageCircle,
+  GalleryVerticalEnd,
 } from "lucide-react";
 
 export const BRAND = "#6F7FD9";
@@ -74,7 +75,10 @@ export const ROUTES = {
   TEAMS: "/portal/teams",
 
   CAREERS: "/portal/careers",
+  // Case studies keep their historical admin URL as a redirect.
   WEBSITE_PORTFOLIO: "/portal/website/portfolio",
+  WEBSITE_CASE_STUDIES: "/portal/website/case-studies",
+  WEBSITE_WORK: "/portal/website/work",
   HOMEPAGE_SLIDES: "/portal/website/slides",
   WEBSITE_SETTINGS: "/portal/website/settings",
   DIGITAL_SERVICES: "/portal/website/digital-services",
@@ -206,13 +210,25 @@ const ITEMS = {
     external: true,
   },
 
+  // Case studies (/case-studies); permission keys keep the historical
+  // portfolio.* names so stored role grants keep working.
   portfolio: {
-    to: ROUTES.WEBSITE_PORTFOLIO,
-    label: "Portfolio",
-    hint: "Case studies on the website",
+    to: ROUTES.WEBSITE_CASE_STUDIES,
+    label: "Case Studies",
+    hint: "Manage the case studies shown on the public website.",
     Icon: Layers,
     accent: ACCENTS.rose,
     permission: "portfolio.read",
+  },
+
+  // Public Portfolio (/portfolio): visual work items.
+  work: {
+    to: ROUTES.WEBSITE_WORK,
+    label: "Portfolio",
+    hint: "Visual work shown in the public Portfolio",
+    Icon: GalleryVerticalEnd,
+    accent: ACCENTS.rose,
+    permission: "work.read",
   },
 
   services: {
@@ -668,7 +684,7 @@ const ADMIN_SECTIONS = [
   {
     title: "Website",
     Icon: Globe,
-    items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.portfolio, ITEMS.websiteSettings, ITEMS.digitalServices, ITEMS.techSolutions],
+    items: [ITEMS.careers, ITEMS.homepageSlides, ITEMS.portfolio, ITEMS.work, ITEMS.websiteSettings, ITEMS.digitalServices, ITEMS.techSolutions],
   },
   {
     title: "System",
@@ -687,6 +703,7 @@ const INTERNAL_PERMISSIONS = new Set([
   "website.read",
   "media.read",
   "portfolio.read",
+  "work.read",
   "services.read",
   "enrollments.read",
 ]);
@@ -856,11 +873,19 @@ export function getPageMeta(pathname) {
     };
   }
 
-  if (starts(ROUTES.WEBSITE_PORTFOLIO) || starts(ROUTES.PORTFOLIO)) {
+  if (starts(ROUTES.WEBSITE_CASE_STUDIES) || starts(ROUTES.WEBSITE_PORTFOLIO) || starts(ROUTES.PORTFOLIO)) {
+    return {
+      label: "Case Studies",
+      subtitle: "Case studies on the public website",
+      Icon: Layers,
+    };
+  }
+
+  if (starts(ROUTES.WEBSITE_WORK)) {
     return {
       label: "Portfolio",
-      subtitle: "Case studies and work samples for the website",
-      Icon: Layers,
+      subtitle: "Visual work for the public Portfolio",
+      Icon: GalleryVerticalEnd,
     };
   }
 

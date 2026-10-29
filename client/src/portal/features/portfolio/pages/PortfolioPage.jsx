@@ -305,7 +305,7 @@ function NewPortfolioModal({ open, busy, onClose, onSubmit }) {
       <div className="w-full max-w-2xl overflow-hidden rounded-[28px] bg-white shadow-2xl">
         <div className="border-b border-slate-100 bg-slate-50 px-6 py-5">
           <div className="text-lg font-black text-slate-950">
-            New portfolio item
+            New case study
           </div>
           <p className="mt-1 text-sm text-slate-500">
             Create the shell first. Add images and full case-study content in the editor with the media picker.
@@ -418,7 +418,7 @@ export default function PortfolioPage() {
       const res = await listPortfolio({ limit: 50 });
       setItems(Array.isArray(res?.items) ? res.items : []);
     } catch {
-      toast.error("Failed to load portfolio.");
+      toast.error("Failed to load case studies.");
     } finally {
       setLoading(false);
     }
@@ -439,8 +439,8 @@ export default function PortfolioPage() {
       });
       setItems((prev) => [res.item, ...prev]);
       setAddOpen(false);
-      toast.success("Portfolio item created.");
-      nav(`/portal/website/portfolio/${res.item._id}`);
+      toast.success("Case study created.");
+      nav(`/portal/website/case-studies/${res.item._id}`);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Create failed.");
     } finally {
@@ -451,7 +451,7 @@ export default function PortfolioPage() {
   const handleDelete = (id, title) => {
     if (!canDelete) return;
     setConfirmState({
-      title: "Delete portfolio item",
+      title: "Delete case study",
       message: `Delete "${title}"?`,
       danger: true,
       onConfirm: async () => {
@@ -497,12 +497,12 @@ export default function PortfolioPage() {
     <div className="grid gap-6">
       <PageHeader
         eyebrow="CONTENT OPERATIONS"
-        title="Portfolio"
+        title="Case Studies"
         subtitle="Manage the case studies shown on the public website."
         breadcrumb={[
           { label: "Portal", to: "/portal" },
           { label: "Website" },
-          { label: "Portfolio" },
+          { label: "Case Studies" },
         ]}
         right={
           <div className="flex items-center gap-2">
@@ -585,8 +585,8 @@ export default function PortfolioPage() {
         <Card className="p-0 overflow-hidden">
           <EmptyState
             icon={Layers}
-            title="No portfolio items"
-            message="Add case studies and work samples to showcase on your website."
+            title="No case studies"
+            message="Add the case studies shown on the public website."
             actionLabel={canWrite ? "New item" : undefined}
             onAction={canWrite ? () => setAddOpen(true) : undefined}
           />
@@ -598,7 +598,7 @@ export default function PortfolioPage() {
               key={item._id}
               item={item}
               view={view}
-              onOpen={() => nav(`/portal/website/portfolio/${item._id}`)}
+              onOpen={() => nav(`/portal/website/case-studies/${item._id}`)}
               onDelete={canDelete ? () => handleDelete(item._id, item.title) : undefined}
             />
           ))}

@@ -61,6 +61,7 @@ export const miniInventory = () => ({
     { name: "Job", collection: "jobs", indexes: [] },
     { name: "Production", collection: "productions", indexes: [] },
     { name: "Portfolio", collection: "portfolios", indexes: [] },
+    { name: "WorkItem", collection: "workitems", indexes: [] },
     { name: "HeroSlide", collection: "heroslides", indexes: [] },
     { name: "DigitalService", collection: "digitalservices", indexes: [] },
     { name: "SiteSettings", collection: "sitesettings", indexes: [] },
@@ -71,7 +72,7 @@ export const miniClassification = () => ({
   User: "SYSTEM", Invite: "BUSINESS", Media: "CMS", File: "BUSINESS", Audit: "LOG/AUDIT", Team: "CONFIGURATION",
   Solution: "CMS", Invoice: "BUSINESS", JobApplication: "BUSINESS", ServiceTemplate: "CONFIGURATION", HRExpense: "BUSINESS",
   Quotation: "BUSINESS", RFQ: "BUSINESS", BrandAsset: "BUSINESS", Customer: "BUSINESS", Job: "BUSINESS", Production: "CMS",
-  Portfolio: "CMS", HeroSlide: "CMS", DigitalService: "CMS", SiteSettings: "CONFIGURATION", ProcurementCategory: "CONFIGURATION",
+  Portfolio: "CMS", WorkItem: "CMS", HeroSlide: "CMS", DigitalService: "CMS", SiteSettings: "CONFIGURATION", ProcurementCategory: "CONFIGURATION",
 });
 
 export const snapshotFor = (fingerprint, collections) => ({

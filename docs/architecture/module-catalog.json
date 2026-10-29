@@ -443,23 +443,28 @@
     {
       "key": "portfolio",
       "label": "Portfolio CMS",
-      "purpose": "Editable public case studies and gallery projects.",
+      "purpose": "Case Studies (editable public case studies, /case-studies) and Portfolio (visual work items, /portfolio).",
       "pages": [
+        "/portal/website/case-studies",
+        "/portal/website/case-studies/:id",
+        "/portal/website/work",
+        "/portal/website/work/:id",
         "/portal/website/portfolio",
         "/portal/website/portfolio/:id",
         "/portal/portfolio",
         "/portal/portfolio/:id"
       ],
-      "api": "/api/portfolio",
+      "api": "/api/portfolio; /api/work",
       "models": [
         "Portfolio",
+        "WorkItem",
         "Media"
       ],
-      "permissions": "UI portfolio.read; writes portfolio.write/delete; GET API is public",
+      "permissions": "Case studies: portfolio.read/write/delete; Portfolio work: work.read/write/delete; public GETs serve published records only",
       "workflow": "draft/published/archived, publication date and approval/system fields.",
-      "relationships": "Feeds public /portfolio and /case-studies; detail uses slug or ObjectId. Separate from work-delivery Project.",
+      "relationships": "Portfolio model feeds /case-studies (detail by slug or ObjectId); WorkItem feeds /portfolio and /portfolio/:slug and may link one case study. Separate from work-delivery Project.",
       "filesAndNotifications": "Media cover/gallery refs, static fallback assets; no portfolio publication notifications.",
-      "status": "Active; public API currently does not enforce published-only access.",
+      "status": "Active; public case-study/work reads filter unpublished records; managers need the respective portfolio.read or work.read permission.",
       "source": "client/src/portal/features/portfolio"
     },
     {

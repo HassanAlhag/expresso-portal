@@ -1,9 +1,11 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { invalidatePortfolioCache } from "./usePortfolioItems";
-import PortfolioGalleryPage from "../pages/PortfolioGallery/PortfolioGalleryPage";
 import PortfolioGrid from "../components/PortfolioComponents/portfolioList";
 import PortfolioDetailPage from "../pages/SingleViewPortfolio/singleViewPortfolio";
+import ReelsShowcase from "../components/ReelsShowcase/ReelsShowcase";
+import { mapWebsiteReels } from "../utils/mapWebsiteReels";
+import { resolveWebsiteImageSetting } from "../utils/websiteImages";
 
 // CRA's Jest resolver predates React Router 7's package exports.
 jest.mock("react-router-dom", () => ({
@@ -34,8 +36,9 @@ const failures = [
   ["an HTTP 500", () => Promise.resolve({ ok: false, status: 500, json: async () => ({ ok: false }) })],
 ];
 
+// /portfolio now reads Portfolio work items (/api/work): see
+// pages/PortfolioGallery/portfolioWork.test.jsx. Case studies keep this source.
 describe.each([
-  ["/portfolio gallery", () => <PortfolioGalleryPage />],
   ["/case-studies grid", () => <PortfolioGrid />],
 ])("%s", (_name, view) => {
   test("a genuine empty result shows the empty state, not an error", async () => {
@@ -86,5 +89,34 @@ describe("/case-studies/:id detail", () => {
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
     expect(screen.queryByText("Project not found.")).toBeNull();
+  });
+});
+
+
+describe("public media fallbacks", () => {
+  test("the historical team portrait uses its existing PNG while preserving both CMS override paths", () => {
+    expect(resolveWebsiteImageSetting({}, "/gal2.webp", "")).toBe("/gal2.png");
+    expect(resolveWebsiteImageSetting({}, "/gal2.webp", "https://example.test/team.jpg")).toBe("https://example.test/team.jpg");
+    const settings = { websiteImages: { images: [{ key: "/gal2.webp", url: "https://example.test/override.jpg" }] } };
+    expect(resolveWebsiteImageSetting(settings, "/gal2.webp", "https://example.test/team.jpg")).toBe("https://example.test/override.jpg");
+  });
+
+  test("a playable reel without poster media has no broken image and still opens the video", () => {
+    const reels = mapWebsiteReels([{ _id: "r1", title: "Example reel", finalMediaId: { url: "https://example.test/clip.mp4" } }]);
+    expect(reels[0].poster).toBe("");
+    render(<ReelsShowcase reels={reels} />);
+    expect(screen.queryByRole("img", { name: "Example reel" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /example reel/i }));
+    expect(screen.getByLabelText("Example reel").getAttribute("src")).toBe("https://example.test/clip.mp4");
+  });
+
+  test("a reel retains its actual poster or cover media", () => {
+    const reels = mapWebsiteReels([
+      { _id: "r1", title: "Poster reel", posterMediaId: { url: "https://example.test/poster.jpg" }, coverMedia: { url: "https://example.test/cover.jpg" }, finalMediaId: { url: "https://example.test/clip.mp4" } },
+      { _id: "r2", title: "Cover reel", coverMedia: { url: "https://example.test/cover.jpg" }, externalPostUrl: "https://example.test/video" },
+    ]);
+    expect(reels.map(r => r.poster)).toEqual(["https://example.test/poster.jpg", "https://example.test/cover.jpg"]);
+    render(<ReelsShowcase reels={reels} />);
+    expect(screen.getByRole("img", { name: "Poster reel" }).getAttribute("src")).toBe("https://example.test/poster.jpg");
   });
 });

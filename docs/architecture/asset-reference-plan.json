@@ -9027,6 +9027,274 @@
         ],
         "opaqueHandling": "No raw object projection/export; bounded extraction within separately authorized capture process"
       }
+    },
+    {
+      "model": "WorkItem",
+      "collection": "workitems",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "fields": [
+        {
+          "path": "caseStudy",
+          "type": "ObjectId",
+          "ref": "Portfolio",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "clientName",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "cover.alt",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "cover.media",
+          "type": "ObjectId",
+          "ref": "Media",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "OBJECT_ID_REFERENCE"
+        },
+        {
+          "path": "cover.src",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "URL_OR_PATH_OR_SYMBOL"
+        },
+        {
+          "path": "featured",
+          "type": "Boolean",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "gallery[].alt",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "gallery[].media",
+          "type": "ObjectId",
+          "ref": "Media",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "OBJECT_ID_REFERENCE"
+        },
+        {
+          "path": "gallery[].src",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "URL_OR_PATH_OR_SYMBOL"
+        },
+        {
+          "path": "industry",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "publishedAt",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "seo.metaDesc",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "seo.metaTitle",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "services[]",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "shortDescription",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "TEXT_REFERENCE_POSSIBLE"
+        },
+        {
+          "path": "slug",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "sortOrder",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "status",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": true,
+          "enumShape": "046c14f50655b44d50b6d36527bfdad87250fab0981607ce3be3d68bfb1bb37f",
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "technologies[]",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "title",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "video.media",
+          "type": "ObjectId",
+          "ref": "Media",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "OBJECT_ID_REFERENCE"
+        },
+        {
+          "path": "video.poster",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "video.src",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "URL_OR_PATH_OR_SYMBOL"
+        },
+        {
+          "path": "videos[].media",
+          "type": "ObjectId",
+          "ref": "Media",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "OBJECT_ID_REFERENCE"
+        },
+        {
+          "path": "videos[].poster",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "videos[].src",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "URL_OR_PATH_OR_SYMBOL"
+        },
+        {
+          "path": "videos[].title",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "workType",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": true,
+          "enumShape": "728bf8362d047a6c6c0e560cb44a143f94aeef12d22e81eda2bb436c0b1ec439",
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "year",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        }
+      ],
+      "referenceSurfaceIds": [
+        "workitems:cover.media",
+        "workitems:cover.src",
+        "workitems:gallery[].media",
+        "workitems:gallery[].src",
+        "workitems:shortDescription",
+        "workitems:video.media",
+        "workitems:video.src",
+        "workitems:videos[].media",
+        "workitems:videos[].src"
+      ],
+      "futureProjection": {
+        "authorized": false,
+        "identifierHandling": "_id read locally for capture-local HMAC joins only; never export raw identifier",
+        "fields": [
+          "cover.media",
+          "cover.src",
+          "gallery[].media",
+          "gallery[].src",
+          "shortDescription",
+          "video.media",
+          "video.src",
+          "videos[].media",
+          "videos[].src"
+        ],
+        "opaqueHandling": "No raw object projection/export; bounded extraction within separately authorized capture process"
+      }
     }
   ],
   "surfaces": [
@@ -14207,6 +14475,186 @@
       "cms": false,
       "legacyProductionEvidence": false,
       "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "workitems:cover.media",
+      "model": "WorkItem",
+      "collection": "workitems",
+      "fieldPath": "cover.media",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "referenceKind": "OBJECT_ID_REFERENCE",
+      "expectedValueType": "ObjectId",
+      "target": "Media",
+      "normalization": "object-id-join",
+      "nested": true,
+      "htmlOrRichTextParsing": false,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "workitems:cover.src",
+      "model": "WorkItem",
+      "collection": "workitems",
+      "fieldPath": "cover.src",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "referenceKind": "URL_OR_PATH_OR_SYMBOL",
+      "expectedValueType": "String",
+      "target": "public-path/URL/legacy/symbol",
+      "normalization": "origin-aware-path-or-key",
+      "nested": true,
+      "htmlOrRichTextParsing": false,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "workitems:gallery[].media",
+      "model": "WorkItem",
+      "collection": "workitems",
+      "fieldPath": "gallery[].media",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "referenceKind": "OBJECT_ID_REFERENCE",
+      "expectedValueType": "ObjectId (array element)",
+      "target": "Media",
+      "normalization": "object-id-join",
+      "nested": true,
+      "htmlOrRichTextParsing": false,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "workitems:gallery[].src",
+      "model": "WorkItem",
+      "collection": "workitems",
+      "fieldPath": "gallery[].src",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "referenceKind": "URL_OR_PATH_OR_SYMBOL",
+      "expectedValueType": "String (array element)",
+      "target": "public-path/URL/legacy/symbol",
+      "normalization": "origin-aware-path-or-key",
+      "nested": true,
+      "htmlOrRichTextParsing": false,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "workitems:shortDescription",
+      "model": "WorkItem",
+      "collection": "workitems",
+      "fieldPath": "shortDescription",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "referenceKind": "TEXT_REFERENCE_POSSIBLE",
+      "expectedValueType": "String",
+      "target": "embedded-path/URL",
+      "normalization": "local-html-markdown-css-token-extraction",
+      "nested": false,
+      "htmlOrRichTextParsing": true,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "workitems:video.media",
+      "model": "WorkItem",
+      "collection": "workitems",
+      "fieldPath": "video.media",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "referenceKind": "OBJECT_ID_REFERENCE",
+      "expectedValueType": "ObjectId",
+      "target": "Media",
+      "normalization": "object-id-join",
+      "nested": true,
+      "htmlOrRichTextParsing": false,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "workitems:video.src",
+      "model": "WorkItem",
+      "collection": "workitems",
+      "fieldPath": "video.src",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "referenceKind": "URL_OR_PATH_OR_SYMBOL",
+      "expectedValueType": "String",
+      "target": "public-path/URL/legacy/symbol",
+      "normalization": "origin-aware-path-or-key",
+      "nested": true,
+      "htmlOrRichTextParsing": false,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "workitems:videos[].media",
+      "model": "WorkItem",
+      "collection": "workitems",
+      "fieldPath": "videos[].media",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "referenceKind": "OBJECT_ID_REFERENCE",
+      "expectedValueType": "ObjectId (array element)",
+      "target": "Media",
+      "normalization": "object-id-join",
+      "nested": true,
+      "htmlOrRichTextParsing": false,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "workitems:videos[].src",
+      "model": "WorkItem",
+      "collection": "workitems",
+      "fieldPath": "videos[].src",
+      "source": "portal-api/src/modules/portfolio/workItem.model.js",
+      "referenceKind": "URL_OR_PATH_OR_SYMBOL",
+      "expectedValueType": "String (array element)",
+      "target": "public-path/URL/legacy/symbol",
+      "normalization": "origin-aware-path-or-key",
+      "nested": true,
+      "htmlOrRichTextParsing": false,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
     }
   ],
   "surfaceSets": {
@@ -14390,7 +14838,12 @@
       "users:avatarUrl",
       "users:notes",
       "vendorapplications:notes",
-      "vendorapplications:website"
+      "vendorapplications:website",
+      "workitems:cover.src",
+      "workitems:gallery[].src",
+      "workitems:shortDescription",
+      "workitems:video.src",
+      "workitems:videos[].src"
     ],
     "MEDIA_FILE_INDIRECTION": [
       "brandassets:mediaId",
@@ -14472,7 +14925,11 @@
       "sitesettings:services.sectionBgMediaId",
       "sitesettings:websiteImages.images[].mediaId",
       "solutions:heroImageMediaId",
-      "users:avatarMediaId"
+      "users:avatarMediaId",
+      "workitems:cover.media",
+      "workitems:gallery[].media",
+      "workitems:video.media",
+      "workitems:videos[].media"
     ],
     "CMS_FIELDS_AND_OVERRIDES": [
       "careers:requirements[]",
@@ -14606,7 +15063,16 @@
       "solutions:description",
       "solutions:heroImageMediaId",
       "solutions:heroImageUrl",
-      "solutions:icon"
+      "solutions:icon",
+      "workitems:cover.media",
+      "workitems:cover.src",
+      "workitems:gallery[].media",
+      "workitems:gallery[].src",
+      "workitems:shortDescription",
+      "workitems:video.media",
+      "workitems:video.src",
+      "workitems:videos[].media",
+      "workitems:videos[].src"
     ],
     "BRAND_OR_ATTACHMENT_FIELDS": [
       "brandassets:mediaId",
@@ -14690,10 +15156,10 @@
   },
   "provenance": {
     "generator": "docs/architecture/generate-asset-evidence.cjs",
-    "modelFields": "e0e22ab358e63a8f8652bb14e82241ac674a720bd00a6d2dd4680388d83cc1fa",
-    "policy": "6fc75a0265bd3857305dde326c74906bc642c0a73578d7a9c65b6c581fe23395",
+    "modelFields": "5f819858b360b659de17d4a2ae359630d156a4219b2c159e305e233c04b4b92c",
+    "policy": "5bf1c8bc3de78fff20309815d3d650ef32d321bf22011d646ed28fbb4a2b37d2",
     "storageSemantics": {
-      "client/src/utils/websiteImages.js": "7b03844f91b7a37dc29bca57a49e1a1a9f7ef6216e4070e93ec1916a8d4a86cd",
+      "client/src/utils/websiteImages.js": "52c298f62748fdade89aa961597097f4b798daba244c2865b120e51944f43885",
       "client/src/portal/shared/utils/assetUrl.js": "585a2fd46d3c11d42255bf4413588ce6b48472f1de498e4913fcdafa5dd81860",
       "client/src/data/websiteImageRegistry.js": "815bcbd2a031ba6a0b7f8a1c2fd1a1c191c87638b75df5485e9d3b7214414256",
       "portal-api/src/utils/s3.js": "8796bde6acec77c6f6f8b6bd965613f17185939fb209bfd73c56c485fcefeb0b",

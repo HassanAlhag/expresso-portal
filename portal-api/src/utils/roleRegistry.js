@@ -45,6 +45,7 @@ export const EXTERNAL_DENIED_PREFIXES = [
   "services.",
   "enrollments.",
   "portfolio.",
+  "work.",
   "productions.",
   "jobs.",
   "social.",

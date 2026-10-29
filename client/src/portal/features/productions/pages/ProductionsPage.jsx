@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 
 import { PRODUCTION_STATUS_OPTIONS } from "../constants/production.constants";
+import { JOB_STAGES as PROD_STAGES, getColumnKey as getColKey, nextStage, prevStage } from "../../jobs/pipeline";
 import {
   listProductionJobs,
   updateProductionJob,
@@ -42,28 +43,7 @@ import {
 
 // ── Production pipeline stages ─────────────────────────────────────────────────
 
-const PROD_STAGES = [
-  { key: "brief",      label: "Brief",      moveStatus: "brief",           statuses: ["brief", "content_ready"] },
-  { key: "scripting",  label: "Scripting",  moveStatus: "script",          statuses: ["script", "pre_production"] },
-  { key: "production", label: "Production", moveStatus: "editing",         statuses: ["designing", "shooting", "editing"] },
-  { key: "review",     label: "Review",     moveStatus: "internal_review", statuses: ["internal_review", "client_review"] },
-  { key: "approved",   label: "Approved",   moveStatus: "approved",        statuses: ["approved", "scheduled"] },
-  { key: "live",       label: "Live",       moveStatus: "published",       statuses: ["published", "delivered"] },
-];
-
-const STATUS_TO_COL = {};
-PROD_STAGES.forEach((s) => s.statuses.forEach((st) => (STATUS_TO_COL[st] = s.key)));
 const STAGE_IDX = Object.fromEntries(PROD_STAGES.map((s, i) => [s.key, i]));
-
-function getColKey(status) { return STATUS_TO_COL[status] || "brief"; }
-function nextStage(status) {
-  const idx = STAGE_IDX[getColKey(status)] ?? 0;
-  return PROD_STAGES[Math.min(idx + 1, PROD_STAGES.length - 1)].moveStatus;
-}
-function prevStage(status) {
-  const idx = STAGE_IDX[getColKey(status)] ?? 0;
-  return PROD_STAGES[Math.max(idx - 1, 0)].moveStatus;
-}
 
 // ── Style maps ─────────────────────────────────────────────────────────────────
 
@@ -274,6 +254,8 @@ function ProductionPipelineBoard({ items, onOpen, onEdit, onMove, onDelete, busy
           return (
             <div
               key={col.key}
+              role="region"
+              aria-label={`${col.label} jobs`}
               className="flex min-w-[170px] flex-1 flex-col overflow-hidden rounded-2xl border border-black/[0.07] bg-slate-50/60"
             >
               <div className="flex items-center justify-between border-b border-black/[0.07] bg-white px-3 py-2.5">

@@ -2,7 +2,7 @@
 
 [API map](API-MAP.md) · [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · Baseline `58b8f86c` plus Stage R1 and R2 changes.
 
-All **283** explicit method/path registrations, grouped by business domain. Generated from [source-inventory.json](source-inventory.json); regenerate rather than edit by hand.
+All **290** explicit method/path registrations, grouped by business domain. Generated from [source-inventory.json](source-inventory.json); regenerate rather than edit by hand.
 
 - **Guard** = middleware on the route: `auth` (valid session), a permission key, `internal-only` (staff), `super_admin`, **staff or approved vendor** / **approved vendor only** (an active vendor profile; R2). **public** means no session is required; **public, optional sign-in** means anonymous callers get published/active records only, while signed-in CMS users with the right permission also see drafts (R1, P0-1). Controllers add tenant, ownership and state checks that are not shown here.
 - **Frontend consumer** = reachable client files with a literal call to this path (best effort; calls built from variables can be missed). `—` means none was found.
@@ -304,9 +304,9 @@ Models: Message.
 | PATCH | `/api/messaging/read/:customerId` | auth · `messaging.read` | `markRead` (message.controller.js) | portal/features/messaging/api.js |
 | GET | `/api/messaging/unread/:customerId` | auth · `messaging.read` | `getUnreadCount` (message.controller.js) | portal/features/messaging/api.js |
 
-## Portfolio CMS — 5 routes
+## Portfolio CMS — 12 routes
 
-Models: Portfolio.
+Models: Portfolio (case studies, `/case-studies`), WorkItem (Portfolio work, `/portfolio`).
 
 | Method | Path | Guard | Handler | Frontend consumer |
 |---|---|---|---|---|
@@ -315,6 +315,13 @@ Models: Portfolio.
 | DELETE | `/api/portfolio/:id` | auth · `portfolio.delete` | `deletePortfolio` (portfolio.controller.js) | hooks/usePortfolioItem.js<br>portal/features/portfolio/api.js |
 | PATCH | `/api/portfolio/:id` | auth · `portfolio.write` | `updatePortfolio` (portfolio.controller.js) | hooks/usePortfolioItem.js<br>portal/features/portfolio/api.js |
 | GET | `/api/portfolio/:slug` | public, optional sign-in | `getPortfolioBySlug` (portfolio.controller.js) | hooks/usePortfolioItem.js<br>portal/features/portfolio/api.js |
+| GET | `/api/work` | public, optional sign-in | `listWorkItems` (workItem.controller.js) | hooks/useWorkItems.js<br>portal/features/portfolio/workApi.js |
+| POST | `/api/work` | auth · `work.write` | `createWorkItem` (workItem.controller.js) | hooks/useWorkItems.js<br>portal/features/portfolio/workApi.js |
+| DELETE | `/api/work/:id` | auth · `work.delete` | `deleteWorkItem` (workItem.controller.js) | hooks/useWorkItems.js<br>portal/features/portfolio/workApi.js |
+| PATCH | `/api/work/:id` | auth · `work.write` | `updateWorkItem` (workItem.controller.js) | hooks/useWorkItems.js<br>portal/features/portfolio/workApi.js |
+| GET | `/api/work/:slug` | public, optional sign-in | `getWorkItem` (workItem.controller.js) | hooks/useWorkItems.js<br>portal/features/portfolio/workApi.js |
+| POST | `/api/work/from-case-study/:caseStudyId` | auth · `work.write` | `createWorkItemFromCaseStudy` (workItem.controller.js) | portal/features/portfolio/workApi.js |
+| PATCH | `/api/work/reorder` | auth · `work.write` | `reorderWorkItems` (workItem.controller.js) | portal/features/portfolio/workApi.js |
 
 ## Private file downloads — 1 route
 

@@ -55,6 +55,9 @@ const R = (id, group, source, path, target, o = {}) => ({ id, kind: "ref", group
 const OWN = (id, group, source, path, target, o = {}) => ({ id, kind: "ownership", group, source, path, target, sourceOwner: "customerId", targetOwner: "customerId", severity: "CRITICAL", blocks: [], ...o });
 
 const EXPLICIT = [
+  // Optional public work → case study link; the linked story may be unpublished.
+  R("work.case-study", "portfolio", "workitems", "caseStudy", "portfolios", { blocks: ["asset-cleanup"], note: "Optional link validated by the Work Items API; publication is filtered separately." }),
+
   // JOBS
   R("job.customer", "jobs", "jobs", "customerId", C, { required: true, severity: "CRITICAL", blocks: ["customer-data-cleanup", "delivery-data-cleanup"] }),
   R("job.project", "jobs", "jobs", "projectId", "projects", { blocks: ["delivery-data-cleanup"] }),

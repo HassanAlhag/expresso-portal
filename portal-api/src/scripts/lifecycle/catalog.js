@@ -60,6 +60,7 @@ const STORAGE_REFERENCES = Object.freeze({
   jobs: "public",
   productions: "public",
   portfolios: "public",
+  workitems: "public",
   heroslides: "public",
   digitalservices: "public",
   solutions: "public",

@@ -1,10 +1,12 @@
 # Database reset plan — proposal only
 
+**Blueprint closure:** D1–D3 are CLOSED foundations; D4 seed and D5 reset are DEFERRED post-Blueprint. No reset/seed operation is authorized. See [final code closure and deployment acceptance](BLUEPRINT-CLOSURE.md).
+
 [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · [Database map](DATABASE-MAP.md) · Baseline `58b8f86c`.
 
 > **No reset has been performed.** This audit did not connect to any database, read any `.env` value, or run any seed or script. Nothing here is approved to run. It describes what a clean Expresso installation needs, and a controlled lifecycle to build later.
 >
-> **R5-D1 (complete / committed):** the read-only lifecycle safety foundation exists — target identity checks, a versioned manifest model with offline validation, a read-only inventory, catalog/protection metadata and an append-only evidence format ([runbook](../../portal-api/docs/lifecycle.md)). It provides **no** backup, restore, reset or seed. R5-D2 to R5-D5 are not started.
+> **R5-D1 (complete / committed):** the read-only lifecycle safety foundation exists — target identity checks, a versioned manifest model with offline validation, a read-only inventory, catalog/protection metadata and an append-only evidence format ([runbook](../../portal-api/docs/lifecycle.md)). It provides **no** backup, restore, reset or seed. D2 backup and D3 restore verification are now CLOSED local/disposable foundations; D4/D5 remain DEFERRED. This D1 paragraph records the original foundation boundary.
 
 ## 1. What a fresh installation actually needs
 
@@ -12,7 +14,7 @@ The API **starts against an empty database**. `server.js` validates the environm
 
 | Layer | Where it lives | Survives an empty database? | What must be recreated |
 |---|---|---|---|
-| Permission keys (74) and built-in role defaults (14) | Code: `portal-api/src/config/permissions.js` | **Yes.** `GET /api/roles` lists built-in roles even without Role documents, and permissions resolve from code | Nothing, unless you want built-in roles stored as editable Role documents (`seedRoles.js`) |
+| Permission keys (76) and built-in role defaults (14) | Code: `portal-api/src/config/permissions.js` | **Yes.** `GET /api/roles` lists built-in roles even without Role documents, and permissions resolve from code | Nothing, unless you want built-in roles stored as editable Role documents (`seedRoles.js`) |
 | Environment | `portal-api/.env`, client `.env` | Yes (outside MongoDB) | Names only: `MONGO_URI`, `JWT_SECRET` (**required — the API refuses to start without it**), `JWT_EXPIRES_IN`, `FRONTEND_URL`, `SUPER_ADMIN_*`, `SMTP_*`, `AWS_*`/bucket names, `GOOGLE_CLIENT_ID`, `DB_ENVIRONMENT`; client `REACT_APP_API_URL`, `REACT_APP_EMAILJS_*`, `REACT_APP_GOOGLE_CLIENT_ID` |
 | Website code defaults | Client code: copy, pricing, CAS page, core product registry, technology group fallback, brand assets | Yes | Nothing — but see the CMS row |
 | Uploaded files | S3 buckets or `uploads` / `private-uploads` folders | Yes (separate from MongoDB) | References to them **are** lost — see section 5 |
@@ -43,7 +45,7 @@ From the [database map](DATABASE-MAP.md). **No collection is test-only by design
 |---|---:|---|---|---|
 | SYSTEM | 3 | `users`, `roles`, `counters` | Create super admin; optionally seed roles; `counters` starts empty and fills itself | **Keep** (except chosen test users — see below). Keep `counters` so issued invoice and RFQ numbers are never reused |
 | CONFIGURATION | 6 | `sitesettings`, `teams`, `servicetemplates`, `procurementcategories`, `scorecardtemplates`, `kpiindicators` | Seed or import approved set | **Keep** |
-| CMS | 7 | `solutions`, `digitalservices`, `heroslides`, `portfolios`, `careers`, `media`, `productions` | Import approved content | **Keep** (prune drafts deliberately) |
+| CMS | 8 | `solutions`, `digitalservices`, `heroslides`, `portfolios`, `workitems`, `careers`, `media`, `productions` | Import approved content | **Keep** (prune drafts deliberately) |
 | LOG/AUDIT | 1 | `audits` | Empty | Retain per a retention policy; never silently erase |
 | BUSINESS | 28 | `customers`, `crmleads`, `crmaccounts`, `crmcontacts`, `crmdeals`, `crmactivities`, `enrollments`, `projects`, `jobs`, `files`, `invoices`, `tickets`, `messages`, `brandassets`, `socialmetrics`, `hrstaffs`, `hrexpenses`, `hrleaves`, `kpigoals`, `kpicheckins`, `procurementrequests`, `rfqs`, `quotations`, `procurementvendors`, `vendorapplications`, `jobapplications`, `accessrequests`, `invites` | Empty | **Candidates** — owner decision per collection |
 

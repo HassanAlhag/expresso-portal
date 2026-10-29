@@ -190,6 +190,7 @@ export default function ReelsShowcase({
                 ) : (
                   <video
                     className="absolute inset-0 h-full w-full bg-black object-contain"
+                    aria-label={active.title}
                     src={active.src}
                     controls
                     autoPlay
@@ -217,13 +218,15 @@ function ReelCard({ item, onOpen }) {
       ].join(" ")}
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100">
-        <img
-          src={item.poster}
-          alt={item.title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-          draggable={false}
-          loading="lazy"
-        />
+        {item.poster ? (
+          <img
+            src={item.poster}
+            alt={item.title}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            draggable={false}
+            loading="lazy"
+          />
+        ) : null}
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 

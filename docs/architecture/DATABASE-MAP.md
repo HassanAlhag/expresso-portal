@@ -110,7 +110,8 @@ The source inventory records fields, explicit refs, enums and index declarations
 
 | Model → expected collection | Class | Relationships and reset note | Source |
 |---|---|---|---|
-| Portfolio → `portfolios` | CMS | Refs: Media. Editable public content; preserve approved publication metadata and referenced assets. | [portal-api/src/modules/portfolio/portfolio.model.js](../../portal-api/src/modules/portfolio/portfolio.model.js) L75 |
+| Portfolio → `portfolios` | CMS | Refs: Media. Case studies (`/case-studies`); the model and collection keep their historical name. Editable public content; preserve approved publication metadata and referenced assets. | [portal-api/src/modules/portfolio/portfolio.model.js](../../portal-api/src/modules/portfolio/portfolio.model.js) L75 |
+| WorkItem → `workitems` | CMS | Refs: Media, Portfolio (optional case study). Public Portfolio (`/portfolio`) visual work; initial drafts come from an insert-only seed. Preserve approved publication metadata and referenced assets. | [portal-api/src/modules/portfolio/workItem.model.js](../../portal-api/src/modules/portfolio/workItem.model.js) L61 |
 
 ## Procurement
 
@@ -150,7 +151,7 @@ The source inventory records fields, explicit refs, enums and index declarations
 
 ## Classification totals
 
-**BUSINESS: 28**, **CMS: 7**, **CONFIGURATION: 6**, **LOG/AUDIT: 1**, **SYSTEM: 3** (User, Role, Counter). TEST/LEGACY: **0 confirmed** — test records are rows inside real collections, not separate collections.
+**BUSINESS: 28**, **CMS: 8**, **CONFIGURATION: 6**, **LOG/AUDIT: 1**, **SYSTEM: 3** (User, Role, Counter). TEST/LEGACY: **0 confirmed** — test records are rows inside real collections, not separate collections.
 
 ## ER diagrams
 
@@ -496,6 +497,7 @@ Actor refs are included here even when omitted from diagrams. The machine-readab
 | User | `avatarMediaId` → Media; `clientId` → Customer |
 | Message | `customerId` → Customer; `authorId` → User; `readBy` → User |
 | Portfolio | `coverMedia` → Media; `gallery` → Media |
+| WorkItem | `cover.media`, `gallery[].media`, `video.media` → Media; `caseStudy` → Portfolio |
 | ProcurementCategory | `parentId` → ProcurementCategory; `heroImageMediaId` → Media |
 | Quotation | `rfqId` → RFQ; `vendorId` → ProcurementVendor |
 | ProcurementRequest | `customerId` → Customer; `categoryId` → ProcurementCategory; `assignedTo` → User; `vendorId` → ProcurementVendor; `createdBy` → User; `updatedBy` → User |

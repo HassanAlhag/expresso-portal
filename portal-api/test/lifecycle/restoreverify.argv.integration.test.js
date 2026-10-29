@@ -135,6 +135,13 @@ async function inspectMongorestore(cliPid, deadlineMs = 90000) {
         continue;
       }
       const args = cmdline.toString("utf8").split("\0").filter(Boolean);
+      // An empty /proc cmdline is a transient exec/exit snapshot, not a
+      // completed version probe. Keep this PID eligible for observation.
+      if (!args.length) {
+        cmdline.fill(0);
+        environ.fill(0);
+        continue;
+      }
       const config = args.find((x) => x.startsWith("--config="))?.slice("--config=".length) ?? "";
       let pipe = null;
       try {

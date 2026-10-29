@@ -1,6 +1,9 @@
+import "./setup-env.js";
 import { test, after, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { setupAuth, restoreAll, stopApp, stub, q, oid, call } from "./helpers.js";
+import bcrypt from "bcryptjs";
+import { signToken } from "../src/utils/jwt.js";
+import { setupAuth, restoreAll, stopApp, stub, q, oid, call, startApp } from "./helpers.js";
 import User from "../src/modules/iam/users/user.model.js";
 import Role from "../src/modules/iam/roles/role.model.js";
 
@@ -146,6 +149,7 @@ test("admin cannot persist the admin role", async () => {
 
 test("system status is super-admin only and reveals no secret values", async () => {
   setupAuth({ users: [admin, superAdmin] });
+  assert.equal((await call("GET", "/api/admin/system-status")).status, 401);
   const denied = await call("GET", "/api/admin/system-status", { user: admin });
   assert.equal(denied.status, 403);
   const ok = await call("GET", "/api/admin/system-status", { user: superAdmin });
@@ -158,4 +162,59 @@ test("system status is super-admin only and reveals no secret values", async () 
   assert.equal(typeof databaseConnected, "boolean");
   for (const [k, v] of Object.entries(configured)) assert.equal(typeof v, "boolean", k);
   assert.doesNotMatch(JSON.stringify(ok.body), /test-secret|mongodb|amazonaws|smtp\.|@/);
+});
+
+
+test("login authenticates the password, returns a safe current session, and rejects inactive or invalidated sessions", async () => {
+  const account = { _id: oid(), fullName: "Login Example", email: "login@example.test", role: "staff", isActive: true, extraPermissions: [], revokedPermissions: [], passwordChangedAt: null, passwordHash: await bcrypt.hash("Local-test-password-42", 10) };
+  account.comparePassword = User.prototype.comparePassword.bind(account);
+  account.save = async () => account;
+  setupAuth({ users: [account] });
+  stub(User, "findOne", ({ email }) => q(email === account.email ? account : null));
+  assert.equal((await call("POST", "/api/auth/login", { body: {} })).status, 400);
+  assert.equal((await call("POST", "/api/auth/login", { body: { email: account.email, password: "incorrect" } })).status, 401);
+  assert.equal((await call("POST", "/api/auth/login", { body: { email: "unknown@example.test", password: "Local-test-password-42" } })).status, 401);
+  const result = await call("POST", "/api/auth/login", { body: { email: " LOGIN@EXAMPLE.TEST ", password: "Local-test-password-42" } });
+  assert.equal(result.status, 200);
+  assert.equal(result.body.user.role, "staff");
+  assert.ok(Array.isArray(result.body.user.permissions));
+  assert.equal(result.body.user.passwordHash, undefined);
+  assert.ok(account.lastLoginAt instanceof Date);
+  const base = await startApp();
+  const current = () => fetch(`${base}/api/auth/me`, { headers: { authorization: `Bearer ${result.body.token}` } });
+  assert.equal((await current()).status, 200);
+  account.isActive = false;
+  assert.equal((await current()).status, 401);
+  assert.equal((await call("POST", "/api/auth/login", { body: { email: account.email, password: "Local-test-password-42" } })).status, 403);
+  account.isActive = true;
+  account.passwordChangedAt = new Date(Date.now() + 1000);
+  assert.equal((await current()).status, 401);
+});
+
+test("force logout enforces permission and role hierarchy, then invalidates the target's previously signed session", async () => {
+  const target = { _id: oid(), role: "staff", passwordChangedAt: null };
+  setupAuth({ users: [admin, superAdmin, userManager, target], roles: { user_manager: { permissions: ["iam.users.write"], isInternal: true } } });
+  let writes = 0;
+  stub(User, "findByIdAndUpdate", (id, patch) => {
+    assert.equal(String(id), target._id);
+    writes++;
+    Object.assign(target, patch);
+    return q(target);
+  });
+  const endpoint = `/api/users/${target._id}/force-logout`;
+  assert.equal((await call("POST", endpoint)).status, 401);
+  assert.equal((await call("POST", endpoint, { user: target })).status, 403);
+  assert.equal((await call("POST", endpoint, { user: userManager })).status, 403);
+  assert.equal((await call("POST", `/api/users/${superAdmin._id}/force-logout`, { user: admin })).status, 403);
+  assert.equal(writes, 0);
+  const token = signToken({ id: target._id, role: "super_admin", iat: Math.floor(Date.now() / 1000) - 60 });
+  const base = await startApp();
+  const current = () => fetch(`${base}/api/auth/me`, { headers: { authorization: `Bearer ${token}` } });
+  const before = await current();
+  assert.equal(before.status, 200);
+  assert.equal((await before.json()).user.role, "staff", "stored role overrides token claims");
+  assert.equal((await call("POST", endpoint, { user: superAdmin })).status, 200);
+  assert.equal(writes, 1);
+  assert.ok(target.passwordChangedAt instanceof Date);
+  assert.equal((await current()).status, 401);
 });

@@ -4,6 +4,11 @@ const REGISTRY_KEYS = new Set(
   WEBSITE_IMAGE_REGISTRY.map((item) => normalizeImagePath(item.defaultUrl))
 );
 
+// The image-optimization change renamed this source reference without adding
+// a WebP. Keep its registry key for existing CMS overrides; use the original
+// portrait only when no override is configured.
+const EXISTING_IMAGE_FALLBACKS = { "/gal2.webp": "/gal2.png" };
+
 function shouldUseApiAsset(path) {
   if (!path || typeof path !== "string") return false;
   if (path.startsWith("/uploads") || path.startsWith("uploads/")) return true;
@@ -65,6 +70,7 @@ export function resolveWebsiteImage(settings, fallback) {
   const override = overrides[normalizedFallback];
 
   if (override) return toWebsiteImageUrl(override);
+  if (EXISTING_IMAGE_FALLBACKS[normalizedFallback]) return EXISTING_IMAGE_FALLBACKS[normalizedFallback];
   return shouldUseApiAsset(fallback) ? toWebsiteImageUrl(fallback) : fallback;
 }
 

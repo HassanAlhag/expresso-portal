@@ -305,17 +305,19 @@ const TABS = [
     ],
   },
   {
+    // Stored under the historical "portfolio" key; it is the Case Studies
+    // page hero (pages/Portfolio/portfolio.jsx serves /case-studies).
     key: "portfolio",
-    label: "Portfolio",
+    label: "Case Studies",
     Icon: Layers,
-    hint: "Portfolio page images",
+    hint: "Case Studies page images",
     type: "images",
     fields: [
       {
         key: "heroImageUrl",
         mediaKey: "heroImageMediaId",
         label: "Page Hero Image",
-        hint: "Banner at the top of the Portfolio page",
+        hint: "Banner at the top of the Case Studies page",
       },
     ],
   },

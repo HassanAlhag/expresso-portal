@@ -4,8 +4,13 @@ import { ServiceBanner } from "../../components/ServicesBanner/servicesBanner";
 import WebDevelopmentSolutions from "../../components/ServicesComponents/webSolution";
 import WebSteps from "../../components/ServicesComponents/webSteps";
 import BasicFAQ from "../../components/ServicesComponents/faq";
+import BrandedServiceDetail, { BrandedServiceLoading, BRANDED_SERVICE_SLUGS } from "./BrandedServiceDetail";
 
 const BRAND = "#8390C8";
+// Service pages restyled to the approved Expresso brand reference layout
+// (web-dev, seo-marketing — approved one at a time); every other slug keeps
+// the existing rendering below.
+const BRANDED_REFERENCE_SLUGS = new Set(BRANDED_SERVICE_SLUGS);
 const API = process.env.REACT_APP_API_URL || "/api";
 
 // ─── Block renderers ──────────────────────────────────────────────────────────
@@ -253,7 +258,10 @@ export default function ServiceDetailPage() {
     );
   }
 
+  const branded = BRANDED_REFERENCE_SLUGS.has(slug);
+
   if (!service) {
+    if (branded) return <BrandedServiceLoading />;
     return (
       <ServiceBanner
         heading="Loading…"
@@ -262,6 +270,15 @@ export default function ServiceDetailPage() {
         ctaText=""
         ctaLink=""
         useImageOverrides={false}
+      />
+    );
+  }
+
+  if (branded) {
+    return (
+      <BrandedServiceDetail
+        service={service}
+        renderFallback={(block, idx) => <ServiceBlock key={idx} block={block} />}
       />
     );
   }

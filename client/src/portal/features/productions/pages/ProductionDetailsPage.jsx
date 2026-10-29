@@ -10,6 +10,7 @@ import ProductionJobFormModal from "../components/ProductionJobFormModal";
 import CreativeReviewPanel from "../../jobs/components/CreativeReviewPanel";
 
 import { addApproval } from "../../jobs/api";
+import { JOB_STATUSES } from "../../jobs/constants";
 import { listUsers } from "../../iam/users/api";
 import {
   attachProductionMedia,
@@ -38,17 +39,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-const PROD_STAGES = [
-  { key: "brief",           label: "Brief" },
-  { key: "script",          label: "Scripting" },
-  { key: "designing",       label: "Design" },
-  { key: "editing",         label: "Editing" },
-  { key: "internal_review", label: "Int. Review" },
-  { key: "client_review",   label: "Client Review" },
-  { key: "approved",        label: "Approved" },
-  { key: "scheduled",       label: "Scheduled" },
-  { key: "published",       label: "Published" },
-];
+const PROD_STAGES = JOB_STATUSES.filter((s) => s.value).map((s) => ({ key: s.value, label: s.label }));
 
 function stageIndex(status) {
   return PROD_STAGES.findIndex((s) => s.key === status);
@@ -409,6 +400,7 @@ export default function ProductionDetailsPage() {
                   key={stage.key}
                   type="button"
                   title={stage.label}
+                  aria-current={isCurrent ? "step" : undefined}
                   disabled={busy}
                   onClick={() => moveToStage(stage.key)}
                   className={[
@@ -431,7 +423,7 @@ export default function ProductionDetailsPage() {
           <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
             <span>Brief</span>
             <span className="font-extrabold text-slate-600">{PROD_STAGES[currentStageIdx]?.label || "—"}</span>
-            <span>Published</span>
+            <span>{PROD_STAGES[PROD_STAGES.length - 1].label}</span>
           </div>
         </div>
       </div>

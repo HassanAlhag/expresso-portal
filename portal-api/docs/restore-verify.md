@@ -1,5 +1,7 @@
 # Restore verification — R5-D3 (runbook)
 
+**Blueprint closure:** D1–D3 are CLOSED foundations; D4 seed and D5 reset are DEFERRED post-Blueprint. No reset/seed operation is authorized. See [final code closure and deployment acceptance](../../docs/architecture/BLUEPRINT-CLOSURE.md).
+
 Status: **R5-D3 complete / committed / pushed**. R5-D4 and R5-D5 are **not started**.
 
 ## Read this first

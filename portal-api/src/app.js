@@ -19,6 +19,7 @@ import projectRoutes from "./modules/projects/project.routes.js";
 import serviceTemplateRoutes from "./modules/services/serviceTemplate.routes.js";
 import customersRoutes from "./modules/customers/customers.routes.js";
 import portfolioRoutes from "./modules/portfolio/portfolio.routes.js";
+import workItemRoutes from "./modules/portfolio/workItem.routes.js";
 import mediaRoutes from "./modules/content/media/media.routes.js";
 import productionRoutes from "./modules/content/productions/production.routes.js";
 import jobsRoutes from "./modules/content/jobs/job.routes.js";
@@ -141,6 +142,7 @@ export function createApp() {
 
   app.use("/api/media", mediaRoutes);
   app.use("/api/portfolio", portfolioRoutes);
+  app.use("/api/work", workItemRoutes);
   app.use("/api/productions", productionRoutes);
   app.use("/api/jobs", jobsRoutes);
   app.use("/api/social-metrics", socialMetricsRoutes);

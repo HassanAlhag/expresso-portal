@@ -1,6 +1,6 @@
 // R5-C1 — offline endpoint / caller evidence register.
 // Fixture tests cover each false-positive defence; repository tests pin the
-// reconciliation with the 283 registered routes and the current review set.
+// reconciliation with the 290 registered routes and the current review set.
 // No network, database, storage, environment or access logs are used.
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
@@ -207,13 +207,13 @@ before(() => {
   repo = build();
 });
 
-test("repository: every one of the 283 registered routes has exactly one record", () => {
+test("repository: every one of the 290 registered routes has exactly one record", () => {
   const inv = JSON.parse(readFileSync(path.resolve(here, "../../docs/architecture/source-inventory.json"), "utf8"));
-  assert.equal(inv.counts.apiRoutes, 283);
-  assert.equal(repo.records.length, 283);
-  assert.equal(repo.summary.totalApiRegistrations, 283);
+  assert.equal(inv.counts.apiRoutes, 290);
+  assert.equal(repo.records.length, 290);
+  assert.equal(repo.summary.totalApiRegistrations, 290);
   const keys = repo.records.map((r) => `${r.method} ${r.path}`);
-  assert.equal(new Set(keys).size, 283);
+  assert.equal(new Set(keys).size, 290);
   assert.deepEqual(new Set(keys), new Set(inv.apiRoutes.map((r) => `${r.method} ${r.path}`)));
 });
 

@@ -320,14 +320,14 @@ Source: [client/src/portal/features/website](../../client/src/portal/features/we
 
 ## Portfolio CMS
 
-**Purpose:** Editable public case studies and gallery projects.
+**Purpose:** Two Website modules in one feature folder: **Case Studies** (editable public case studies, `/case-studies`) and **Portfolio** (visual work items, `/portfolio`).
 
 | Layer | Actual implementation |
 |---|---|
-| Frontend routes | /portal/website/portfolio; /portal/website/portfolio/:id; /portal/portfolio; /portal/portfolio/:id |
-| API groups | /api/portfolio |
-| Models | Portfolio; Media |
-| Authorization | UI portfolio.read; writes portfolio.write/delete; GET API is public |
+| Frontend routes | Case Studies: /portal/website/case-studies; /portal/website/case-studies/:id (old /portal/website/portfolio and /portal/portfolio URLs redirect). Portfolio: /portal/website/work; /portal/website/work/:id |
+| API groups | /api/portfolio (case studies); /api/work (Portfolio work items) |
+| Models | Portfolio (case studies); WorkItem; Media |
+| Authorization | Case studies: portfolio.read/write/delete (historical key names kept for stored grants). Portfolio: work.read/write/delete; delete is for drafts/archived items only. Public GETs serve published records only |
 | States / workflow | draft/published/archived, publication date and approval/system fields. |
 | Other modules | Feeds public /portfolio and /case-studies; detail uses slug or ObjectId. Separate from work-delivery Project. |
 | Files / notifications | Media cover/gallery refs, static fallback assets; no portfolio publication notifications. |

@@ -149,6 +149,12 @@ const PortfolioPage = lazy(() =>
 const PortfolioDetailsPage = lazy(() =>
   import("../features/portfolio/pages/PortfolioDetailsPage")
 );
+const WorkItemsPage = lazy(() =>
+  import("../features/portfolio/pages/WorkItemsPage")
+);
+const WorkItemDetailsPage = lazy(() =>
+  import("../features/portfolio/pages/WorkItemDetailsPage")
+);
 
 // Procurement
 const ProcurementDashboardPage = lazy(() =>
@@ -220,9 +226,11 @@ const BrandKitPage = lazy(() =>
   import("../features/brand-kit/pages/BrandKitPage")
 );
 
-function LegacyPortfolioDetailsRedirect() {
+// Case studies moved from /portal/website/portfolio (and the older
+// /portal/portfolio) to /portal/website/case-studies; old links redirect.
+function LegacyCaseStudyRedirect() {
   const { id } = useParams();
-  return <Navigate to={`/portal/website/portfolio/${id}`} replace />;
+  return <Navigate to={`/portal/website/case-studies/${id}`} replace />;
 }
 
 export default function PortalRoutes() {
@@ -343,11 +351,18 @@ export default function PortalRoutes() {
                       keywords: "contacts people crm",
                     },
                     {
+                      id: "go-case-studies",
+                      label: "Go to Case Studies",
+                      to: "/portal/website/case-studies",
+                      hint: "Website",
+                      keywords: "case studies stories website",
+                    },
+                    {
                       id: "go-portfolio",
                       label: "Go to Portfolio",
-                      to: "/portal/website/portfolio",
+                      to: "/portal/website/work",
                       hint: "Website",
-                      keywords: "portfolio case studies work samples website",
+                      keywords: "portfolio work visual showcase website",
                     },
                     {
                       id: "go-procurement",
@@ -444,11 +459,11 @@ export default function PortalRoutes() {
           <Route path="enrollments/:id" element={<EnrollmentDetailsPage />} />
           <Route
             path="portfolio"
-            element={<Navigate to="/portal/website/portfolio" replace />}
+            element={<Navigate to="/portal/website/case-studies" replace />}
           />
           <Route
             path="portfolio/:id"
-            element={<LegacyPortfolioDetailsRedirect />}
+            element={<LegacyCaseStudyRedirect />}
           />
           <Route path="billing" element={<BillingPage />} />
           <Route path="billing/:id" element={<InvoiceDetailsPage />} />
@@ -510,8 +525,12 @@ export default function PortalRoutes() {
 
           {/* Website content */}
           <Route path="careers" element={<CareersAdminPage />} />
-          <Route path="website/portfolio" element={<PortfolioPage />} />
-          <Route path="website/portfolio/:id" element={<PortfolioDetailsPage />} />
+          <Route path="website/case-studies" element={<PortfolioPage />} />
+          <Route path="website/case-studies/:id" element={<PortfolioDetailsPage />} />
+          <Route path="website/portfolio" element={<Navigate to="/portal/website/case-studies" replace />} />
+          <Route path="website/portfolio/:id" element={<LegacyCaseStudyRedirect />} />
+          <Route path="website/work" element={<WorkItemsPage />} />
+          <Route path="website/work/:id" element={<WorkItemDetailsPage />} />
           <Route path="website/slides" element={<HomepageSlidersPage />} />
           <Route path="website/settings" element={<WebsiteSettingsPage />} />
           <Route path="website/digital-services" element={<DigitalServicesPage />} />

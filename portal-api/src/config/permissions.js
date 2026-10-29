@@ -2,7 +2,7 @@
  * Central permission catalog for Expresso Portal.
  * Each permission follows the pattern: domain.resource.action
  *
- * Domains: customers, projects, productions, jobs, media, files, portfolio,
+ * Domains: customers, projects, productions, jobs, media, files, portfolio, work,
  *          services, enrollments, billing, tickets, crm, procurement,
  *          hr.staff, hr.expenses, hr.leaves, hr.scorecards,
  *          reports, activity, iam, website
@@ -72,12 +72,25 @@ export const PERMISSION_CATALOG = [
     ],
   },
   {
+    // Case studies (/case-studies). The keys keep their historical
+    // "portfolio" names so stored role grants keep working.
     domain: "portfolio",
+    label: "Case Studies",
+    permissions: [
+      { key: "portfolio.read",   label: "View",   description: "View case studies, including drafts" },
+      { key: "portfolio.write",  label: "Edit",   description: "Create and update case studies" },
+      { key: "portfolio.delete", label: "Delete", description: "Permanently delete case studies" },
+    ],
+  },
+  {
+    // Public Portfolio (visual work, /portfolio). New keys, so nobody who
+    // manages case studies gains this access without an explicit grant.
+    domain: "work",
     label: "Portfolio",
     permissions: [
-      { key: "portfolio.read",   label: "View",   description: "View portfolio case studies" },
-      { key: "portfolio.write",  label: "Edit",   description: "Create and update portfolio entries" },
-      { key: "portfolio.delete", label: "Delete", description: "Permanently delete portfolio entries" },
+      { key: "work.read",   label: "View",   description: "View portfolio work items, including drafts" },
+      { key: "work.write",  label: "Edit",   description: "Create, update, publish and archive portfolio work items" },
+      { key: "work.delete", label: "Delete", description: "Permanently delete draft or archived portfolio work items" },
     ],
   },
   {
@@ -273,6 +286,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "activity.read",
     "iam.users.read", "iam.teams.read",
     "website.read",
+    "work.read",
   ],
 
   finance: [

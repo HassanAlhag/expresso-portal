@@ -28,8 +28,10 @@ const ROUTE_PERMISSIONS = [
   ["/portal/files", "files.read"],
   ["/portal/messages", "messaging.read"],
   ["/portal/brand-kit", "brand_kit.read"],
+  ["/portal/website/case-studies", "portfolio.read"],
   ["/portal/website/portfolio", "portfolio.read"],
   ["/portal/portfolio", "portfolio.read"],
+  ["/portal/website/work", "work.read"],
   ["/portal/services", "services.read"],
   ["/portal/enrollments", "enrollments.read"],
   ["/portal/billing", "billing.read"],
@@ -78,6 +80,8 @@ const EXTERNAL_ROUTE_DENYLIST = [
   // Asset & content management — internal library/publishing tools
   "/portal/media-library",
   "/portal/website/portfolio",
+  "/portal/website/case-studies",
+  "/portal/website/work",
   // Service catalog & enrollment management — internal commercial tools
   "/portal/services",
   "/portal/enrollments",

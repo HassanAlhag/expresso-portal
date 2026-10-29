@@ -135,6 +135,14 @@ async function inspectMongodump(cliPid, deadlineMs = 60000) {
         continue;
       }
       const args = cmdline.toString("utf8").split("\0").filter(Boolean);
+      // /proc can briefly expose the executable name with an empty cmdline
+      // during exec/exit. It is not a version probe; retry without marking
+      // this PID inspected, so we still require a real running-tool sample.
+      if (!args.length) {
+        cmdline.fill(0);
+        environ.fill(0);
+        continue;
+      }
       const config = args.find((a) => a.startsWith("--config="))?.slice("--config=".length) ?? "";
       let pipe = null;
       try {

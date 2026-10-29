@@ -5,11 +5,11 @@
     "routeSource": "docs/architecture/source-inventory.json (apiRoutes)",
     "annotations": "docs/architecture/endpoint-evidence-annotations.json",
     "digests": {
-      "sourceInventory": "4fe774bba59f2e3b622141cf463a0ccdd7fce11c22ccf51c18bfedf757d2794c",
+      "sourceInventory": "ab2bf78ddee937ee8e20cefdaca287920adf0f28673ac949bec61d5c5785f0f0",
       "annotations": "339f13a475d0ecba42ec13eea8aea87e92aebf6d31cc49bd7573833380c2b738",
-      "clientSources": "2304ac4901e4d6b57489d0432fd33c1af9ba377b0811e6148b85d381f8365cdf",
-      "serverSources": "ad122c7427891e956ac261b40b46119cfa399e6ef106a4f5a4cccec4d92c182b",
-      "apiTests": "d31c90875cae9aca938d59952daed8b0b36840957cefc6c39d14118eaff06b91"
+      "clientSources": "d38ca9bd24226c074cdbdb3bdc6e316eab7d296fa5c54911433b4f556e5574e7",
+      "serverSources": "d657278dcbc9989b46be20a4c8030789e5847159dceeeae3fcc70fca31fff8bf",
+      "apiTests": "4dad62c854122f2dd7f0fd48ebb6585b25bad06049cc9a776d0b18ab251684fa"
     },
     "note": "Content digests rather than a commit id, so the register is reproducible from the commit that contains it. No timestamp is recorded."
   },
@@ -35,17 +35,17 @@
     "ordering": "Records sorted by path, then method. Evidence sites sorted by file, then line."
   },
   "summary": {
-    "totalApiRegistrations": 283,
-    "activeTrackedCaller": 260,
+    "totalApiRegistrations": 290,
+    "activeTrackedCaller": 267,
     "browserGeneratedPath": 1,
     "serverInternalCaller": 0,
-    "testOnly": 2,
+    "testOnly": 3,
     "unusedExport": 20,
     "unreachableCaller": 2,
     "noTrackedActiveCaller": 22,
     "operatorRetain": 3,
-    "externalConsumerUnknown": 283,
-    "externalConsumerPossible": 45,
+    "externalConsumerUnknown": 290,
+    "externalConsumerPossible": 47,
     "reviewRequired": 19,
     "usageEvidenceCollected": 0,
     "unresolvedCallSites": 0,
@@ -261,18 +261,22 @@
         "testReferences": [
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 149
+            "line": 152
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 151
+            "line": 153
+          },
+          {
+            "file": "portal-api/test/iam.test.js",
+            "line": 155
           },
           {
             "file": "portal-api/test/r4d-single-sources.test.js",
             "line": 60
           }
         ],
-        "testPathReferences": 3
+        "testPathReferences": 4
       },
       "classifications": [
         "TEST_ONLY",
@@ -486,11 +490,31 @@
         "unreachableCallers": [],
         "testReferences": [
           {
+            "file": "portal-api/test/iam.test.js",
+            "line": 174
+          },
+          {
+            "file": "portal-api/test/iam.test.js",
+            "line": 175
+          },
+          {
+            "file": "portal-api/test/iam.test.js",
+            "line": 176
+          },
+          {
+            "file": "portal-api/test/iam.test.js",
+            "line": 177
+          },
+          {
+            "file": "portal-api/test/iam.test.js",
+            "line": 188
+          },
+          {
             "file": "portal-api/test/rateLimit.test.js",
             "line": 14
           }
         ],
-        "testPathReferences": 1
+        "testPathReferences": 6
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER",
@@ -4093,7 +4117,7 @@
       "domain": "system",
       "route": {
         "file": "portal-api/src/app.js",
-        "line": 118
+        "line": 119
       },
       "handler": {
         "label": "(_req, res) => res.json({ ok: true, status: \"up\", env: env.nodeEnv })",
@@ -10692,19 +10716,19 @@
         "testReferences": [
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 112
+            "line": 115
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 117
+            "line": 120
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 128
+            "line": 131
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 140
+            "line": 143
           },
           {
             "file": "portal-api/test/r2-access.test.js",
@@ -10845,15 +10869,15 @@
         "testReferences": [
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 85
+            "line": 88
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 90
+            "line": 93
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 102
+            "line": 105
           },
           {
             "file": "portal-api/test/r2-access.test.js",
@@ -12634,11 +12658,17 @@
           }
         ],
         "unreachableCallers": [],
-        "testReferences": [],
-        "testPathReferences": 0
+        "testReferences": [
+          {
+            "file": "portal-api/test/iam.test.js",
+            "line": 208
+          }
+        ],
+        "testPathReferences": 2
       },
       "classifications": [
         "UNUSED_EXPORT",
+        "TEST_ONLY",
         "OPERATOR_RETAIN",
         "NO_TRACKED_ACTIVE_CALLER",
         "EXTERNAL_CONSUMER_POSSIBLE"
@@ -12686,23 +12716,23 @@
         "testReferences": [
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 28
+            "line": 31
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 38
+            "line": 41
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 48
+            "line": 51
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 59
+            "line": 62
           },
           {
             "file": "portal-api/test/iam.test.js",
-            "line": 73
+            "line": 76
           },
           {
             "file": "portal-api/test/r2-access.test.js",
@@ -13406,7 +13436,7 @@
         "activeTrackedCallers": [
           {
             "file": "client/src/pages/Services/ServiceDetailPage.jsx",
-            "line": 232,
+            "line": 237,
             "function": "ServiceDetailPage",
             "url": "/api/web-content/services/:runtime"
           }
@@ -13854,6 +13884,503 @@
         "unreachableCallers": [],
         "testReferences": [],
         "testPathReferences": 0
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/work",
+      "domain": "portfolio",
+      "route": {
+        "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+        "line": 17
+      },
+      "handler": {
+        "label": "listWorkItems",
+        "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+      },
+      "auth": "optional",
+      "guards": [
+        "optionalAuth"
+      ],
+      "permissions": [],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/hooks/useWorkItems.js",
+            "line": 15,
+            "function": "fetchPublishedWork",
+            "url": "/api/work"
+          },
+          {
+            "file": "client/src/portal/features/portfolio/workApi.js",
+            "line": 6,
+            "function": "listWorkItems",
+            "url": "/api/work"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 97
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 107
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 116
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 123
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 128
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 141
+          }
+        ],
+        "testPathReferences": 17
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER",
+        "EXTERNAL_CONSUMER_POSSIBLE"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "POST",
+      "path": "/api/work",
+      "domain": "portfolio",
+      "route": {
+        "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+        "line": 21
+      },
+      "handler": {
+        "label": "createWorkItem",
+        "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth"
+      ],
+      "permissions": [
+        "work.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/features/portfolio/workApi.js",
+            "line": 16,
+            "function": "createWorkItem",
+            "url": "/api/work"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 165
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 166
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 167
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 168
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 204
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 227
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 263
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 275
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 277
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 278
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 279
+          }
+        ],
+        "testPathReferences": 17
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/work/:id",
+      "domain": "portfolio",
+      "route": {
+        "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+        "line": 25
+      },
+      "handler": {
+        "label": "deleteWorkItem",
+        "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth"
+      ],
+      "permissions": [
+        "work.delete"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/features/portfolio/workApi.js",
+            "line": 36,
+            "function": "deleteWorkItem",
+            "url": "/api/work/:runtime"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 170
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 323
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 325
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 327
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 341
+          }
+        ],
+        "testPathReferences": 21
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/work/:id",
+      "domain": "portfolio",
+      "route": {
+        "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+        "line": 24
+      },
+      "handler": {
+        "label": "updateWorkItem",
+        "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth"
+      ],
+      "permissions": [
+        "work.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/features/portfolio/workApi.js",
+            "line": 26,
+            "function": "updateWorkItem",
+            "url": "/api/work/:runtime"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 169
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 237
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 255
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 256
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 292
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 295
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 298
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 301
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 302
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 303
+          }
+        ],
+        "testPathReferences": 21
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/work/:slug",
+      "domain": "portfolio",
+      "route": {
+        "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+        "line": 18
+      },
+      "handler": {
+        "label": "getWorkItem",
+        "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+      },
+      "auth": "optional",
+      "guards": [
+        "optionalAuth"
+      ],
+      "permissions": [],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/hooks/useWorkItems.js",
+            "line": 63,
+            "function": "useWorkItem",
+            "url": "/api/work/:runtime"
+          },
+          {
+            "file": "client/src/portal/features/portfolio/workApi.js",
+            "line": 11,
+            "function": "getWorkItem",
+            "url": "/api/work/:runtime"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 152
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 153
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 154
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 155
+          }
+        ],
+        "testPathReferences": 21
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER",
+        "EXTERNAL_CONSUMER_POSSIBLE"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "POST",
+      "path": "/api/work/from-case-study/:caseStudyId",
+      "domain": "portfolio",
+      "route": {
+        "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+        "line": 22
+      },
+      "handler": {
+        "label": "createWorkItemFromCaseStudy",
+        "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth"
+      ],
+      "permissions": [
+        "work.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/features/portfolio/workApi.js",
+            "line": 21,
+            "function": "createWorkItemFromCaseStudy",
+            "url": "/api/work/from-case-study/:runtime"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 171
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 383
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 395
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 396
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 399
+          }
+        ],
+        "testPathReferences": 5
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/work/reorder",
+      "domain": "portfolio",
+      "route": {
+        "file": "portal-api/src/modules/portfolio/workItem.routes.js",
+        "line": 23
+      },
+      "handler": {
+        "label": "reorderWorkItems",
+        "source": "portal-api/src/modules/portfolio/workItem.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth"
+      ],
+      "permissions": [
+        "work.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/features/portfolio/workApi.js",
+            "line": 31,
+            "function": "reorderWorkItems",
+            "url": "/api/work/reorder"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 311
+          },
+          {
+            "file": "portal-api/test/work-items.test.js",
+            "line": 313
+          }
+        ],
+        "testPathReferences": 2
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"

@@ -68,7 +68,7 @@ const IMAGE_FIELDS = {
   },
   thumbnailImg: {
     label: "Listing thumbnail",
-    hint: "Card image used across portfolio listings.",
+    hint: "Card image used across case-study listings.",
   },
   solutionImage: {
     label: "Solution visual",
@@ -279,7 +279,7 @@ export default function PortfolioDetailsPage() {
       const res = await getPortfolio(id);
       const found = res?.item;
       if (!found) {
-        setError("Portfolio item not found.");
+        setError("Case study not found.");
         return;
       }
       setItem(found);
@@ -444,7 +444,7 @@ export default function PortfolioDetailsPage() {
   const handleDelete = () => {
     if (!canDelete) return;
     setConfirmState({
-      title: "Delete portfolio item",
+      title: "Delete case study",
       message: `Delete "${item?.title}"?`,
       danger: true,
       onConfirm: async () => {
@@ -452,7 +452,7 @@ export default function PortfolioDetailsPage() {
         setConfirmState(null);
         try {
           await deletePortfolio(id);
-          nav("/portal/website/portfolio");
+          nav("/portal/website/case-studies");
         } catch (err) {
           toast.error(err?.response?.data?.message || "Delete failed.");
           setBusy(false);
@@ -504,7 +504,7 @@ export default function PortfolioDetailsPage() {
       />
       <PageHeader
         eyebrow="CONTENT"
-        title={item?.title || "Portfolio item"}
+        title={item?.title || "Case study"}
         subtitle={
           <div className="flex items-center gap-2">
             <StatusPill status={item?.status} />
@@ -516,14 +516,14 @@ export default function PortfolioDetailsPage() {
         breadcrumb={[
           { label: "Portal", to: "/portal" },
           { label: "Website" },
-          { label: "Portfolio", to: "/portal/website/portfolio" },
+          { label: "Case Studies", to: "/portal/website/case-studies" },
           { label: item?.title || "Item" },
         ]}
         right={
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              onClick={() => nav("/portal/website/portfolio")}
+              onClick={() => nav("/portal/website/case-studies")}
               disabled={busy}
             >
               <ArrowLeft size={15} />
@@ -537,7 +537,7 @@ export default function PortfolioDetailsPage() {
               </Button>
             )}
             {canDelete ? (
-              <Button variant="outline" onClick={handleDelete} disabled={busy} aria-label="Delete portfolio item">
+              <Button variant="outline" onClick={handleDelete} disabled={busy} aria-label="Delete case study">
                 <Trash2 size={15} />
               </Button>
             ) : null}
@@ -551,7 +551,7 @@ export default function PortfolioDetailsPage() {
       />
 
       {!canWrite ? (
-        <p className="text-sm font-semibold text-slate-500">View only. Your role can't edit portfolio items.</p>
+        <p className="text-sm font-semibold text-slate-500">View only. Your role can't edit case studies.</p>
       ) : null}
       <fieldset disabled={!canWrite} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr),360px]">
@@ -559,7 +559,7 @@ export default function PortfolioDetailsPage() {
         <div className="grid min-w-0 gap-6">
           <Card className="overflow-hidden">
             <CardHeader
-              title={<SectionTitle icon={FileText} title="Listing content" subtitle="Name and short text used on portfolio listing pages." />}
+              title={<SectionTitle icon={FileText} title="Listing content" subtitle="Name and short text used on case-study listing pages." />}
             />
             <CardBody className="bg-slate-50/40">
               <div className="grid gap-4">
@@ -567,7 +567,7 @@ export default function PortfolioDetailsPage() {
                   label="TITLE"
                   value={form.title}
                   onChange={set("title")}
-                  placeholder="Portfolio title"
+                  placeholder="Case study title"
                 />
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                   <div className="text-[11px] font-black tracking-[0.18em] text-slate-500">
