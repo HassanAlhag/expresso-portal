@@ -4,7 +4,7 @@
 
 ## What was inspected
 
-Every `*.model.js` definition under `portal-api/src/modules` was parsed: **45 files, 45 distinct registered models, 45 expected collection names** (44 at the audit baseline; R3 added `Counter`). Model getter calls such as `mongoose.model("Ticket")` are not additional model definitions. Embedded schemas are not counted as collections. Collection names below use Mongoose's default pluralizer unless explicitly configured; actual live collection existence/counts were **not queried**.
+Every `*.model.js` definition under `portal-api/src/modules` was parsed: **47 files, 47 distinct registered models, 47 expected collection names** (44 at the audit baseline; R3 added `Counter`, Portfolio separation added `WorkItem`, and Operating Model Phase 1 adds `DeliveryPeriod`). Model getter calls such as `mongoose.model("Ticket")` are not additional model definitions. Embedded schemas are not counted as collections. Collection names below use Mongoose's default pluralizer unless explicitly configured; actual live collection existence/counts were **not queried**.
 
 The source inventory records fields, explicit refs, enums and index declarations for every model. Classification is a **retention recommendation for the model's purpose**, not approval to delete records. No collection is classified TEST/LEGACY merely because sample records might exist. **No confirmed test-only collection was found.**
 
@@ -63,6 +63,14 @@ The source inventory records fields, explicit refs, enums and index declarations
 | Model → expected collection | Class | Relationships and reset note | Source |
 |---|---|---|---|
 | Enrollment → `enrollments` | BUSINESS | Refs: Customer, Project, ServiceTemplate, User. Snapshots/overrides/finalScope; references across retained projects/jobs need reconciliation. | [portal-api/src/modules/enrollments/enrollment.model.js](../../portal-api/src/modules/enrollments/enrollment.model.js) L164 |
+
+## Operating Model Phase 1
+
+| Model → expected collection | Class | Relationships and reset note | Source |
+|---|---|---|---|
+| DeliveryPeriod → `deliveryperiods` | BUSINESS | Refs: Customer, Enrollment, User. Recurring entitlement, scope revision, adjustments and reconciliation; Jobs retain immutable origin and current work-period links. Preserve with its agreement and obligations. No reset is authorized. | [portal-api/src/modules/operating/deliveryPeriod.model.js](../../portal-api/src/modules/operating/deliveryPeriod.model.js) |
+
+See [Operating Model Phase 1](OPERATING-MODEL-PHASE-1.md) for embedded agreement, Job, phase and approval data.
 
 ## Files
 
@@ -151,7 +159,7 @@ The source inventory records fields, explicit refs, enums and index declarations
 
 ## Classification totals
 
-**BUSINESS: 28**, **CMS: 8**, **CONFIGURATION: 6**, **LOG/AUDIT: 1**, **SYSTEM: 3** (User, Role, Counter). TEST/LEGACY: **0 confirmed** — test records are rows inside real collections, not separate collections.
+**BUSINESS: 29**, **CMS: 8**, **CONFIGURATION: 6**, **LOG/AUDIT: 1**, **SYSTEM: 3** (User, Role, Counter). TEST/LEGACY: **0 confirmed** — test records are rows inside real collections, not separate collections.
 
 ## ER diagrams
 

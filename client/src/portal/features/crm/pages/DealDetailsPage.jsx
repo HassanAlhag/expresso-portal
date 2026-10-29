@@ -109,7 +109,7 @@ export default function DealDetailsPage() {
 
   const more = [
     { key: "refresh", label: "Refresh", icon: RefreshCw, onSelect: load },
-    clientId && canEnroll ? { key: "enroll", label: "Enroll client in a service", icon: BookPlus, onSelect: () => { setEnrollCustomerId(clientId); setEnrollAfterConversion(false); setEnrollOpen(true); } } : null,
+    clientId && canEnroll ? { key: "enroll", label: "Confirm delivery agreement", icon: BookPlus, onSelect: () => { setEnrollCustomerId(clientId); setEnrollAfterConversion(false); setEnrollOpen(true); } } : null,
     canDelete ? { key: "sep", separator: true } : null,
     canDelete ? { key: "delete", label: "Delete deal", icon: Trash2, tone: "muted", onSelect: () => setDeleteOpen(true) } : null,
   ];
@@ -298,6 +298,7 @@ export default function DealDetailsPage() {
         <CreateEnrollmentModal
           open={enrollOpen}
           initialCustomerId={enrollCustomerId}
+          handoff
           cancelLabel={enrollAfterConversion ? "Skip, go to the client" : "Cancel"}
           busy={enrollBusy}
           onClose={() => {
@@ -310,7 +311,7 @@ export default function DealDetailsPage() {
           onSubmit={async (payload) => {
             setEnrollBusy(true);
             try {
-              const res = await createEnrollment(payload);
+              const res = await createEnrollment({ ...payload, status: "draft", sourceDealId: item._id, accountOwnerId: idOf(item.ownerUserId), pricing: { price: item.value, currency: item.currency } });
               toast.success("Enrollment created.");
               setEnrollOpen(false);
               const enrollmentId = res?.item?._id || res?._id;

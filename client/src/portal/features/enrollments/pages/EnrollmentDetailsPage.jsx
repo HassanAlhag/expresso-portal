@@ -1,3 +1,4 @@
+import AgreementPanel from "../../../shared/operating/AgreementPanel";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../../../shared/ui/PageHeader";
@@ -184,7 +185,7 @@ export default function EnrollmentDetailsPage() {
   const customerName = item.customerId?.companyName || item.customerId?.contactName || "Unknown client";
   const serviceName = item.serviceTemplateId?.name || "Unknown service";
   const projectName = item.projectId?.name || null;
-  const mode = item.serviceTemplateId?.executionMode || item.finalScope?.mode || "recurring";
+  const mode = item.operatingModelVersion === 1 ? item.agreementRevisions?.[item.agreementRevisions.length - 1]?.scope?.mode || item.finalScope?.mode : item.serviceTemplateId?.executionMode || item.finalScope?.mode || "recurring";
   const groups = item.finalScope?.groups || [];
   const totalJobs = groups.reduce((sum, g) => sum + (g.jobs?.length || 0), 0);
 
@@ -207,12 +208,12 @@ export default function EnrollmentDetailsPage() {
             <Button variant="outline" onClick={load} disabled={busy}>
               <RefreshCw size={15} />
             </Button>
-            {canGenerate ? (
+            {canGenerate && item.operatingModelVersion !== 1 && !item.agreementDraft ? (
               <Button variant="outline" onClick={() => setConfirmGenerate(true)} disabled={busy}>
                 <Zap size={15} /> Generate jobs
               </Button>
             ) : null}
-            {canDelete ? (
+            {canDelete && item.operatingModelVersion !== 1 ? (
               <Button variant="outline" onClick={() => setConfirmDelete(true)} disabled={busy} aria-label="Delete enrollment">
                 <Trash2 size={15} />
               </Button>
@@ -240,6 +241,8 @@ export default function EnrollmentDetailsPage() {
           onCancel={() => setConfirmDelete(false)}
         />
       )}
+
+      {access.isInternal && access.can("jobs.read") && <AgreementPanel kind="enrollment" owner={item} onChanged={load} />}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column: details */}
@@ -356,7 +359,7 @@ export default function EnrollmentDetailsPage() {
                     <FolderKanban size={14} /> View related project
                   </Button>
                 )}
-                {canGenerate ? (
+                {canGenerate && item.operatingModelVersion !== 1 && !item.agreementDraft ? (
                   <Button
                     variant="outline"
                     className="w-full justify-start"

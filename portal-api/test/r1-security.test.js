@@ -133,7 +133,7 @@ function existingProject(customerId) {
 test("P0-2 project update: same-company update succeeds (controller boundary)", async () => {
   const p = existingProject(companyA);
   let patched = null;
-  stub(Project, "findByIdAndUpdate", (_id, patch) => {
+  stub(Project, "findOneAndUpdate", (_id, patch) => {
     patched = patch;
     return q({ ...p, ...patch });
   });
@@ -144,21 +144,21 @@ test("P0-2 project update: same-company update succeeds (controller boundary)", 
 
 test("P0-2 project update: another company's project cannot be edited and is left unchanged (controller boundary)", async () => {
   const p = existingProject(companyB);
-  stub(Project, "findByIdAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
+  stub(Project, "findOneAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
   const r = await runController(updateProject, { user: externalHolder, params: { id: String(p._id) }, body: { name: "Hijacked" } });
   assert.equal(r.status, 403);
 });
 
 test("P0-2 project update: external user cannot move their project to another company (controller boundary)", async () => {
   const p = existingProject(companyA);
-  stub(Project, "findByIdAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
+  stub(Project, "findOneAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
   const r = await runController(updateProject, { user: externalHolder, params: { id: String(p._id) }, body: { customerId: companyB } });
   assert.equal(r.status, 403);
 });
 
 test("P0-2 project update: external user cannot turn their project internal (controller boundary)", async () => {
   const p = existingProject(companyA);
-  stub(Project, "findByIdAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
+  stub(Project, "findOneAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
   const r = await runController(updateProject, { user: externalHolder, params: { id: String(p._id) }, body: { projectMode: "internal" } });
   assert.equal(r.status, 403);
 });
@@ -167,7 +167,7 @@ test("P0-2 project update: internal staff can still edit and reassign any projec
   asActors();
   const p = existingProject(companyB);
   let patched = null;
-  stub(Project, "findByIdAndUpdate", (_id, patch) => {
+  stub(Project, "findOneAndUpdate", (_id, patch) => {
     patched = patch;
     return q({ ...p, ...patch });
   });
@@ -217,7 +217,7 @@ test("P0-2 project delete: internal staff and super admin can archive any compan
 test("P0-2 + R2: over the API, an external user granted project/ticket write or delete is refused before any write", async () => {
   asActors(); // the client role document grants projects.write/delete and tickets.delete
   stub(Project, "create", mustNotWrite("Project.create"));
-  stub(Project, "findByIdAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
+  stub(Project, "findOneAndUpdate", mustNotWrite("Project.findByIdAndUpdate"));
   stub(Project, "findByIdAndDelete", mustNotWrite("Project.findByIdAndDelete"));
   stub(Ticket, "findByIdAndDelete", mustNotWrite("Ticket.findByIdAndDelete"));
   const p = existingProject(companyA);

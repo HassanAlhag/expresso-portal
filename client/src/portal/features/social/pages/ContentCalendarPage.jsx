@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { identity, localDate } from "../../../shared/operating/api";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft,
@@ -133,8 +135,9 @@ function calendarGrid(year, month) {
 }
 
 function dueDateDay(job) {
-  if (!job.dueDate) return null;
-  return new Date(job.dueDate).getDate();
+  const date = job.operatingModelVersion === 1 ? job.scheduledPublicationDate : job.dueDate;
+  if (!date) return null;
+  return new Date(date).getDate();
 }
 
 function isToday(year, month, day) {
@@ -155,6 +158,8 @@ function PostChip({ job, onClick }) {
       <span className={`shrink-0 h-2 w-2 rounded-full ${dot}`} />
       <span className="truncate text-slate-700 font-medium leading-tight">
         {platformLabel} · {job.title || job.caption?.slice(0, 30) || "Post"}
+        {job.operatingModelVersion === 1 && identity(job.originDeliveryPeriodId) !== identity(job.workDeliveryPeriodId) ? " · Carry-in" : ""}
+        {job.operating?.blockers?.some((b) => !b.endedAt) ? " · Blocked" : ""}
       </span>
     </button>
   );
@@ -200,7 +205,7 @@ function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange, canWr
   const thumb = job.coverMedia?.thumbnailUrl || job.coverMedia?.url
     || job.draftMediaId?.thumbnailUrl || job.draftMediaId?.url || null;
   const status = job.status || "";
-  const isClientReview = status === "client_review";
+  const isClientReview = status === "client_review" && job.operatingModelVersion !== 1;
 
   const doApproval = async (apStatus) => {
     if (!canWrite) return;
@@ -307,6 +312,7 @@ function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange, canWr
           </div>
         )}
 
+        {job.operatingModelVersion === 1 && <div className="px-stack"><Link to={`/portal/jobs/${job._id}`}>Open managed review and delivery</Link><p>Origin: {job.originDeliveryPeriodId?.periodStart ? localDate(job.originDeliveryPeriodId.periodStart, job.originDeliveryPeriodId.timezone) : "Original service period"}. Work period: {job.workDeliveryPeriodId?.periodStart ? localDate(job.workDeliveryPeriodId.periodStart, job.workDeliveryPeriodId.timezone) : "Assigned service period"}. Review: {job.status}.</p></div>}
         {/* Client Approval Actions (jobs.write) */}
         {isClientReview && canWrite && (
           <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 grid gap-3">
@@ -335,7 +341,7 @@ function PostDrawer({ job, open, onClose, onApprovalAdded, onStatusChange, canWr
         )}
 
         {/* Add Note (jobs.write) */}
-        {canWrite ? (
+        {canWrite && job.operatingModelVersion !== 1 ? (
         <div>
           {!noteOpen ? (
             <button
@@ -598,6 +604,7 @@ export default function ContentCalendarPage() {
   const [customers, setCustomers] = useState([]);
 
   const [jobs, setJobs]           = useState([]);
+  const [unscheduled, setUnscheduled] = useState([]);
   const [metrics, setMetrics]     = useState([]);
   const [loading, setLoading]     = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -645,22 +652,29 @@ export default function ContentCalendarPage() {
       const lastDay  = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
 
       const params = {
-        dueDateFrom: firstDay,
-        dueDateTo:   lastDay,
+        scheduleFrom: firstDay,
+        scheduleTo:   lastDay,
         limit:       200,
         sort:        "dueDate",
       };
       if (platform) params.platform = platform;
       if (customerId) params.customerId = customerId;
 
-      const [jobsRes, metricsRes] = await Promise.all([
-        listJobs(params),
+      const fetchPages = async (query) => {
+        let all = [], page = 1, pages = 1;
+        do { const r = await listJobs({ ...query, page, limit: 100 }); all.push(...(r.items || [])); pages = r.pages || 1; page += 1; } while (page <= pages);
+        return { items: all };
+      };
+      const [jobsRes, unscheduledRes, metricsRes] = await Promise.all([
+        fetchPages(params),
+        fetchPages({ unscheduled: "true", ...(customerId ? { customerId } : {}), ...(platform ? { platform } : {}) }),
         listSocialMetrics({ period, ...(customerId ? { customerId } : {}) }),
       ]);
 
       // Filter to social media job types
       const allJobs = (jobsRes?.items || []).filter((j) => SOCIAL_TYPES.includes(j.type));
       setJobs(allJobs);
+      setUnscheduled((unscheduledRes.items || []).filter((j) => SOCIAL_TYPES.includes(j.type) && j.operating?.disposition === "outstanding"));
       setMetrics(metricsRes?.items || []);
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed to load calendar.");
@@ -767,6 +781,7 @@ export default function ContentCalendarPage() {
 
   return (
     <div className="grid gap-6">
+      {unscheduled.length > 0 && <Card className="p-4"><h2>Unscheduled managed work</h2><p>Choose a publication date on the Job. Contractual deadlines and origin periods are preserved.</p>{unscheduled.map((j) => <div key={j._id}><Link to={`/portal/jobs/${j._id}`}>{j.title}</Link>{identity(j.originDeliveryPeriodId) !== identity(j.workDeliveryPeriodId) ? " · Carry-in" : ""}{j.operating?.blockers?.some((b) => !b.endedAt) ? " · Blocked" : ""}</div>)}</Card>}
       <PageHeader
         eyebrow="DELIVERY"
         title="Content Calendar"

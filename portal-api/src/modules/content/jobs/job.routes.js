@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { requireAuth, requirePermission } from "../../../middleware/auth.js";
+import { requireInternalUser } from "../../../utils/accessControl.js";
+import { jobAction, operatingOptions } from "../../operating/operating.controller.js";
 import {
   addApproval,
   attachMedia,
@@ -25,6 +27,8 @@ const router = Router();
 router.get("/public/website", listPublicWebsiteJobs);
 
 router.use(requireAuth);
+router.get("/:id/operating/options", requireInternalUser, requirePermission("jobs.write"), operatingOptions);
+router.post("/:id/operating/:command", requireInternalUser, requirePermission("jobs.read"), jobAction);
 
 router.get("/", requirePermission("jobs.read"), listJobs);
 router.post("/", requirePermission("jobs.write"), createJob);

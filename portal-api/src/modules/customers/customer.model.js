@@ -21,6 +21,7 @@ const CustomerSchema = new mongoose.Schema(
     },
 
     isActive: { type: Boolean, default: true },
+    accountManagerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
 
     ownerUserId: {
       type: mongoose.Schema.Types.ObjectId,

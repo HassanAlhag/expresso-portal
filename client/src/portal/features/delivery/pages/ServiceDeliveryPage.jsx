@@ -23,6 +23,7 @@ import { useToast } from "../../../shared/ui/Toast";
 
 const DONE_STATUSES = new Set(["approved", "scheduled", "published", "delivered"]);
 const ACTIVE_STATUSES = new Set([
+  "in_progress",
   "content_ready",
   "script",
   "pre_production",
@@ -146,8 +147,10 @@ function getServiceName(enrollment) {
   return template.name || "Service enrollment";
 }
 
+function isDelivered(job) { return job.operatingModelVersion === 1 ? job.operating?.disposition === "delivered" : DONE_STATUSES.has(job.status); }
+
 function isOverdue(job) {
-  if (!job?.dueDate || DONE_STATUSES.has(job.status)) return false;
+  if (!job?.dueDate || isDelivered(job)) return false;
   const end = new Date(job.dueDate);
   end.setHours(23, 59, 59, 999);
   return end < new Date();
@@ -181,6 +184,7 @@ function buildPhaseList(enrollment, config) {
 }
 
 function matchPhase(job, phases) {
+  if (job.operatingModelVersion === 1) return phases.find((p) => p.key === job.phaseId) || { key: "unallocated" };
   const text = normalize(`${job?.title || ""} ${job?.notes || ""}`);
   return (
     phases.find((phase) =>
@@ -223,11 +227,11 @@ function enrichEnrollment(enrollment, jobs) {
   const enrollmentJobs = jobs.filter(
     (job) => enrollmentIdOf(job) === String(enrollment._id)
   );
-  const completedJobs = enrollmentJobs.filter((job) => DONE_STATUSES.has(job.status));
+  const completedJobs = enrollmentJobs.filter((job) => isDelivered(job));
   const activeJobs = enrollmentJobs.filter((job) => ACTIVE_STATUSES.has(job.status));
   const overdueJobs = enrollmentJobs.filter(isOverdue);
   const nextJob = enrollmentJobs
-    .filter((job) => job.dueDate && !DONE_STATUSES.has(job.status))
+    .filter((job) => job.dueDate && !isDelivered(job))
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))[0];
 
   const phases = buildPhaseList(enrollment, config);
@@ -235,7 +239,7 @@ function enrichEnrollment(enrollment, jobs) {
     const phaseJobs = enrollmentJobs.filter(
       (job) => matchPhase(job, phases).key === phase.key
     );
-    const done = phaseJobs.filter((job) => DONE_STATUSES.has(job.status)).length;
+    const done = phaseJobs.filter((job) => isDelivered(job)).length;
     const active = phaseJobs.filter((job) => ACTIVE_STATUSES.has(job.status)).length;
     return {
       ...phase,

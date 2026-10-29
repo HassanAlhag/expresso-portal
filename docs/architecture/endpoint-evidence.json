@@ -5,11 +5,11 @@
     "routeSource": "docs/architecture/source-inventory.json (apiRoutes)",
     "annotations": "docs/architecture/endpoint-evidence-annotations.json",
     "digests": {
-      "sourceInventory": "ab2bf78ddee937ee8e20cefdaca287920adf0f28673ac949bec61d5c5785f0f0",
+      "sourceInventory": "930f8b4bd6e947904a53363c44d5bbab6e273e6c2c9784ffda1ee6ab1acddf75",
       "annotations": "339f13a475d0ecba42ec13eea8aea87e92aebf6d31cc49bd7573833380c2b738",
-      "clientSources": "d38ca9bd24226c074cdbdb3bdc6e316eab7d296fa5c54911433b4f556e5574e7",
-      "serverSources": "d657278dcbc9989b46be20a4c8030789e5847159dceeeae3fcc70fca31fff8bf",
-      "apiTests": "4dad62c854122f2dd7f0fd48ebb6585b25bad06049cc9a776d0b18ab251684fa"
+      "clientSources": "7aa60dad5582947b8574aa8da1518accbb7670bdae8a0fb6c13eec1b0bd3df4e",
+      "serverSources": "7fef368d9d240796a18b0cb0386cb45c6facab4ae7de1e7c530cf3018558dce2",
+      "apiTests": "c618cac1007bec65d07662aaedc3a84fd516ae182cc613d1cd7ab432d5815c28"
     },
     "note": "Content digests rather than a commit id, so the register is reproducible from the commit that contains it. No timestamp is recorded."
   },
@@ -35,8 +35,8 @@
     "ordering": "Records sorted by path, then method. Evidence sites sorted by file, then line."
   },
   "summary": {
-    "totalApiRegistrations": 290,
-    "activeTrackedCaller": 267,
+    "totalApiRegistrations": 300,
+    "activeTrackedCaller": 277,
     "browserGeneratedPath": 1,
     "serverInternalCaller": 0,
     "testOnly": 3,
@@ -44,7 +44,7 @@
     "unreachableCaller": 2,
     "noTrackedActiveCaller": 22,
     "operatorRetain": 3,
-    "externalConsumerUnknown": 290,
+    "externalConsumerUnknown": 300,
     "externalConsumerPossible": 47,
     "reviewRequired": 19,
     "usageEvidenceCollected": 0,
@@ -694,7 +694,7 @@
         "testReferences": [
           {
             "file": "portal-api/test/pui2-client-project-fields.test.js",
-            "line": 157
+            "line": 161
           },
           {
             "file": "portal-api/test/pui5-external-boundaries.test.js",
@@ -796,7 +796,7 @@
         "testReferences": [
           {
             "file": "portal-api/test/pui2-client-project-fields.test.js",
-            "line": 166
+            "line": 170
           },
           {
             "file": "portal-api/test/pui5-external-boundaries.test.js",
@@ -2744,7 +2744,7 @@
             "line": 225
           }
         ],
-        "testPathReferences": 6
+        "testPathReferences": 7
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -3103,7 +3103,7 @@
       "domain": "customers",
       "route": {
         "file": "portal-api/src/modules/customers/customers.routes.js",
-        "line": 17
+        "line": 20
       },
       "handler": {
         "label": "listCustomers",
@@ -3170,7 +3170,7 @@
       "domain": "customers",
       "route": {
         "file": "portal-api/src/modules/customers/customers.routes.js",
-        "line": 29
+        "line": 32
       },
       "handler": {
         "label": "createCustomer",
@@ -3214,7 +3214,7 @@
       "domain": "customers",
       "route": {
         "file": "portal-api/src/modules/customers/customers.routes.js",
-        "line": 41
+        "line": 44
       },
       "handler": {
         "label": "deleteCustomer",
@@ -3241,7 +3241,7 @@
         "unusedExportCallers": [],
         "unreachableCallers": [],
         "testReferences": [],
-        "testPathReferences": 3
+        "testPathReferences": 5
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -3258,7 +3258,7 @@
       "domain": "customers",
       "route": {
         "file": "portal-api/src/modules/customers/customers.routes.js",
-        "line": 23
+        "line": 26
       },
       "handler": {
         "label": "getCustomerById",
@@ -3298,7 +3298,7 @@
             "line": 121
           }
         ],
-        "testPathReferences": 3
+        "testPathReferences": 5
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -3315,7 +3315,7 @@
       "domain": "customers",
       "route": {
         "file": "portal-api/src/modules/customers/customers.routes.js",
-        "line": 35
+        "line": 38
       },
       "handler": {
         "label": "updateCustomer",
@@ -3341,8 +3341,17 @@
         "serverInternalCallers": [],
         "unusedExportCallers": [],
         "unreachableCallers": [],
-        "testReferences": [],
-        "testPathReferences": 3
+        "testReferences": [
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 206
+          },
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 208
+          }
+        ],
+        "testPathReferences": 5
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -3359,7 +3368,7 @@
       "domain": "customers",
       "route": {
         "file": "portal-api/src/modules/customers/customers.routes.js",
-        "line": 47
+        "line": 50
       },
       "handler": {
         "label": "createCustomerLogin",
@@ -3424,11 +3433,56 @@
     },
     {
       "method": "GET",
+      "path": "/api/customers/:id/operating/options",
+      "domain": "customers",
+      "route": {
+        "file": "portal-api/src/modules/customers/customers.routes.js",
+        "line": 18
+      },
+      "handler": {
+        "label": "operatingOptions",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "customers.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 10,
+            "function": "options",
+            "url": "/api/customers/:runtime/operating/options"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [],
+        "testPathReferences": 0
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "GET",
       "path": "/api/customers/:id/users",
       "domain": "customers",
       "route": {
         "file": "portal-api/src/modules/customers/customers.routes.js",
-        "line": 54
+        "line": 57
       },
       "handler": {
         "label": "listCustomerUsers",
@@ -3485,7 +3539,7 @@
       "domain": "customers",
       "route": {
         "file": "portal-api/src/modules/customers/customers.routes.js",
-        "line": 61
+        "line": 64
       },
       "handler": {
         "label": "createCustomerUser",
@@ -3550,7 +3604,7 @@
       "domain": "enrollments",
       "route": {
         "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-        "line": 13
+        "line": 19
       },
       "handler": {
         "label": "listEnrollmentsGlobal",
@@ -3577,7 +3631,7 @@
         "unusedExportCallers": [],
         "unreachableCallers": [],
         "testReferences": [],
-        "testPathReferences": 1
+        "testPathReferences": 2
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -3594,7 +3648,7 @@
       "domain": "enrollments",
       "route": {
         "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-        "line": 27
+        "line": 33
       },
       "handler": {
         "label": "createEnrollmentGlobal",
@@ -3626,7 +3680,7 @@
             "line": 226
           }
         ],
-        "testPathReferences": 1
+        "testPathReferences": 2
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -3643,7 +3697,7 @@
       "domain": "enrollments",
       "route": {
         "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-        "line": 41
+        "line": 47
       },
       "handler": {
         "label": "deleteEnrollmentGlobal",
@@ -3670,7 +3724,7 @@
         "unusedExportCallers": [],
         "unreachableCallers": [],
         "testReferences": [],
-        "testPathReferences": 1
+        "testPathReferences": 2
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -3687,7 +3741,7 @@
       "domain": "enrollments",
       "route": {
         "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-        "line": 20
+        "line": 26
       },
       "handler": {
         "label": "getEnrollmentGlobal",
@@ -3714,7 +3768,7 @@
         "unusedExportCallers": [],
         "unreachableCallers": [],
         "testReferences": [],
-        "testPathReferences": 1
+        "testPathReferences": 2
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -3731,7 +3785,7 @@
       "domain": "enrollments",
       "route": {
         "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-        "line": 34
+        "line": 40
       },
       "handler": {
         "label": "updateEnrollmentGlobal",
@@ -3759,11 +3813,214 @@
         "unreachableCallers": [],
         "testReferences": [
           {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 123
+          },
+          {
             "file": "portal-api/test/r4d-single-sources.test.js",
             "line": 235
           }
         ],
-        "testPathReferences": 1
+        "testPathReferences": 2
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/enrollments/:id/operating",
+      "domain": "enrollments",
+      "route": {
+        "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+        "line": 15
+      },
+      "handler": {
+        "label": "enrollmentOverview",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "enrollments.read",
+        "jobs.read"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 5,
+            "function": "overview",
+            "url": "/api/enrollments/:runtime/operating"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 84
+          },
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 91
+          },
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 93
+          },
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 246
+          }
+        ],
+        "testPathReferences": 5
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "POST",
+      "path": "/api/enrollments/:id/operating/:command",
+      "domain": "enrollments",
+      "route": {
+        "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+        "line": 16
+      },
+      "handler": {
+        "label": "enrollmentAction",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "enrollments.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 16,
+            "function": "ownerAction",
+            "url": "/api/enrollments/:runtime/operating/:runtime"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [],
+        "testPathReferences": 33
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/enrollments/:id/operating/options",
+      "domain": "enrollments",
+      "route": {
+        "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+        "line": 14
+      },
+      "handler": {
+        "label": "operatingOptions",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "enrollments.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 11,
+            "function": "options",
+            "url": "/api/enrollments/:runtime/operating/options"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [],
+        "testPathReferences": 0
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "POST",
+      "path": "/api/enrollments/:id/operating/periods/:periodId/:command",
+      "domain": "enrollments",
+      "route": {
+        "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+        "line": 17
+      },
+      "handler": {
+        "label": "periodAction",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "enrollments.write",
+        "jobs.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 19,
+            "function": "periodAction",
+            "url": "/api/enrollments/:runtime/operating/periods/:runtime/:runtime"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [],
+        "testPathReferences": 4
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -6983,7 +7240,7 @@
         "testReferences": [
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 411
+            "line": 413
           },
           {
             "file": "portal-api/test/vendorInviteWorld.js",
@@ -7037,7 +7294,7 @@
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 412
+            "line": 414
           }
         ],
         "testPathReferences": 5
@@ -7058,7 +7315,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 29
+        "line": 33
       },
       "handler": {
         "label": "listJobs",
@@ -7125,7 +7382,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 30
+        "line": 34
       },
       "handler": {
         "label": "createJob",
@@ -7204,7 +7461,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 52
+        "line": 56
       },
       "handler": {
         "label": "deleteJob",
@@ -7236,8 +7493,13 @@
         "serverInternalCallers": [],
         "unusedExportCallers": [],
         "unreachableCallers": [],
-        "testReferences": [],
-        "testPathReferences": 11
+        "testReferences": [
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 168
+          }
+        ],
+        "testPathReferences": 15
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -7254,7 +7516,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 50
+        "line": 54
       },
       "handler": {
         "label": "getJob",
@@ -7287,7 +7549,7 @@
         "unusedExportCallers": [],
         "unreachableCallers": [],
         "testReferences": [],
-        "testPathReferences": 11
+        "testPathReferences": 15
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -7304,7 +7566,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 51
+        "line": 55
       },
       "handler": {
         "label": "updateJob",
@@ -7343,6 +7605,18 @@
         "unusedExportCallers": [],
         "unreachableCallers": [],
         "testReferences": [
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 153
+          },
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 161
+          },
+          {
+            "file": "portal-api/test/operating-model.integration.test.js",
+            "line": 247
+          },
           {
             "file": "portal-api/test/pi-jobs.test.js",
             "line": 81
@@ -7388,7 +7662,7 @@
             "line": 247
           }
         ],
-        "testPathReferences": 11
+        "testPathReferences": 15
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -7405,7 +7679,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 60
+        "line": 64
       },
       "handler": {
         "label": "addApproval",
@@ -7449,7 +7723,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 54
+        "line": 58
       },
       "handler": {
         "label": "attachMedia",
@@ -7494,12 +7768,102 @@
       "retirementStatus": "NOT_AUTHORIZED"
     },
     {
+      "method": "POST",
+      "path": "/api/jobs/:id/operating/:command",
+      "domain": "content",
+      "route": {
+        "file": "portal-api/src/modules/content/jobs/job.routes.js",
+        "line": 31
+      },
+      "handler": {
+        "label": "jobAction",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "jobs.read"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 20,
+            "function": "jobAction",
+            "url": "/api/jobs/:runtime/operating/:runtime"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [],
+        "testPathReferences": 5
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/:id/operating/options",
+      "domain": "content",
+      "route": {
+        "file": "portal-api/src/modules/content/jobs/job.routes.js",
+        "line": 30
+      },
+      "handler": {
+        "label": "operatingOptions",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "jobs.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 9,
+            "function": "options",
+            "url": "/api/jobs/:runtime/operating/options"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [],
+        "testPathReferences": 0
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
       "method": "PATCH",
       "path": "/api/jobs/:id/post-metrics",
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 72
+        "line": 76
       },
       "handler": {
         "label": "updatePostMetrics",
@@ -7543,7 +7907,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 66
+        "line": 70
       },
       "handler": {
         "label": "publishToWebsite",
@@ -7589,7 +7953,7 @@
             "line": 144
           }
         ],
-        "testPathReferences": 3
+        "testPathReferences": 4
       },
       "classifications": [
         "ACTIVE_TRACKED_CALLER"
@@ -7606,7 +7970,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 38
+        "line": 42
       },
       "handler": {
         "label": "bulkDeleteJobs",
@@ -7650,7 +8014,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 32
+        "line": 36
       },
       "handler": {
         "label": "bulkAssignJobs",
@@ -7703,7 +8067,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 44
+        "line": 48
       },
       "handler": {
         "label": "generateJobsForEnrollment",
@@ -7755,7 +8119,7 @@
       "domain": "content",
       "route": {
         "file": "portal-api/src/modules/content/jobs/job.routes.js",
-        "line": 25
+        "line": 27
       },
       "handler": {
         "label": "listPublicWebsiteJobs",
@@ -8264,7 +8628,7 @@
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 211
+            "line": 213
           }
         ],
         "testPathReferences": 3
@@ -9200,19 +9564,19 @@
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 305
+            "line": 307
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 342
+            "line": 344
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 348
+            "line": 350
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 386
+            "line": 388
           }
         ],
         "testPathReferences": 7
@@ -9312,31 +9676,31 @@
         "testReferences": [
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 314
+            "line": 316
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 321
+            "line": 323
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 326
+            "line": 328
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 331
+            "line": 333
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 334
+            "line": 336
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 343
+            "line": 345
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 390
+            "line": 392
           }
         ],
         "testPathReferences": 7
@@ -9476,7 +9840,7 @@
         "testReferences": [
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 363
+            "line": 365
           }
         ],
         "testPathReferences": 1
@@ -9571,15 +9935,15 @@
         "testReferences": [
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 353
+            "line": 355
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 357
+            "line": 359
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 391
+            "line": 393
           }
         ],
         "testPathReferences": 7
@@ -9627,19 +9991,19 @@
         "testReferences": [
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 376
-          },
-          {
-            "file": "portal-api/test/r2-access.test.js",
-            "line": 379
-          },
-          {
-            "file": "portal-api/test/r2-access.test.js",
-            "line": 380
+            "line": 378
           },
           {
             "file": "portal-api/test/r2-access.test.js",
             "line": 381
+          },
+          {
+            "file": "portal-api/test/r2-access.test.js",
+            "line": 382
+          },
+          {
+            "file": "portal-api/test/r2-access.test.js",
+            "line": 383
           }
         ],
         "testPathReferences": 7
@@ -9689,7 +10053,7 @@
         "testReferences": [
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 364
+            "line": 366
           }
         ],
         "testPathReferences": 1
@@ -10206,7 +10570,7 @@
       "domain": "projects",
       "route": {
         "file": "portal-api/src/modules/projects/project.routes.js",
-        "line": 67
+        "line": 72
       },
       "handler": {
         "label": "listProjects",
@@ -10235,11 +10599,7 @@
         "testReferences": [
           {
             "file": "portal-api/test/pui2-client-project-fields.test.js",
-            "line": 104
-          },
-          {
-            "file": "portal-api/test/pui2-client-project-fields.test.js",
-            "line": 117
+            "line": 108
           },
           {
             "file": "portal-api/test/pui2-client-project-fields.test.js",
@@ -10247,7 +10607,11 @@
           },
           {
             "file": "portal-api/test/pui2-client-project-fields.test.js",
-            "line": 132
+            "line": 125
+          },
+          {
+            "file": "portal-api/test/pui2-client-project-fields.test.js",
+            "line": 136
           },
           {
             "file": "portal-api/test/r2-access.test.js",
@@ -10299,7 +10663,7 @@
       "domain": "projects",
       "route": {
         "file": "portal-api/src/modules/projects/project.routes.js",
-        "line": 81
+        "line": 86
       },
       "handler": {
         "label": "createProject",
@@ -10360,7 +10724,7 @@
       "domain": "projects",
       "route": {
         "file": "portal-api/src/modules/projects/project.routes.js",
-        "line": 95
+        "line": 100
       },
       "handler": {
         "label": "archiveProject",
@@ -10433,7 +10797,7 @@
       "domain": "projects",
       "route": {
         "file": "portal-api/src/modules/projects/project.routes.js",
-        "line": 74
+        "line": 79
       },
       "handler": {
         "label": "getProjectById",
@@ -10462,15 +10826,15 @@
         "testReferences": [
           {
             "file": "portal-api/test/pui2-client-project-fields.test.js",
-            "line": 89
+            "line": 92
           },
           {
             "file": "portal-api/test/pui2-client-project-fields.test.js",
-            "line": 128
+            "line": 132
           },
           {
             "file": "portal-api/test/pui2-client-project-fields.test.js",
-            "line": 140
+            "line": 144
           },
           {
             "file": "portal-api/test/r3-reliability.test.js",
@@ -10494,7 +10858,7 @@
       "domain": "projects",
       "route": {
         "file": "portal-api/src/modules/projects/project.routes.js",
-        "line": 88
+        "line": 93
       },
       "handler": {
         "label": "updateProject",
@@ -10543,11 +10907,147 @@
     },
     {
       "method": "GET",
-      "path": "/api/projects/stats",
+      "path": "/api/projects/:id/operating",
+      "domain": "projects",
+      "route": {
+        "file": "portal-api/src/modules/projects/project.routes.js",
+        "line": 21
+      },
+      "handler": {
+        "label": "projectOverview",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "projects.read",
+        "jobs.read"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 6,
+            "function": "overview",
+            "url": "/api/projects/:runtime/operating"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [],
+        "testPathReferences": 0
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:id/operating/:command",
+      "domain": "projects",
+      "route": {
+        "file": "portal-api/src/modules/projects/project.routes.js",
+        "line": 22
+      },
+      "handler": {
+        "label": "projectAction",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "projects.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 17,
+            "function": "ownerAction",
+            "url": "/api/projects/:runtime/operating/:runtime"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [],
+        "testPathReferences": 8
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:id/operating/options",
       "domain": "projects",
       "route": {
         "file": "portal-api/src/modules/projects/project.routes.js",
         "line": 20
+      },
+      "handler": {
+        "label": "operatingOptions",
+        "source": "portal-api/src/modules/operating/operating.controller.js"
+      },
+      "auth": "required",
+      "guards": [
+        "requireAuth",
+        "requireInternalUser"
+      ],
+      "permissions": [
+        "projects.write"
+      ],
+      "evidence": {
+        "activeTrackedCallers": [
+          {
+            "file": "client/src/portal/shared/operating/api.js",
+            "line": 12,
+            "function": "options",
+            "url": "/api/projects/:runtime/operating/options"
+          }
+        ],
+        "browserGeneratedPaths": [],
+        "serverInternalCallers": [],
+        "unusedExportCallers": [],
+        "unreachableCallers": [],
+        "testReferences": [],
+        "testPathReferences": 0
+      },
+      "classifications": [
+        "ACTIVE_TRACKED_CALLER"
+      ],
+      "operatorRetain": null,
+      "externalConsumerStatus": "UNKNOWN",
+      "usageEvidence": "NOT_COLLECTED",
+      "ownerReviewRequired": false,
+      "retirementStatus": "NOT_AUTHORIZED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/stats",
+      "domain": "projects",
+      "route": {
+        "file": "portal-api/src/modules/projects/project.routes.js",
+        "line": 25
       },
       "handler": {
         "label": "inline handler (see source)",
@@ -12604,15 +13104,15 @@
         "testReferences": [
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 223
+            "line": 225
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 233
+            "line": 235
           },
           {
             "file": "portal-api/test/r2-access.test.js",
-            "line": 243
+            "line": 245
           }
         ],
         "testPathReferences": 3

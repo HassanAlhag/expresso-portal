@@ -1,3 +1,4 @@
+import AccountManagerField from "../../../shared/operating/AccountManagerField";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -320,6 +321,8 @@ export default function CustomerDetailsPage() {
             <RowActions label={customer.companyName || "client"} actions={more} />
           </div>
         </header>
+
+        {canWrite && access.isInternal && <AccountManagerField customer={customer} onChanged={loadCustomer} />}
 
         {!customer.isActive && access.isInternal ? (
           <Alert tone="info" icon={Power} title="This client is inactive">

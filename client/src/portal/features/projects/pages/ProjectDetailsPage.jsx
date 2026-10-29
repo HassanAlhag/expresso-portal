@@ -1,3 +1,4 @@
+import AgreementPanel from "../../../shared/operating/AgreementPanel";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Activity, Archive, Building2, ClipboardList, FileText, Layers, Wallet } from "lucide-react";
@@ -247,6 +248,8 @@ export default function ProjectDetailsPage() {
           onArchive={canArchive ? () => setArchiveOpen(true) : undefined}
         />
 
+        {access.isInternal && canReadJobs && <AgreementPanel kind="project" owner={project} onChanged={loadProject} />}
+
         {archived ? (
           <Alert
             tone="info"
@@ -300,6 +303,7 @@ export default function ProjectDetailsPage() {
             ) : null}
             {tab === PROJECT_TABS.SCOPE ? (
               <ProjectScopeTab
+                  managed={project.operatingModelVersion === 1}
                 project={project}
                 customer={customer}
                 jobs={jobs}
@@ -308,7 +312,7 @@ export default function ProjectDetailsPage() {
                 onRetry={loadJobs}
                 busy={busy}
                 generating={planGenerating}
-                canCreateJobs={canCreateJobs}
+                canCreateJobs={canCreateJobs && project.operatingModelVersion !== 1}
                 onCreateJob={openNewJob}
                 createBlockedReason={createBlockedReason}
                 onGeneratePlanJobs={handleGeneratePlanJobs}

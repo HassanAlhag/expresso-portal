@@ -234,11 +234,14 @@ export async function createEnrollmentGlobal(req, res) {
     const finalScope = buildFinalScope(template, normalizedOverrides);
 
     const doc = await Enrollment.create({
+      agreementDraft: req.body?.agreementDraft === true || Boolean(req.body?.sourceDealId && status === "draft"),
+      sourceDealId: safeId(req.body?.sourceDealId) || null,
       customerId: cid,
       serviceTemplateId: sid,
       status: String(status || "active").trim(),
 
       pricing: {
+        currency: String(pricing?.currency || "AED").trim().toUpperCase(),
         price:
           typeof pricing?.price === "number"
             ? pricing.price
@@ -292,6 +295,9 @@ export async function updateEnrollmentGlobal(req, res) {
     const current = await Enrollment.findById(eid).lean();
     if (!current) {
       return res.status(404).json({ ok: false, message: "Not found" });
+    }
+    if (current.operatingModelVersion === 1 && Object.keys(req.body || {}).some((k) => k !== "notes")) {
+      return res.status(409).json({ ok: false, message: "Use agreement revision, ownership or state actions for managed services." });
     }
 
     const patch = {
@@ -358,11 +364,11 @@ export async function updateEnrollmentGlobal(req, res) {
       current.serviceTemplateId
     ).lean();
 
-    if (template) {
+    if (template && current.operatingModelVersion !== 1) {
       patch.finalScope = buildFinalScope(template, normalizedOverrides);
     }
 
-    const item = await Enrollment.findByIdAndUpdate(eid, patch, { new: true })
+    const item = await Enrollment.findOneAndUpdate({ _id: eid, ...(current.operatingModelVersion === 1 ? { operatingModelVersion: 1, operatingVersion: current.operatingVersion } : { operatingModelVersion: { $ne: 1 } }) }, patch, { new: true })
       .populate("customerId", "companyName contactName primaryEmail slug")
       .populate(
         "serviceTemplateId",
@@ -372,6 +378,7 @@ export async function updateEnrollmentGlobal(req, res) {
       .populate("executionLeadId", "fullName email")
       .lean();
 
+    if (!item) return res.status(409).json({ ok: false, message: "Agreement changed; reload before editing." });
     return res.json({ ok: true, item });
   } catch (e) {
     console.error("updateEnrollmentGlobal:", e);
@@ -391,7 +398,9 @@ export async function deleteEnrollmentGlobal(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
-    await Enrollment.findByIdAndDelete(eid);
+    const current = await Enrollment.findById(eid).lean();
+    if (current?.operatingModelVersion === 1) return res.status(409).json({ ok: false, message: "Managed agreements preserve delivery history. Close the service instead." });
+    await Enrollment.findOneAndDelete({ _id: eid, operatingModelVersion: { $ne: 1 } });
     return res.json({ ok: true });
   } catch (e) {
     console.error("deleteEnrollmentGlobal:", e);

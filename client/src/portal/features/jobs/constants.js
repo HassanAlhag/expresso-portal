@@ -25,6 +25,7 @@ export const JOB_CREATE_TYPES = [
 ];
 
 export const JOB_STATUSES = [
+  { value: "in_progress", label: "In progress" },
   { value: "", label: "All statuses" },
   { value: "brief", label: "Brief" },
   { value: "content_ready", label: "Content ready" },
@@ -83,6 +84,7 @@ export const JOB_SORT_OPTIONS = [
 
 // Status → badge tone (one status system, PUI-1).
 export const JOB_STATUS_TONE = {
+  in_progress: "info",
   brief: "outline",
   content_ready: "idle",
   script: "idle",

@@ -80,7 +80,7 @@ test("classification output: classes A–F and protection flags; nothing is rese
 
 test("the real repository catalog loads from the existing inventory and classification", () => {
   const real = loadCatalog();
-  assert.equal(real.entries.length, 46);
+  assert.equal(real.entries.length, 47);
   assert.equal(real.byCollection.get("workitems").storage, "public");
   assert.match(real.catalogVersion, /^[0-9a-f]{64}$/);
   assert.equal(real.byCollection.get("counters").lifecycleClass, "A");

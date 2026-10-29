@@ -1,3 +1,4 @@
+import ManagedJobPanel from "../../../shared/operating/ManagedJobPanel";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { CheckCircle2, Globe, MessageSquare, Pencil, Save, Send, Trash2, X } from "lucide-react";
@@ -229,7 +230,7 @@ export default function JobDetailsPage() {
         }
         actions={
           <>
-            {canWrite && job.status !== "client_review" ? (
+            {canWrite && job.operatingModelVersion !== 1 && job.status !== "client_review" ? (
               <Button variant="outline" onClick={markClientReview} disabled={busy}>
                 <Send size={14} aria-hidden="true" />
                 Mark as in client review
@@ -241,7 +242,7 @@ export default function JobDetailsPage() {
                 Edit
               </Button>
             ) : null}
-            {canDelete ? (
+            {canDelete && job.operatingModelVersion !== 1 ? (
               <Button variant="outline" onClick={() => setDeleteOpen(true)} disabled={busy}>
                 <Trash2 size={14} aria-hidden="true" />
                 Delete
@@ -257,6 +258,8 @@ export default function JobDetailsPage() {
         }
       />
 
+      {job.operatingModelVersion === 1 && <ManagedJobPanel job={job} onChanged={load} />}
+
       <Panel title="Stage" sub={`Status: ${jobStatusLabel(job.status)} · on the board under ${stage.label}`}>
         <div className="px-stage-strip" style={{ "--px-stage-n": JOB_STAGES.length }} aria-label="Board stages">
           {JOB_STAGES.map((s, i) => (
@@ -265,14 +268,14 @@ export default function JobDetailsPage() {
             </span>
           ))}
         </div>
-        {canWrite ? (
+        {canWrite && job.operatingModelVersion !== 1 ? (
           <div style={{ marginTop: 14, maxWidth: 320 }}>
             <SelectField label="Change status" value={job.status} onChange={setStatus} options={STATUS_OPTIONS} disabled={busy} />
           </div>
         ) : null}
       </Panel>
 
-      {job.status === "client_review" ? (
+      {job.operatingModelVersion !== 1 && job.status === "client_review" ? (
         <Alert
           tone="warn"
           icon={MessageSquare}
@@ -296,7 +299,7 @@ export default function JobDetailsPage() {
             media={media}
             approvals={approvals}
             busy={busy}
-            readOnly={!canWrite}
+            readOnly={!canWrite || job.operatingModelVersion === 1}
             onAttach={() => setPickerOpen(true)}
             onApprove={(msg) => recordApproval(msg)}
             onRequestChanges={(msg) => requestChanges(msg)}

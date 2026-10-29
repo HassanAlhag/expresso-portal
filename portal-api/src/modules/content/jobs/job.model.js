@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { JobOperatingSchema } from "../../operating/operating.schemas.js";
 import {
   JOB_PRIORITIES,
   JOB_STATUSES,
@@ -9,6 +10,17 @@ import {
 
 const JobSchema = new mongoose.Schema(
   {
+    operatingModelVersion: { type: Number, default: 0 },
+    operating: { type: JobOperatingSchema, default: undefined },
+    originDeliveryPeriodId: { type: mongoose.Schema.Types.ObjectId, ref: "DeliveryPeriod", default: null, index: true },
+    workDeliveryPeriodId: { type: mongoose.Schema.Types.ObjectId, ref: "DeliveryPeriod", default: null, index: true },
+    agreementRevisionId: { type: String, default: "" },
+    scopeLineId: { type: String, default: "" },
+    scopeUnitOrdinal: { type: Number, default: null },
+    managedObligationKey: { type: String, default: undefined },
+    phaseId: { type: String, default: "" },
+    originalCommittedDueDate: { type: Date, default: null },
+    scheduledPublicationDate: { type: Date, default: null, index: true },
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
@@ -377,4 +389,5 @@ JobSchema.index({
   parentGoalName: "text",
 });
 
+JobSchema.index({ managedObligationKey: 1 }, { unique: true, partialFilterExpression: { managedObligationKey: { $type: "string" } }, name: "uniq_managed_obligation" });
 export default mongoose.models.Job || mongoose.model("Job", JobSchema);

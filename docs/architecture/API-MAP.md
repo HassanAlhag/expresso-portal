@@ -4,9 +4,11 @@
 
 ## Counting and interpretation
 
-**290 explicit method/path registrations** (282 at the audit baseline; R2 added `GET /api/users/:id/effective-permissions`; the Portfolio/case-study separation added 7 `/api/work` routes), in **45 mounted Express routers plus `/api/health`**, grouped below by business domain. The 21 backend domain folders are counted separately from the direct health route. Implicit Express HEAD/OPTIONS handling, static `/uploads`, CORS, rate-limit middleware and the catch-all 404 are not counted as business endpoints. There are **no duplicate exact method/path registrations** in this inventory, and no same-file static-path shadowing by an earlier matching parameter route was found.
+**300 explicit method/path registrations** (282 at the audit baseline; R2 added `GET /api/users/:id/effective-permissions`; the Portfolio/case-study separation added 7 `/api/work` routes; Operating Model Phase 1 adds 10 routes on existing routers), in **45 mounted Express routers plus `/api/health`**, grouped below by business domain. The 21 backend domain folders are counted separately from the direct health route. Implicit Express HEAD/OPTIONS handling, static `/uploads`, CORS, rate-limit middleware and the catch-all 404 are not counted as business endpoints. There are **no duplicate exact method/path registrations** in this inventory, and no same-file static-path shadowing by an earlier matching parameter route was found.
 
-Every one of the 290 routes is listed, grouped by domain with its guard and handler, in [API-ENDPOINTS.md](API-ENDPOINTS.md). Source lines are in [source-inventory.json](source-inventory.json). This is the drill-down, not the manager's reading path. Route guards are not the entire authorization policy: controllers also enforce internal status, ownership, role hierarchy, state and field restrictions. `vendor` in RFQ routes is an alias for `requireRole("vendor")`.
+Every one of the 300 routes is listed, grouped by domain with its guard and handler, in [API-ENDPOINTS.md](API-ENDPOINTS.md). Source lines are in [source-inventory.json](source-inventory.json). This is the drill-down, not the manager's reading path. Route guards are not the entire authorization policy: controllers also enforce internal status, ownership, role hierarchy, state and field restrictions. `vendor` in RFQ routes is an alias for `requireRole("vendor")`.
+
+Operating Model Phase 1 reuses the Customer, Enrollment, Project and Job routers. Its commands additionally enforce assigned review, active internal ownership, delivery exceptions, transaction boundaries and managed history. See [the operating chapter](OPERATING-MODEL-PHASE-1.md).
 
 ## Admin — 1 routes
 
@@ -64,7 +66,7 @@ Every one of the 290 routes is listed, grouped by domain with its guard and hand
 
 **Route evidence:** [portal-api/src/modules/careers/career.routes.js](../../portal-api/src/modules/careers/career.routes.js).
 
-## Content — 26 routes
+## Content — 28 routes
 
 **Frontend consumer:** Jobs, current Productions, media library, content calendar/social metrics and public Home reels.
 
@@ -92,7 +94,7 @@ Every one of the 290 routes is listed, grouped by domain with its guard and hand
 
 **Route evidence:** [portal-api/src/modules/crm/accounts/account.routes.js](../../portal-api/src/modules/crm/accounts/account.routes.js), [portal-api/src/modules/crm/activities/activity.routes.js](../../portal-api/src/modules/crm/activities/activity.routes.js), [portal-api/src/modules/crm/contacts/contact.routes.js](../../portal-api/src/modules/crm/contacts/contact.routes.js), [portal-api/src/modules/crm/deals/deal.routes.js](../../portal-api/src/modules/crm/deals/deal.routes.js), [portal-api/src/modules/crm/leads/lead.routes.js](../../portal-api/src/modules/crm/leads/lead.routes.js).
 
-## Customers — 8 routes
+## Customers — 9 routes
 
 **Frontend consumer:** Client pages, selectors, dashboards, login creation.
 
@@ -106,7 +108,7 @@ Every one of the 290 routes is listed, grouped by domain with its guard and hand
 
 **Route evidence:** [portal-api/src/modules/customers/customers.routes.js](../../portal-api/src/modules/customers/customers.routes.js).
 
-## Enrollments — 5 routes
+## Enrollments — 9 routes
 
 **Frontend consumer:** Enrollment pages, customer/project tabs and job generation.
 
@@ -232,7 +234,7 @@ Every one of the 290 routes is listed, grouped by domain with its guard and hand
 
 **Route evidence:** [portal-api/src/modules/procurement/category.routes.js](../../portal-api/src/modules/procurement/category.routes.js), [portal-api/src/modules/procurement/request.routes.js](../../portal-api/src/modules/procurement/request.routes.js), [portal-api/src/modules/procurement/rfq.routes.js](../../portal-api/src/modules/procurement/rfq.routes.js), [portal-api/src/modules/procurement/vendor-application.routes.js](../../portal-api/src/modules/procurement/vendor-application.routes.js), [portal-api/src/modules/procurement/vendor.routes.js](../../portal-api/src/modules/procurement/vendor.routes.js).
 
-## Projects — 6 routes
+## Projects — 9 routes
 
 **Frontend consumer:** Projects, service delivery, client dashboard/tabs and reports.
 

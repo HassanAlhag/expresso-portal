@@ -2,7 +2,7 @@
 
 [API map](API-MAP.md) · [Blueprint](EXPRESSO-SYSTEM-BLUEPRINT.html) · Baseline `58b8f86c` plus Stage R1 and R2 changes.
 
-All **290** explicit method/path registrations, grouped by business domain. Generated from [source-inventory.json](source-inventory.json); regenerate rather than edit by hand.
+All **300** explicit method/path registrations, grouped by business domain. Generated from [source-inventory.json](source-inventory.json); regenerate rather than edit by hand.
 
 - **Guard** = middleware on the route: `auth` (valid session), a permission key, `internal-only` (staff), `super_admin`, **staff or approved vendor** / **approved vendor only** (an active vendor profile; R2). **public** means no session is required; **public, optional sign-in** means anonymous callers get published/active records only, while signed-in CMS users with the right permission also see drafts (R1, P0-1). Controllers add tenant, ownership and state checks that are not shown here.
 - **Frontend consumer** = reachable client files with a literal call to this path (best effort; calls built from variables can be missed). `—` means none was found.
@@ -77,7 +77,7 @@ Models: BrandAsset.
 | DELETE | `/api/brand-kit/:id` | auth · `brand_kit.write` | `deleteBrandAsset` (brandAsset.controller.js) | portal/features/brand-kit/api.js |
 | PATCH | `/api/brand-kit/:id` | auth · `brand_kit.write` | `updateBrandAsset` (brandAsset.controller.js) | portal/features/brand-kit/api.js |
 
-## Content — jobs, media, productions, social metrics — 26 routes
+## Content — jobs, media, productions, social metrics — 28 routes
 
 Models: Job, Media, Production, SocialMetrics.
 
@@ -109,8 +109,11 @@ Models: Job, Media, Production, SocialMetrics.
 | GET | `/api/social-metrics` | auth · `social.metrics.read` | `listMetrics` (socialMetrics.controller.js) | portal/features/social/api.js |
 | POST | `/api/social-metrics` | auth · `social.metrics.write` | `upsertMetrics` (socialMetrics.controller.js) | portal/features/social/api.js |
 | DELETE | `/api/social-metrics/:id` | auth · `social.metrics.write` | `deleteMetrics` (socialMetrics.controller.js) | portal/features/social/api.js |
+| POST | `/api/jobs/:id/operating/:command` | auth · internal-only · `jobs.read` | `jobAction` (operating.controller.js) | portal/shared/operating/api.js |
+| GET | `/api/jobs/:id/operating/options` | auth · internal-only · `jobs.write` | `operatingOptions` (operating.controller.js) | portal/shared/operating/api.js |
 
-## Customers — 8 routes
+
+## Customers — 9 routes
 
 Models: Customer.
 
@@ -124,8 +127,10 @@ Models: Customer.
 | POST | `/api/customers/:id/create-login` | auth · `customers.write` | `createCustomerLogin` (customers.controller.js) | portal/features/customers/api.js |
 | GET | `/api/customers/:id/users` | auth · `customers.read` | `listCustomerUsers` (customers.controller.js) | portal/features/customers/api.js |
 | POST | `/api/customers/:id/users` | auth · `customers.write` | `createCustomerUser` (customers.controller.js) | portal/features/customers/api.js |
+| GET | `/api/customers/:id/operating/options` | auth · internal-only · `customers.write` | `operatingOptions` (operating.controller.js) | portal/shared/operating/api.js |
 
-## Enrollments — 5 routes
+
+## Enrollments — 9 routes
 
 Models: Enrollment.
 
@@ -136,6 +141,11 @@ Models: Enrollment.
 | DELETE | `/api/enrollments/:id` | auth · `enrollments.delete` | `deleteEnrollmentGlobal` (enrollment.controller.js) | portal/features/enrollments/api.js |
 | GET | `/api/enrollments/:id` | auth · `enrollments.read` | `getEnrollmentGlobal` (enrollment.controller.js) | portal/features/enrollments/api.js |
 | PATCH | `/api/enrollments/:id` | auth · `enrollments.write` | `updateEnrollmentGlobal` (enrollment.controller.js) | portal/features/enrollments/api.js |
+| GET | `/api/enrollments/:id/operating` | auth · internal-only · `enrollments.read` · `jobs.read` | `enrollmentOverview` (operating.controller.js) | portal/shared/operating/api.js |
+| POST | `/api/enrollments/:id/operating/:command` | auth · internal-only · `enrollments.write` | `enrollmentAction` (operating.controller.js) | portal/shared/operating/api.js |
+| GET | `/api/enrollments/:id/operating/options` | auth · internal-only · `enrollments.write` | `operatingOptions` (operating.controller.js) | portal/shared/operating/api.js |
+| POST | `/api/enrollments/:id/operating/periods/:periodId/:command` | auth · internal-only · `enrollments.write` · `jobs.write` | `periodAction` (operating.controller.js) | portal/shared/operating/api.js |
+
 
 ## Files — 7 routes
 
@@ -369,7 +379,7 @@ Models: ProcurementCategory, ProcurementRequest, ProcurementVendor, Quotation, R
 | PATCH | `/api/vendor-applications/:id/approve` | auth · internal-only · `procurement.approve` | `approveVendorApplication` (vendor-application.controller.js) | portal/features/procurement/api.js |
 | PATCH | `/api/vendor-applications/:id/reject` | auth · internal-only · `procurement.approve` | `rejectVendorApplication` (vendor-application.controller.js) | portal/features/procurement/api.js |
 
-## Projects — 6 routes
+## Projects — 9 routes
 
 Models: Project.
 
@@ -381,6 +391,10 @@ Models: Project.
 | GET | `/api/projects/:id` | auth · `projects.read` | `getProjectById` (project.controller.js) | portal/features/projects/api.js<br>portal/features/reports/pages/ReportsPage.jsx |
 | PATCH | `/api/projects/:id` | auth · `projects.write` | `updateProject` (project.controller.js) | portal/features/projects/api.js |
 | GET | `/api/projects/stats` | auth · `projects.read` | `inline handler (see source)` (project.routes.js) | portal/features/reports/pages/ReportsPage.jsx |
+| GET | `/api/projects/:id/operating` | auth · internal-only · `projects.read` · `jobs.read` | `projectOverview` (operating.controller.js) | portal/shared/operating/api.js |
+| POST | `/api/projects/:id/operating/:command` | auth · internal-only · `projects.write` | `projectAction` (operating.controller.js) | portal/shared/operating/api.js |
+| GET | `/api/projects/:id/operating/options` | auth · internal-only · `projects.write` | `operatingOptions` (operating.controller.js) | portal/shared/operating/api.js |
+
 
 ## Public intake — 1 route
 

@@ -27,6 +27,7 @@ const ScopeGroupJobSchema = new mongoose.Schema(
       default: "task",
     },
     quantity: { type: Number, default: 1 },
+    completionCriterion: { type: String, enum: ["delivered", "published"], default: "delivered" },
     unit: { type: String, trim: true, default: "" },
     priority: { type: String, trim: true, default: "" },
     startDays: { type: Number, default: 0 },
@@ -57,7 +58,7 @@ const ScopeGroupJobSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const ScopeGroupSchema = new mongoose.Schema(
+export const ScopeGroupSchema = new mongoose.Schema(
   {
     id: { type: String, default: "" },
     title: { type: String, trim: true, required: true },

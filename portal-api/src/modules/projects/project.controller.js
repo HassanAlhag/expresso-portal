@@ -11,7 +11,7 @@ import {
 // receive internal notes or the internal budget; their commercial view comes
 // from client-facing billing. Excluded at the query, so the fields are not
 // read for them at all. Staff responses are unchanged.
-export const CLIENT_HIDDEN_PROJECT_FIELDS = ["notes", "budget"];
+export const CLIENT_HIDDEN_PROJECT_FIELDS = ["notes", "budget", "agreementRevisions", "operatingEvents", "adoptionMappings", "linkedAgreementRevisionId", "cutoverDate", "phases"];
 // Object form gives Mongoose an unambiguous exclusion: { notes: 0, budget: 0 }.
 export const CLIENT_PROJECT_PROJECTION = Object.freeze(
   Object.fromEntries(CLIENT_HIDDEN_PROJECT_FIELDS.map((f) => [f, 0]))
@@ -349,6 +349,9 @@ export async function updateProject(req, res) {
     }
 
     const body = req.body || {};
+    if (current.operatingModelVersion === 1 && ["customerId", "enrollmentId", "ownerUserId", "team", "teamId", "status", "startDate", "endDate", "budget", "currency", "projectMode"].some((k) => k in body)) {
+      return res.status(409).json({ ok: false, message: "Use managed agreement, ownership and state actions for this Project." });
+    }
 
     // Company boundary: the project must belong to the caller's company, and
     // external users cannot move it to another company or make it internal.
@@ -499,7 +502,7 @@ export async function updateProject(req, res) {
       patch.source = "internal";
     }
 
-    const item = await Project.findByIdAndUpdate(id, patch, { new: true })
+    const item = await Project.findOneAndUpdate({ _id: id, ...(current.operatingModelVersion === 1 ? { operatingModelVersion: 1, operatingVersion: current.operatingVersion } : { operatingModelVersion: { $ne: 1 } }) }, patch, { new: true })
       .populate("customerId", "companyName contactName primaryEmail")
       .populate("ownerUserId", "fullName email")
       .populate({
@@ -527,17 +530,18 @@ export async function archiveProject(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
-    const existing = await Project.findById(id).select("customerId status archivedAt").lean();
+    const existing = await Project.findById(id).select("customerId status archivedAt operatingModelVersion").lean();
     if (!existing) {
       return res.status(404).json({ ok: false, message: "Not found" });
     }
+    if (existing.operatingModelVersion === 1 && existing.status !== "completed" && existing.status !== "archived") return res.status(409).json({ ok: false, message: "Close managed delivery before archiving this Project." });
     if (!requireOwnClient(req, existing.customerId)) {
       return res.status(403).json({ ok: false, message: "Forbidden" });
     }
 
     if (existing.status !== "archived") {
       await Project.updateOne(
-        { _id: id, status: { $ne: "archived" } },
+        { _id: id, status: { $ne: "archived" }, $or: [{ operatingModelVersion: { $ne: 1 } }, { operatingModelVersion: 1, status: "completed" }] },
         { $set: { status: "archived", archivedAt: new Date(), updatedBy: req.user?.id || null } }
       );
     }

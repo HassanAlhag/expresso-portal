@@ -14,7 +14,7 @@ The API **starts against an empty database**. `server.js` validates the environm
 
 | Layer | Where it lives | Survives an empty database? | What must be recreated |
 |---|---|---|---|
-| Permission keys (76) and built-in role defaults (14) | Code: `portal-api/src/config/permissions.js` | **Yes.** `GET /api/roles` lists built-in roles even without Role documents, and permissions resolve from code | Nothing, unless you want built-in roles stored as editable Role documents (`seedRoles.js`) |
+| Permission keys (78) and built-in role defaults (14) | Code: `portal-api/src/config/permissions.js` | **Yes.** `GET /api/roles` lists built-in roles even without Role documents, and permissions resolve from code | Nothing, unless you want built-in roles stored as editable Role documents (`seedRoles.js`) |
 | Environment | `portal-api/.env`, client `.env` | Yes (outside MongoDB) | Names only: `MONGO_URI`, `JWT_SECRET` (**required — the API refuses to start without it**), `JWT_EXPIRES_IN`, `FRONTEND_URL`, `SUPER_ADMIN_*`, `SMTP_*`, `AWS_*`/bucket names, `GOOGLE_CLIENT_ID`, `DB_ENVIRONMENT`; client `REACT_APP_API_URL`, `REACT_APP_EMAILJS_*`, `REACT_APP_GOOGLE_CLIENT_ID` |
 | Website code defaults | Client code: copy, pricing, CAS page, core product registry, technology group fallback, brand assets | Yes | Nothing — but see the CMS row |
 | Uploaded files | S3 buckets or `uploads` / `private-uploads` folders | Yes (separate from MongoDB) | References to them **are** lost — see section 5 |
@@ -47,7 +47,7 @@ From the [database map](DATABASE-MAP.md). **No collection is test-only by design
 | CONFIGURATION | 6 | `sitesettings`, `teams`, `servicetemplates`, `procurementcategories`, `scorecardtemplates`, `kpiindicators` | Seed or import approved set | **Keep** |
 | CMS | 8 | `solutions`, `digitalservices`, `heroslides`, `portfolios`, `workitems`, `careers`, `media`, `productions` | Import approved content | **Keep** (prune drafts deliberately) |
 | LOG/AUDIT | 1 | `audits` | Empty | Retain per a retention policy; never silently erase |
-| BUSINESS | 28 | `customers`, `crmleads`, `crmaccounts`, `crmcontacts`, `crmdeals`, `crmactivities`, `enrollments`, `projects`, `jobs`, `files`, `invoices`, `tickets`, `messages`, `brandassets`, `socialmetrics`, `hrstaffs`, `hrexpenses`, `hrleaves`, `kpigoals`, `kpicheckins`, `procurementrequests`, `rfqs`, `quotations`, `procurementvendors`, `vendorapplications`, `jobapplications`, `accessrequests`, `invites` | Empty | **Candidates** — owner decision per collection |
+| BUSINESS | 29 | `customers`, `crmleads`, `crmaccounts`, `crmcontacts`, `crmdeals`, `crmactivities`, `enrollments`, `deliveryperiods`, `projects`, `jobs`, `files`, `invoices`, `tickets`, `messages`, `brandassets`, `socialmetrics`, `hrstaffs`, `hrexpenses`, `hrleaves`, `kpigoals`, `kpicheckins`, `procurementrequests`, `rfqs`, `quotations`, `procurementvendors`, `vendorapplications`, `jobapplications`, `accessrequests`, `invites` | Empty | **Candidates** — owner decision per collection |
 
 `invites` is classified BUSINESS (pending onboarding records). A fresh installation needs none, and preserved invitation tokens should never be reused.
 

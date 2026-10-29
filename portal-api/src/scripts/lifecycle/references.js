@@ -55,6 +55,21 @@ const R = (id, group, source, path, target, o = {}) => ({ id, kind: "ref", group
 const OWN = (id, group, source, path, target, o = {}) => ({ id, kind: "ownership", group, source, path, target, sourceOwner: "customerId", targetOwner: "customerId", severity: "CRITICAL", blocks: [], ...o });
 
 const EXPLICIT = [
+  // Operating Model Phase 1: existing offline catalog, no capture or cleanup.
+  R("job.origin-period", "jobs", "jobs", "originDeliveryPeriodId", "deliveryperiods", { blocks: ["delivery-data-cleanup"] }),
+  R("job.work-period", "jobs", "jobs", "workDeliveryPeriodId", "deliveryperiods", { blocks: ["delivery-data-cleanup"] }),
+  R("customer.account-manager", "users", C, "accountManagerId", "users", { note: "Agency responsibility; distinct from the external client login." }),
+  R("enrollment.team", "jobs", "enrollments", "teamId", "teams"),
+  R("enrollment.source-deal", "crm", "enrollments", "sourceDealId", "crmdeals"),
+  R("enrollment.adopted-job", "jobs", "enrollments", "adoptionMappings[].jobId", "jobs"),
+  R("delivery-period.customer", "jobs", "deliveryperiods", "customerId", C, { required: true, severity: "CRITICAL", blocks: ["customer-data-cleanup", "delivery-data-cleanup"] }),
+  R("delivery-period.enrollment", "jobs", "deliveryperiods", "enrollmentId", "enrollments", { required: true, blocks: ["delivery-data-cleanup"] }),
+  R("delivery-period.adjustment-actor", "jobs", "deliveryperiods", "adjustments[].actorId", "users", { historical: true }),
+  R("delivery-period.opened-by", "jobs", "deliveryperiods", "openedBy", "users", { required: true, historical: true }),
+  R("delivery-period.reconciled-by", "jobs", "deliveryperiods", "reconciledBy", "users", { historical: true }),
+  R("project.team", "jobs", "projects", "teamId", "teams"),
+  R("project.adopted-job", "jobs", "projects", "adoptionMappings[].jobId", "jobs"),
+
   // Optional public work → case study link; the linked story may be unpublished.
   R("work.case-study", "portfolio", "workitems", "caseStudy", "portfolios", { blocks: ["asset-cleanup"], note: "Optional link validated by the Work Items API; publication is filtered separately." }),
 

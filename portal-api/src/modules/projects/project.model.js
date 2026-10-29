@@ -1,7 +1,18 @@
 import mongoose from "mongoose";
+import { AgreementSchema, PhaseSchema, OperatingEventSchema } from "../operating/operating.schemas.js";
 
 const ProjectSchema = new mongoose.Schema(
   {
+    operatingModelVersion: { type: Number, default: 0 },
+    operatingVersion: { type: Number, default: 0 },
+    agreementRevisions: { type: [AgreementSchema], default: [] },
+    operatingEvents: { type: [OperatingEventSchema], default: [] },
+    teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
+    phases: { type: [PhaseSchema], default: [] },
+    activatedAt: { type: Date, default: null },
+    cutoverDate: { type: String, default: "" },
+    adoptionMappings: { type: [{ _id: false, jobId: { type: mongoose.Schema.Types.ObjectId, ref: "Job" }, scopeLineId: String, scopeUnitOrdinal: Number }], default: [] },
+    linkedAgreementRevisionId: { type: String, default: "" },
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",

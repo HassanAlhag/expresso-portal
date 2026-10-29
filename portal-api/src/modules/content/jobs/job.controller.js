@@ -18,6 +18,9 @@ import {
   safeJobSort,
 } from "./job.constants.js";
 import { generateJobsFromEnrollment } from "./job.generator.js";
+import { patchManagedJob, publishManagedJob } from "../../operating/jobOperating.service.js";
+import { operatingFailure } from "../../operating/operating.controller.js";
+import { event } from "../../operating/operating.rules.js";
 
 function safeRx(s) {
   const v = String(s || "").trim();
@@ -161,6 +164,16 @@ export async function listJobs(req, res) {
     if (validId(projectId)) filter.projectId = projectId;
     if (validId(enrollmentId)) filter.enrollmentId = enrollmentId;
     if (validId(assigneeId)) filter.assignees = assigneeId;
+    for (const field of ["originDeliveryPeriodId", "workDeliveryPeriodId"]) if (validId(req.query[field])) filter[field] = req.query[field];
+    if (req.query.unscheduled === "true") { filter.operatingModelVersion = 1; filter.scheduledPublicationDate = null; }
+    if (req.query.scheduleFrom || req.query.scheduleTo) {
+      const from = parseDateInput(req.query.scheduleFrom, "scheduleFrom"), to = parseDateInput(req.query.scheduleTo, "scheduleTo");
+      if (from.error || to.error) return res.status(400).json({ ok: false, message: from.error || to.error });
+      const range = {};
+      if (from.value) range.$gte = from.value;
+      if (to.value) range.$lte = to.value;
+      filter.$and = [...(filter.$and || []), { $or: [{ operatingModelVersion: 1, scheduledPublicationDate: range }, { operatingModelVersion: { $ne: 1 }, dueDate: range }] }];
+    }
 
     // One status, or a comma-separated list (PI tail: the portal's "in review"
     // and "in production" views). Unknown values are ignored, as before.
@@ -229,7 +242,9 @@ export async function listJobs(req, res) {
         .populate("customerId", "companyName contactName")
         .populate("projectId", "name status type")
         .populate("enrollmentId", "status serviceTemplateId")
-        .populate("assignees", "fullName email role")
+        .populate("originDeliveryPeriodId", "periodStart periodEnd timezone")
+      .populate("workDeliveryPeriodId", "periodStart periodEnd timezone")
+      .populate("assignees", "fullName email role")
         .populate(
           "coverMedia",
           "url thumbnailUrl fileUrl type title mimeType status"
@@ -333,6 +348,8 @@ export async function getJob(req, res) {
           select: "name slug summary",
         },
       })
+      .populate("originDeliveryPeriodId", "periodStart periodEnd timezone")
+      .populate("workDeliveryPeriodId", "periodStart periodEnd timezone")
       .populate("assignees", "fullName email role")
       .populate("approvals.createdBy", "fullName email role")
       .populate(
@@ -689,7 +706,7 @@ export async function updateJob(req, res) {
         .toLowerCase();
     }
 
-    for (const field of ["dueDate", "startDate", "shootDate"]) {
+    for (const field of ["dueDate", "startDate", "shootDate", "scheduledPublicationDate"]) {
       if (typeof body[field] === "undefined") continue;
       const parsed = parseDateInput(body[field], field);
       if (parsed.error) return res.status(400).json({ ok: false, message: parsed.error });
@@ -808,14 +825,20 @@ export async function updateJob(req, res) {
     if (nextStatus !== "published" && (patch.websiteVisible === true || current.websiteVisible)) {
       patch.websiteVisible = false;
     }
+    if (current.operatingModelVersion === 1) {
+      if ("dueDate" in patch) patch.operatingChangeReason = String(body.operatingChangeReason || "").trim();
+      return res.json({ ok: true, item: await patchManagedJob(current, patch, req.user) });
+    }
 
-    const item = await Job.findByIdAndUpdate(id, patch, { new: true })
+    const item = await Job.findOneAndUpdate({ _id: id, operatingModelVersion: { $ne: 1 } }, patch, { new: true })
       .populate("customerId", "companyName contactName")
       .populate("projectId", "name status type")
       .populate({
         path: "enrollmentId",
         populate: { path: "serviceTemplateId", select: "name slug summary" },
       })
+      .populate("originDeliveryPeriodId", "periodStart periodEnd timezone")
+      .populate("workDeliveryPeriodId", "periodStart periodEnd timezone")
       .populate("assignees", "fullName email role")
       .populate(
         "coverMedia",
@@ -839,9 +862,11 @@ export async function updateJob(req, res) {
       )
       .lean();
 
+    if (!item) return res.status(409).json({ ok: false, message: "Job was adopted during editing; reload." });
     return res.json({ ok: true, item });
   } catch (e) {
     console.error("updateJob:", e);
+    if (e.status || e.code === "TRANSACTIONS_UNSUPPORTED") return operatingFailure(res, e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
 }
@@ -853,7 +878,9 @@ export async function deleteJob(req, res) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
 
-    const item = await Job.findByIdAndDelete(id).lean();
+    const current = await Job.findById(id).lean();
+    if (current?.operatingModelVersion === 1) return res.status(409).json({ ok: false, message: "Managed obligations cannot be deleted. Record a waiver or retain their history." });
+    const item = await Job.findOneAndDelete({ _id: id, operatingModelVersion: { $ne: 1 } }).lean();
     if (!item) {
       return res.status(404).json({ ok: false, message: "Not found" });
     }
@@ -890,7 +917,9 @@ export async function bulkAssignJobs(req, res) {
         ? { $set: { assignees } }
         : { $addToSet: { assignees: { $each: assignees } } };
 
-    const result = await Job.updateMany({ _id: { $in: ids } }, update);
+    const legacy = await Job.updateMany({ _id: { $in: ids }, operatingModelVersion: { $ne: 1 } }, update);
+    const managed = await Job.updateMany({ _id: { $in: ids }, operatingModelVersion: 1 }, { ...update, $inc: { "operating.version": 1 }, $push: { "operating.events": event(req.user.id, "assigned", "Bulk staff assignment", { mode, assignees }) } });
+    const result = { matchedCount: legacy.matchedCount + managed.matchedCount, modifiedCount: legacy.modifiedCount + managed.modifiedCount };
 
     return res.json({
       ok: true,
@@ -911,7 +940,7 @@ export async function bulkDeleteJobs(req, res) {
       return res.status(400).json({ ok: false, message: "No valid job ids" });
     }
 
-    const result = await Job.deleteMany({ _id: { $in: ids } });
+    const result = await Job.deleteMany({ _id: { $in: ids }, operatingModelVersion: { $ne: 1 } });
 
     return res.json({
       ok: true,
@@ -1006,6 +1035,8 @@ export async function addApproval(req, res) {
     if (!validId(id)) {
       return res.status(400).json({ ok: false, message: "Invalid id" });
     }
+    const current = await Job.findById(id).select("operatingModelVersion").lean();
+    if (current?.operatingModelVersion === 1 && ["requested", "approved", "changes_requested", "client_sent"].includes(status)) return res.status(409).json({ ok: false, message: "Use the managed submission and assigned approval actions." });
 
     const entry = {
       createdBy: req.user?.id || null,
@@ -1026,6 +1057,8 @@ export async function addApproval(req, res) {
         path: "enrollmentId",
         populate: { path: "serviceTemplateId", select: "name slug summary" },
       })
+      .populate("originDeliveryPeriodId", "periodStart periodEnd timezone")
+      .populate("workDeliveryPeriodId", "periodStart periodEnd timezone")
       .populate("assignees", "fullName email role")
       .populate("approvals.createdBy", "fullName email role")
       .populate(
@@ -1101,8 +1134,12 @@ export async function publishToWebsite(req, res) {
       });
     }
 
-    const updatedJob = await Job.findByIdAndUpdate(
-      id,
+    if (job.operatingModelVersion === 1) {
+      const updated = await publishManagedJob(job, { status: "published", publishStatus: "published", websiteVisible: true, publishedAt: new Date(), finalMediaId: finalMediaId || null, posterMediaId: posterMediaId || null, externalPostUrl }, body, req.user);
+      return res.json({ ok: true, job: updated });
+    }
+    const updatedJob = await Job.findOneAndUpdate(
+      { _id: id, operatingModelVersion: { $ne: 1 } },
       {
         $set: {
           status: "published",
@@ -1117,9 +1154,11 @@ export async function publishToWebsite(req, res) {
       { new: true }
     ).lean();
 
+    if (!updatedJob) return res.status(409).json({ ok: false, message: "Job was adopted during publication; reload." });
     return res.json({ ok: true, job: updatedJob });
   } catch (e) {
     console.error("publishToWebsite:", e);
+    if (e.status || e.code === "TRANSACTIONS_UNSUPPORTED") return operatingFailure(res, e);
     return res.status(500).json({ ok: false, message: e?.message || "Server error" });
   }
 }
@@ -1140,6 +1179,7 @@ export async function generateJobsForEnrollment(req, res) {
         .status(404)
         .json({ ok: false, message: "Enrollment not found" });
     }
+    if (enrollment.operatingModelVersion === 1 || enrollment.agreementDraft) return res.status(409).json({ ok: false, message: "Confirm the agreement, then open a Delivery Period or activate the linked Project for managed Job generation." });
 
     const existingJobsCount = await Job.countDocuments({
       enrollmentId: enrollment._id,

@@ -36,6 +36,7 @@ export const SYSTEM_CLIENT_ROLES = new Set([
  * frontend EXTERNAL_ROUTE_DENYLIST, now enforced by the API.
  */
 export const EXTERNAL_DENIED_PREFIXES = [
+  "delivery.",
   "crm.",
   "hr.",
   "iam.",

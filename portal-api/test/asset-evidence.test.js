@@ -227,7 +227,7 @@ test('B3 repository: deterministic, fresh, every model inventoried, protected ap
   const a = tool.build(); const b = tool.build();
   assert.deepEqual(a, b);
   assert.deepEqual(tool.checkOutputs(a), []);
-  assert.equal(a.plan.models.length, 46);
+  assert.equal(a.plan.models.length, 47);
   assert.match(a.register.excludedTrackedAssetLikeFiles.find(f => f.path === 'client/public/robots.txt').reason, /Operational source/);
   assert.ok(a.plan.surfaces.some(s => s.model === 'SiteSettings' && s.fieldPath === 'about.missionImageUrl'));
   assert.ok(a.plan.surfaces.some(s => s.model === 'Production' && s.fieldPath === 'gallery[]'));

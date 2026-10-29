@@ -70,7 +70,7 @@ test("public reels: no login, explicit allowlist, no internal or contact data", 
 function jobWorld(current) {
   let patch = null;
   stub(Job, "findById", () => q(current));
-  stub(Job, "findByIdAndUpdate", (_id, p) => { patch = p; return q({ ...current, ...(p.$set || p) }); });
+  stub(Job, "findOneAndUpdate", (_id, p) => { patch = p; return q({ ...current, ...(p.$set || p) }); });
   stub(Media, "find", (f) => q(f._id.$in.map((id) => ({ _id: id }))));
   return () => patch;
 }
@@ -124,13 +124,13 @@ test("create never makes a job public, even when asked", async () => {
 test("POST /publish: succeeds only with publishable media; a failed publish stays private", async () => {
   let updated = null;
   stub(Job, "findById", () => q({ ...ready, finalMediaId: null, media: [], externalPostUrl: "" }));
-  stub(Job, "findByIdAndUpdate", (_id, u) => { updated = u; return q({}); });
+  stub(Job, "findOneAndUpdate", (_id, u) => { updated = u; return q({}); });
   let r = await call("POST", `/api/jobs/${ready._id}/publish`, { user: admin, body: {} });
   assert.equal(r.status, 400);
   assert.equal(updated, null, "nothing written on a failed publish");
   restoreAll(); setupAuth({ users: [admin] });
   stub(Job, "findById", () => q({ ...ready, media: [] }));
-  stub(Job, "findByIdAndUpdate", (_id, u) => { updated = u; return q({ ...ready, ...u.$set }); });
+  stub(Job, "findOneAndUpdate", (_id, u) => { updated = u; return q({ ...ready, ...u.$set }); });
   r = await call("POST", `/api/jobs/${ready._id}/publish`, { user: admin, body: {} });
   assert.equal(r.status, 200);
   assert.equal(updated.$set.websiteVisible, true);
@@ -140,7 +140,7 @@ test("POST /publish: succeeds only with publishable media; a failed publish stay
   updated = null;
   stub(Job, "findById", () => q({ ...ready }));
   stub(Media, "find", () => q([]));
-  stub(Job, "findByIdAndUpdate", (_id, u) => { updated = u; return q({}); });
+  stub(Job, "findOneAndUpdate", (_id, u) => { updated = u; return q({}); });
   r = await call("POST", `/api/jobs/${ready._id}/publish`, { user: admin, body: { finalMediaId: oid() } });
   assert.equal(r.status, 400);
   assert.equal(updated, null);

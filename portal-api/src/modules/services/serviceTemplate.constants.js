@@ -14,6 +14,9 @@ export const SERVICE_EXECUTION_MODES = [
 ];
 
 export const DELIVERABLE_TYPES = [
+  "carousel",
+  "photo",
+  "case_study",
   "task",
   "post",
   "reel",

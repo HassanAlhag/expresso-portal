@@ -1,5 +1,6 @@
 // Maps any backend status to its pipeline column key
 const STATUS_TO_COLUMN = {
+  in_progress: "production",
   brief:            "brief",
   content_ready:    "brief",
   script:           "scripting",
@@ -25,7 +26,7 @@ export function getColumnKey(status) {
 export const JOB_STAGES = [
   { key: "brief",      label: "Brief",      moveStatus: "brief",           statuses: ["brief", "content_ready"] },
   { key: "scripting",  label: "Scripting",  moveStatus: "script",          statuses: ["script", "pre_production"] },
-  { key: "production", label: "Production", moveStatus: "editing",         statuses: ["designing", "shooting", "editing"] },
+  { key: "production", label: "Production", moveStatus: "editing",         statuses: ["designing", "shooting", "editing", "in_progress"] },
   { key: "review",     label: "Review",     moveStatus: "internal_review", statuses: ["internal_review", "client_review"] },
   { key: "approved",   label: "Approved",   moveStatus: "approved",        statuses: ["approved", "scheduled"] },
   { key: "published",  label: "Published",  moveStatus: "published",       statuses: ["published"] },

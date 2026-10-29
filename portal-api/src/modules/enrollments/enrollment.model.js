@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { AgreementSchema, OperatingEventSchema } from "../operating/operating.schemas.js";
 
 const ChecklistItemSchema = new mongoose.Schema(
   {
@@ -67,6 +68,16 @@ const FinalScopeGroupSchema = new mongoose.Schema(
 
 const EnrollmentSchema = new mongoose.Schema(
   {
+    operatingModelVersion: { type: Number, default: 0 },
+    agreementDraft: { type: Boolean, default: false },
+    operatingVersion: { type: Number, default: 0 },
+    agreementRevisions: { type: [AgreementSchema], default: [] },
+    operatingEvents: { type: [OperatingEventSchema], default: [] },
+    teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
+    sourceDealId: { type: mongoose.Schema.Types.ObjectId, ref: "CRMDeal", default: null },
+    activatedAt: { type: Date, default: null },
+    cutoverDate: { type: String, default: "" },
+    adoptionMappings: { type: [{ _id: false, jobId: { type: mongoose.Schema.Types.ObjectId, ref: "Job" }, scopeLineId: String, scopeUnitOrdinal: Number }], default: [] },
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
@@ -95,6 +106,7 @@ const EnrollmentSchema = new mongoose.Schema(
     },
 
     pricing: {
+      currency: { type: String, default: "AED" },
       price: { type: Number, default: null },
       billingCycle: { type: String, trim: true, default: "" },
     },

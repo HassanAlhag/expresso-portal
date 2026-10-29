@@ -15,6 +15,7 @@ export const JOB_TYPES = [
 export const JOB_WORKFLOW_TYPES = ["design", "video", "photo"];
 
 export const JOB_STATUSES = [
+  "in_progress",
   "brief",
   "content_ready",
   "script",

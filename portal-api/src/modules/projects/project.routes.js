@@ -1,5 +1,7 @@
 import express from "express";
 import { requireAuth, requirePermission } from "../../middleware/auth.js";
+import { requireInternalUser } from "../../utils/accessControl.js";
+import { operatingOptions, projectOverview, projectAction } from "../operating/operating.controller.js";
 import {
   canSeeAllTenantRecords,
   getUserClientId,
@@ -15,6 +17,9 @@ import {
 } from "./project.controller.js";
 
 const router = express.Router();
+router.get("/:id/operating/options", requireAuth, requireInternalUser, requirePermission("projects.write"), operatingOptions);
+router.get("/:id/operating", requireAuth, requireInternalUser, requirePermission("projects.read", "jobs.read"), projectOverview);
+router.post("/:id/operating/:command", requireAuth, requireInternalUser, requirePermission("projects.write"), projectAction);
 
 // GET /api/projects/stats
 router.get(

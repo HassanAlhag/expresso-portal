@@ -42,6 +42,7 @@ export const PERMISSION_CATALOG = [
     permissions: [
       { key: "jobs.read",   label: "View",   description: "View delivery tasks and outputs" },
       { key: "jobs.write",  label: "Edit",   description: "Create and update jobs" },
+      { key: "jobs.approve", label: "Approve", description: "Decide assigned managed delivery approval steps" },
       { key: "jobs.delete", label: "Delete", description: "Permanently delete jobs" },
     ],
   },
@@ -110,6 +111,11 @@ export const PERMISSION_CATALOG = [
       { key: "enrollments.write",  label: "Edit",   description: "Create and update enrollments" },
       { key: "enrollments.delete", label: "Delete", description: "Permanently delete enrollments" },
     ],
+  },
+  {
+    domain: "delivery",
+    label: "Delivery exceptions",
+    permissions: [{ key: "delivery.override", label: "Override", description: "Record explicit, reasoned delivery exceptions" }],
   },
   {
     domain: "billing",

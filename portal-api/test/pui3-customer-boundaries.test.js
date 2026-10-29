@@ -73,7 +73,7 @@ function stubCustomers(docs) {
 }
 
 test("the hidden fields are internal notes and the CRM links; the client field list is a valid inclusion", () => {
-  assert.deepEqual(CLIENT_HIDDEN_CUSTOMER_FIELDS, ["notes", "crmAccountId", "crmDealId"]);
+  assert.deepEqual(CLIENT_HIDDEN_CUSTOMER_FIELDS, ["notes", "crmAccountId", "crmDealId", "accountManagerId"]);
   const real = Customer.findById(new mongoose.Types.ObjectId()).select("companyName contactName isActive department");
   assert.deepEqual(real._fieldsForExec(), { companyName: 1, contactName: 1, isActive: 1, department: 1 });
 });

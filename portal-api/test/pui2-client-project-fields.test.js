@@ -36,6 +36,9 @@ function projectDoc(over = {}) {
     currency: "AED",
     budget: 180000,
     notes: "Payment terms 40/40/20. Internal only.",
+    agreementRevisions: [{ price: 9999, reference: "Private agreement" }],
+    operatingEvents: [{ reason: "Internal review" }],
+    adoptionMappings: [{ jobId: oid() }],
     ...over,
   };
 }
@@ -73,14 +76,14 @@ function stubProjects(docs) {
   return seen;
 }
 
-test("the hidden fields are exactly internal notes and budget, and form a valid Mongoose exclusion", () => {
-  assert.deepEqual(CLIENT_HIDDEN_PROJECT_FIELDS, ["notes", "budget"]);
+test("commercial and Operating Model internals form a valid Mongoose exclusion", () => {
+  assert.deepEqual(CLIENT_HIDDEN_PROJECT_FIELDS, ["notes", "budget", "agreementRevisions", "operatingEvents", "adoptionMappings", "linkedAgreementRevisionId", "cutoverDate", "phases"]);
   // Built on a real Mongoose query (not executed): what Mongoose will send to
   // MongoDB is an exclusion of exactly these two fields.
   const real = Project.findById(new mongoose.Types.ObjectId()).select({ ...CLIENT_PROJECT_PROJECTION });
-  assert.deepEqual(real._fieldsForExec(), { notes: 0, budget: 0 });
+  assert.deepEqual(real._fieldsForExec(), CLIENT_PROJECT_PROJECTION);
   const realList = Project.find({}).select({ ...CLIENT_PROJECT_PROJECTION }).sort("-createdAt").populate("customerId", "companyName");
-  assert.deepEqual(realList._fieldsForExec(), { notes: 0, budget: 0 });
+  assert.deepEqual(realList._fieldsForExec(), CLIENT_PROJECT_PROJECTION);
 });
 
 test("client project detail has no internal notes or budget; permitted information remains", async () => {
@@ -88,7 +91,8 @@ test("client project detail has no internal notes or budget; permitted informati
   const seen = stubProjects([projectDoc()]);
   const r = await call("GET", `/api/projects/${oid()}`, { user: clientA });
   assert.equal(r.status, 200);
-  assert.deepEqual(seen.selects, [{ notes: 0, budget: 0 }]);
+  assert.deepEqual(seen.selects, [CLIENT_PROJECT_PROJECTION]);
+  for (const key of CLIENT_HIDDEN_PROJECT_FIELDS) assert.equal(key in r.body.item, false, `${key} must not reach the client`);
   assert.equal("notes" in r.body.item, false);
   assert.equal("budget" in r.body.item, false);
   assert.doesNotMatch(JSON.stringify(r.body), /Internal only|180000/);

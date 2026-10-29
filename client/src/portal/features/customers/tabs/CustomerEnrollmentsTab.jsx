@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import Card from "../../../shared/ui/Card";
 import Button from "../../../shared/ui/Button";
 import Skeleton from "../../../shared/ui/Skeleton";
@@ -156,7 +157,7 @@ export default function CustomerEnrollmentsTab({
                   Open jobs
                 </Button>
 
-                {onConvert ? (
+                {item.operatingModelVersion === 1 || item.agreementDraft ? <Link to={`/portal/enrollments/${item._id}`}>Open delivery agreement</Link> : onConvert ? (
                   <Button
                     onClick={() => onConvert(item._id)}
                     disabled={busy || convertingEnrollmentId === item._id}

@@ -5,11 +5,11 @@
     "backendDomains": 21,
     "portalFeatureAreas": 26,
     "mountedRouters": 45,
-    "apiRoutes": 290,
-    "models": 46,
-    "modelFiles": 46,
+    "apiRoutes": 300,
+    "models": 47,
+    "modelFiles": 47,
     "defaultRoles": 14,
-    "permissionKeys": 76,
+    "permissionKeys": 78,
     "frontendCatalogKeys": 0
   },
   "mounts": [
@@ -699,12 +699,72 @@
       "collection": "jobs",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.model.js",
-      "line": 380,
+      "line": 393,
       "fields": [
+        {
+          "path": "operatingModelVersion",
+          "type": "Number",
+          "line": 13
+        },
+        {
+          "path": "operating",
+          "type": "JobOperatingSchema",
+          "line": 14
+        },
+        {
+          "path": "originDeliveryPeriodId",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 15,
+          "ref": "DeliveryPeriod",
+          "index": "true"
+        },
+        {
+          "path": "workDeliveryPeriodId",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 16,
+          "ref": "DeliveryPeriod",
+          "index": "true"
+        },
+        {
+          "path": "agreementRevisionId",
+          "type": "String",
+          "line": 17
+        },
+        {
+          "path": "scopeLineId",
+          "type": "String",
+          "line": 18
+        },
+        {
+          "path": "scopeUnitOrdinal",
+          "type": "Number",
+          "line": 19
+        },
+        {
+          "path": "managedObligationKey",
+          "type": "String",
+          "line": 20
+        },
+        {
+          "path": "phaseId",
+          "type": "String",
+          "line": 21
+        },
+        {
+          "path": "originalCommittedDueDate",
+          "type": "Date",
+          "line": 22
+        },
+        {
+          "path": "scheduledPublicationDate",
+          "type": "Date",
+          "line": 23,
+          "index": "true"
+        },
         {
           "path": "customerId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 12,
+          "line": 24,
           "ref": "Customer",
           "required": "true",
           "index": "true"
@@ -712,369 +772,369 @@
         {
           "path": "projectId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 19,
+          "line": 31,
           "ref": "Project",
           "index": "true"
         },
         {
           "path": "enrollmentId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 26,
+          "line": 38,
           "ref": "Enrollment",
           "index": "true"
         },
         {
           "path": "productionId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 33,
+          "line": 45,
           "ref": "Production",
           "index": "true"
         },
         {
           "path": "title",
           "type": "String",
-          "line": 40,
+          "line": 52,
           "required": "true"
         },
         {
           "path": "type",
           "type": "String",
-          "line": 47,
+          "line": 59,
           "enum": "JOB_TYPES",
           "index": "true"
         },
         {
           "path": "workflowType",
           "type": "String",
-          "line": 54,
+          "line": 66,
           "enum": "JOB_WORKFLOW_TYPES",
           "index": "true"
         },
         {
           "path": "status",
           "type": "String",
-          "line": 61,
+          "line": 73,
           "enum": "JOB_STATUSES",
           "index": "true"
         },
         {
           "path": "publishStatus",
           "type": "String",
-          "line": 68,
+          "line": 80,
           "enum": "JOB_PUBLISH_STATUSES",
           "index": "true"
         },
         {
           "path": "priority",
           "type": "String",
-          "line": 75,
+          "line": 87,
           "enum": "JOB_PRIORITIES",
           "index": "true"
         },
         {
           "path": "platform",
           "type": "String",
-          "line": 82,
+          "line": 94,
           "index": "true"
         },
         {
           "path": "dueDate",
           "type": "Date",
-          "line": 89,
+          "line": 101,
           "index": "true"
         },
         {
           "path": "startDate",
           "type": "Date",
-          "line": 95,
+          "line": 107,
           "index": "true"
         },
         {
           "path": "durationDays",
           "type": "Number",
-          "line": 101
+          "line": 113
         },
         {
           "path": "timeEstimate",
           "type": "String",
-          "line": 106
+          "line": 118
         },
         {
           "path": "effort",
           "type": "String",
-          "line": 112,
+          "line": 124,
           "index": "true"
         },
         {
           "path": "assigneeName",
           "type": "String",
-          "line": 119
+          "line": 131
         },
         {
           "path": "processOwner",
-          "type": "String",
-          "line": 125,
-          "index": "true"
-        },
-        {
-          "path": "dependencies",
-          "type": "Array",
-          "line": 132
-        },
-        {
-          "path": "seoBoardStatus",
           "type": "String",
           "line": 137,
           "index": "true"
         },
         {
+          "path": "dependencies",
+          "type": "Array",
+          "line": 144
+        },
+        {
+          "path": "seoBoardStatus",
+          "type": "String",
+          "line": 149,
+          "index": "true"
+        },
+        {
           "path": "seoTaskType",
           "type": "String",
-          "line": 144,
+          "line": 156,
           "index": "true"
         },
         {
           "path": "seoTarget",
           "type": "String",
-          "line": 151,
+          "line": 163,
           "index": "true"
         },
         {
           "path": "funnelStage",
           "type": "String",
-          "line": 158,
+          "line": 170,
           "index": "true"
         },
         {
           "path": "contentPhase",
           "type": "String",
-          "line": 165,
+          "line": 177,
           "index": "true"
         },
         {
           "path": "seoQuarter",
           "type": "String",
-          "line": 172,
+          "line": 184,
           "index": "true"
         },
         {
           "path": "executionPageUrl",
           "type": "String",
-          "line": 179
+          "line": 191
         },
         {
           "path": "analyticsUrl",
           "type": "String",
-          "line": 185
+          "line": 197
         },
         {
           "path": "parentGoalId",
           "type": "String",
-          "line": 191
+          "line": 203
         },
         {
           "path": "parentGoalName",
           "type": "String",
-          "line": 197
+          "line": 209
         },
         {
           "path": "parentGoalUrl",
           "type": "String",
-          "line": 203
+          "line": 215
         },
         {
           "path": "shootDate",
           "type": "Date",
-          "line": 209
+          "line": 221
         },
         {
           "path": "websiteVisible",
           "type": "Boolean",
-          "line": 214,
+          "line": 226,
           "index": "true"
         },
         {
           "path": "websiteFeatured",
           "type": "Boolean",
-          "line": 220,
+          "line": 232,
           "index": "true"
         },
         {
           "path": "coverMedia",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 226,
+          "line": 238,
           "ref": "Media"
         },
         {
           "path": "draftMediaId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 232,
+          "line": 244,
           "ref": "Media"
         },
         {
           "path": "finalMediaId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 238,
+          "line": 250,
           "ref": "Media"
         },
         {
           "path": "posterMediaId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 244,
+          "line": 256,
           "ref": "Media"
         },
         {
           "path": "media",
           "type": "Array",
-          "line": 250,
+          "line": 262,
           "ref": "Media"
         },
         {
           "path": "externalPostUrl",
           "type": "String",
-          "line": 256
+          "line": 268
         },
         {
           "path": "caption",
           "type": "String",
-          "line": 262
+          "line": 274
         },
         {
           "path": "concept",
           "type": "String",
-          "line": 263
+          "line": 275
         },
         {
           "path": "storyboard",
           "type": "String",
-          "line": 264
+          "line": 276
         },
         {
           "path": "script",
           "type": "String",
-          "line": 265
+          "line": 277
         },
         {
           "path": "shotList",
           "type": "String",
-          "line": 266
+          "line": 278
         },
         {
           "path": "location",
           "type": "String",
-          "line": 267
+          "line": 279
         },
         {
           "path": "notes",
           "type": "String",
-          "line": 268
+          "line": 280
         },
         {
           "path": "assignees",
           "type": "Array",
-          "line": 270,
+          "line": 282,
           "ref": "User"
         },
         {
           "path": "deliverables",
           "type": "Array",
-          "line": 276
+          "line": 288
         },
         {
           "path": "deliverables[].title",
           "type": "String",
-          "line": 279
+          "line": 291
         },
         {
           "path": "deliverables[].done",
           "type": "Boolean",
-          "line": 280
+          "line": 292
         },
         {
           "path": "approvalSteps",
           "type": "Array",
-          "line": 286
+          "line": 298
         },
         {
           "path": "approvalSteps[].id",
           "type": "String",
-          "line": 289
+          "line": 301
         },
         {
           "path": "approvalSteps[].title",
           "type": "String",
-          "line": 290
+          "line": 302
         },
         {
           "path": "approvalSteps[].role",
           "type": "String",
-          "line": 291
+          "line": 303
         },
         {
           "path": "approvalSteps[].required",
           "type": "Boolean",
-          "line": 292
+          "line": 304
         },
         {
           "path": "approvalSteps[].instructions",
           "type": "String",
-          "line": 293
+          "line": 305
         },
         {
           "path": "approvalChecklist",
           "type": "Array",
-          "line": 299
+          "line": 311
         },
         {
           "path": "approvalChecklist[].id",
           "type": "String",
-          "line": 302
+          "line": 314
         },
         {
           "path": "approvalChecklist[].text",
           "type": "String",
-          "line": 303
+          "line": 315
         },
         {
           "path": "approvalChecklist[].required",
           "type": "Boolean",
-          "line": 304
+          "line": 316
         },
         {
           "path": "approvalChecklist[].done",
           "type": "Boolean",
-          "line": 305
+          "line": 317
         },
         {
           "path": "approvals",
           "type": "Array",
-          "line": 311
+          "line": 323
         },
         {
           "path": "approvals[].createdBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 314,
+          "line": 326,
           "ref": "User"
         },
         {
           "path": "approvals[].at",
           "type": "Date",
-          "line": 319
+          "line": 331
         },
         {
           "path": "approvals[].createdAt",
           "type": "Date",
-          "line": 320
+          "line": 332
         },
         {
           "path": "approvals[].note",
           "type": "String",
-          "line": 321
+          "line": 333
         },
         {
           "path": "approvals[].status",
           "type": "String",
-          "line": 322,
+          "line": 334,
           "enum": [
             "requested",
             "approved",
@@ -1087,70 +1147,74 @@
         {
           "path": "postMetrics.likes",
           "type": "Number",
-          "line": 340
+          "line": 352
         },
         {
           "path": "postMetrics.comments",
           "type": "Number",
-          "line": 341
+          "line": 353
         },
         {
           "path": "postMetrics.shares",
           "type": "Number",
-          "line": 342
+          "line": 354
         },
         {
           "path": "postMetrics.saves",
           "type": "Number",
-          "line": 343
+          "line": 355
         },
         {
           "path": "postMetrics.reach",
           "type": "Number",
-          "line": 344
+          "line": 356
         },
         {
           "path": "postMetrics.impressions",
           "type": "Number",
-          "line": 345
+          "line": 357
         },
         {
           "path": "postMetrics.engagementRate",
           "type": "Number",
-          "line": 346
+          "line": 358
         },
         {
           "path": "postMetrics.lastUpdated",
           "type": "Date",
-          "line": 347
+          "line": 359
         },
         {
           "path": "publishedAt",
           "type": "Date",
-          "line": 350
+          "line": 362
         },
         {
           "path": "deliveredAt",
           "type": "Date",
-          "line": 351
+          "line": 363
         },
         {
           "path": "createdBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 353,
+          "line": 365,
           "ref": "User"
         },
         {
           "path": "updatedBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 359,
+          "line": 371,
           "ref": "User"
         }
       ],
       "indexes": [
         {
-          "line": 368,
+          "line": 380,
           "definition": "JobSchema.index({ title: \"text\", storyboard: \"text\", notes: \"text\", caption: \"text\", concept: \"text\", script: \"text\", seoTaskType: \"text\", seoTarget: \"text\", parentGoalName: \"text\", })"
+        },
+        {
+          "line": 392,
+          "definition": "JobSchema.index({ managedObligationKey: 1 }, { unique: true, partialFilterExpression: { managedObligationKey: { $type: \"string\" } }, name: \"uniq_managed_obligation\" })"
         }
       ]
     },
@@ -2060,7 +2124,7 @@
       "collection": "customers",
       "domain": "customers",
       "file": "portal-api/src/modules/customers/customer.model.js",
-      "line": 79,
+      "line": 80,
       "fields": [
         {
           "path": "companyName",
@@ -2112,31 +2176,37 @@
           "line": 23
         },
         {
+          "path": "accountManagerId",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 24,
+          "ref": "User"
+        },
+        {
           "path": "ownerUserId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 25,
+          "line": 26,
           "ref": "User"
         },
         {
           "path": "logoUrl",
           "type": "String",
-          "line": 31
+          "line": 32
         },
         {
           "path": "logoMediaId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 32,
+          "line": 33,
           "ref": "Media"
         },
         {
           "path": "notes",
           "type": "String",
-          "line": 38
+          "line": 39
         },
         {
           "path": "department",
           "type": "String",
-          "line": 40,
+          "line": 41,
           "enum": [
             "digital_agency",
             "procurement",
@@ -2147,39 +2217,39 @@
         {
           "path": "crmAccountId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 47,
+          "line": 48,
           "ref": "CRMAccount"
         },
         {
           "path": "crmDealId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 53,
+          "line": 54,
           "ref": "CRMDeal"
         },
         {
           "path": "createdBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 59,
+          "line": 60,
           "ref": "User"
         },
         {
           "path": "updatedBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 64,
+          "line": 65,
           "ref": "User"
         }
       ],
       "indexes": [
         {
-          "line": 73,
+          "line": 74,
           "definition": "CustomerSchema.index({ companyName: 1 })"
         },
         {
-          "line": 74,
+          "line": 75,
           "definition": "CustomerSchema.index({ contactName: 1 })"
         },
         {
-          "line": 76,
+          "line": 77,
           "definition": "CustomerSchema.index({ isActive: 1 })"
         }
       ]
@@ -2189,12 +2259,85 @@
       "collection": "enrollments",
       "domain": "enrollments",
       "file": "portal-api/src/modules/enrollments/enrollment.model.js",
-      "line": 164,
+      "line": 176,
       "fields": [
+        {
+          "path": "operatingModelVersion",
+          "type": "Number",
+          "line": 71
+        },
+        {
+          "path": "agreementDraft",
+          "type": "Boolean",
+          "line": 72
+        },
+        {
+          "path": "operatingVersion",
+          "type": "Number",
+          "line": 73
+        },
+        {
+          "path": "agreementRevisions",
+          "type": "Array",
+          "line": 74
+        },
+        {
+          "path": "operatingEvents",
+          "type": "Array",
+          "line": 75
+        },
+        {
+          "path": "teamId",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 76,
+          "ref": "Team"
+        },
+        {
+          "path": "sourceDealId",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 77,
+          "ref": "CRMDeal"
+        },
+        {
+          "path": "activatedAt",
+          "type": "Date",
+          "line": 78
+        },
+        {
+          "path": "cutoverDate",
+          "type": "String",
+          "line": 79
+        },
+        {
+          "path": "adoptionMappings",
+          "type": "Array",
+          "line": 80
+        },
+        {
+          "path": "adoptionMappings[]._id",
+          "type": "false",
+          "line": 80
+        },
+        {
+          "path": "adoptionMappings[].jobId",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 80,
+          "ref": "Job"
+        },
+        {
+          "path": "adoptionMappings[].scopeLineId",
+          "type": "String",
+          "line": 80
+        },
+        {
+          "path": "adoptionMappings[].scopeUnitOrdinal",
+          "type": "Number",
+          "line": 80
+        },
         {
           "path": "customerId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 70,
+          "line": 81,
           "ref": "Customer",
           "required": "true",
           "index": "true"
@@ -2202,7 +2345,7 @@
         {
           "path": "serviceTemplateId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 77,
+          "line": 88,
           "ref": "ServiceTemplate",
           "required": "true",
           "index": "true"
@@ -2210,466 +2353,471 @@
         {
           "path": "projectId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 84,
+          "line": 95,
           "ref": "Project"
         },
         {
           "path": "status",
           "type": "String",
-          "line": 90,
+          "line": 101,
           "index": "true"
+        },
+        {
+          "path": "pricing.currency",
+          "type": "String",
+          "line": 109
         },
         {
           "path": "pricing.price",
           "type": "Number",
-          "line": 98
+          "line": 110
         },
         {
           "path": "pricing.billingCycle",
           "type": "String",
-          "line": 99
+          "line": 111
         },
         {
           "path": "overrides.notes",
           "type": "String",
-          "line": 103
+          "line": 115
         },
         {
           "path": "overrides.customGroups",
           "type": "Array",
-          "line": 104
+          "line": 116
         },
         {
           "path": "overrides.customGroups[].id",
           "type": "String",
-          "line": 50
+          "line": 51
         },
         {
           "path": "overrides.customGroups[].title",
           "type": "String",
-          "line": 51
+          "line": 52
         },
         {
           "path": "overrides.customGroups[].description",
           "type": "String",
-          "line": 52
+          "line": 53
         },
         {
           "path": "overrides.customGroups[].type",
           "type": "String",
-          "line": 53
+          "line": 54
         },
         {
           "path": "overrides.customGroups[].order",
           "type": "Number",
-          "line": 58
+          "line": 59
         },
         {
           "path": "overrides.customGroups[].dueDays",
           "type": "Number",
-          "line": 59
+          "line": 60
         },
         {
           "path": "overrides.customGroups[].jobs",
           "type": "Array",
-          "line": 60
+          "line": 61
         },
         {
           "path": "overrides.customGroups[].jobs[].id",
           "type": "String",
-          "line": 13
+          "line": 14
         },
         {
           "path": "overrides.customGroups[].jobs[].title",
           "type": "String",
-          "line": 14
+          "line": 15
         },
         {
           "path": "overrides.customGroups[].jobs[].description",
           "type": "String",
-          "line": 15
+          "line": 16
         },
         {
           "path": "overrides.customGroups[].jobs[].type",
           "type": "String",
-          "line": 16
+          "line": 17
         },
         {
           "path": "overrides.customGroups[].jobs[].quantity",
           "type": "Number",
-          "line": 17
+          "line": 18
         },
         {
           "path": "overrides.customGroups[].jobs[].unit",
           "type": "String",
-          "line": 18
+          "line": 19
         },
         {
           "path": "overrides.customGroups[].jobs[].priority",
           "type": "String",
-          "line": 19
+          "line": 20
         },
         {
           "path": "overrides.customGroups[].jobs[].startDays",
           "type": "Number",
-          "line": 20
+          "line": 21
         },
         {
           "path": "overrides.customGroups[].jobs[].dueDays",
           "type": "Number",
-          "line": 21
+          "line": 22
         },
         {
           "path": "overrides.customGroups[].jobs[].durationDays",
           "type": "Number",
-          "line": 22
+          "line": 23
         },
         {
           "path": "overrides.customGroups[].jobs[].timeEstimate",
           "type": "String",
-          "line": 23
+          "line": 24
         },
         {
           "path": "overrides.customGroups[].jobs[].effort",
           "type": "String",
-          "line": 24
+          "line": 25
         },
         {
           "path": "overrides.customGroups[].jobs[].assigneeName",
           "type": "String",
-          "line": 25
+          "line": 26
         },
         {
           "path": "overrides.customGroups[].jobs[].processOwner",
           "type": "String",
-          "line": 26
+          "line": 27
         },
         {
           "path": "overrides.customGroups[].jobs[].dependencies",
           "type": "Array",
-          "line": 27
+          "line": 28
         },
         {
           "path": "overrides.customGroups[].jobs[].seoBoardStatus",
           "type": "String",
-          "line": 28
+          "line": 29
         },
         {
           "path": "overrides.customGroups[].jobs[].seoTaskType",
           "type": "String",
-          "line": 29
+          "line": 30
         },
         {
           "path": "overrides.customGroups[].jobs[].seoTarget",
           "type": "String",
-          "line": 30
+          "line": 31
         },
         {
           "path": "overrides.customGroups[].jobs[].funnelStage",
           "type": "String",
-          "line": 31
+          "line": 32
         },
         {
           "path": "overrides.customGroups[].jobs[].contentPhase",
           "type": "String",
-          "line": 32
+          "line": 33
         },
         {
           "path": "overrides.customGroups[].jobs[].seoQuarter",
           "type": "String",
-          "line": 33
+          "line": 34
         },
         {
           "path": "overrides.customGroups[].jobs[].executionPageUrl",
           "type": "String",
-          "line": 34
+          "line": 35
         },
         {
           "path": "overrides.customGroups[].jobs[].analyticsUrl",
           "type": "String",
-          "line": 35
+          "line": 36
         },
         {
           "path": "overrides.customGroups[].jobs[].parentGoalId",
           "type": "String",
-          "line": 36
+          "line": 37
         },
         {
           "path": "overrides.customGroups[].jobs[].parentGoalName",
           "type": "String",
-          "line": 37
+          "line": 38
         },
         {
           "path": "overrides.customGroups[].jobs[].parentGoalUrl",
           "type": "String",
-          "line": 38
+          "line": 39
         },
         {
           "path": "overrides.customGroups[].jobs[].required",
           "type": "Boolean",
-          "line": 39
+          "line": 40
         },
         {
           "path": "overrides.customGroups[].jobs[].checklist",
           "type": "Array",
-          "line": 40
+          "line": 41
         },
         {
           "path": "overrides.customGroups[].jobs[].checklist[].text",
           "type": "String",
-          "line": 5
+          "line": 6
         },
         {
           "path": "overrides.customGroups[].jobs[].checklist[].required",
           "type": "Boolean",
-          "line": 6
+          "line": 7
         },
         {
           "path": "finalScope.mode",
           "type": "String",
-          "line": 111
+          "line": 123
         },
         {
           "path": "finalScope.groups",
           "type": "Array",
-          "line": 116
+          "line": 128
         },
         {
           "path": "finalScope.groups[].id",
           "type": "String",
-          "line": 50
+          "line": 51
         },
         {
           "path": "finalScope.groups[].title",
           "type": "String",
-          "line": 51
+          "line": 52
         },
         {
           "path": "finalScope.groups[].description",
           "type": "String",
-          "line": 52
+          "line": 53
         },
         {
           "path": "finalScope.groups[].type",
           "type": "String",
-          "line": 53
+          "line": 54
         },
         {
           "path": "finalScope.groups[].order",
           "type": "Number",
-          "line": 58
+          "line": 59
         },
         {
           "path": "finalScope.groups[].dueDays",
           "type": "Number",
-          "line": 59
+          "line": 60
         },
         {
           "path": "finalScope.groups[].jobs",
           "type": "Array",
-          "line": 60
+          "line": 61
         },
         {
           "path": "finalScope.groups[].jobs[].id",
           "type": "String",
-          "line": 13
+          "line": 14
         },
         {
           "path": "finalScope.groups[].jobs[].title",
           "type": "String",
-          "line": 14
+          "line": 15
         },
         {
           "path": "finalScope.groups[].jobs[].description",
           "type": "String",
-          "line": 15
+          "line": 16
         },
         {
           "path": "finalScope.groups[].jobs[].type",
           "type": "String",
-          "line": 16
+          "line": 17
         },
         {
           "path": "finalScope.groups[].jobs[].quantity",
           "type": "Number",
-          "line": 17
+          "line": 18
         },
         {
           "path": "finalScope.groups[].jobs[].unit",
           "type": "String",
-          "line": 18
+          "line": 19
         },
         {
           "path": "finalScope.groups[].jobs[].priority",
           "type": "String",
-          "line": 19
+          "line": 20
         },
         {
           "path": "finalScope.groups[].jobs[].startDays",
           "type": "Number",
-          "line": 20
+          "line": 21
         },
         {
           "path": "finalScope.groups[].jobs[].dueDays",
           "type": "Number",
-          "line": 21
+          "line": 22
         },
         {
           "path": "finalScope.groups[].jobs[].durationDays",
           "type": "Number",
-          "line": 22
+          "line": 23
         },
         {
           "path": "finalScope.groups[].jobs[].timeEstimate",
           "type": "String",
-          "line": 23
+          "line": 24
         },
         {
           "path": "finalScope.groups[].jobs[].effort",
           "type": "String",
-          "line": 24
+          "line": 25
         },
         {
           "path": "finalScope.groups[].jobs[].assigneeName",
           "type": "String",
-          "line": 25
+          "line": 26
         },
         {
           "path": "finalScope.groups[].jobs[].processOwner",
           "type": "String",
-          "line": 26
+          "line": 27
         },
         {
           "path": "finalScope.groups[].jobs[].dependencies",
           "type": "Array",
-          "line": 27
+          "line": 28
         },
         {
           "path": "finalScope.groups[].jobs[].seoBoardStatus",
           "type": "String",
-          "line": 28
+          "line": 29
         },
         {
           "path": "finalScope.groups[].jobs[].seoTaskType",
           "type": "String",
-          "line": 29
+          "line": 30
         },
         {
           "path": "finalScope.groups[].jobs[].seoTarget",
           "type": "String",
-          "line": 30
+          "line": 31
         },
         {
           "path": "finalScope.groups[].jobs[].funnelStage",
           "type": "String",
-          "line": 31
+          "line": 32
         },
         {
           "path": "finalScope.groups[].jobs[].contentPhase",
           "type": "String",
-          "line": 32
+          "line": 33
         },
         {
           "path": "finalScope.groups[].jobs[].seoQuarter",
           "type": "String",
-          "line": 33
+          "line": 34
         },
         {
           "path": "finalScope.groups[].jobs[].executionPageUrl",
           "type": "String",
-          "line": 34
+          "line": 35
         },
         {
           "path": "finalScope.groups[].jobs[].analyticsUrl",
           "type": "String",
-          "line": 35
+          "line": 36
         },
         {
           "path": "finalScope.groups[].jobs[].parentGoalId",
           "type": "String",
-          "line": 36
+          "line": 37
         },
         {
           "path": "finalScope.groups[].jobs[].parentGoalName",
           "type": "String",
-          "line": 37
+          "line": 38
         },
         {
           "path": "finalScope.groups[].jobs[].parentGoalUrl",
           "type": "String",
-          "line": 38
+          "line": 39
         },
         {
           "path": "finalScope.groups[].jobs[].required",
           "type": "Boolean",
-          "line": 39
+          "line": 40
         },
         {
           "path": "finalScope.groups[].jobs[].checklist",
           "type": "Array",
-          "line": 40
+          "line": 41
         },
         {
           "path": "finalScope.groups[].jobs[].checklist[].text",
           "type": "String",
-          "line": 5
+          "line": 6
         },
         {
           "path": "finalScope.groups[].jobs[].checklist[].required",
           "type": "Boolean",
-          "line": 6
+          "line": 7
         },
         {
           "path": "startDate",
           "type": "Date",
-          "line": 122
+          "line": 134
         },
         {
           "path": "endDate",
           "type": "Date",
-          "line": 123
+          "line": 135
         },
         {
           "path": "accountOwnerId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 125,
+          "line": 137,
           "ref": "User"
         },
         {
           "path": "executionLeadId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 131,
+          "line": 143,
           "ref": "User"
         },
         {
           "path": "notes",
           "type": "String",
-          "line": 137
+          "line": 149
         },
         {
           "path": "createdBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 139,
+          "line": 151,
           "ref": "User"
         },
         {
           "path": "updatedBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 145,
+          "line": 157,
           "ref": "User"
         }
       ],
       "indexes": [
         {
-          "line": 154,
+          "line": 166,
           "definition": "EnrollmentSchema.index({ customerId: 1, status: 1 })"
         },
         {
-          "line": 155,
+          "line": 167,
           "definition": "EnrollmentSchema.index({ serviceTemplateId: 1, status: 1 })"
         },
         {
-          "line": 158,
+          "line": 170,
           "definition": "EnrollmentSchema.index( { customerId: 1, serviceTemplateId: 1 }, { unique: true, name: \"uniq_customer_service_template\" } )"
         }
       ]
@@ -4969,6 +5117,181 @@
       "indexes": []
     },
     {
+      "name": "DeliveryPeriod",
+      "collection": "deliveryperiods",
+      "domain": "operating",
+      "file": "portal-api/src/modules/operating/deliveryPeriod.model.js",
+      "line": 25,
+      "fields": [
+        {
+          "path": "customerId",
+          "type": "Schema.Types.ObjectId",
+          "line": 7,
+          "ref": "Customer",
+          "required": "true",
+          "index": "true"
+        },
+        {
+          "path": "enrollmentId",
+          "type": "Schema.Types.ObjectId",
+          "line": 8,
+          "ref": "Enrollment",
+          "required": "true",
+          "index": "true"
+        },
+        {
+          "path": "periodStart",
+          "type": "Date",
+          "line": 9,
+          "required": "true"
+        },
+        {
+          "path": "periodEnd",
+          "type": "Date",
+          "line": 10,
+          "required": "true"
+        },
+        {
+          "path": "timezone",
+          "type": "String",
+          "line": 11,
+          "required": "true"
+        },
+        {
+          "path": "agreementRevisionId",
+          "type": "String",
+          "line": 12,
+          "required": "true"
+        },
+        {
+          "path": "scopeSnapshot",
+          "type": "Array",
+          "line": 13
+        },
+        {
+          "path": "baseEntitlement",
+          "type": "Array",
+          "line": 14
+        },
+        {
+          "path": "baseEntitlement[].scopeLineId",
+          "type": "String",
+          "line": 14
+        },
+        {
+          "path": "baseEntitlement[].title",
+          "type": "String",
+          "line": 14
+        },
+        {
+          "path": "baseEntitlement[].type",
+          "type": "String",
+          "line": 14
+        },
+        {
+          "path": "baseEntitlement[].unit",
+          "type": "String",
+          "line": 14
+        },
+        {
+          "path": "baseEntitlement[].quantity",
+          "type": "Number",
+          "line": 14
+        },
+        {
+          "path": "adjustments",
+          "type": "Array",
+          "line": 15
+        },
+        {
+          "path": "adjustments[]._id",
+          "type": "false",
+          "line": 15
+        },
+        {
+          "path": "adjustments[].requestId",
+          "type": "String",
+          "line": 15
+        },
+        {
+          "path": "adjustments[].scopeLineId",
+          "type": "String",
+          "line": 15
+        },
+        {
+          "path": "adjustments[].quantity",
+          "type": "Number",
+          "line": 15
+        },
+        {
+          "path": "adjustments[].reason",
+          "type": "String",
+          "line": 15
+        },
+        {
+          "path": "adjustments[].evidence",
+          "type": "String",
+          "line": 15
+        },
+        {
+          "path": "adjustments[].actorId",
+          "type": "Schema.Types.ObjectId",
+          "line": 15,
+          "ref": "User"
+        },
+        {
+          "path": "adjustments[].at",
+          "type": "Date",
+          "line": 15
+        },
+        {
+          "path": "decisions",
+          "type": "Array",
+          "line": 16
+        },
+        {
+          "path": "openedBy",
+          "type": "Schema.Types.ObjectId",
+          "line": 17,
+          "ref": "User",
+          "required": "true"
+        },
+        {
+          "path": "openedAt",
+          "type": "Date",
+          "line": 18,
+          "required": "true"
+        },
+        {
+          "path": "reconciledBy",
+          "type": "Schema.Types.ObjectId",
+          "line": 19,
+          "ref": "User"
+        },
+        {
+          "path": "reconciledAt",
+          "type": "Date",
+          "line": 20
+        },
+        {
+          "path": "partialPeriodDecision",
+          "type": "String",
+          "line": 21
+        },
+        {
+          "path": "operatingVersion",
+          "type": "Number",
+          "line": 22
+        }
+      ],
+      "indexes": [
+        {
+          "line": 24,
+          "definition": "DeliveryPeriodSchema.index({ enrollmentId: 1, periodStart: 1 }, { unique: true, name: \"uniq_enrollment_period_start\" })"
+        }
+      ]
+    },
+    {
       "name": "Portfolio",
       "collection": "portfolios",
       "domain": "portfolio",
@@ -5935,36 +6258,108 @@
       "collection": "projects",
       "domain": "projects",
       "file": "portal-api/src/modules/projects/project.model.js",
-      "line": 138,
+      "line": 149,
       "fields": [
+        {
+          "path": "operatingModelVersion",
+          "type": "Number",
+          "line": 6
+        },
+        {
+          "path": "operatingVersion",
+          "type": "Number",
+          "line": 7
+        },
+        {
+          "path": "agreementRevisions",
+          "type": "Array",
+          "line": 8
+        },
+        {
+          "path": "operatingEvents",
+          "type": "Array",
+          "line": 9
+        },
+        {
+          "path": "teamId",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 10,
+          "ref": "Team"
+        },
+        {
+          "path": "phases",
+          "type": "Array",
+          "line": 11
+        },
+        {
+          "path": "activatedAt",
+          "type": "Date",
+          "line": 12
+        },
+        {
+          "path": "cutoverDate",
+          "type": "String",
+          "line": 13
+        },
+        {
+          "path": "adoptionMappings",
+          "type": "Array",
+          "line": 14
+        },
+        {
+          "path": "adoptionMappings[]._id",
+          "type": "false",
+          "line": 14
+        },
+        {
+          "path": "adoptionMappings[].jobId",
+          "type": "mongoose.Schema.Types.ObjectId",
+          "line": 14,
+          "ref": "Job"
+        },
+        {
+          "path": "adoptionMappings[].scopeLineId",
+          "type": "String",
+          "line": 14
+        },
+        {
+          "path": "adoptionMappings[].scopeUnitOrdinal",
+          "type": "Number",
+          "line": 14
+        },
+        {
+          "path": "linkedAgreementRevisionId",
+          "type": "String",
+          "line": 15
+        },
         {
           "path": "customerId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 5,
+          "line": 16,
           "ref": "Customer",
           "index": "true"
         },
         {
           "path": "enrollmentId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 12,
+          "line": 23,
           "ref": "Enrollment"
         },
         {
           "path": "name",
           "type": "String",
-          "line": 18,
+          "line": 29,
           "required": "true"
         },
         {
           "path": "code",
           "type": "String",
-          "line": 24
+          "line": 35
         },
         {
           "path": "projectMode",
           "type": "String",
-          "line": 30,
+          "line": 41,
           "enum": [
             "pre_contract",
             "contracted",
@@ -5976,7 +6371,7 @@
         {
           "path": "source",
           "type": "String",
-          "line": 37,
+          "line": 48,
           "enum": [
             "manual",
             "enrollment",
@@ -5988,117 +6383,117 @@
         {
           "path": "type",
           "type": "String",
-          "line": 44,
+          "line": 55,
           "index": "true"
         },
         {
           "path": "status",
           "type": "String",
-          "line": 51,
+          "line": 62,
           "index": "true"
         },
         {
           "path": "priority",
           "type": "String",
-          "line": 58,
+          "line": 69,
           "index": "true"
         },
         {
           "path": "ownerUserId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 65,
+          "line": 76,
           "ref": "User"
         },
         {
           "path": "team",
           "type": "String",
-          "line": 71
+          "line": 82
         },
         {
           "path": "startDate",
           "type": "Date",
-          "line": 77
+          "line": 88
         },
         {
           "path": "endDate",
           "type": "Date",
-          "line": 78
+          "line": 89
         },
         {
           "path": "targetLaunchDate",
           "type": "Date",
-          "line": 79
+          "line": 90
         },
         {
           "path": "currency",
           "type": "String",
-          "line": 81
+          "line": 92
         },
         {
           "path": "budget",
           "type": "Number",
-          "line": 87
+          "line": 98
         },
         {
           "path": "description",
           "type": "String",
-          "line": 92
+          "line": 103
         },
         {
           "path": "notes",
           "type": "String",
-          "line": 98
+          "line": 109
         },
         {
           "path": "tags",
           "type": "Array",
-          "line": 104
+          "line": 115
         },
         {
           "path": "archivedAt",
           "type": "Date",
-          "line": 109
+          "line": 120
         },
         {
           "path": "createdBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 114,
+          "line": 125,
           "ref": "User"
         },
         {
           "path": "updatedBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 120,
+          "line": 131,
           "ref": "User"
         }
       ],
       "indexes": [
         {
-          "line": 129,
+          "line": 140,
           "definition": "ProjectSchema.index({ customerId: 1, status: 1 })"
         },
         {
-          "line": 130,
+          "line": 141,
           "definition": "ProjectSchema.index({ customerId: 1, type: 1 })"
         },
         {
-          "line": 131,
+          "line": 142,
           "definition": "ProjectSchema.index({ customerId: 1, projectMode: 1 })"
         },
         {
-          "line": 132,
+          "line": 143,
           "definition": "ProjectSchema.index({ enrollmentId: 1 })"
         },
         {
-          "line": 133,
+          "line": 144,
           "definition": "ProjectSchema.index({ ownerUserId: 1 })"
         },
         {
-          "line": 134,
+          "line": 145,
           "definition": "ProjectSchema.index({ team: 1 })"
         },
         {
-          "line": 135,
+          "line": 146,
           "definition": "ProjectSchema.index({ name: 1 })"
         }
       ]
@@ -6108,97 +6503,97 @@
       "collection": "servicetemplates",
       "domain": "services",
       "file": "portal-api/src/modules/services/serviceTemplate.model.js",
-      "line": 194,
+      "line": 195,
       "fields": [
         {
           "path": "name",
           "type": "String",
-          "line": 93,
+          "line": 94,
           "required": "true"
         },
         {
           "path": "slug",
           "type": "String",
-          "line": 100,
+          "line": 101,
           "required": "true",
           "unique": "true"
         },
         {
           "path": "status",
           "type": "String",
-          "line": 108,
+          "line": 109,
           "enum": "SERVICE_TEMPLATE_STATUSES",
           "index": "true"
         },
         {
           "path": "summary",
           "type": "String",
-          "line": 115
+          "line": 116
         },
         {
           "path": "description",
           "type": "String",
-          "line": 116
+          "line": 117
         },
         {
           "path": "billingCycle",
           "type": "String",
-          "line": 118,
+          "line": 119,
           "enum": "SERVICE_BILLING_CYCLES"
         },
         {
           "path": "price",
           "type": "Number",
-          "line": 124
+          "line": 125
         },
         {
           "path": "executionMode",
           "type": "String",
-          "line": 126,
+          "line": 127,
           "enum": "SERVICE_EXECUTION_MODES",
           "index": "true"
         },
         {
           "path": "scopeGroups",
           "type": "Array",
-          "line": 133
+          "line": 134
         },
         {
           "path": "scopeGroups[].id",
           "type": "String",
-          "line": 62
+          "line": 63
         },
         {
           "path": "scopeGroups[].title",
           "type": "String",
-          "line": 63,
+          "line": 64,
           "required": "true"
         },
         {
           "path": "scopeGroups[].description",
           "type": "String",
-          "line": 64
+          "line": 65
         },
         {
           "path": "scopeGroups[].type",
           "type": "String",
-          "line": 65,
+          "line": 66,
           "enum": "SCOPE_GROUP_TYPES"
         },
         {
           "path": "scopeGroups[].order",
           "type": "Number",
-          "line": 70
+          "line": 71
         },
         {
           "path": "scopeGroups[].dueDays",
           "type": "Number",
-          "line": 71
+          "line": 72
         },
         {
           "path": "scopeGroups[].jobs",
           "type": "Array",
-          "line": 72
+          "line": 73
         },
         {
           "path": "scopeGroups[].jobs[].id",
@@ -6228,119 +6623,128 @@
           "line": 29
         },
         {
-          "path": "scopeGroups[].jobs[].unit",
+          "path": "scopeGroups[].jobs[].completionCriterion",
           "type": "String",
-          "line": 30
+          "line": 30,
+          "enum": [
+            "delivered",
+            "published"
+          ]
         },
         {
-          "path": "scopeGroups[].jobs[].priority",
+          "path": "scopeGroups[].jobs[].unit",
           "type": "String",
           "line": 31
         },
         {
-          "path": "scopeGroups[].jobs[].startDays",
-          "type": "Number",
+          "path": "scopeGroups[].jobs[].priority",
+          "type": "String",
           "line": 32
         },
         {
-          "path": "scopeGroups[].jobs[].dueDays",
+          "path": "scopeGroups[].jobs[].startDays",
           "type": "Number",
           "line": 33
         },
         {
-          "path": "scopeGroups[].jobs[].durationDays",
+          "path": "scopeGroups[].jobs[].dueDays",
           "type": "Number",
           "line": 34
         },
         {
-          "path": "scopeGroups[].jobs[].timeEstimate",
-          "type": "String",
+          "path": "scopeGroups[].jobs[].durationDays",
+          "type": "Number",
           "line": 35
         },
         {
-          "path": "scopeGroups[].jobs[].effort",
+          "path": "scopeGroups[].jobs[].timeEstimate",
           "type": "String",
           "line": 36
         },
         {
-          "path": "scopeGroups[].jobs[].assigneeName",
+          "path": "scopeGroups[].jobs[].effort",
           "type": "String",
           "line": 37
         },
         {
-          "path": "scopeGroups[].jobs[].processOwner",
+          "path": "scopeGroups[].jobs[].assigneeName",
           "type": "String",
           "line": 38
         },
         {
+          "path": "scopeGroups[].jobs[].processOwner",
+          "type": "String",
+          "line": 39
+        },
+        {
           "path": "scopeGroups[].jobs[].dependencies",
           "type": "Array",
-          "line": 39
+          "line": 40
         },
         {
           "path": "scopeGroups[].jobs[].seoBoardStatus",
           "type": "String",
-          "line": 40
+          "line": 41
         },
         {
           "path": "scopeGroups[].jobs[].seoTaskType",
           "type": "String",
-          "line": 41
+          "line": 42
         },
         {
           "path": "scopeGroups[].jobs[].seoTarget",
           "type": "String",
-          "line": 42
+          "line": 43
         },
         {
           "path": "scopeGroups[].jobs[].funnelStage",
           "type": "String",
-          "line": 43
+          "line": 44
         },
         {
           "path": "scopeGroups[].jobs[].contentPhase",
           "type": "String",
-          "line": 44
+          "line": 45
         },
         {
           "path": "scopeGroups[].jobs[].seoQuarter",
           "type": "String",
-          "line": 45
+          "line": 46
         },
         {
           "path": "scopeGroups[].jobs[].executionPageUrl",
           "type": "String",
-          "line": 46
+          "line": 47
         },
         {
           "path": "scopeGroups[].jobs[].analyticsUrl",
           "type": "String",
-          "line": 47
+          "line": 48
         },
         {
           "path": "scopeGroups[].jobs[].parentGoalId",
           "type": "String",
-          "line": 48
+          "line": 49
         },
         {
           "path": "scopeGroups[].jobs[].parentGoalName",
           "type": "String",
-          "line": 49
+          "line": 50
         },
         {
           "path": "scopeGroups[].jobs[].parentGoalUrl",
           "type": "String",
-          "line": 50
+          "line": 51
         },
         {
           "path": "scopeGroups[].jobs[].required",
           "type": "Boolean",
-          "line": 51
+          "line": 52
         },
         {
           "path": "scopeGroups[].jobs[].checklist",
           "type": "Array",
-          "line": 52
+          "line": 53
         },
         {
           "path": "scopeGroups[].jobs[].checklist[].id",
@@ -6360,12 +6764,12 @@
         {
           "path": "sla.responseTime",
           "type": "Number",
-          "line": 139
+          "line": 140
         },
         {
           "path": "sla.responseUnit",
           "type": "String",
-          "line": 140,
+          "line": 141,
           "enum": [
             "hours",
             "days"
@@ -6374,68 +6778,68 @@
         {
           "path": "sla.revisionRounds",
           "type": "Number",
-          "line": 145
+          "line": 146
         },
         {
           "path": "sla.deliveryDays",
           "type": "Number",
-          "line": 146
+          "line": 147
         },
         {
           "path": "sla.workingDaysOnly",
           "type": "Boolean",
-          "line": 147
+          "line": 148
         },
         {
           "path": "sla.supportWindow",
           "type": "String",
-          "line": 148
+          "line": 149
         },
         {
           "path": "sla.notes",
           "type": "String",
-          "line": 153
+          "line": 154
         },
         {
           "path": "approvals.required",
           "type": "Boolean",
-          "line": 157
+          "line": 158
         },
         {
           "path": "approvals.steps",
           "type": "Array",
-          "line": 158
+          "line": 159
         },
         {
           "path": "approvals.steps[].id",
           "type": "String",
-          "line": 82
+          "line": 83
         },
         {
           "path": "approvals.steps[].title",
           "type": "String",
-          "line": 83,
+          "line": 84,
           "required": "true"
         },
         {
           "path": "approvals.steps[].required",
           "type": "Boolean",
-          "line": 84
+          "line": 85
         },
         {
           "path": "approvals.steps[].role",
           "type": "String",
-          "line": 85
+          "line": 86
         },
         {
           "path": "approvals.steps[].instructions",
           "type": "String",
-          "line": 86
+          "line": 87
         },
         {
           "path": "approvals.checklist",
           "type": "Array",
-          "line": 159
+          "line": 160
         },
         {
           "path": "approvals.checklist[].id",
@@ -6455,40 +6859,40 @@
         {
           "path": "coverImageId",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 162,
+          "line": 163,
           "ref": "Media"
         },
         {
           "path": "files.uploads",
           "type": "Array",
-          "line": 171
+          "line": 172
         },
         {
           "path": "files.mediaRefs",
           "type": "Array",
-          "line": 172,
+          "line": 173,
           "ref": "Media"
         },
         {
           "path": "createdBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 175,
+          "line": 176,
           "ref": "User"
         },
         {
           "path": "updatedBy",
           "type": "mongoose.Schema.Types.ObjectId",
-          "line": 181,
+          "line": 182,
           "ref": "User"
         }
       ],
       "indexes": [
         {
-          "line": 190,
+          "line": 191,
           "definition": "ServiceTemplateSchema.index({ name: 1 })"
         },
         {
-          "line": 191,
+          "line": 192,
           "definition": "ServiceTemplateSchema.index({ executionMode: 1, status: 1 })"
         }
       ]
@@ -8432,7 +8836,7 @@
       "path": "/api/customers",
       "domain": "customers",
       "file": "portal-api/src/modules/customers/customers.routes.js",
-      "line": 17,
+      "line": 20,
       "globalGuards": [],
       "handlers": [
         {
@@ -8454,7 +8858,7 @@
       "path": "/api/customers",
       "domain": "customers",
       "file": "portal-api/src/modules/customers/customers.routes.js",
-      "line": 29,
+      "line": 32,
       "globalGuards": [],
       "handlers": [
         {
@@ -8476,7 +8880,7 @@
       "path": "/api/customers/:id",
       "domain": "customers",
       "file": "portal-api/src/modules/customers/customers.routes.js",
-      "line": 41,
+      "line": 44,
       "globalGuards": [],
       "handlers": [
         {
@@ -8498,7 +8902,7 @@
       "path": "/api/customers/:id",
       "domain": "customers",
       "file": "portal-api/src/modules/customers/customers.routes.js",
-      "line": 23,
+      "line": 26,
       "globalGuards": [],
       "handlers": [
         {
@@ -8520,7 +8924,7 @@
       "path": "/api/customers/:id",
       "domain": "customers",
       "file": "portal-api/src/modules/customers/customers.routes.js",
-      "line": 35,
+      "line": 38,
       "globalGuards": [],
       "handlers": [
         {
@@ -8542,7 +8946,7 @@
       "path": "/api/customers/:id/create-login",
       "domain": "customers",
       "file": "portal-api/src/modules/customers/customers.routes.js",
-      "line": 47,
+      "line": 50,
       "globalGuards": [],
       "handlers": [
         {
@@ -8561,10 +8965,36 @@
     },
     {
       "method": "GET",
+      "path": "/api/customers/:id/operating/options",
+      "domain": "customers",
+      "file": "portal-api/src/modules/customers/customers.routes.js",
+      "line": 18,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"customers.write\")",
+          "source": "portal-api/src/modules/customers/customers.routes.js"
+        },
+        {
+          "label": "operatingOptions",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "GET",
       "path": "/api/customers/:id/users",
       "domain": "customers",
       "file": "portal-api/src/modules/customers/customers.routes.js",
-      "line": 54,
+      "line": 57,
       "globalGuards": [],
       "handlers": [
         {
@@ -8586,7 +9016,7 @@
       "path": "/api/customers/:id/users",
       "domain": "customers",
       "file": "portal-api/src/modules/customers/customers.routes.js",
-      "line": 61,
+      "line": 64,
       "globalGuards": [],
       "handlers": [
         {
@@ -8608,7 +9038,7 @@
       "path": "/api/enrollments",
       "domain": "enrollments",
       "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-      "line": 13,
+      "line": 19,
       "globalGuards": [],
       "handlers": [
         {
@@ -8630,7 +9060,7 @@
       "path": "/api/enrollments",
       "domain": "enrollments",
       "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-      "line": 27,
+      "line": 33,
       "globalGuards": [],
       "handlers": [
         {
@@ -8652,7 +9082,7 @@
       "path": "/api/enrollments/:id",
       "domain": "enrollments",
       "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-      "line": 41,
+      "line": 47,
       "globalGuards": [],
       "handlers": [
         {
@@ -8674,7 +9104,7 @@
       "path": "/api/enrollments/:id",
       "domain": "enrollments",
       "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-      "line": 20,
+      "line": 26,
       "globalGuards": [],
       "handlers": [
         {
@@ -8696,7 +9126,7 @@
       "path": "/api/enrollments/:id",
       "domain": "enrollments",
       "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-      "line": 34,
+      "line": 40,
       "globalGuards": [],
       "handlers": [
         {
@@ -8710,6 +9140,110 @@
         {
           "label": "updateEnrollmentGlobal",
           "source": "portal-api/src/modules/enrollments/enrollment.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/enrollments/:id/operating",
+      "domain": "enrollments",
+      "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+      "line": 15,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"enrollments.read\", \"jobs.read\")",
+          "source": "portal-api/src/modules/enrollments/enrollment.routes.js"
+        },
+        {
+          "label": "enrollmentOverview",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/enrollments/:id/operating/:command",
+      "domain": "enrollments",
+      "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+      "line": 16,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"enrollments.write\")",
+          "source": "portal-api/src/modules/enrollments/enrollment.routes.js"
+        },
+        {
+          "label": "enrollmentAction",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/enrollments/:id/operating/options",
+      "domain": "enrollments",
+      "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+      "line": 14,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"enrollments.write\")",
+          "source": "portal-api/src/modules/enrollments/enrollment.routes.js"
+        },
+        {
+          "label": "operatingOptions",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/enrollments/:id/operating/periods/:periodId/:command",
+      "domain": "enrollments",
+      "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+      "line": 17,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"enrollments.write\", \"jobs.write\")",
+          "source": "portal-api/src/modules/enrollments/enrollment.routes.js"
+        },
+        {
+          "label": "periodAction",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
         }
       ]
     },
@@ -10256,7 +10790,7 @@
       "path": "/api/jobs",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 29,
+      "line": 33,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10279,7 +10813,7 @@
       "path": "/api/jobs",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 30,
+      "line": 34,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10302,7 +10836,7 @@
       "path": "/api/jobs/:id",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 52,
+      "line": 56,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10325,7 +10859,7 @@
       "path": "/api/jobs/:id",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 50,
+      "line": 54,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10348,7 +10882,7 @@
       "path": "/api/jobs/:id",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 51,
+      "line": 55,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10371,7 +10905,7 @@
       "path": "/api/jobs/:id/approval",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 60,
+      "line": 64,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10394,7 +10928,7 @@
       "path": "/api/jobs/:id/attach-media",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 54,
+      "line": 58,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10413,11 +10947,65 @@
       ]
     },
     {
+      "method": "POST",
+      "path": "/api/jobs/:id/operating/:command",
+      "domain": "content",
+      "file": "portal-api/src/modules/content/jobs/job.routes.js",
+      "line": 31,
+      "globalGuards": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        }
+      ],
+      "handlers": [
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"jobs.read\")",
+          "source": "portal-api/src/modules/content/jobs/job.routes.js"
+        },
+        {
+          "label": "jobAction",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/jobs/:id/operating/options",
+      "domain": "content",
+      "file": "portal-api/src/modules/content/jobs/job.routes.js",
+      "line": 30,
+      "globalGuards": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        }
+      ],
+      "handlers": [
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"jobs.write\")",
+          "source": "portal-api/src/modules/content/jobs/job.routes.js"
+        },
+        {
+          "label": "operatingOptions",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
+        }
+      ]
+    },
+    {
       "method": "PATCH",
       "path": "/api/jobs/:id/post-metrics",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 72,
+      "line": 76,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10440,7 +11028,7 @@
       "path": "/api/jobs/:id/publish",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 66,
+      "line": 70,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10463,7 +11051,7 @@
       "path": "/api/jobs/bulk",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 38,
+      "line": 42,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10486,7 +11074,7 @@
       "path": "/api/jobs/bulk/assign",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 32,
+      "line": 36,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10509,7 +11097,7 @@
       "path": "/api/jobs/generate/from-enrollment/:enrollmentId",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 44,
+      "line": 48,
       "globalGuards": [
         {
           "label": "requireAuth",
@@ -10532,7 +11120,7 @@
       "path": "/api/jobs/public/website",
       "domain": "content",
       "file": "portal-api/src/modules/content/jobs/job.routes.js",
-      "line": 25,
+      "line": 27,
       "globalGuards": [],
       "handlers": [
         {
@@ -11686,7 +12274,7 @@
       "path": "/api/projects",
       "domain": "projects",
       "file": "portal-api/src/modules/projects/project.routes.js",
-      "line": 67,
+      "line": 72,
       "globalGuards": [],
       "handlers": [
         {
@@ -11708,7 +12296,7 @@
       "path": "/api/projects",
       "domain": "projects",
       "file": "portal-api/src/modules/projects/project.routes.js",
-      "line": 81,
+      "line": 86,
       "globalGuards": [],
       "handlers": [
         {
@@ -11730,7 +12318,7 @@
       "path": "/api/projects/:id",
       "domain": "projects",
       "file": "portal-api/src/modules/projects/project.routes.js",
-      "line": 95,
+      "line": 100,
       "globalGuards": [],
       "handlers": [
         {
@@ -11752,7 +12340,7 @@
       "path": "/api/projects/:id",
       "domain": "projects",
       "file": "portal-api/src/modules/projects/project.routes.js",
-      "line": 74,
+      "line": 79,
       "globalGuards": [],
       "handlers": [
         {
@@ -11774,7 +12362,7 @@
       "path": "/api/projects/:id",
       "domain": "projects",
       "file": "portal-api/src/modules/projects/project.routes.js",
-      "line": 88,
+      "line": 93,
       "globalGuards": [],
       "handlers": [
         {
@@ -11793,10 +12381,88 @@
     },
     {
       "method": "GET",
-      "path": "/api/projects/stats",
+      "path": "/api/projects/:id/operating",
+      "domain": "projects",
+      "file": "portal-api/src/modules/projects/project.routes.js",
+      "line": 21,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"projects.read\", \"jobs.read\")",
+          "source": "portal-api/src/modules/projects/project.routes.js"
+        },
+        {
+          "label": "projectOverview",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:id/operating/:command",
+      "domain": "projects",
+      "file": "portal-api/src/modules/projects/project.routes.js",
+      "line": 22,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"projects.write\")",
+          "source": "portal-api/src/modules/projects/project.routes.js"
+        },
+        {
+          "label": "projectAction",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:id/operating/options",
       "domain": "projects",
       "file": "portal-api/src/modules/projects/project.routes.js",
       "line": 20,
+      "globalGuards": [],
+      "handlers": [
+        {
+          "label": "requireAuth",
+          "source": "portal-api/src/middleware/auth.js"
+        },
+        {
+          "label": "requireInternalUser",
+          "source": "portal-api/src/utils/accessControl.js"
+        },
+        {
+          "label": "requirePermission(\"projects.write\")",
+          "source": "portal-api/src/modules/projects/project.routes.js"
+        },
+        {
+          "label": "operatingOptions",
+          "source": "portal-api/src/modules/operating/operating.controller.js"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/stats",
+      "domain": "projects",
+      "file": "portal-api/src/modules/projects/project.routes.js",
+      "line": 25,
       "globalGuards": [],
       "handlers": [
         {
@@ -14084,6 +14750,11 @@
             "description": "Create and update jobs"
           },
           {
+            "key": "jobs.approve",
+            "label": "Approve",
+            "description": "Decide assigned managed delivery approval steps"
+          },
+          {
             "key": "jobs.delete",
             "label": "Delete",
             "description": "Permanently delete jobs"
@@ -14229,6 +14900,17 @@
             "key": "enrollments.delete",
             "label": "Delete",
             "description": "Permanently delete enrollments"
+          }
+        ]
+      },
+      {
+        "domain": "delivery",
+        "label": "Delivery exceptions",
+        "permissions": [
+          {
+            "key": "delivery.override",
+            "label": "Override",
+            "description": "Record explicit, reasoned delivery exceptions"
           }
         ]
       },
@@ -14556,6 +15238,7 @@
         "productions.delete",
         "jobs.read",
         "jobs.write",
+        "jobs.approve",
         "jobs.delete",
         "social.metrics.read",
         "social.metrics.write",
@@ -14577,6 +15260,7 @@
         "enrollments.read",
         "enrollments.write",
         "enrollments.delete",
+        "delivery.override",
         "billing.read",
         "billing.write",
         "billing.delete",
@@ -14634,6 +15318,7 @@
         "productions.delete",
         "jobs.read",
         "jobs.write",
+        "jobs.approve",
         "jobs.delete",
         "social.metrics.read",
         "social.metrics.write",
@@ -14655,6 +15340,7 @@
         "enrollments.read",
         "enrollments.write",
         "enrollments.delete",
+        "delivery.override",
         "billing.read",
         "billing.write",
         "billing.delete",
@@ -14921,15 +15607,15 @@
       "api": [
         {
           "file": "portal-api/src/modules/customers/customers.routes.js",
-          "line": 20
+          "line": 23
         },
         {
           "file": "portal-api/src/modules/customers/customers.routes.js",
-          "line": 26
+          "line": 29
         },
         {
           "file": "portal-api/src/modules/customers/customers.routes.js",
-          "line": 57
+          "line": 60
         }
       ],
       "ui": [
@@ -14951,29 +15637,33 @@
       "api": [
         {
           "file": "portal-api/src/modules/customers/customers.routes.js",
-          "line": 32
+          "line": 18
         },
         {
           "file": "portal-api/src/modules/customers/customers.routes.js",
-          "line": 38
+          "line": 35
         },
         {
           "file": "portal-api/src/modules/customers/customers.routes.js",
-          "line": 50
+          "line": 41
         },
         {
           "file": "portal-api/src/modules/customers/customers.routes.js",
-          "line": 64
+          "line": 53
+        },
+        {
+          "file": "portal-api/src/modules/customers/customers.routes.js",
+          "line": 67
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 53
+          "line": 54
         }
       ],
       "ui": [
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 80
+          "line": 81
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomersPage.jsx",
@@ -14985,17 +15675,17 @@
       "api": [
         {
           "file": "portal-api/src/modules/customers/customers.routes.js",
-          "line": 44
+          "line": 47
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 52
+          "line": 53
         }
       ],
       "ui": [
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 81
+          "line": 82
         }
       ]
     },
@@ -15003,15 +15693,19 @@
       "api": [
         {
           "file": "portal-api/src/modules/projects/project.routes.js",
-          "line": 23
+          "line": 21
         },
         {
           "file": "portal-api/src/modules/projects/project.routes.js",
-          "line": 70
+          "line": 28
         },
         {
           "file": "portal-api/src/modules/projects/project.routes.js",
-          "line": 77
+          "line": 75
+        },
+        {
+          "file": "portal-api/src/modules/projects/project.routes.js",
+          "line": 82
         }
       ],
       "ui": [
@@ -15033,7 +15727,7 @@
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 60
+          "line": 61
         },
         {
           "file": "client/src/portal/features/dashboard/client/ClientDashboard.jsx",
@@ -15061,25 +15755,33 @@
       "api": [
         {
           "file": "portal-api/src/modules/projects/project.routes.js",
-          "line": 84
+          "line": 20
         },
         {
           "file": "portal-api/src/modules/projects/project.routes.js",
-          "line": 91
+          "line": 22
+        },
+        {
+          "file": "portal-api/src/modules/projects/project.routes.js",
+          "line": 89
+        },
+        {
+          "file": "portal-api/src/modules/projects/project.routes.js",
+          "line": 96
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 61
+          "line": 62
         }
       ],
       "ui": [
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 256
+          "line": 257
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
-          "line": 66
+          "line": 67
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectsPage.jsx",
@@ -15091,17 +15793,17 @@
       "api": [
         {
           "file": "portal-api/src/modules/projects/project.routes.js",
-          "line": 98
+          "line": 103
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 62
+          "line": 63
         }
       ],
       "ui": [
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
-          "line": 67
+          "line": 68
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectsPage.jsx",
@@ -15148,11 +15850,27 @@
       "api": [
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 29
+          "line": 31
         },
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 50
+          "line": 33
+        },
+        {
+          "file": "portal-api/src/modules/content/jobs/job.routes.js",
+          "line": 54
+        },
+        {
+          "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+          "line": 15
+        },
+        {
+          "file": "portal-api/src/modules/operating/operating.service.js",
+          "line": 41
+        },
+        {
+          "file": "portal-api/src/modules/projects/project.routes.js",
+          "line": 21
         }
       ],
       "ui": [
@@ -15182,15 +15900,15 @@
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 62
-        },
-        {
-          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
           "line": 63
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 66
+          "line": 64
+        },
+        {
+          "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
+          "line": 67
         },
         {
           "file": "client/src/portal/features/dashboard/client/clientOverview.js",
@@ -15201,12 +15919,12 @@
           "line": 20
         },
         {
-          "file": "client/src/portal/features/hr/staff/staffTabs.js",
-          "line": 8
+          "file": "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
+          "line": 245
         },
         {
-          "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
-          "line": 43
+          "file": "client/src/portal/features/hr/staff/staffTabs.js",
+          "line": 8
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
@@ -15214,11 +15932,15 @@
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
-          "line": 47
+          "line": 45
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
-          "line": 68
+          "line": 48
+        },
+        {
+          "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
+          "line": 69
         }
       ]
     },
@@ -15234,41 +15956,57 @@
         },
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 46
+          "line": 38
         },
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 51
+          "line": 50
         },
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 56
+          "line": 55
         },
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 62
+          "line": 60
         },
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 68
+          "line": 66
         },
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 74
+          "line": 72
+        },
+        {
+          "file": "portal-api/src/modules/content/jobs/job.routes.js",
+          "line": 78
+        },
+        {
+          "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+          "line": 17
+        },
+        {
+          "file": "portal-api/src/modules/operating/operating.controller.js",
+          "line": 26
+        },
+        {
+          "file": "portal-api/src/modules/operating/operating.controller.js",
+          "line": 39
         }
       ],
       "ui": [
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 258
+          "line": 259
         },
         {
           "file": "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
-          "line": 93
+          "line": 94
         },
         {
           "file": "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
-          "line": 64
+          "line": 65
         },
         {
           "file": "client/src/portal/features/jobs/pages/JobsPage.jsx",
@@ -15276,11 +16014,53 @@
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
-          "line": 69
+          "line": 70
         },
         {
           "file": "client/src/portal/features/social/pages/ContentCalendarPage.jsx",
-          "line": 592
+          "line": 598
+        },
+        {
+          "file": "client/src/portal/shared/operating/AgreementPanel.jsx",
+          "line": 12
+        },
+        {
+          "file": "client/src/portal/shared/operating/ManagedJobPanel.jsx",
+          "line": 27
+        },
+        {
+          "file": "client/src/portal/shared/operating/ManagedJobPanel.jsx",
+          "line": 29
+        }
+      ]
+    },
+    "jobs.approve": {
+      "api": [
+        {
+          "file": "portal-api/src/modules/operating/jobOperating.service.js",
+          "line": 50
+        },
+        {
+          "file": "portal-api/src/modules/operating/operating.controller.js",
+          "line": 38
+        },
+        {
+          "file": "portal-api/src/modules/operating/operating.service.js",
+          "line": 41
+        },
+        {
+          "file": "portal-api/src/modules/operating/operating.service.js",
+          "line": 328
+        }
+      ],
+      "ui": [
+        {
+          "file": "client/src/portal/shared/operating/AgreementPanel.jsx",
+          "line": 125
+        },
+        {
+          "file": "client/src/portal/shared/operating/ManagedJobPanel.jsx",
+          "line": 29
         }
       ]
     },
@@ -15288,17 +16068,17 @@
       "api": [
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 40
+          "line": 44
         },
         {
           "file": "portal-api/src/modules/content/jobs/job.routes.js",
-          "line": 52
+          "line": 56
         }
       ],
       "ui": [
         {
           "file": "client/src/portal/features/jobs/pages/JobDetailsPage.jsx",
-          "line": 65
+          "line": 66
         },
         {
           "file": "client/src/portal/features/jobs/pages/JobsPage.jsx",
@@ -15329,7 +16109,7 @@
       "ui": [
         {
           "file": "client/src/portal/features/social/pages/ContentCalendarPage.jsx",
-          "line": 593
+          "line": 599
         }
       ]
     },
@@ -15437,7 +16217,11 @@
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
-          "line": 45
+          "line": 46
+        },
+        {
+          "file": "client/src/portal/shared/operating/AgreementEditor.jsx",
+          "line": 20
         }
       ]
     },
@@ -15463,7 +16247,7 @@
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
-          "line": 317
+          "line": 321
         }
       ]
     },
@@ -15656,6 +16440,10 @@
         {
           "file": "client/src/portal/app/ProtectedRoute.jsx",
           "line": 35
+        },
+        {
+          "file": "client/src/portal/shared/operating/AgreementPanel.jsx",
+          "line": 35
         }
       ]
     },
@@ -15711,11 +16499,15 @@
       "api": [
         {
           "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-          "line": 16
+          "line": 15
         },
         {
           "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-          "line": 23
+          "line": 22
+        },
+        {
+          "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+          "line": 29
         }
       ],
       "ui": [
@@ -15733,7 +16525,7 @@
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 61
+          "line": 62
         }
       ]
     },
@@ -15741,11 +16533,23 @@
       "api": [
         {
           "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-          "line": 30
+          "line": 14
         },
         {
           "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-          "line": 37
+          "line": 16
+        },
+        {
+          "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+          "line": 17
+        },
+        {
+          "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+          "line": 36
+        },
+        {
+          "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
+          "line": 43
         }
       ],
       "ui": [
@@ -15755,11 +16559,11 @@
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 257
+          "line": 258
         },
         {
           "file": "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
-          "line": 91
+          "line": 92
         },
         {
           "file": "client/src/portal/features/enrollments/pages/EnrollmentsPage.jsx",
@@ -15771,13 +16575,47 @@
       "api": [
         {
           "file": "portal-api/src/modules/enrollments/enrollment.routes.js",
-          "line": 44
+          "line": 50
         }
       ],
       "ui": [
         {
           "file": "client/src/portal/features/enrollments/pages/EnrollmentDetailsPage.jsx",
-          "line": 92
+          "line": 93
+        }
+      ]
+    },
+    "delivery.override": {
+      "api": [
+        {
+          "file": "portal-api/src/modules/operating/jobOperating.service.js",
+          "line": 9
+        },
+        {
+          "file": "portal-api/src/modules/operating/operating.service.js",
+          "line": 21
+        },
+        {
+          "file": "portal-api/src/modules/operating/operating.service.js",
+          "line": 387
+        }
+      ],
+      "ui": [
+        {
+          "file": "client/src/portal/shared/operating/AgreementPanel.jsx",
+          "line": 83
+        },
+        {
+          "file": "client/src/portal/shared/operating/AgreementPanel.jsx",
+          "line": 104
+        },
+        {
+          "file": "client/src/portal/shared/operating/AgreementPanel.jsx",
+          "line": 109
+        },
+        {
+          "file": "client/src/portal/shared/operating/ManagedJobPanel.jsx",
+          "line": 29
         }
       ]
     },
@@ -15815,7 +16653,7 @@
         },
         {
           "file": "client/src/portal/features/projects/pages/ProjectDetailsPage.jsx",
-          "line": 46
+          "line": 47
         }
       ]
     },
@@ -15851,7 +16689,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 56
+          "line": 57
         }
       ],
       "ui": [
@@ -15869,7 +16707,7 @@
       "api": [
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 57
+          "line": 58
         }
       ],
       "ui": []
@@ -15970,7 +16808,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 63
+          "line": 64
         }
       ],
       "ui": [
@@ -16058,7 +16896,7 @@
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 337
+          "line": 340
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -16284,7 +17122,7 @@
         },
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 64
+          "line": 65
         },
         {
           "file": "client/src/portal/features/dashboard/staff/staffData.js",
@@ -16378,7 +17216,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 55
+          "line": 56
         }
       ],
       "ui": [
@@ -16432,7 +17270,7 @@
         },
         {
           "file": "portal-api/src/utils/roleRegistry.js",
-          "line": 54
+          "line": 55
         }
       ],
       "ui": [
@@ -17141,7 +17979,7 @@
       "ui": [
         {
           "file": "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
-          "line": 382
+          "line": 385
         },
         {
           "file": "client/src/portal/features/iam/users/components/UserTable.jsx",
@@ -19669,6 +20507,76 @@
       "call": "api.post",
       "url": "\"/auth/google\"",
       "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 5,
+      "call": "api.get",
+      "url": "`/enrollments/${id}/operating`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 6,
+      "call": "api.get",
+      "url": "`/projects/${id}/operating`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 9,
+      "call": "api.get",
+      "url": "`/jobs/${id}/operating/options`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 10,
+      "call": "api.get",
+      "url": "`/customers/${id}/operating/options`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 11,
+      "call": "api.get",
+      "url": "`/enrollments/${id}/operating/options`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 12,
+      "call": "api.get",
+      "url": "`/projects/${id}/operating/options`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 16,
+      "call": "api.post",
+      "url": "`/enrollments/${id}/operating/${command}`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 17,
+      "call": "api.post",
+      "url": "`/projects/${id}/operating/${command}`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 19,
+      "call": "api.post",
+      "url": "`/enrollments/${id}/operating/periods/${periodId}/${command}`",
+      "reachable": true
+    },
+    {
+      "file": "client/src/portal/shared/operating/api.js",
+      "line": 20,
+      "call": "api.post",
+      "url": "`/jobs/${job._id}/operating/${command}`",
+      "reachable": true
     }
   ],
   "unreachableFrontendCandidates": [
@@ -20304,6 +21212,10 @@
           "client/src/portal/shared/hooks/useDebouncedValue.js",
           "client/src/portal/shared/hooks/usePermissionCatalog.js",
           "client/src/portal/shared/hooks/usePortalProfile.js",
+          "client/src/portal/shared/operating/AccountManagerField.jsx",
+          "client/src/portal/shared/operating/AgreementEditor.jsx",
+          "client/src/portal/shared/operating/AgreementPanel.jsx",
+          "client/src/portal/shared/operating/ManagedJobPanel.jsx",
           "client/src/portal/shared/ui/ActionMenu.jsx",
           "client/src/portal/shared/ui/Alert.jsx",
           "client/src/portal/shared/ui/AttachmentPicker.jsx",
@@ -20520,6 +21432,7 @@
           "client/src/portal/features/customers/pages/CustomerDetailsPage.jsx",
           "client/src/portal/features/customers/pages/CustomersPage.jsx",
           "client/src/portal/features/customers/tabs/CustomerActivityTab.jsx",
+          "client/src/portal/features/customers/tabs/CustomerEnrollmentsTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerOverviewTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProcurementTab.jsx",
           "client/src/portal/features/customers/tabs/CustomerProductionsTab.jsx",
@@ -20575,6 +21488,7 @@
           "client/src/portal/features/services/pages/ServiceBuilderPage.jsx",
           "client/src/portal/features/services/pages/ServiceDetailsPage.jsx",
           "client/src/portal/features/services/pages/ServicesPage.jsx",
+          "client/src/portal/features/social/pages/ContentCalendarPage.jsx",
           "client/src/portal/features/tickets/client/ClientTicketDetail.jsx",
           "client/src/portal/features/tickets/client/ClientTicketsList.jsx",
           "client/src/portal/features/tickets/pages/TicketDetailsPage.jsx",
@@ -20586,6 +21500,8 @@
           "client/src/portal/pages/PortalLogin.jsx",
           "client/src/portal/pages/RequestAccess.jsx",
           "client/src/portal/pages/ResetPassword.jsx",
+          "client/src/portal/shared/operating/AgreementPanel.jsx",
+          "client/src/portal/shared/operating/ManagedJobPanel.jsx",
           "client/src/portal/shared/ui/AttentionList.jsx",
           "client/src/portal/shared/ui/AuthCard.jsx",
           "client/src/portal/shared/ui/Breadcrumbs.jsx",
@@ -20809,6 +21725,9 @@
           "portal-api/src/modules/iam/users/user.service.js",
           "portal-api/src/modules/messaging/message.controller.js",
           "portal-api/src/modules/messaging/message.model.js",
+          "portal-api/src/modules/operating/deliveryPeriod.model.js",
+          "portal-api/src/modules/operating/operating.schemas.js",
+          "portal-api/src/modules/operating/operating.service.js",
           "portal-api/src/modules/portfolio/portfolio.controller.js",
           "portal-api/src/modules/portfolio/portfolio.model.js",
           "portal-api/src/modules/portfolio/workItem.controller.js",

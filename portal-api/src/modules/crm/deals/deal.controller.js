@@ -96,7 +96,7 @@ export async function convertDealToCustomer(req, res) {
       const customerId = existingCustomer?._id || new mongoose.Types.ObjectId();
       const claimed = await Deal.findOneAndUpdate(
         { _id: deal._id, customerId: null },
-        { $set: { stage: "won", customerId, convertedAt: new Date(), updatedBy: actorId } },
+        { $set: { stage: "won", status: "won", wonAt: deal.wonAt || new Date(), customerId, convertedAt: new Date(), updatedBy: actorId } },
         { new: true, session }
       ).lean();
       if (!claimed) throw new DealConversionConflict("This deal was converted at the same time. Refresh to see its client.");

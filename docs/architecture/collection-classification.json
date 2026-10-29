@@ -44,5 +44,6 @@
   "ProcurementVendor": "BUSINESS",
   "Project": "BUSINESS",
   "Ticket": "BUSINESS",
-  "Counter": "SYSTEM"
+  "Counter": "SYSTEM",
+  "DeliveryPeriod": "BUSINESS"
 }

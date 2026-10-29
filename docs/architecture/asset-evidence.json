@@ -141,12 +141,12 @@
     "duplicateContentBytes": 1375870,
     "sameBasenameGroups": 0,
     "possibleLegacyVariantGroups": 92,
-    "referenceSurfaces": 267,
-    "modelsInventoried": 46,
-    "fieldsInventoried": 994,
-    "integrityFindings": 54,
+    "referenceSurfaces": 270,
+    "modelsInventoried": 47,
+    "fieldsInventoried": 1061,
+    "integrityFindings": 59,
     "runtimeIntegritySites": 6,
-    "nonRuntimeIntegritySites": 46,
+    "nonRuntimeIntegritySites": 51,
     "unresolvedSourceParses": 0,
     "deletionAuthorized": 0
   },
@@ -1778,6 +1778,24 @@
       "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
       "patternDigest": "e0be0218811c314450a154763dcf782388a288b645b1a02fd9bd9b83b4ac6737",
       "expressionDigest": "3d4ea3a537dcfc3cc7dc01f667efc9e84e6e743f4870c1a31f7104e1a34efd11"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "partial-expression",
+      "context": "computed-path",
+      "provenance": "TEST",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "patternDigest": "91ac2fd3ad1abb848e0b5e8d46d60e2600e8e494501df590a6d89ee32fc5d810",
+      "expressionDigest": "363249e3bb664135955ce3389734c8b99794555bf0ab7608d7d2b56dedcf7f7d"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "partial-expression",
+      "context": "computed-path",
+      "provenance": "TEST",
+      "scope": "PUBLIC_PATH_OR_URL_POSSIBLE",
+      "patternDigest": "eeaca4749b6f2c826ca64b5b25ba1878df6ef33da74b87205e14180e19fada0e",
+      "expressionDigest": "606bb5111d350685b1bb9f8d454b5ea52557da1e6e09c7cd8576a6cc9a5e4f33"
     }
   ],
   "sourceOperationEvidence": [
@@ -8820,6 +8838,36 @@
       "expressionDigest": "66c40791658da54518b09a3759f36b080d175dfd3725bf6f1cf060ff4fe7a24b"
     },
     {
+      "source": "client/src/portal/shared/operating/AgreementEditor.jsx",
+      "field": "fileIds",
+      "context": "JSXExpressionContainer",
+      "expressionDigest": "860a1dcd2ac0aeecd500fbe835c254a39cf0b4db12d3c43c00e234e4a0f5caca"
+    },
+    {
+      "source": "client/src/portal/shared/operating/AgreementEditor.jsx",
+      "field": "fileIds",
+      "context": "LogicalExpression",
+      "expressionDigest": "0fac8eb05d60b7743d2f74c4c2fd67f38782a101789ce60271e9e73499991d22"
+    },
+    {
+      "source": "client/src/portal/shared/operating/AgreementEditor.jsx",
+      "field": "fileIds",
+      "context": "MemberExpression",
+      "expressionDigest": "b0b509d73384ec00369a61aaa25c826e3b347961e4c5d59318fb2618f36bcc84"
+    },
+    {
+      "source": "client/src/portal/shared/operating/AgreementEditor.jsx",
+      "field": "fileIds",
+      "context": "ObjectExpression",
+      "expressionDigest": "2323d7d6c563bb1cc39bbd241027b4e2cbb3a9d29c7a43584b8f3c752ebd1bac"
+    },
+    {
+      "source": "client/src/portal/shared/operating/ManagedJobPanel.jsx",
+      "field": "externalPostUrl",
+      "context": "ObjectExpression",
+      "expressionDigest": "f44dc1a1f0a62306309a9fcbba49b1c82d2ea89481fe6995d93f00d4e2a5b52a"
+    },
+    {
       "source": "client/src/portal/shared/ui/AttachmentPicker.jsx",
       "field": "files",
       "context": "CallExpression",
@@ -10960,6 +11008,72 @@
       "field": "attachmentUrls",
       "context": "ObjectExpression",
       "expressionDigest": "04d4bb9f7fc9d3227daa7f5beffa4ac411e05ef91c2cba9216739bc6f6eb8374"
+    },
+    {
+      "source": "portal-api/src/modules/operating/jobOperating.service.js",
+      "field": "externalPostUrl",
+      "context": "AssignmentExpression",
+      "expressionDigest": "1bbf61c71658acf6c910e15696d1e3766f38c034aa93a79b295e3cfaae1e6170"
+    },
+    {
+      "source": "portal-api/src/modules/operating/jobOperating.service.js",
+      "field": "externalPostUrl",
+      "context": "AssignmentExpression",
+      "expressionDigest": "cc96518fcc9a275d9b09ad31093b881f785e915cf8110fab8a3d11ab9800f33b"
+    },
+    {
+      "source": "portal-api/src/modules/operating/jobOperating.service.js",
+      "field": "externalPostUrl",
+      "context": "CallExpression",
+      "expressionDigest": "0058389ca6aec7aacff29bf9a9223f84759c2e1485112eb2c3dade28266e8959"
+    },
+    {
+      "source": "portal-api/src/modules/operating/jobOperating.service.js",
+      "field": "externalPostUrl",
+      "context": "LogicalExpression",
+      "expressionDigest": "74009883653dd495510400f1e2052e5767ca854ec6cbded054102da96a3e9eab"
+    },
+    {
+      "source": "portal-api/src/modules/operating/jobOperating.service.js",
+      "field": "externalPostUrl",
+      "context": "LogicalExpression",
+      "expressionDigest": "9f8c1a86bb0ac5e2f4242af2180de2c36a1a1c22670e636a4e58ae2cce0c5bb5"
+    },
+    {
+      "source": "portal-api/src/modules/operating/jobOperating.service.js",
+      "field": "url",
+      "context": "AssignmentExpression",
+      "expressionDigest": "1bbf61c71658acf6c910e15696d1e3766f38c034aa93a79b295e3cfaae1e6170"
+    },
+    {
+      "source": "portal-api/src/modules/operating/operating.schemas.js",
+      "field": "fileIds",
+      "context": "ObjectExpression",
+      "expressionDigest": "f782f5d32c9990a6a2c5abadb27e359c0730446acc2abf605bcbfb08887608d0"
+    },
+    {
+      "source": "portal-api/src/modules/operating/operating.service.js",
+      "field": "fileIds",
+      "context": "CallExpression",
+      "expressionDigest": "be42669fc3f66ea34f4e805ca2d8da223dd84a9c448f7a9da773b04a44a88069"
+    },
+    {
+      "source": "portal-api/src/modules/operating/operating.service.js",
+      "field": "fileIds",
+      "context": "LogicalExpression",
+      "expressionDigest": "28c5ac689c569ff6149a6484f5a0348de67e1f70f1c09b897c9557b5a951b18c"
+    },
+    {
+      "source": "portal-api/src/modules/operating/operating.service.js",
+      "field": "fileIds",
+      "context": "ObjectExpression",
+      "expressionDigest": "a74b60c1cb69c6e39500a1a9b923aa3a1157ca6c1c706d62dfa268f3979effa9"
+    },
+    {
+      "source": "portal-api/src/modules/operating/operating.service.js",
+      "field": "fileIds",
+      "context": "UnaryExpression",
+      "expressionDigest": "a7adcc26cec807652b9383045e6cc59578c413dba5b4e66a0cd2b5f4ee2f6e08"
     },
     {
       "source": "portal-api/src/modules/portfolio/portfolio.controller.js",
@@ -13209,6 +13323,69 @@
       "context": "property:logoUrl",
       "provenance": "TEST",
       "status": "RUNTIME_UPLOAD_NAMESPACE"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://cdn.example",
+      "path": "/reel-1.mp4"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://cdn.example",
+      "path": "/x.png"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "property:src",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "http://insecure.example",
+      "path": "/v.mp4"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "property:src",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://cdn.example",
+      "path": "/generic-artwork.webp"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "property:src",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://cdn.example",
+      "path": "/reel-1.mp4"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "property:src",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://cdn.example",
+      "path": "/x.png"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "property:src",
+      "provenance": "TEST",
+      "status": "EXTERNAL_URL_NOT_MAPPED",
+      "origin": "https://evil.example",
+      "path": "/x.png"
     }
   ],
   "unresolvedSourceParses": [],
@@ -13683,6 +13860,51 @@
       "provenance": "TEST",
       "code": "NOT_IN_TRACKED_ASSETS",
       "candidate": "client/public/media/old.pdf",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/clip.mp4",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "ArrayExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/poster.jpg",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "CallExpression",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/sudatel-thumb.png",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "property:poster",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/poster.jpg",
+      "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
+    },
+    {
+      "source": "portal-api/test/work-items.test.js",
+      "form": "string-literal",
+      "context": "property:src",
+      "provenance": "TEST",
+      "code": "NOT_IN_TRACKED_ASSETS",
+      "candidate": "client/public/clip.mp4",
       "evidenceRole": "NON_RUNTIME_EXAMPLE_OR_COMMENT"
     }
   ],
@@ -14606,7 +14828,7 @@
     "path": "asset-reference-plan.json",
     "schemaVersion": "expresso.lifecycle.asset-reference-plan/1",
     "evidenceState": "NOT_COLLECTED",
-    "digest": "4bc6ecf01f22cd782a38fd5367e90a9ae5f48130efbb8c6f515258fd0e8a59e0"
+    "digest": "22b899f9fef9f3acaf955f4d25820e65b5423cbeca3b139539d10c56ed0eaa1a"
   },
   "records": [
     {
@@ -30174,6 +30396,38 @@
           "provenance": "OPERATOR_SOURCE",
           "resolvedAssetPath": "client/public/odeur.jpg",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/test/work-items.test.js",
+          "form": "string-literal",
+          "context": "CallExpression",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/odeur.jpg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/test/work-items.test.js",
+          "form": "string-literal",
+          "context": "property:bannerImage",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/odeur.jpg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/test/work-items.test.js",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/odeur.jpg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/test/work-items.test.js",
+          "form": "string-literal",
+          "context": "property:thumbnailImg",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/odeur.jpg",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
@@ -30409,6 +30663,22 @@
           "provenance": "OPERATOR_SOURCE",
           "resolvedAssetPath": "client/public/odeur1.jpeg",
           "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/test/work-items.test.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/odeur1.jpeg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/test/work-items.test.js",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/odeur1.jpeg",
+          "confidence": "HIGH_PUBLIC_ROOT"
         }
       ],
       "staticEvidence": {
@@ -30642,6 +30912,22 @@
           "form": "string-literal",
           "context": "property:src",
           "provenance": "OPERATOR_SOURCE",
+          "resolvedAssetPath": "client/public/odeur2.jpeg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/test/work-items.test.js",
+          "form": "string-literal",
+          "context": "ArrayExpression",
+          "provenance": "TEST",
+          "resolvedAssetPath": "client/public/odeur2.jpeg",
+          "confidence": "HIGH_PUBLIC_ROOT"
+        },
+        {
+          "source": "portal-api/test/work-items.test.js",
+          "form": "string-literal",
+          "context": "property:src",
+          "provenance": "TEST",
           "resolvedAssetPath": "client/public/odeur2.jpeg",
           "confidence": "HIGH_PUBLIC_ROOT"
         }
@@ -37810,8 +38096,8 @@
       "generator": "003afc528507de465886833e2a76719b8ad70da07413144cfeb50fbca93af7c5",
       "policy": "5bf1c8bc3de78fff20309815d3d650ef32d321bf22011d646ed28fbb4a2b37d2",
       "assets": "690b9b2806554920f3ddbb464c65ead02ac4c6dfec5adf973575e8701f1c7c74",
-      "referenceEvidence": "dc7f2ec148290ef10448aca051aa1a9444cc291a6caad5b4e77c97f446125f4b",
-      "modelFields": "5f819858b360b659de17d4a2ae359630d156a4219b2c159e305e233c04b4b92c",
+      "referenceEvidence": "7df4ab62d5cf0b58fe2b5131302bf20fac905f1725e961dae49f1328b6a8d483",
+      "modelFields": "d580c7597a313926901e8c3610b9f7024f07eb20dfb4f0676debfb89e23cf5a9",
       "storageSemantics": "f4a037ff887172db5969ceab5f3eee9e47aa9f310c736237fb0d58d108f4521c"
     },
     "method": "No timestamp/HEAD id. Git-tracked assets plus current application source (including uncommitted modules), semantic references, all schema field shapes and storage-code AST digests. Unrelated source text/comments/line shifts without reference evidence do not change outputs.",

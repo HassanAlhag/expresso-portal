@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Customer from "./customer.model.js";
 import User from "../iam/users/user.model.js";
+import { assertActiveInternal } from "../operating/operating.service.js";
 import CRMAccount from "../crm/accounts/account.model.js";
 import CRMContact from "../crm/contacts/contact.model.js";
 import {
@@ -14,11 +15,11 @@ import { SYSTEM_CLIENT_ROLES } from "../../utils/roleRegistry.js";
 // own company record never receives the internal notes or the links to the
 // CRM account and deal (CRM is internal: deal title, stage and value). Staff
 // responses are unchanged.
-export const CLIENT_HIDDEN_CUSTOMER_FIELDS = ["notes", "crmAccountId", "crmDealId"];
+export const CLIENT_HIDDEN_CUSTOMER_FIELDS = ["notes", "crmAccountId", "crmDealId", "accountManagerId"];
 const LIST_FIELDS =
-  "companyName contactName slug primaryEmail phone industry country code isActive ownerUserId logoUrl logoMediaId notes department createdAt updatedAt";
+  "companyName contactName slug primaryEmail phone industry country code isActive ownerUserId accountManagerId logoUrl logoMediaId notes department createdAt updatedAt";
 const DETAIL_FIELDS =
-  "companyName contactName slug primaryEmail phone industry country code isActive ownerUserId logoUrl logoMediaId notes department crmAccountId crmDealId createdAt updatedAt";
+  "companyName contactName slug primaryEmail phone industry country code isActive ownerUserId accountManagerId logoUrl logoMediaId notes department crmAccountId crmDealId createdAt updatedAt";
 
 /** The field list a viewer may receive: internal users get all of it. */
 export function customerFieldsFor(req, fields) {
@@ -169,6 +170,7 @@ export async function createCustomer(req, res) {
     const body = req.body || {};
     const companyName = String(body.companyName || "").trim();
     const contactName = String(body.contactName || "").trim();
+    if (body.accountManagerId) await assertActiveInternal([body.accountManagerId]);
 
     if (!companyName || !contactName) {
       return res.status(400).json({
@@ -188,6 +190,7 @@ export async function createCustomer(req, res) {
         .json({ ok: false, message: "Slug already exists" });
 
     const doc = await Customer.create({
+      accountManagerId: body.accountManagerId || null,
       companyName,
       contactName,
       slug: finalSlug,
@@ -255,6 +258,7 @@ export async function createCustomer(req, res) {
 
     return res.status(201).json({ ok: true, item: doc });
   } catch (e) {
+    if (e.status) return res.status(e.status).json({ ok: false, message: e.message });
     console.error("createCustomer:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }
@@ -269,6 +273,10 @@ export async function updateCustomer(req, res) {
 
     const body = req.body || {};
     const patch = { updatedBy: req.user?.id || null };
+    if ("accountManagerId" in body) {
+      if (body.accountManagerId) await assertActiveInternal([body.accountManagerId]);
+      patch.accountManagerId = body.accountManagerId || null;
+    }
 
     if (typeof body.companyName !== "undefined")
       patch.companyName = String(body.companyName || "").trim();
@@ -338,6 +346,7 @@ export async function updateCustomer(req, res) {
 
     return res.json({ ok: true, item });
   } catch (e) {
+    if (e.status) return res.status(e.status).json({ ok: false, message: e.message });
     console.error("updateCustomer:", e);
     return res.status(500).json({ ok: false, message: "Server error" });
   }

@@ -33,6 +33,10 @@ This map describes the code at the audit baseline `58b8f86c`. Since then:
 
 See [REMEDIATION-PLAN.md](REMEDIATION-PLAN.md#implementation-status) for what is verified and what is still pending.
 
+## Operating Model Phase 1 additions
+
+The current API catalog has 78 keys. `jobs.approve` permits a decision only on the assigned current submission step. `delivery.override` permits explicit reasoned, audited exceptions; it grants no general bypass. Both remain internal-only; Account Manager, Execution Lead and Team ownership grant no permissions. Stored roles are not silently expanded. See [Operating Model Phase 1](OPERATING-MODEL-PHASE-1.md).
+
 ## Source-confirmed mismatches and remaining concerns
 
 | Priority / issue | Evidence | Consequence and recommended follow-up |
@@ -73,6 +77,8 @@ Counts below are **literal source references**, excluding catalog definitions, t
 | `jobs.read` | 2 | 5 | Jobs |
 | `jobs.write` | 8 | 0 | No literal UI use outside catalog |
 | `jobs.delete` | 2 | 0 | No literal UI use outside catalog |
+| `jobs.approve` | 4 | 2 | Assigned current submitted-output step only |
+| `delivery.override` | 3 | 4 | Explicit reasoned and audited delivery exceptions only |
 | `social.metrics.read` | 1 | 0 | Missing from static UI catalog; No literal UI use outside catalog |
 | `social.metrics.write` | 2 | 0 | Missing from static UI catalog; No literal UI use outside catalog |
 | `media.read` | 1 | 3 | Media Library |

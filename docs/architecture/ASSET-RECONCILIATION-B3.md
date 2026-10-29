@@ -60,7 +60,7 @@ Assets remain Git-tracked. Reference inputs include tracked text plus current ap
 
 JS/JSX/TS/TSX are parsed without execution; lexical constants, concatenations and resolvable templates, imports/require, JSX/HTML attributes, CSS URLs, JSON values and Markdown links are normalized. Bare names resolve only to an exact public-root path under a documented convention; nested assets are never matched by basename. Tests, comments, documentation, unreachable modules and operator sources have separate provenance. Stable source/context anchors avoid unrelated line-number churn. Public URLs can be used by bookmarks, search, emails, social links, external websites or CDNs even with no repository reference. External origins never become local paths without an approved alias map. No ignored build is counted as independent evidence; tracked entry configuration/imports describe expected build behavior only.
 
-There are 203 dynamic source sites and 0 unresolved source parses. Finite computed paths, cross-module values, generated content and opaque runtime values can exceed this bounded static analysis. No absence conclusion is permitted.
+There are 205 dynamic source sites and 0 unresolved source parses. Finite computed paths, cross-module values, generated content and opaque runtime values can exceed this bounded static analysis. No absence conclusion is permitted.
 
 ## Integrity (separate from unused candidates)
 
@@ -122,6 +122,11 @@ Findings describe repository resolution, not a proven deployed 404. Runtime uplo
 | NOT_IN_TRACKED_ASSETS | TEST | portal-api/test/r4d-single-sources.test.js | client/public/a.png |
 | NOT_IN_TRACKED_ASSETS | TEST | portal-api/test/r4d-single-sources.test.js | client/public/media/a.png |
 | NOT_IN_TRACKED_ASSETS | TEST | portal-api/test/r4d-single-sources.test.js | client/public/media/old.pdf |
+| NOT_IN_TRACKED_ASSETS | TEST | portal-api/test/work-items.test.js | client/public/clip.mp4 |
+| NOT_IN_TRACKED_ASSETS | TEST | portal-api/test/work-items.test.js | client/public/poster.jpg |
+| NOT_IN_TRACKED_ASSETS | TEST | portal-api/test/work-items.test.js | client/public/sudatel-thumb.png |
+| NOT_IN_TRACKED_ASSETS | TEST | portal-api/test/work-items.test.js | client/public/poster.jpg |
+| NOT_IN_TRACKED_ASSETS | TEST | portal-api/test/work-items.test.js | client/public/clip.mp4 |
 
 ## Duplicate evidence
 
@@ -144,7 +149,7 @@ Exact duplicate groups: **12**; repeated bytes after one copy per group: **13758
 
 ## Persisted field inventory and future capture
 
-All **46 models**, **994 schema leaf fields** and **267 selected reference/context surfaces** are inventoried in asset-reference-plan.json. SiteSettings helper-returned image URL/Media fields are expanded. Generic Mixed/Object/Map values, arrays, rich text/HTML/Markdown and unknown legacy fields require bounded local token extraction; never export complete documents or raw blobs. Each selected surface defines its expected type, normalization, target kind, nesting, rich-text requirement, context and sanitized unresolved reporting. No future capture command is implemented or authorized by B3.
+All **47 models**, **1061 schema leaf fields** and **270 selected reference/context surfaces** are inventoried in asset-reference-plan.json. SiteSettings helper-returned image URL/Media fields are expanded. Generic Mixed/Object/Map values, arrays, rich text/HTML/Markdown and unknown legacy fields require bounded local token extraction; never export complete documents or raw blobs. Each selected surface defines its expected type, normalization, target kind, nesting, rich-text requirement, context and sanitized unresolved reporting. No future capture command is implemented or authorized by B3.
 
 | Model / collection | Exact fields requiring later evidence |
 |---|---|
@@ -159,8 +164,9 @@ All **46 models**, **994 schema leaf fields** and **267 selected reference/conte
 | CRMDeal / crmdeals | notes |
 | CRMLead / crmleads | notes |
 | Customer / customers | logoMediaId; logoUrl; notes |
+| DeliveryPeriod / deliveryperiods | adjustments[]._id |
 | DigitalService / digitalservices | blocks; description; heroImageMediaId; heroImageUrl; imageMediaId; imageUrl |
-| Enrollment / enrollments | finalScope.groups[].description; finalScope.groups[].jobs[].analyticsUrl; finalScope.groups[].jobs[].checklist[].text; finalScope.groups[].jobs[].contentPhase; finalScope.groups[].jobs[].description; finalScope.groups[].jobs[].executionPageUrl; finalScope.groups[].jobs[].parentGoalUrl; notes; overrides.customGroups[].description; overrides.customGroups[].jobs[].analyticsUrl; overrides.customGroups[].jobs[].checklist[].text; overrides.customGroups[].jobs[].contentPhase; overrides.customGroups[].jobs[].description; overrides.customGroups[].jobs[].executionPageUrl; overrides.customGroups[].jobs[].parentGoalUrl; overrides.notes |
+| Enrollment / enrollments | adoptionMappings[]._id; finalScope.groups[].description; finalScope.groups[].jobs[].analyticsUrl; finalScope.groups[].jobs[].checklist[].text; finalScope.groups[].jobs[].contentPhase; finalScope.groups[].jobs[].description; finalScope.groups[].jobs[].executionPageUrl; finalScope.groups[].jobs[].parentGoalUrl; notes; overrides.customGroups[].description; overrides.customGroups[].jobs[].analyticsUrl; overrides.customGroups[].jobs[].checklist[].text; overrides.customGroups[].jobs[].contentPhase; overrides.customGroups[].jobs[].description; overrides.customGroups[].jobs[].executionPageUrl; overrides.customGroups[].jobs[].parentGoalUrl; overrides.notes |
 | File / files | customerId; filename; jobId; notes; productionId; projectId; url |
 | HeroSlide / heroslides | ctaUrl; imageMediaId; imageUrl; secondaryCtaUrl; thumbImageMediaId; thumbImageUrl |
 | HRExpense / hrexpenses | description; notes; receiptMediaId; receiptUrl |
@@ -180,7 +186,7 @@ All **46 models**, **994 schema leaf fields** and **267 selected reference/conte
 | ProcurementRequest / procurementrequests | description; notes; requirements |
 | ProcurementVendor / procurementvendors | notes; website |
 | Production / productions | coverMedia; description; excerpt; gallery[] |
-| Project / projects | description; notes |
+| Project / projects | adoptionMappings[]._id; description; notes |
 | Quotation / quotations | attachments[].url; notes |
 | RFQ / rfqs | attachments[].url; description |
 | Role / roles | description |

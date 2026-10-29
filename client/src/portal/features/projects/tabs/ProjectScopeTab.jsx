@@ -209,6 +209,7 @@ function PhasePanel({ phase, index, existingTitles }) {
 // jobs, after a confirmation. Offered only to users who can create jobs.
 export default function ProjectScopeTab({
   project,
+  managed = false,
   customer,
   jobs = [],
   loading,
@@ -228,6 +229,8 @@ export default function ProjectScopeTab({
   const missingJobs = plannedJobs.filter((job) => !existingTitles.has(titleKey(job.title)));
   const PlanIcon = plan.Icon || ClipboardList;
   const canGenerate = Boolean(canCreateJobs && customer?._id && project?._id && missingJobs.length);
+
+  if (managed) return <Panel title="Managed phase delivery"><p>Use the accepted phases and delivery actions above. Jobs link to explicit phases; template title suggestions do not define this engagement.</p></Panel>;
 
   if (loading) return <LoadingState rows={5} label="Loading the delivery plan" />;
   if (error) return <ErrorState title="The plan didn't load" message={error} onRetry={onRetry} />;

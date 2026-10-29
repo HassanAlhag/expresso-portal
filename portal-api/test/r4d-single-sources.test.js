@@ -231,7 +231,7 @@ test("scope: enrollment create and update build the same final scope; stored che
 
   let patch;
   stub(Enrollment, "findById", () => q({ _id: oid(), serviceTemplateId: template._id, overrides: {} }));
-  stub(Enrollment, "findByIdAndUpdate", (_id, p) => { patch = p; return q({ ...p }); });
+  stub(Enrollment, "findOneAndUpdate", (_id, p) => { patch = p; return q({ ...p }); });
   r = await call("PATCH", `/api/enrollments/${oid()}`, { user: superAdmin, body: { overrides: { customGroups: [RAW_GROUP] } } });
   assert.equal(r.status, 200);
   assert.deepEqual(patch.overrides.customGroups, [EXPECTED_GROUP]);

@@ -79,6 +79,7 @@ export default function CreateEnrollmentModal({
   busy = false,
   initialCustomerId = "",
   cancelLabel = "Cancel",
+  handoff = false,
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -188,10 +189,10 @@ export default function CreateEnrollmentModal({
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <div className="text-xl font-black text-slate-900">
-              New enrollment
+              {handoff ? "Confirm delivery agreement" : "New enrollment"}
             </div>
             <div className="mt-1 text-sm text-slate-600">
-              Enroll a customer into one of your fixed services.
+              {handoff ? "Select a service to prepare its agreement draft. Confirm scope, commercial allocation and ownership on the next screen before activation." : "Enroll a customer into one of your fixed services."}
             </div>
           </div>
 

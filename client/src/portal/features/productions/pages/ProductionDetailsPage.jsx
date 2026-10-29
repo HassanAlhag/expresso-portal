@@ -1,3 +1,4 @@
+import ManagedJobPanel from "../../../shared/operating/ManagedJobPanel";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -401,7 +402,7 @@ export default function ProductionDetailsPage() {
                   type="button"
                   title={stage.label}
                   aria-current={isCurrent ? "step" : undefined}
-                  disabled={busy}
+                  disabled={busy || item.operatingModelVersion === 1}
                   onClick={() => moveToStage(stage.key)}
                   className={[
                     "group relative flex-1 rounded-full transition",
@@ -429,7 +430,7 @@ export default function ProductionDetailsPage() {
       </div>
 
       {/* ── Client review banner ── */}
-      {isClientReview && (
+      {isClientReview && item.operatingModelVersion !== 1 && (
         <div className="flex items-center justify-between gap-4 rounded-[20px] border border-orange-200 bg-orange-50 px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-orange-100 text-orange-600">
@@ -453,6 +454,8 @@ export default function ProductionDetailsPage() {
         </div>
       )}
 
+      {item.operatingModelVersion === 1 && <ManagedJobPanel job={item} onChanged={load} />}
+
       {/* ── Main layout ── */}
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
         {/* Left column */}
@@ -462,6 +465,7 @@ export default function ProductionDetailsPage() {
             media={Array.isArray(item.media) ? item.media : []}
             approvals={approvals}
             busy={busy}
+            readOnly={item.operatingModelVersion === 1}
             onAttach={() => openPicker("version", "video")}
             onApprove={handleApprove}
             onRequestChanges={handleRequestChanges}

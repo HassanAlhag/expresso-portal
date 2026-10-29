@@ -1106,6 +1106,14 @@
       "source": "portal-api/src/modules/customers/customer.model.js",
       "fields": [
         {
+          "path": "accountManagerId",
+          "type": "ObjectId",
+          "ref": "User",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "code",
           "type": "String",
           "ref": null,
@@ -1263,6 +1271,240 @@
           "logoMediaId",
           "logoUrl",
           "notes"
+        ],
+        "opaqueHandling": "No raw object projection/export; bounded extraction within separately authorized capture process"
+      }
+    },
+    {
+      "model": "DeliveryPeriod",
+      "collection": "deliveryperiods",
+      "source": "portal-api/src/modules/operating/deliveryPeriod.model.js",
+      "fields": [
+        {
+          "path": "adjustments[]._id",
+          "type": "Unresolved",
+          "ref": null,
+          "opaque": true,
+          "enumConstrained": false,
+          "captureDisposition": "OPAQUE_REFERENCE_CONTAINER"
+        },
+        {
+          "path": "adjustments[].actorId",
+          "type": "ObjectId",
+          "ref": "User",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adjustments[].at",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adjustments[].evidence",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adjustments[].quantity",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adjustments[].reason",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adjustments[].requestId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adjustments[].scopeLineId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "agreementRevisionId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "baseEntitlement[].quantity",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "baseEntitlement[].scopeLineId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "baseEntitlement[].title",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "baseEntitlement[].type",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "baseEntitlement[].unit",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "customerId",
+          "type": "ObjectId",
+          "ref": "Customer",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "decisions[]",
+          "type": "OperatingEventSchema",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "enrollmentId",
+          "type": "ObjectId",
+          "ref": "Enrollment",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "openedAt",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "openedBy",
+          "type": "ObjectId",
+          "ref": "User",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "operatingVersion",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "partialPeriodDecision",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "periodEnd",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "periodStart",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "reconciledAt",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "reconciledBy",
+          "type": "ObjectId",
+          "ref": "User",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "scopeSnapshot[]",
+          "type": "ScopeGroupSchema",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "timezone",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        }
+      ],
+      "referenceSurfaceIds": [
+        "deliveryperiods:adjustments[]._id"
+      ],
+      "futureProjection": {
+        "authorized": false,
+        "identifierHandling": "_id read locally for capture-local HMAC joins only; never export raw identifier",
+        "fields": [
+          "adjustments[]._id"
         ],
         "opaqueHandling": "No raw object projection/export; bounded extraction within separately authorized capture process"
       }
@@ -1445,6 +1687,62 @@
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
+          "path": "activatedAt",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adoptionMappings[]._id",
+          "type": "Unresolved",
+          "ref": null,
+          "opaque": true,
+          "enumConstrained": false,
+          "captureDisposition": "OPAQUE_REFERENCE_CONTAINER"
+        },
+        {
+          "path": "adoptionMappings[].jobId",
+          "type": "ObjectId",
+          "ref": "Job",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adoptionMappings[].scopeLineId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adoptionMappings[].scopeUnitOrdinal",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "agreementDraft",
+          "type": "Boolean",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "agreementRevisions[]",
+          "type": "AgreementSchema",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "createdBy",
           "type": "ObjectId",
           "ref": "User",
@@ -1456,6 +1754,14 @@
           "path": "customerId",
           "type": "ObjectId",
           "ref": "Customer",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "cutoverDate",
+          "type": "String",
+          "ref": null,
           "opaque": false,
           "enumConstrained": false,
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
@@ -1773,6 +2079,30 @@
           "captureDisposition": "TEXT_REFERENCE_POSSIBLE"
         },
         {
+          "path": "operatingEvents[]",
+          "type": "OperatingEventSchema",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "operatingModelVersion",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "operatingVersion",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "overrides.customGroups[].description",
           "type": "String",
           "ref": null,
@@ -2069,6 +2399,14 @@
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
+          "path": "pricing.currency",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "pricing.price",
           "type": "Number",
           "ref": null,
@@ -2093,6 +2431,14 @@
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
+          "path": "sourceDealId",
+          "type": "ObjectId",
+          "ref": "CRMDeal",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "startDate",
           "type": "Date",
           "ref": null,
@@ -2109,6 +2455,14 @@
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
+          "path": "teamId",
+          "type": "ObjectId",
+          "ref": "Team",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "updatedBy",
           "type": "ObjectId",
           "ref": "User",
@@ -2118,6 +2472,7 @@
         }
       ],
       "referenceSurfaceIds": [
+        "enrollments:adoptionMappings[]._id",
         "enrollments:finalScope.groups[].description",
         "enrollments:finalScope.groups[].jobs[].analyticsUrl",
         "enrollments:finalScope.groups[].jobs[].checklist[].text",
@@ -2139,6 +2494,7 @@
         "authorized": false,
         "identifierHandling": "_id read locally for capture-local HMAC joins only; never export raw identifier",
         "fields": [
+          "adoptionMappings[]._id",
           "finalScope.groups[].description",
           "finalScope.groups[].jobs[].analyticsUrl",
           "finalScope.groups[].jobs[].checklist[].text",
@@ -3563,6 +3919,14 @@
       "source": "portal-api/src/modules/content/jobs/job.model.js",
       "fields": [
         {
+          "path": "agreementRevisionId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "analyticsUrl",
           "type": "String",
           "ref": null,
@@ -3860,6 +4224,14 @@
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
+          "path": "managedObligationKey",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "media[]",
           "type": "ObjectId",
           "ref": "Media",
@@ -3874,6 +4246,38 @@
           "opaque": false,
           "enumConstrained": false,
           "captureDisposition": "TEXT_REFERENCE_POSSIBLE"
+        },
+        {
+          "path": "operating",
+          "type": "JobOperatingSchema",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "operatingModelVersion",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "originalCommittedDueDate",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "originDeliveryPeriodId",
+          "type": "ObjectId",
+          "ref": "DeliveryPeriod",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
           "path": "parentGoalId",
@@ -3898,6 +4302,14 @@
           "opaque": false,
           "enumConstrained": false,
           "captureDisposition": "URL_OR_PATH_OR_SYMBOL"
+        },
+        {
+          "path": "phaseId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
           "path": "platform",
@@ -4030,6 +4442,30 @@
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
+          "path": "scheduledPublicationDate",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "scopeLineId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "scopeUnitOrdinal",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "script",
           "type": "String",
           "ref": null,
@@ -4155,6 +4591,14 @@
           "path": "websiteVisible",
           "type": "Boolean",
           "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "workDeliveryPeriodId",
+          "type": "ObjectId",
+          "ref": "DeliveryPeriod",
           "opaque": false,
           "enumConstrained": false,
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
@@ -5686,6 +6130,54 @@
       "source": "portal-api/src/modules/projects/project.model.js",
       "fields": [
         {
+          "path": "activatedAt",
+          "type": "Date",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adoptionMappings[]._id",
+          "type": "Unresolved",
+          "ref": null,
+          "opaque": true,
+          "enumConstrained": false,
+          "captureDisposition": "OPAQUE_REFERENCE_CONTAINER"
+        },
+        {
+          "path": "adoptionMappings[].jobId",
+          "type": "ObjectId",
+          "ref": "Job",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adoptionMappings[].scopeLineId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "adoptionMappings[].scopeUnitOrdinal",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "agreementRevisions[]",
+          "type": "AgreementSchema",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "archivedAt",
           "type": "Date",
           "ref": null,
@@ -5734,6 +6226,14 @@
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
+          "path": "cutoverDate",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "description",
           "type": "String",
           "ref": null,
@@ -5758,6 +6258,14 @@
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
+          "path": "linkedAgreementRevisionId",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "name",
           "type": "String",
           "ref": null,
@@ -5774,9 +6282,41 @@
           "captureDisposition": "TEXT_REFERENCE_POSSIBLE"
         },
         {
+          "path": "operatingEvents[]",
+          "type": "OperatingEventSchema",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "operatingModelVersion",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "operatingVersion",
+          "type": "Number",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "ownerUserId",
           "type": "ObjectId",
           "ref": "User",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
+          "path": "phases[]",
+          "type": "PhaseSchema",
+          "ref": null,
           "opaque": false,
           "enumConstrained": false,
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
@@ -5848,6 +6388,14 @@
           "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
+          "path": "teamId",
+          "type": "ObjectId",
+          "ref": "Team",
+          "opaque": false,
+          "enumConstrained": false,
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
+        },
+        {
           "path": "type",
           "type": "String",
           "ref": null,
@@ -5865,6 +6413,7 @@
         }
       ],
       "referenceSurfaceIds": [
+        "projects:adoptionMappings[]._id",
         "projects:description",
         "projects:notes"
       ],
@@ -5872,6 +6421,7 @@
         "authorized": false,
         "identifierHandling": "_id read locally for capture-local HMAC joins only; never export raw identifier",
         "fields": [
+          "adoptionMappings[]._id",
           "description",
           "notes"
         ],
@@ -6442,6 +6992,15 @@
           "opaque": false,
           "enumConstrained": false,
           "captureDisposition": "TEXT_REFERENCE_POSSIBLE"
+        },
+        {
+          "path": "scopeGroups[].jobs[].completionCriterion",
+          "type": "String",
+          "ref": null,
+          "opaque": false,
+          "enumConstrained": true,
+          "enumShape": "9d0143eeaa086d491a3f13485b473dcd02380b5ee144662198ea62dd86c7c3df",
+          "captureDisposition": "NOT_AN_IDENTIFIED_ASSET_SURFACE"
         },
         {
           "path": "scopeGroups[].jobs[].contentPhase",
@@ -9641,6 +10200,26 @@
       "evidenceState": "NOT_COLLECTED"
     },
     {
+      "id": "deliveryperiods:adjustments[]._id",
+      "model": "DeliveryPeriod",
+      "collection": "deliveryperiods",
+      "fieldPath": "adjustments[]._id",
+      "source": "portal-api/src/modules/operating/deliveryPeriod.model.js",
+      "referenceKind": "OPAQUE_REFERENCE_CONTAINER",
+      "expectedValueType": "Unresolved (array element)",
+      "target": "Media/File/path/URL/key/legacy",
+      "normalization": "bounded-local-recursive-reference-extraction",
+      "nested": true,
+      "htmlOrRichTextParsing": true,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": false,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
       "id": "digitalservices:blocks",
       "model": "DigitalService",
       "collection": "digitalservices",
@@ -9757,6 +10336,26 @@
       "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
       "requiresExplicitSelection": false,
       "cms": true,
+      "legacyProductionEvidence": false,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "enrollments:adoptionMappings[]._id",
+      "model": "Enrollment",
+      "collection": "enrollments",
+      "fieldPath": "adoptionMappings[]._id",
+      "source": "portal-api/src/modules/enrollments/enrollment.model.js",
+      "referenceKind": "OPAQUE_REFERENCE_CONTAINER",
+      "expectedValueType": "Unresolved (array element)",
+      "target": "Media/File/path/URL/key/legacy",
+      "normalization": "bounded-local-recursive-reference-extraction",
+      "nested": true,
+      "htmlOrRichTextParsing": true,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": false,
       "legacyProductionEvidence": false,
       "evidenceState": "NOT_COLLECTED"
     },
@@ -11814,6 +12413,26 @@
       "requiresExplicitSelection": false,
       "cms": false,
       "legacyProductionEvidence": true,
+      "evidenceState": "NOT_COLLECTED"
+    },
+    {
+      "id": "projects:adoptionMappings[]._id",
+      "model": "Project",
+      "collection": "projects",
+      "fieldPath": "adoptionMappings[]._id",
+      "source": "portal-api/src/modules/projects/project.model.js",
+      "referenceKind": "OPAQUE_REFERENCE_CONTAINER",
+      "expectedValueType": "Unresolved (array element)",
+      "target": "Media/File/path/URL/key/legacy",
+      "normalization": "bounded-local-recursive-reference-extraction",
+      "nested": true,
+      "htmlOrRichTextParsing": true,
+      "contextFields": [],
+      "malformedOrUnresolved": "code + source field + capture-local HMAC; no raw value, document, credential, query string or PII",
+      "exposure": "local extraction only; export matched repository path or HMAC of unresolved/private locator",
+      "requiresExplicitSelection": false,
+      "cms": false,
+      "legacyProductionEvidence": false,
       "evidenceState": "NOT_COLLECTED"
     },
     {
@@ -14674,10 +15293,12 @@
       "crmleads:notes",
       "customers:logoUrl",
       "customers:notes",
+      "deliveryperiods:adjustments[]._id",
       "digitalservices:blocks",
       "digitalservices:description",
       "digitalservices:heroImageUrl",
       "digitalservices:imageUrl",
+      "enrollments:adoptionMappings[]._id",
       "enrollments:finalScope.groups[].description",
       "enrollments:finalScope.groups[].jobs[].analyticsUrl",
       "enrollments:finalScope.groups[].jobs[].checklist[].text",
@@ -14755,6 +15376,7 @@
       "procurementvendors:website",
       "productions:description",
       "productions:excerpt",
+      "projects:adoptionMappings[]._id",
       "projects:description",
       "projects:notes",
       "quotations:attachments[].url",
@@ -15156,7 +15778,7 @@
   },
   "provenance": {
     "generator": "docs/architecture/generate-asset-evidence.cjs",
-    "modelFields": "5f819858b360b659de17d4a2ae359630d156a4219b2c159e305e233c04b4b92c",
+    "modelFields": "d580c7597a313926901e8c3610b9f7024f07eb20dfb4f0676debfb89e23cf5a9",
     "policy": "5bf1c8bc3de78fff20309815d3d650ef32d321bf22011d646ed28fbb4a2b37d2",
     "storageSemantics": {
       "client/src/utils/websiteImages.js": "52c298f62748fdade89aa961597097f4b798daba244c2865b120e51944f43885",

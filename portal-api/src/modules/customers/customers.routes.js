@@ -1,5 +1,7 @@
 import express from "express";
 import { requireAuth, requirePermission } from "../../middleware/auth.js";
+import { requireInternalUser } from "../../utils/accessControl.js";
+import { operatingOptions } from "../operating/operating.controller.js";
 
 import {
   listCustomers,
@@ -13,6 +15,7 @@ import {
 } from "./customers.controller.js";
 
 const router = express.Router();
+router.get("/:id/operating/options", requireAuth, requireInternalUser, requirePermission("customers.write"), operatingOptions);
 
 router.get(
   "/",
